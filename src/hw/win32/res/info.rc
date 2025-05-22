@@ -1,0 +1,35 @@
+#define APSTUDIO_READONLY_SYMBOLS
+#include "winres.h"
+#undef APSTUDIO_READONLY_SYMBOLS
+
+#include "resources.h"
+
+IDI_DXUXICON ICON "DXUX.ico"
+
+VS_VERSION_INFO VERSIONINFO
+    FILEVERSION 0,0,0,0
+    PRODUCTVERSION 0,0,0,0
+    FILEFLAGSMASK 0x3FL
+    FILEFLAGS 0x0L
+    FILEOS 0x4L
+    FILETYPE 0x1L
+    FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName", "Naoki's Retro Corner"
+            VALUE "FileDescription", "Loader"
+            VALUE "FileVersion", "0.0.0.1"
+            VALUE "InternalName", "DXUX"
+            VALUE "OriginalFilename", "dxux"
+            VALUE "ProductName", "DXUX"
+            VALUE "ProductVersion", "0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END

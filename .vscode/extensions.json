@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "psioniq.psi-header",
+        "ms-vscode.cmake-tools",
+        "ms-vscode.cpptools"
+    ]
+}

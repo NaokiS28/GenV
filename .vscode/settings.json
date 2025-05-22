@@ -1,0 +1,119 @@
+{
+    "psi-header.variables": [
+        ["projectCreationYear", "2025"],
+        ["projectname", "DXUX"]
+    ],
+    "psi-header.config": {
+        "forceToTop": true,
+        "blankLinesAfter": 1,
+        "author": "NaokiS, spicyjpeg",
+        "creationDateZero": "now",
+        "license": "Custom"
+    },
+    "psi-header.changes-tracking": {
+        "isActive": true,
+        "autoHeader": "manualSave",
+        "enforceHeader": true,
+        "include": [
+            "c",
+            "cpp"
+        ]
+    },
+    "psi-header.lang-config": [
+        {
+            "language": "c",
+            "begin": "/*",
+			"prefix": " * ",
+			"end": "*/",
+			"forceToTop": true,
+        },
+        {  
+            "language": "cpp",
+            "mapTo": "c"
+        },
+        {
+            "language": "*",
+			"prefix": "# ",
+			"forceToTop": true,
+        }
+    ],
+    "psi-header.templates": [
+        {
+            "language": "*",
+            "template": [
+                "<<projectname>> - Copyright (C) <<yeartoyear(<<projectCreationYear>>)>> <<author>>",
+                "<<filename>> - Created on <<filecreated('DD-MM-YYYY')>>",
+                "",
+                "<<licensetext>>"
+            ]
+        }
+    ],
+    "psi-header.license-text": [
+        "<<projectname>> is free software: you can redistribute it and/or modify it under the",
+        "terms of the GNU General Public License as published by the Free Software",
+        "Foundation, either version 3 of the License, or (at your option) any later",
+        "version.",
+        "",
+        "<<projectname>> is distributed in the hope that it will be useful, but WITHOUT ANY",
+        "WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR",
+        "A PARTICULAR PURPOSE. See the GNU General Public License for more details.",
+        "",
+        "You should have received a copy of the GNU General Public License along with",
+        "<<projectname>>. If not, see <https://www.gnu.org/licenses/>."
+    ],
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "files.associations": {
+        "*.tcc": "cpp",
+        "array": "cpp",
+        "atomic": "cpp",
+        "bit": "cpp",
+        "cctype": "cpp",
+        "charconv": "cpp",
+        "clocale": "cpp",
+        "cmath": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "cstdarg": "cpp",
+        "cstddef": "cpp",
+        "cstdint": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "ctime": "cpp",
+        "cwchar": "cpp",
+        "cwctype": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "exception": "cpp",
+        "algorithm": "cpp",
+        "functional": "cpp",
+        "iterator": "cpp",
+        "memory": "cpp",
+        "memory_resource": "cpp",
+        "numeric": "cpp",
+        "optional": "cpp",
+        "random": "cpp",
+        "string_view": "cpp",
+        "system_error": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "format": "cpp",
+        "initializer_list": "cpp",
+        "iosfwd": "cpp",
+        "iostream": "cpp",
+        "istream": "cpp",
+        "limits": "cpp",
+        "new": "cpp",
+        "numbers": "cpp",
+        "ostream": "cpp",
+        "span": "cpp",
+        "stdexcept": "cpp",
+        "streambuf": "cpp",
+        "text_encoding": "cpp",
+        "typeinfo": "cpp",
+        "variant": "cpp",
+        "cstring": "cpp"
+    }
+}

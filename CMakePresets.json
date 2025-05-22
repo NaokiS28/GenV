@@ -1,0 +1,51 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "debug",
+            "displayName": "Debug build",
+            "description": "Build the project with no optimization and assertions enabled.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/mingw32.cmake"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release build",
+            "description": "Build the project with performance optimization and assertions stripped.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/mingw32.cmake"
+            }
+        },
+        {
+            "name": "min-size-release",
+            "displayName": "Minimum size release build",
+            "description": "Build the project with size optimization and assertions stripped.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "MinSizeRel",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/mingw32.cmake"
+            }   
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "Debug",
+            "description": "Debug",
+            "displayName": "Debug",
+            "configurePreset": "debug"
+        }
+    ]
+}
