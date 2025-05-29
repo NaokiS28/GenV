@@ -18,7 +18,8 @@
 #pragma once
 
 #include <stdint.h>
-#include "video.hpp"
+#include "video/video.hpp"
+#include "sys/timer.hpp"
 
 namespace System
 {
@@ -65,5 +66,11 @@ namespace System
         virtual bool init() = 0;     // Init system then load and init hardware services
         virtual int update() = 0;    // Update system manager
         virtual bool shutdown() = 0; // Prepare for app shutdow
+
+        virtual size_t millis() = 0;    // Millis since system start
+
+        virtual bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq) = 0;
+        virtual bool unregisterTimerFunc(TFunc func, TChannel timer) = 0;
+
     };
 }

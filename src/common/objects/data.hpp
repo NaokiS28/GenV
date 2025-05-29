@@ -1,6 +1,6 @@
 /*
  * DXUX - Copyright (C) 2025 NaokiS, spicyjpeg
- * common/classes.hpp - Created on 24-04-2025
+ * data.hpp - Created on 27-05-2025
  *
  * DXUX is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -17,15 +17,20 @@
 
 #pragma once
 
-namespace Audio
+#include <stddef.h>
+#include <stdint.h>
+
+class DataObject
 {
-    class IAudio
+public:
+    DataObject() {}
+    ~DataObject()
     {
-    public:
-        IAudio() = default;
-        virtual ~IAudio() = default;
-        virtual bool init() = 0;
-        virtual bool reset() = 0;
-        virtual void shutdown() = 0;
-    };
-}
+        if (data)
+            delete data;
+    }
+
+private:
+    size_t length = 0;
+    uint8_t *data = nullptr;
+};

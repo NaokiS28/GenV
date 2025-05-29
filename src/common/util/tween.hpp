@@ -1,72 +1,87 @@
 /*
- * 573in1 - Copyright (C) 2022-2024 spicyjpeg
- *
- * 573in1 is free software: you can redistribute it and/or modify it under the
+ * DXUX - Copyright (C) 2025 NaokiS, spicyjpeg
+ * tween.hpp - Created on 11-05-2025
+ * 
+ * DXUX is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- *
- * 573in1 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * 
+ * DXUX is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
- * 573in1. If not, see <https://www.gnu.org/licenses/>.
- */
+ * DXUX. If not, see <https://www.gnu.org/licenses/>.
+*/
 
 #pragma once
+#include <stddef.h> // for size_t
+#include <stdint.h> // for fixed-width types
 
-namespace util {
+namespace Util
+{
 
-static constexpr int TWEEN_UNIT = 1 << 12;
+	// Define the resolution of the tweening scale (used for interpolation).
+	constexpr size_t TWEEN_UNIT = 1024;
 
-class LinearEasing {
-public:
-	template<typename T> static inline T apply(T value) {
-		return value;
-	}
-};
+	// Base easing type: static interface for easing functions.
+	struct LinearEasing
+	{
+		static size_t apply(size_t t) { return t; }
+	};
 
-class QuadInEasing {
-public:
-	template<typename T> static inline T apply(T value) {
-		return (value * value) / TWEEN_UNIT;
-	}
-};
+	struct QuadInEasing
+	{
+		static size_t apply(size_t t) { return (t * t) / TWEEN_UNIT; }
+	};
 
-class QuadOutEasing {
-public:
-	template<typename T> static inline T apply(T value) {
-		return (value * 2) - ((value * value) / TWEEN_UNIT);
-	}
-};
+	struct QuadOutEasing
+	{
+		static size_t apply(size_t t) { return TWEEN_UNIT - ((TWEEN_UNIT - t) * (TWEEN_UNIT - t)) / TWEEN_UNIT; }
+	};
 
-template<typename T, typename E> class Tween {
-private:
-	T   _base, _delta;
-	int _endTime, _timeScale;
+	// Tween class for animating values from a starting point to a target value over time.
+	template <typename T, typename E>
+	class Tween
+	{
+	public:
+		// Set the tween with a start, target, and duration.
+		void setValue(size_t time, T start, T target, size_t duration);
 
-public:
-	inline Tween(void) {
-		setValue(static_cast<T>(0));
-	}
-	inline Tween(T start) {
-		setValue(start);
-	}
+		// Instantly set the value without animation.
+		void setValue(T target);
 
-	inline T getTargetValue(void) const {
-		return _base + _delta;
-	}
-	inline bool isDone(int time) const {
-		return time >= _endTime;
-	}
-	inline void setValue(int time, T target, int duration) {
-		setValue(time, getValue(time), target, duration);
-	}
+		// Get the interpolated value at a given time.
+		T getValue(size_t time) const;
 
-	void setValue(int time, T start, T target, int duration);
-	void setValue(T target);
-	T getValue(int time) const;
-};
+		inline bool isDone(size_t time) const {
+			return time >= _endTime;
+		}
+
+		inline Tween(void) {
+			setValue(static_cast<T>(0));
+		}
+
+		inline Tween(T start) {
+			setValue(start);
+		}
+	
+		inline T getTargetValue(void) const {
+			return _base + _delta;
+		}
+
+		inline void setValue(size_t time, T target, size_t duration) {
+			setValue(time, getValue(time), target, duration);
+		}
+	
+
+	private:
+		int _base = 0;		   	// Starting value
+		int _delta = 0;		   	// Difference to target
+		size_t _startTime = 0;	// When tween started
+		size_t _endTime = 0;   	// When the tween completes
+		size_t _duration = 0;
+	};
 
 }

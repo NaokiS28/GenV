@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "common/services/video.hpp"
+#include "common/services/video/video.hpp"
 
 namespace Apps
 {

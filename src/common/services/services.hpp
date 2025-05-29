@@ -17,11 +17,12 @@
 
 #pragma once
 
-#include "video.hpp"
+#include "video/video.hpp"
 #include "audio.hpp"
 #include "input.hpp"
 #include "appmgr.hpp"
-#include "hw/hardware.hpp"
+#include "storage.hpp"
+#include "system.hpp"
 
 // Not sure I like this setup but it does *work*
 
@@ -32,6 +33,7 @@ public:
     static Audio::IAudio *getAudio() { return s_audio; }
     static Video::IVideo *getVideo() { return s_video; }
     static Input::IInput *getInput() { return s_input; }
+    static Files::IStorage *getStorage() { return s_storage; }
     static System::ISystem *getSystem() { return s_system; }
 
     // AppManager is a static subsystem that orchestrates "apps" running
@@ -45,15 +47,19 @@ public:
     static void setAudio(Audio::IAudio *audio) { s_audio = audio; }
     static void setVideo(Video::IVideo *video) { s_video = video; }
     static void setInput(Input::IInput *input) { s_input = input; }
+    static void setStorage(Files::IStorage *storage) { s_storage = storage; }
     static void setSystem(System::ISystem *sys) { s_system = sys; }
 
     static bool startup();
     static void shutdown();
+
+    static size_t millis();     // Forwarder function to system millis with protection
 
 private:
     // Static pointers to service implementations
     static Audio::IAudio *s_audio;
     static Video::IVideo *s_video;
     static Input::IInput *s_input;
+    static Files::IStorage *s_storage;
     static System::ISystem *s_system;
 };

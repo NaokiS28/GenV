@@ -18,19 +18,22 @@
 #include "services.hpp"
 #include "common/util/log.hpp"
 
+#include "hw/hardware.hpp"
+
 // Static member definitions
-Audio::IAudio *Services::s_audio = 0;
-Video::IVideo *Services::s_video = 0;
-Input::IInput *Services::s_input = 0;
-System::ISystem *Services::s_system = 0;
+Audio::IAudio *Services::s_audio = nullptr;
+Video::IVideo *Services::s_video = nullptr;
+Input::IInput *Services::s_input = nullptr;
+Files::IStorage *Services::s_storage = nullptr;
+System::ISystem *Services::s_system = nullptr;
 
 bool Services::startup()
 {
-    // Pointer for system and refference for app manager. Again, this seems... not right.
+    // Pointer for system and reference for app manager. Again, this seems... not right.
     // Works... but not right. Context: This stuff was moved into here but was in main.
     
     s_system = new System::SYSTEM_CLASS(); // Hardware specific, see hw/hardware.hpp
-    if (s_system == nullptr || s_system->init())
+    if (s_system == nullptr || !s_system->init())
     { // Always init system manager first.
         LOG_APP("System manager failed to init.");
         return false;
@@ -73,4 +76,10 @@ void Services::shutdown()
         Services::s_system->shutdown();
         delete s_system;
     }
+}
+
+size_t Services::millis(){
+    System::ISystem *sys = Services::getSystem();
+    if(sys != nullptr) return sys->millis();
+    return 0;
 }

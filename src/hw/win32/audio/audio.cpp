@@ -1,6 +1,6 @@
 /*
  * DXUX - Copyright (C) 2025 NaokiS, spicyjpeg
- * common/classes.hpp - Created on 24-04-2025
+ * video.cpp - Created on 26-04-2025
  *
  * DXUX is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,17 +15,33 @@
  * DXUX. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "audio.hpp"
+#include "directsound.hpp"
+// #include "spu-sdl.hpp"
 
-namespace Audio
+using namespace Audio;
+
+WinAudio::WinAudio()
 {
-    class IAudio
+}
+
+bool WinAudio::init()
+{
+    const char *audio = "dxs";
+    if (!strcmp(audio, "dxs"))
     {
-    public:
-        IAudio() = default;
-        virtual ~IAudio() = default;
-        virtual bool init() = 0;
-        virtual bool reset() = 0;
-        virtual void shutdown() = 0;
-    };
+        audioDriver = new DirectSound(gpuWnd);
+    }
+
+    if (audioDriver)
+    {
+        audioDriver->setWindow(gpuWnd);
+        return audioDriver->init();
+    }
+
+    return false;
+}
+
+WinAudio::~WinAudio()
+{
 }

@@ -19,7 +19,9 @@
 #include <stdint.h>
 #include "common/util/templates.hpp"
 #include "common/util/rect.h"
+
 #include "vesa.hpp"
+#include "color.hpp"
 
 namespace Video
 {
@@ -30,77 +32,6 @@ namespace Video
         Windowed,   // App is in window mode
         Borderless, // App is in borderless fullscreen mode
         Fullscreen  // App is in dedicated, resolution switching fullscreen mode
-    };
-
-    struct Color
-    {
-        uint8_t r = 0;
-        uint8_t g = 0;
-        uint8_t b = 0;
-        uint8_t a = 0;
-
-        Color() : r(0), g(0), b(0), a(255) {}
-
-        Color(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a = 0xFF)
-            : r(_r), g(_g), b(_b), a(_a) {}
-
-        // Constructor from ARGB 32-bit value
-        Color(uint32_t argb)
-            : r((argb >> 16) & 0xFF),
-              g((argb >> 8) & 0xFF),
-              b(argb & 0xFF),
-              a((argb >> 24) & 0xFF) {}
-
-        // Create a 32-bit integer in ARGB format
-        uint32_t toARGB() const
-        {
-            return (uint32_t(a) << 24) | (uint32_t(r) << 16) | (uint32_t(g) << 8) | uint32_t(b);
-        }
-
-        // Create a 32-bit integer in ABGR format
-        uint32_t toABGR() const
-        {
-            return (uint32_t(a) << 24) | (uint32_t(b) << 16) | (uint32_t(g) << 8) | uint32_t(r);
-        }
-
-        // Create a 16-bit RGB565 value
-        uint16_t toRGB565() const
-        {
-            return uint16_t(
-                ((r >> 3) << 11) | // 5 bits
-                ((g >> 2) << 5) |  // 6 bits
-                (b >> 3)           // 5 bits
-            );
-        }
-
-        // Blend two colors (alpha blend)
-        static Color blend(const Color &src, const Color &dst)
-        {
-            uint32_t alpha = src.a;
-            uint32_t invAlpha = 255 - alpha;
-
-            uint8_t outR = (uint8_t)((src.r * alpha + dst.r * invAlpha) / 255);
-            uint8_t outG = (uint8_t)((src.g * alpha + dst.g * invAlpha) / 255);
-            uint8_t outB = (uint8_t)((src.b * alpha + dst.b * invAlpha) / 255);
-
-            // Clamping
-            int tempA = src.a + dst.a * invAlpha / 255;
-            if (tempA < 0)
-                tempA = 0;
-            else if (tempA > 255)
-                tempA = 255;
-            uint8_t outA = static_cast<uint8_t>(tempA);
-
-            return Color(outR, outG, outB, outA);
-        }
-
-        // Premultiply alpha
-        void premultiply()
-        {
-            r = (uint8_t)((r * a) / 255);
-            g = (uint8_t)((g * a) / 255);
-            b = (uint8_t)((b * a) / 255);
-        }
     };
 
     // DPI/Scaling stuff
@@ -224,9 +155,13 @@ namespace Video
         virtual int getSupportedResolutions(VideoModeList &list) = 0;
 
         // Attempts to set the fullscreen state and returns current fullscreen state
-        virtual bool setFullscreen(FullscreenMode mode)
+        virtual bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0)
         {
             return false;
+        }
+
+        inline bool toggleFullscreen(){
+            return setFullscreen(this->getFullscreenMode() != Video::Windowed ? Video::Windowed : Video::Fullscreen, 800, 600);
         }
 
         virtual FullscreenMode getFullscreenMode(){ 
@@ -266,5 +201,4 @@ namespace Video
         void draw(int x, int y, int alpha = 255) const;
         void draw(int x, int y, int sx, int sy, int w, int h, int a = 255) const;
     };
-
 }

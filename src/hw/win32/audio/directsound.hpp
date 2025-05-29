@@ -1,6 +1,6 @@
 /*
  * DXUX - Copyright (C) 2025 NaokiS, spicyjpeg
- * common/classes.hpp - Created on 24-04-2025
+ * directsound.hpp - Created on 25-05-2025
  *
  * DXUX is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -17,15 +17,28 @@
 
 #pragma once
 
-namespace Audio
+#include <dsound.h>
+#include "audio.hpp"
+
+#include "common/objects/sound.hpp"
+
+class DirectSound : public IWinAudio
 {
-    class IAudio
-    {
-    public:
-        IAudio() = default;
-        virtual ~IAudio() = default;
-        virtual bool init() = 0;
-        virtual bool reset() = 0;
-        virtual void shutdown() = 0;
-    };
-}
+private:
+    WindowObject *gpuWnd;
+
+    LPDIRECTSOUND8          dsdev = nullptr;
+    LPDIRECTSOUNDBUFFER     dsbuffer = nullptr;
+
+public:
+    DirectSound(WindowObject *hWnd);
+    ~DirectSound();
+
+    void setWindow(WindowObject *hWnd);
+    bool init();
+    bool reset();
+    void shutdown();
+
+    
+    bool LoadWavFile(const char* filename);
+};

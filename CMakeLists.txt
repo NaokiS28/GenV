@@ -47,17 +47,23 @@ if(WIN32)
 		src/hw/win32/video/gpu-sdl.cpp
 		src/hw/win32/video/video.cpp
 		src/hw/win32/video/vidutil.cpp
+		src/hw/win32/audio/audio.cpp
+		src/hw/win32/audio/directsound.cpp
+		src/hw/win32/file/file.cpp
 		src/hw/win32/res/icon.rc
 		src/hw/win32/res/info.rc
 		src/hw/win32/window-mgr.cpp
 		src/hw/win32/system.cpp
+		src/hw/win32/win_platform.cpp
 		src/common/util/hash.cpp
 		src/common/util/log.cpp
 		src/common/util/misc.cpp
 		src/common/util/text.cpp
 		src/common/util/tween.cpp
 		src/common/services/services.cpp
+		src/common/services/storage.cpp
 		src/common/services/appmgr.cpp
+		src/common/services/sys/timer.cpp
 		src/app/app.cpp
 		src/app/builtin/errorscr/errorscr.cpp
 		src/app/builtin/loadscr/loadscr.cpp
@@ -102,9 +108,9 @@ if(WIN32)
     set(COMMON_LIBS winmm user32)
 
     if(MINGW)
-        target_link_libraries(main PRIVATE ${COMMON_LIBS} d3d9 d3dx9 gdi32)
+        target_link_libraries(main PRIVATE ${COMMON_LIBS} dsound dxguid d3d9 d3dx9 gdi32 winmm)
     elseif(MSVC)
-        target_link_libraries(main PRIVATE ${COMMON_LIBS} d3d9 d3dx9 Msimg32)
+        target_link_libraries(main PRIVATE ${COMMON_LIBS} dsound dxguid d3d9 d3dx9 Msimg32 winmm)
     endif()
 endif()
 

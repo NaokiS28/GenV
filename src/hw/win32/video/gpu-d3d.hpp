@@ -107,8 +107,7 @@ public:
 
     int getSupportedResolutions(VideoModeList &list);
     int setResolution(int w, int h, bool updateWindow = true) override;
-    bool setFullscreen(FullscreenMode mode, int w, int h);
-    bool setFullscreen(FullscreenMode mode) override;
+    bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0) override;
     inline FullscreenMode getFullscreenMode() override { return gpuWnd->fsMode; }
 
     void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const override {}

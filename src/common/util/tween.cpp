@@ -18,46 +18,55 @@
 #include <stdint.h>
 #include "common/util/tween.hpp"
 
-namespace util {
+namespace Util
+{
 
-template<typename T, typename E> void Tween<T, E>::setValue(
-	int time, T start, T target, int duration
-) {
-	//assert(duration <= 0x800);
+	// Configure the tween for a transition: set start, end, and duration.
+	template <typename T, typename E>
+	void Tween<T, E>::setValue(size_t time, T start, T target, size_t duration)
+	{
+		_startTime = time;
+		_base = start;
+		_delta = target - start;
+		_endTime = time + duration;
+		_duration = duration;
+	}
 
-	_base  = start;
-	_delta = target - start;
+	// Immediately set the value (no animation).
+	template <typename T, typename E>
+	void Tween<T, E>::setValue(T target)
+	{
+		_base = target;
+		_delta = static_cast<T>(0); // No delta (no interpolation)
+		_endTime = 0;				// Disables interpolation
+	}
 
-	_endTime   = time + duration;
-	_timeScale = TWEEN_UNIT / duration;
-}
+	// Compute the interpolated value at a given time.
+	template <typename T, typename E>
+	T Tween<T, E>::getValue(size_t time) const
+	{
+		if (time >= _endTime)
+			return _base + _delta;
 
-template<typename T, typename E> void Tween<T, E>::setValue(T target) {
-	_base  = target;
-	_delta = static_cast<T>(0);
+		size_t elapsed = time - _startTime;
+		size_t progress = (elapsed * TWEEN_UNIT) / _duration;
 
-	_endTime = 0;
-}
+		int interpolated = _base + (_delta * E::apply(progress)) / TWEEN_UNIT;
+		return static_cast<T>(interpolated);
+	}
 
-template<typename T, typename E> T Tween<T, E>::getValue(int time) const {
-	int remaining = time - _endTime;
-
-	if (remaining >= 0)
-		return _base + _delta;
-
-	return _base + (
-		_delta * E::apply(remaining * _timeScale + TWEEN_UNIT)
-	) / TWEEN_UNIT;
-}
-
-template class Tween<int, LinearEasing>;
-template class Tween<int, QuadInEasing>;
-template class Tween<int, QuadOutEasing>;
-template class Tween<uint16_t, LinearEasing>;
-template class Tween<uint16_t, QuadInEasing>;
-template class Tween<uint16_t, QuadOutEasing>;
-template class Tween<uint32_t, LinearEasing>;
-template class Tween<uint32_t, QuadInEasing>;
-template class Tween<uint32_t, QuadOutEasing>;
+	// Explicit instantiations for commonly used types and easing functions.
+	template class Tween<int, LinearEasing>;
+	template class Tween<int, QuadInEasing>;
+	template class Tween<int, QuadOutEasing>;
+	template class Tween<uint8_t, LinearEasing>;
+	template class Tween<uint8_t, QuadInEasing>;
+	template class Tween<uint8_t, QuadOutEasing>;
+	template class Tween<uint16_t, LinearEasing>;
+	template class Tween<uint16_t, QuadInEasing>;
+	template class Tween<uint16_t, QuadOutEasing>;
+	template class Tween<uint32_t, LinearEasing>;
+	template class Tween<uint32_t, QuadInEasing>;
+	template class Tween<uint32_t, QuadOutEasing>;
 
 }

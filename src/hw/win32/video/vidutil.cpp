@@ -15,7 +15,7 @@
  * DXUX. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "common/services/video.hpp"
+#include "common/services/video/video.hpp"
 #include "vidutil.hpp"
 #include <cstring>
 

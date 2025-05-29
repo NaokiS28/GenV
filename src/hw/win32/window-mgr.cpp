@@ -172,11 +172,13 @@ bool WindowObject::Resize(int w, int h, int x, int y)
     // If X/Y == CW_USEDEFAULT, get current coords because Win32 is a bitch.
     WINDOWPLACEMENT wp;
     GetWindowPlacement(this->hWnd, &wp);
-    if(x == CW_USEDEFAULT) x = wp.rcNormalPosition.left;
-    if(y == CW_USEDEFAULT) y = wp.rcNormalPosition.top;
+    if (x == CW_USEDEFAULT)
+        x = wp.rcNormalPosition.left;
+    if (y == CW_USEDEFAULT)
+        y = wp.rcNormalPosition.top;
 
     return SetWindowPos(this->hWnd, nullptr, x, y, rc.right - rc.left, rc.bottom - rc.top,
-        SWP_NOZORDER | SWP_FRAMECHANGED);
+                        SWP_NOZORDER | SWP_FRAMECHANGED);
 }
 
 bool WindowObject::SetWindowMode(Video::FullscreenMode mode, int w, int h, int x, int y)
@@ -189,8 +191,7 @@ bool WindowObject::SetWindowMode(Video::FullscreenMode mode, int w, int h, int x
         RECT rc = {0, 0, w, h};
         AdjustWindowRect(&rc, dwStyle, FALSE);
         SetWindowLongPtr(this->hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
-        SetWindowPos(this->hWnd, nullptr, x, y, rc.right - rc.left, rc.bottom - rc.top,
-                     SWP_NOZORDER | SWP_FRAMECHANGED);
+        Resize(w, h, x, y);
         Show();
         return true;
     }

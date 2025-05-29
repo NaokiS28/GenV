@@ -35,7 +35,7 @@ namespace Apps
         private:
             Apps::Application *foregroundApp = nullptr;
             Apps::Application *backgroundApp = nullptr;
-            AppLoader *loadingScreen = nullptr;
+            Apps::AppLoader *loadingScreen = nullptr;
             ErrorScreen *errorScreen = nullptr;
     
             void quitApp(AppSelect app = APP_FOREGROUND);
@@ -51,6 +51,9 @@ namespace Apps
             int render();
             bool reload();
             bool shutdown();
+
+            bool showErrorScreen(const char *title, const char *text, ErrorMessageStyle style = EM_STYLE_DEFAULT, ErrorMessageIcon icon = EM_ICON_DEFAULT);
+            bool showErrorScreen(ErrorScreenMessage *msg);
     
             Apps::Application *getForegroundApp(){ return foregroundApp; }
             Apps::Application *getBackgroundApp(){ return backgroundApp; }

@@ -63,12 +63,15 @@ int AppManager::init()
 
 int AppManager::update()
 {
-    if (!foregroundApp && !backgroundApp)
+    if (!foregroundApp && !backgroundApp && !errorScreen)
     {
         // Both apps are gone, default
-        errorScreen = new ErrorScreen(appmgrName, "Both app pointers are null.", EM_STYLE_CRITICAL_ERROR);
-        if (!errorScreen)
-            return -1;
+        showErrorScreen(
+            "Application Manager", 
+            "Both app pointers are null",
+            EM_STYLE_CRITICAL_ERROR,
+            EM_ICON_CRITICAL_ERROR
+        );
     }
     else
     {
@@ -217,4 +220,33 @@ int AppManager::loadApp()
 {
 
     return 0;
+}
+
+bool AppManager::showErrorScreen(
+    const char *title, 
+    const char *text, 
+    ErrorMessageStyle style, 
+    ErrorMessageIcon icon
+){
+    ErrorScreenMessage *esApp = new ErrorScreenMessage(title, text, style, icon);
+    if(!esApp) return false;
+
+    return showErrorScreen(esApp);
+}
+
+bool AppManager::showErrorScreen(ErrorScreenMessage *msg){
+    if(!msg)
+        return false;
+    
+    if(errorScreen){
+        ErrorMessageStyle currSeverity = errorScreen->getSeverity();
+        if(msg->style >= currSeverity){
+            errorScreen->shutdown();
+            delete errorScreen;
+            errorScreen = nullptr;
+        }
+    }
+
+    errorScreen = ErrorScreen::create(msg);
+    return (errorScreen != nullptr);
 }

@@ -19,51 +19,36 @@
 #include "resources.h"
 
 #include "common/util/log.hpp"
+#include "common/util/misc.hpp"
 
 namespace System
 {
     bool WinSystem::init()
     {
-        hInst = GetModuleHandle(nullptr);
-
-        WNDCLASSEX wcex;
-
-        ZeroMemory(&wcex, sizeof(WNDCLASSEX));
-
-        wcex.cbSize = sizeof(WNDCLASSEX);
-        wcex.style = CS_HREDRAW | CS_VREDRAW;
-        wcex.lpfnWndProc = WndProc;
-        wcex.cbClsExtra = 0;
-        wcex.cbWndExtra = 0;
-        wcex.hInstance = hInst;
-        wcex.hIcon = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_DXUXICON));
-        wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wcex.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
-        wcex.lpszMenuName = NULL;
-        wcex.lpszClassName = szWindowClass;
-        wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_DXUXICON));
-
-        if (!RegisterClassEx(&wcex))
-        {
-            LOG_APP("Critical error: Class registration failed");
-            MessageBox(NULL,
-                       _T("Critical error: Class registration failed"),
-                       szAppName,
-                       MB_OK);
-            return 1;
-        }
-
+        if (!initWindowClass())
+            return false;
         SetProcessDPIAware();
-        Services::setSystem(this); // This needs to be set for subsequent drivers else they will segfault.
-
-        if (initVideo() || initAudio() || initIO())
+        // You must set the system service before initing further drivers
+        linkServices();
+        if (initVideo())
+        {
+            return 1;
+        }
+        if (initFiles())
+        {
+            return 1;
+        }
+        if (initAudio())
+        {
+            return 1;
+        }
+        if (initIO())
         {
             return 1;
         }
 
-        setFullscreen(Video::Windowed);     // TODO: Fullscreen and Borderless are fucked up.
-
-        return 0;
+        setFullscreen(Video::Windowed); // TODO: Fullscreen and Borderless are fucked up.
+        return true;
     }
 
     bool WinSystem::setResolution(int w, int h)
@@ -75,7 +60,14 @@ namespace System
     bool WinSystem::setFullscreen(Video::FullscreenMode mode)
     {
         video.setFullscreen(mode);
-        sm_state = System::SM_RELOAD;
+        sm_state = System::SM_RESIZE;
+        return true;
+    }
+
+    bool WinSystem::toggleFullscreen()
+    {
+        video.toggleFullscreen();
+        sm_state = System::SM_RESIZE;
         return true;
     }
 
@@ -93,6 +85,26 @@ namespace System
 
         Services::setVideo(video.getVideoService());
 
+        return 0;
+    }
+
+    int WinSystem::initAudio()
+    {
+        if (!gpuWnd)
+            return -1;
+
+        audio.setWindow(gpuWnd);
+        audio.init();
+
+        Services::setAudio(audio.getAudioService());
+        return 0;
+    }
+
+    int WinSystem::initFiles()
+    {
+        storage.setWindow(gpuWnd);
+        storage.init();
+        Services::setStorage(&storage);
         return 0;
     }
 
@@ -117,29 +129,50 @@ namespace System
 
     bool WinSystem::shutdown()
     {
+        DeleteTimerQueueTimer(NULL, sysTimer.timerHandle, NULL); // Stop 10ms timer
         video.shutdown();
         winManager.shutdown();
         UnregisterClass(szWindowClass, hInst);
-        return 1;
+        return true;
     }
 
-    // Windows message handling routine
-    LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+    size_t WinSystem::millis()
     {
-        switch (message)
+        LARGE_INTEGER now;
+        QueryPerformanceCounter(&now);
+        return static_cast<size_t>(
+            (now.QuadPart - start.QuadPart) * 1000 / freq.QuadPart);
+    }
+
+    bool WinSystem::initWindowClass()
+    {
+        hInst = GetModuleHandle(nullptr);
+
+        WNDCLASSEX wcex;
+        ZeroMemory(&wcex, sizeof(WNDCLASSEX));
+
+        wcex.cbSize = sizeof(WNDCLASSEX);
+        wcex.style = CS_HREDRAW | CS_VREDRAW;
+        wcex.lpfnWndProc = WinAPI::WndProc;
+        wcex.cbClsExtra = 0;
+        wcex.cbWndExtra = 0;
+        wcex.hInstance = hInst;
+        wcex.hIcon = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_DXUXICON));
+        wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wcex.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
+        wcex.lpszMenuName = NULL;
+        wcex.lpszClassName = szWindowClass;
+        wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_DXUXICON));
+
+        if (!RegisterClassEx(&wcex))
         {
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            return 0;
-        case WM_SIZE:
-        {
-            UINT width = LOWORD(lParam);
-            UINT height = HIWORD(lParam);
-            static_cast<WinSystem *>(Services::getSystem())->setResolution(width, height);
+            LOG_APP("Critical error: Class registration failed");
+            MessageBox(NULL,
+                       _T("Critical error: Class registration failed"),
+                       szAppName,
+                       MB_OK);
+            return false;
         }
-            return 0;
-        default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
-        }
+        return true;
     }
 }

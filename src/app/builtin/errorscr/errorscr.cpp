@@ -24,22 +24,14 @@
 using namespace Apps;
 
 ErrorScreen::ErrorScreen(ErrorScreenMessage *msg) : Application(Services::getVideo()),
+                                                    colorIntensity(UINT8_MAX),
                                                     msg(msg)
 {
     state = APP_STATE_INIT;
-}
-
-ErrorScreen::ErrorScreen(
-    const char *title,
-    const char *text,
-    int style,
-    int icon) : Application(Services::getVideo())
-{
-    msg = new ErrorScreenMessage(title, text, style, icon);
-    if (!msg)
-        msg = &eMsgUnknownMsg;
-
-    state = APP_STATE_INIT;
+    bgAlpha.setValue(Services::millis(), 0, util::percentOf(80, UINT8_MAX), bgFadeTime);
+    jumpOut.setValue(0);
+    jumpIn.setValue(Services::millis(), Services::getVideo()->getVerticalRes(), 0, toastAnimTime);
+    animState = INTRO_RUN;
 }
 
 int ErrorScreen::init()
@@ -56,9 +48,50 @@ int ErrorScreen::init()
 
 void ErrorScreen::update()
 {
+    // Animations
+    switch (animState)
+    {
+    case INTRO_RUN:
+        if (jumpIn.isDone(Services::millis()))
+        {
+            animState = STOP;
+        }
+        break;
+    case OUTRO_RUN:
+        if (jumpOut.isDone(Services::millis()))
+            animState = STOP;
+        break;
+    default:
+        break;
+    }
+
+
+    // Border colour flash
+    if (msg && msg->style != EM_STYLE_INFO)
+    {
+        if (colorIntensity.isDone(Services::millis()))
+        {
+            if (colorIntensity.getTargetValue() != UINT8_MAX)
+            {
+                colorIntensity.setValue(
+                    Services::millis(),
+                    UINT8_MAX,
+                    borderFadeTime);
+
+            }
+            else
+            {
+                colorIntensity.setValue(
+                    Services::millis(),
+                    150,
+                    borderFadeTime);
+            }
+        }
+    }
 }
 
-void ErrorScreen::reload(){
+void ErrorScreen::reload()
+{
     area = RectWH(
         gpu->getHorizontalRes() / 10,
         gpu->getVerticalRes() / 4,
@@ -68,42 +101,72 @@ void ErrorScreen::reload(){
 
 void ErrorScreen::render()
 {
-    Color c;
+    Color c1; // Animates
+    Color c2; // Not animates
     switch (msg->style)
     {
-    case EM_STYLE_INFO:
-        c.r = 0;
-        c.b = 255;
-        c.g = 100;
+    case ErrorMessageStyle::EM_STYLE_INFO:
+        c1 = Colors::LightBlue;
         break;
-    case EM_STYLE_WARNING:
-        c.r = 255;
-        c.b = 191;
-        c.g = 0;
+    case ErrorMessageStyle::EM_STYLE_WARNING:
+        c1 = Colors::Amber;
         break;
     default:
-    case EM_STYLE_CRITICAL_ERROR:
-    case EM_STYLE_ERROR:
-        c.r = 255;
-        c.b = 0;
-        c.g = 0;
+    case ErrorMessageStyle::EM_STYLE_CRITICAL_ERROR:
+    case ErrorMessageStyle::EM_STYLE_ERROR:
+        c1 = Colors::Red;
         break;
     }
 
-    gpu->drawRect(0, 0, gpu->getHorizontalRes(), gpu->getVerticalRes(), {0, 0, 0, util::percentOf(80, 255)});
-    gpu->drawRect(area.x, area.y, area.w, area.h, c);
-    gpu->drawRect(area.x + 5, area.y + 5, area.w - 10, area.h - 10, Color(0, 0, 0));
-    gpu->drawText(msg->title.str, msg->title.len, area.x + 20, area.y + 20, area.w - 20, 50, {255, 255, 255});
+    c2 = c1;
+    c1.a = colorIntensity.getValue(Services::millis());
+    Video::premultiply(c1);
 
-    gpu->drawLine(area.x + 20, area.y + 60, (area.x + area.w) - 20, area.y + 60, 2, {255, 0, 0});
-    gpu->drawText(eMsgStrList[msg->style].str, eMsgStrList[msg->style].len, area.x + 20, area.y + 70, area.w - 20, 100, c);
-    gpu->drawText(msg->message.str, msg->message.len, area.x + 20, area.y + 95, area.w - 20, 100, {255, 255, 255});
+    // Set yOffset for jumpin or jump out animations
+    int yOffset = area.y;
+    switch (animState)
+    {
+    case INTRO_RUN:
+        yOffset += jumpIn.getValue(Services::millis());
+        break;
+    case OUTRO_RUN:
+        yOffset += jumpOut.getValue(Services::millis());
+        break;
+    default:
+        break;
+    }
 
-    gpu->drawText(eMsgOptionList[msg->action].str, eMsgOptionList[msg->action].len, area.x + 20, (area.y + area.h) - 60, area.w - 20, 100, {255, 255, 255});
+    // Window
+    gpu->drawRect(
+        0, 0,                    // X/Y
+        gpu->getHorizontalRes(), // Width
+        gpu->getVerticalRes(),   // Height
+        Colors::Alpha(Colors::Black, bgAlpha.getValue(Services::millis()))
+    );
+    gpu->drawRect(area.x, yOffset, area.w, area.h, c1);
+    gpu->drawRect(
+        area.x + 5, yOffset + 5,
+        area.w - 10, area.h - 10,
+        Colors::Black);
+
+    // Contents
+    gpu->drawText(msg->title.str, msg->title.len, area.x + 20, yOffset + 20, area.w - 20, 50, Colors::White);
+    gpu->drawLine(area.x + 20, yOffset + 60, (area.x + area.w) - 20, yOffset + 60, 2, c2);
+    gpu->drawText(eMsgStrList[msg->style].str, eMsgStrList[msg->style].len, area.x + 20, yOffset + 70, area.w - 20, 100, c2);
+    gpu->drawText(msg->message.str, msg->message.len, area.x + 20, yOffset + 95, area.w - 20, 100, Colors::White);
+
+    // Options
+    gpu->drawText(eMsgOptionList[msg->action].str, eMsgOptionList[msg->action].len, area.x + 20, (yOffset + area.h) - 60, area.w - 20, 100, Colors::White);
+}
+
+void ErrorScreen::shutdown()
+{
+    state = APP_STATE_SHUTDOWN;
+    if (msg && msg != &eMsgUnknownMsg)
+        delete msg;
 }
 
 ErrorScreen::~ErrorScreen()
 {
-    if (msg && msg != &eMsgUnknownMsg)
-        delete msg;
+    shutdown();
 }

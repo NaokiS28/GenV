@@ -33,13 +33,13 @@ public:
     bool shutdown() override { return 0; }
     void setWindow(WindowObject *wObj) override {}
 
-    int getSupportedResolutions(VideoModeList &list){}
+    int getSupportedResolutions(VideoModeList &list){ return 0; }
 
     int setResolution(int w, int h, bool updateWindow = true){ 
         return 0;
     }
 
-    bool setFullscreen(FullscreenMode mode) override {
+    bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0) override {
         return true;
     }
 

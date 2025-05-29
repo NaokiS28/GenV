@@ -19,7 +19,7 @@
 
 #include <windows.h>
 #include <vector>
-#include "common/services/video.hpp"
+#include "common/services/video/video.hpp"
 #include "common/util/rect.h"
 
 class WindowObject

@@ -20,44 +20,56 @@
 #include <stddef.h>
 #include <stdint.h>
 
-namespace util {
+namespace util
+{
 
-/* Date and time class */
+	/* Date and time class */
 
-class Date {
-public:
-	uint16_t year;
-	uint8_t  month, day, hour, minute, second;
+	class Date
+	{
+	public:
+		uint16_t year;
+		uint8_t month, day, hour, minute, second;
 
-	inline void reset(void) {
-		year   = 2024;
-		month  = 1;
-		day    = 1;
-		hour   = 0;
-		minute = 0;
-		second = 0;
+		inline void reset(void)
+		{
+			year = 2024;
+			month = 1;
+			day = 1;
+			hour = 0;
+			minute = 0;
+			second = 0;
+		}
+
+		bool isValid(void) const;
+		bool isLeapYear(void) const;
+		int getDayOfWeek(void) const;
+		int getMonthDayCount(void) const;
+		uint32_t toDOSTime(void) const;
+		size_t toString(char *output) const;
+
+		void fromCurrentTime(void);
+	};
+
+	/* Critical section helper */
+
+	class CriticalSection
+	{
+	public:
+		inline CriticalSection(void)
+		{
+			// TODO: implement
+		}
+		inline ~CriticalSection(void)
+		{
+			// TODO: implement
+		}
+	};
+
+	template <typename T>
+	void ClearMemory(T *dest, size_t len)
+	{
+		memset(dest, 0, len);
 	}
-
-	bool isValid(void) const;
-	bool isLeapYear(void) const;
-	int getDayOfWeek(void) const;
-	int getMonthDayCount(void) const;
-	uint32_t toDOSTime(void) const;
-	size_t toString(char *output) const;
-
-	void fromCurrentTime(void);
-};
-
-/* Critical section helper */
-
-class CriticalSection {
-public:
-	inline CriticalSection(void) {
-		// TODO: implement
-	}
-	inline ~CriticalSection(void) {
-		// TODO: implement
-	}
-};
 
 }

@@ -129,7 +129,7 @@ void DirectXGPU::setWindow(WindowObject *wObj)
 }
 
 int DirectXGPU::getSupportedResolutions(VideoModeList &list){
-
+    return 0;
 }
 
 int DirectXGPU::setResolution(int w, int h, bool updateWindow)
@@ -147,43 +147,31 @@ int DirectXGPU::setResolution(int w, int h, bool updateWindow)
 
 bool DirectXGPU::setFullscreen(FullscreenMode mode, int w, int h)
 {
-    HRESULT hr;
+    if (w == 0 || h == 0) {
+        w = adaptorList[0].d3dMode.Width;
+        h = adaptorList[0].d3dMode.Height;
+    }
 
-    gpuWnd->SetWindowMode(mode, w, h, 0, 0);
-    D3DPRESENT_PARAMETERS d3dpp = {};
-    d3dpp.Windowed = (mode != Video::Fullscreen);
-    d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-    d3dpp.BackBufferFormat = D3DFMT_X8B8G8R8;
-    d3dpp.BackBufferWidth = w;
-    d3dpp.BackBufferHeight = h;
-    d3dpp.hDeviceWindow = gpuWnd->hWnd;
-    releaseResources();
-    hr = d3ddev->Reset(&d3dpp);
-    D3DXCreateFont(d3ddev, 20, 0, 0, 1, FALSE, DEFAULT_CHARSET,
-                   OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
-                   TEXT("Unispace"), &d3dfont);
-
-    return SUCCEEDED(hr);
-}
-
-bool DirectXGPU::setFullscreen(FullscreenMode mode)
-{
     HRESULT hr;
     if (gpuWnd->fsMode != mode)
     {
-        gpuWnd->SetWindowMode(mode, this->getHorizontalRes(), this->getVerticalRes());
         D3DPRESENT_PARAMETERS d3dpp = {};
         d3dpp.Windowed = (mode != Video::Fullscreen);
         d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-        d3dpp.BackBufferFormat = D3DFMT_X8B8G8R8;
+        d3dpp.BackBufferFormat = adaptorList[0].d3dMode.Format;
         if(mode == Video::Fullscreen){
-            d3dpp.BackBufferWidth = this->getHorizontalRes();
-            d3dpp.BackBufferHeight = this->getVerticalRes();
-            d3dpp.FullScreen_RefreshRateInHz = 60;
+            d3dpp.BackBufferWidth = w;
+            d3dpp.BackBufferHeight = h;
+            d3dpp.FullScreen_RefreshRateInHz = adaptorList[0].d3dMode.RefreshRate;
         }
+        this->setResolution(adaptorList[0].d3dMode.Width, adaptorList[0].d3dMode.Height);
+        gpuWnd->SetWindowMode(mode, adaptorList[0].d3dMode.Width, adaptorList[0].d3dMode.Height);
         d3dpp.hDeviceWindow = gpuWnd->hWnd;
+
         releaseResources();
+
         hr = d3ddev->Reset(&d3dpp);
+        
         D3DXCreateFont(d3ddev, 20, 0, 0, 1, FALSE, DEFAULT_CHARSET,
                        OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
                        TEXT("Unispace"), &d3dfont);
@@ -197,16 +185,16 @@ void DirectXGPU::releaseResources()
         d3dfont->Release();
         d3dfont = nullptr;
     }
+    if(backBuffer){
+        backBuffer->Release();
+        backBuffer = nullptr;
+    }
     // vbo->Release();
 }
 
 bool DirectXGPU::reset()
 {
     releaseResources();
-    if(backBuffer){
-        backBuffer->Release();
-        backBuffer = nullptr;
-    }
     if(d3ddev) {
         d3ddev->Release();
         d3ddev = nullptr;

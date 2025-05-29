@@ -17,7 +17,7 @@
 
 #pragma once
 #include <windows.h>
-#include "common/services/video.hpp"
+#include "common/services/video/video.hpp"
 #include "hw/win32/window-mgr.hpp"
 
 using namespace Video;
@@ -70,9 +70,9 @@ public:
         return gpuDriver ? gpuDriver->setResolution(w, h, updateWindow) : false;
     }
 
-    inline bool setFullscreen(FullscreenMode mode) override
+    inline bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0) override
     {
-        return gpuDriver ? gpuDriver->setFullscreen(mode) : false;
+        return gpuDriver ? gpuDriver->setFullscreen(mode, w, h) : false;
     }
 
     inline FullscreenMode getFullscreenMode()

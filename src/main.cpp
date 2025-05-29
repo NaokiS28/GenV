@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
                              
    System::ISystem *system = Services::getSystem();
    Video::IVideo *video = Services::getVideo();                // It is assumed the System class will have init'd the I/O driver.
-   Apps::AppManager &apps = Services::getAppMgr();              // AppManager is a singleton and is not changed accross platforms.
+   Apps::AppManager &apps = Services::getAppMgr();             // AppManager is a singleton and is not changed accross platforms.
    
    uint8_t sm_state = System::SM_NORMAL;
    while (sm_state != System::SM_QUIT)
