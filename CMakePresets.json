@@ -14,7 +14,7 @@
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/mingw32.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw32.cmake"
             }
         },
         {
@@ -25,7 +25,7 @@
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/mingw32.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw32.cmake"
             }
         },
         {
@@ -36,7 +36,7 @@
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "MinSizeRel",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/mingw32.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw32.cmake"
             }   
         }
     ],
