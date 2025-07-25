@@ -1,7 +1,7 @@
 {
     "psi-header.variables": [
         ["projectCreationYear", "2025"],
-        ["projectname", "DXUX"]
+        ["projectname", "GenV"]
     ],
     "psi-header.config": {
         "forceToTop": true,

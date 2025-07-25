@@ -4,7 +4,7 @@
 
 #include "resources.h"
 
-IDI_DXUXICON ICON "DXUX.ico"
+IDI_GenVICON ICON "GenV.ico"
 
 VS_VERSION_INFO VERSIONINFO
     FILEVERSION 0,0,0,0
@@ -22,9 +22,9 @@ BEGIN
             VALUE "CompanyName", "Naoki's Retro Corner"
             VALUE "FileDescription", "Loader"
             VALUE "FileVersion", "0.0.0.1"
-            VALUE "InternalName", "DXUX"
-            VALUE "OriginalFilename", "dxux"
-            VALUE "ProductName", "DXUX"
+            VALUE "InternalName", "GenV"
+            VALUE "OriginalFilename", "GenV"
+            VALUE "ProductName", "GenV"
             VALUE "ProductVersion", "0.0.1"
         END
     END
