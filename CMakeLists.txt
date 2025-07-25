@@ -43,10 +43,6 @@ else()
  message(STATUS "LITTLE_ENDIAN")
 endif()
 
-if(PSX)
-	set(GFX_NO_FLOAT)
-endif()
-
 if(WIN32)
 	add_executable(
 		main WIN32
@@ -101,46 +97,61 @@ if(WIN32)
 		src/app/gauntlet/field/walltile.cpp
 		src/app/gauntlet/field/floortile.cpp
 	)
-else()
-    add_executable(
 
+	target_include_directories(
+		main PRIVATE
+		src
 	)
-endif()
-
-target_include_directories(
-	main PRIVATE
-	src
-)
-target_compile_options(
-	main PRIVATE
-	-Wall
-	-Wextra
-	-Wno-unused-parameter
-	$<$<COMPILE_LANGUAGE:CXX>:
-		-Wno-pmf-conversions
-	>
-	-g
-)
-target_compile_features(
-	main PRIVATE
-	cxx_std_20
-)
-target_compile_definitions(
-	main PRIVATE
-	VERSION="${PROJECT_VERSION}"
-	EXTERNAL_DATA_DIR="hdd:/${PROJECT_NAME}"
-	ENABLE_APP_LOGGING=1
-	ENABLE_FS_LOGGING=1
-	ENABLE_LOG_BUFFER=1
-)
-
-if(WIN32)
-    set(COMMON_LIBS winmm user32)
+	target_compile_options(
+		main PRIVATE
+		-Wall
+		-Wextra
+		-Wno-unused-parameter
+		$<$<COMPILE_LANGUAGE:CXX>:
+			-Wno-pmf-conversions
+		>
+		-g
+	)
+	target_compile_features(
+		main PRIVATE
+		cxx_std_20
+	)
+	target_compile_definitions(
+		main PRIVATE
+		VERSION="${PROJECT_VERSION}"
+		EXTERNAL_DATA_DIR="hdd:/${PROJECT_NAME}"
+		ENABLE_APP_LOGGING=1
+		ENABLE_FS_LOGGING=1
+		ENABLE_LOG_BUFFER=1
+	)
+	set(COMMON_LIBS winmm user32)
 
     if(MINGW)
         target_link_libraries(main PRIVATE ${COMMON_LIBS} dsound dxguid d3d9 d3dx9 gdi32 winmm)
     elseif(MSVC)
         target_link_libraries(main PRIVATE ${COMMON_LIBS} dsound dxguid d3d9 d3dx9 Msimg32 winmm)
     endif()
-endif()
 
+elseif(PSX)
+    set(GFX_NO_FLOAT)
+	include(cmake/setup.cmake)
+	include(cmake/tools.cmake)
+	add_library(
+		common OBJECT
+		src/libc/clz.s
+		src/libc/crt0.c
+		src/libc/cxxsupport.cpp
+		src/libc/malloc.c
+		src/libc/misc.c
+		src/libc/setjmp.s
+		src/libc/string.c
+		src/libc/string.s
+		src/ps1/cache.s
+		src/vendor/printf.c
+	)
+	target_include_directories(
+		common PUBLIC
+		src
+		src/libc
+	)
+endif()
