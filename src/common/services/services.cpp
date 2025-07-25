@@ -31,7 +31,11 @@ bool Services::startup()
 {
     // Pointer for system and reference for app manager. Again, this seems... not right.
     // Works... but not right. Context: This stuff was moved into here but was in main.
-    
+
+    s_audio = new Audio::NullAudio();
+    s_input = new Input::NullInput();
+    s_storage = new Files::NullStorage();
+
     s_system = new System::SYSTEM_CLASS(); // Hardware specific, see hw/hardware.hpp
     if (s_system == nullptr || !s_system->init())
     { // Always init system manager first.
@@ -49,6 +53,43 @@ bool Services::startup()
 
     return true;
 }
+
+void Services::setAudio(Audio::IAudio *audio){
+    if(!audio)
+        return;
+
+    if(s_audio){
+        s_audio->shutdown();
+        delete s_audio;
+    }
+
+    s_audio = audio;
+}
+
+void Services::setInput(Input::IInput *input){
+    if(!input)
+        return;
+
+    if(s_input){
+        s_input->shutdown();
+        delete s_input;
+    }
+
+    s_input = input;
+}
+
+void Services::setStorage(Files::IStorage *storage){
+    if(!storage)
+        return;
+
+    if(s_storage){
+        s_storage->shutdown();
+        delete s_storage;
+    }
+
+    s_storage = storage;
+}
+
 
 void Services::shutdown()
 {
@@ -82,4 +123,74 @@ size_t Services::millis(){
     System::ISystem *sys = Services::getSystem();
     if(sys != nullptr) return sys->millis();
     return 0;
+}
+
+size_t Services::random(size_t min, size_t max){
+    System::ISystem *sys = Services::getSystem();
+    if(sys != nullptr) return sys->random(min, max);
+    return 0;
+}
+
+size_t Services::frames(){
+    Video::IVideo *gpu = Services::getVideo();
+    if(gpu != nullptr) return gpu->getFrameCount();
+    return 0;
+}
+
+uint16_t Services::getHorizontalRes(){
+    Video::IVideo *gpu = Services::getVideo();
+    if(gpu != nullptr) return gpu->getHorizontalRes();
+    return 0;
+}
+
+uint16_t Services::getVerticalRes(){
+    Video::IVideo *gpu = Services::getVideo();
+    if(gpu != nullptr) return gpu->getVerticalRes();
+    return 0;
+}
+
+size_t Services::msToFrames(size_t millis){
+    Video::IVideo *gpu = Services::getVideo();
+    size_t framerate = gpu->getRefreshRate();
+
+    if(millis < 17)
+        millis = 17;
+    if(framerate < 20 || framerate > 480)
+        framerate = 60;
+    
+    size_t msPerFrame = (1000 / framerate);
+    return (millis / msPerFrame);
+}
+
+
+namespace Audio {
+        NullAudio::NullAudio(){}
+        NullAudio::~NullAudio(){}
+        bool NullAudio::init(){ return true; }
+        bool NullAudio::reset(){ return true; }
+        void NullAudio::shutdown(){ return; }
+        bool NullAudio::play(Audio::SoundObject *sObj){ return false; }
+        bool NullAudio::stop(Audio::SoundObject *sObj){ return false; }
+        bool NullAudio::pause(Audio::SoundObject *sObj){ return false; }
+        bool NullAudio::isPlaying(Audio::SoundObject *sObj){ return false; }
+
+        int NullAudio::uploadSample(Audio::SoundObject *sObj){ return Audio::IA_ERROR_INVALIDFUNC; }
+}
+
+namespace Input {
+        NullInput::NullInput(){}
+        NullInput::~NullInput(){}
+        bool NullInput::init(){ return true; }
+        bool NullInput::reset(){ return true; }
+        void NullInput::shutdown(){ return; }
+}
+
+namespace Files {
+        NullStorage::NullStorage(){}
+        NullStorage::~NullStorage(){}
+        bool NullStorage::init(){ return true; }
+        bool NullStorage::reset(){ return true; }
+        void NullStorage::shutdown(){ return; }
+        uint8_t NullStorage::getDriveList(IStorageDevice *list) { return 0; }
+        const char *NullStorage::getWorkingDirectory() { return nullptr; }
 }

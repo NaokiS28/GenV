@@ -23,6 +23,9 @@
 
 namespace System
 {
+    IWinVideo *video(){ return static_cast<IWinVideo *>(Services::getVideo()); }
+    IAudio *audio(){ return Services::getAudio(); }
+
     bool WinSystem::init()
     {
         if (!initWindowClass())
@@ -30,6 +33,13 @@ namespace System
         SetProcessDPIAware();
         // You must set the system service before initing further drivers
         linkServices();
+
+        WindowObject *wObj = winManager.NewWindow(hInst);
+        if (!wObj)
+            return 1;
+
+        gpuWnd = wObj;
+
         if (initVideo())
         {
             return 1;
@@ -53,38 +63,41 @@ namespace System
 
     bool WinSystem::setResolution(int w, int h)
     {
+        if (!video())
+            return false;
+
         sm_state = System::SM_RESIZE;
-        return video.setResolution(w, h);
+        return video()->setResolution(w, h);
     }
 
     bool WinSystem::setFullscreen(Video::FullscreenMode mode)
     {
-        video.setFullscreen(mode);
+        if (!video())
+            return false;
         sm_state = System::SM_RESIZE;
-        return true;
+        return         video()->setFullscreen(mode);
     }
 
     bool WinSystem::toggleFullscreen()
     {
-        video.toggleFullscreen();
+        if (!video())
+            return false;
+        video()->toggleFullscreen();
         sm_state = System::SM_RESIZE;
         return true;
     }
 
     int WinSystem::initVideo()
     {
-        WindowObject *wObj = winManager.NewWindow(hInst);
-        if (!wObj)
-            return 1;
+        if (!gpuWnd)
+            return -1;
 
-        gpuWnd = wObj;
+        IWinVideo *vDriver = Win32::CreateVideoDriver(Win32::VD_WIN_D3D, gpuWnd);
+        if (!vDriver || !vDriver->init())
+            return -2;
 
-        video.init();
-        video.setWindow(wObj);
-        video.setResolution(wObj->size.w, wObj->size.h);
-
-        Services::setVideo(video.getVideoService());
-
+        Services::setVideo(vDriver);
+        video()->setResolution(gpuWnd->size.w, gpuWnd->size.h);
         return 0;
     }
 
@@ -93,17 +106,20 @@ namespace System
         if (!gpuWnd)
             return -1;
 
-        audio.setWindow(gpuWnd);
-        audio.init();
+        IAudio *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND, gpuWnd);
+        if (!aDriver || !aDriver->init())
+            return -2;
 
-        Services::setAudio(audio.getAudioService());
+        Services::setAudio(aDriver);
         return 0;
     }
 
     int WinSystem::initFiles()
     {
         storage.setWindow(gpuWnd);
-        storage.init();
+        if(!storage.init())
+            return -2;
+
         Services::setStorage(&storage);
         return 0;
     }
@@ -130,7 +146,6 @@ namespace System
     bool WinSystem::shutdown()
     {
         DeleteTimerQueueTimer(NULL, sysTimer.timerHandle, NULL); // Stop 10ms timer
-        video.shutdown();
         winManager.shutdown();
         UnregisterClass(szWindowClass, hInst);
         return true;

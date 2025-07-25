@@ -20,51 +20,103 @@
 
 #include "directsound.hpp"
 
-bool DirectSound::LoadWavFile(const char* filename) {
-    HMMIO hmmio = mmioOpenA((LPSTR)filename, nullptr, MMIO_READ | MMIO_ALLOCBUF);
-    if (!hmmio) return false;
+LPDIRECTSOUNDBUFFER DirectSound::getSoundBuffer(Audio::SoundObject *sObj)
+{
+    auto it = dsbufferMap.find(sObj->getSampleID());
+    if (it == dsbufferMap.end())
+        return nullptr;
 
-    MMCKINFO parent, child;
-    parent.fccType = mmioFOURCC('W', 'A', 'V', 'E');
-    if (mmioDescend(hmmio, &parent, nullptr, MMIO_FINDRIFF)) return false;
+    LPDIRECTSOUNDBUFFER buffer = it->second;
+    return buffer;
+}
 
-    child.ckid = mmioFOURCC('f', 'm', 't', ' ');
-    if (mmioDescend(hmmio, &child, &parent, MMIO_FINDCHUNK)) return false;
+bool DirectSound::play(Audio::SoundObject *sObj)
+{
+    auto buffer = getSoundBuffer(sObj);
+    if (buffer != nullptr)
+        return (
+            SUCCEEDED(buffer->SetCurrentPosition(0)) &&
+            SUCCEEDED(buffer->Play(0, 0, 0)));
+    return false;
+}
 
-    WAVEFORMATEX wf = {};
-    mmioRead(hmmio, (char*)&wf, sizeof(wf));
-    mmioAscend(hmmio, &child, 0);
+bool DirectSound::stop(Audio::SoundObject *sObj)
+{
+    auto buffer = getSoundBuffer(sObj);
+    if (buffer != nullptr)
+        return (pause(buffer) && SUCCEEDED(buffer->SetCurrentPosition(0)));
+    return false;
+}
 
-    child.ckid = mmioFOURCC('d', 'a', 't', 'a');
-    if (mmioDescend(hmmio, &child, &parent, MMIO_FINDCHUNK)) return false;
+bool DirectSound::pause(Audio::SoundObject *sObj)
+{
+    auto buffer = getSoundBuffer(sObj);
+    return ((buffer != nullptr) ? SUCCEEDED(buffer->Stop()) : false);
+}
 
-    BYTE* wavData = new BYTE[child.cksize];
-    mmioRead(hmmio, (char*)wavData, child.cksize);
-    mmioClose(hmmio, 0);
+bool DirectSound::isPlaying(Audio::SoundObject *sObj)
+{
+    auto buffer = getSoundBuffer(sObj);
+    if (buffer != nullptr)
+    {
+        DWORD status;
+        if (SUCCEEDED(buffer->GetStatus(&status)))
+            return (status & DSBSTATUS_PLAYING);
+    }
+    return false;
+}
+
+int DirectSound::uploadSample(Audio::SoundObject *sObj)
+{
+    if (sObj == nullptr)
+        return Audio::IA_ERROR_BADOBJECT;
+
+    SampleMeta meta = sObj->getMeta();
+
+    WAVEFORMATEX wf;
+    ZeroMemory(&wf, sizeof(wf));
+
+    wf.nChannels = meta.channels;
+    wf.wFormatTag = WAVE_FORMAT_PCM;
+    wf.wBitsPerSample = meta.bitDepth;
+    wf.nSamplesPerSec = meta.sampleRate;
+    wf.nBlockAlign = (wf.wBitsPerSample * wf.nChannels) / 8;
+    wf.nAvgBytesPerSec = (wf.nSamplesPerSec * wf.nBlockAlign);
 
     DSBUFFERDESC dsbd = {};
     dsbd.dwSize = sizeof(DSBUFFERDESC);
     dsbd.dwFlags = DSBCAPS_CTRLVOLUME;
-    dsbd.dwBufferBytes = child.cksize;
+    dsbd.dwBufferBytes = meta.sampleLength;
     dsbd.lpwfxFormat = &wf;
 
-    if (FAILED(dsdev->CreateSoundBuffer(&dsbd, &dsbuffer, nullptr)))
-        return false;
+    LPDIRECTSOUNDBUFFER sndBuff;
+    if (FAILED(dsdev->CreateSoundBuffer(&dsbd, &sndBuff, nullptr)))
+        return Audio::IA_ERROR_OUTOFMEMORY;
 
-    VOID* ptr1, *ptr2;
+    VOID *ptr1, *ptr2;
     DWORD len1, len2;
-    if (SUCCEEDED(dsbuffer->Lock(0, child.cksize, &ptr1, &len1, &ptr2, &len2, 0))) {
-        memcpy(ptr1, wavData, len1);
-        if (ptr2) memcpy(ptr2, wavData + len1, len2);
-        dsbuffer->Unlock(ptr1, len1, ptr2, len2);
+    if (SUCCEEDED(sndBuff->Lock(0, meta.sampleLength, &ptr1, &len1, &ptr2, &len2, 0)))
+    {
+        memcpy(ptr1, sObj->getSampleData(), len1);
+        if (ptr2)
+            memcpy(ptr2, sObj->getSampleData() + len1, len2);
+        sndBuff->Unlock(ptr1, len1, ptr2, len2);
+    }
+    else
+    {
+        return Audio::IA_ERROR_NOLOCK;
     }
 
-    delete[] wavData;
-    return true;
+    uint32_t id = nextSampleID++;
+    dsbufferMap[id] = sndBuff;
+    sObj->setSampleID(id);
+
+    return Audio::IA_OKAY;
 }
 
-DirectSound::DirectSound(WindowObject *hWnd)
+DirectSound::DirectSound(WindowObject *wObj)
 {
+    this->gpuWnd = wObj;
 }
 
 DirectSound::~DirectSound()
@@ -83,23 +135,19 @@ bool DirectSound::init()
     return true;
 }
 
-void DirectSound::setWindow(WindowObject *hWnd)
-{
-    if (hWnd)
-        gpuWnd = hWnd;
-}
-
 bool DirectSound::reset()
 {
+    return true;
 }
 
 void DirectSound::shutdown()
 {
-    if (dsbuffer)
+    for (auto buffer : dsbufferMap)
     {
-        dsbuffer->Release();
-        dsbuffer = nullptr;
+        buffer.second->Release();
     }
+    dsbufferMap.clear();
+
     if (dsdev)
     {
         dsdev->Release();

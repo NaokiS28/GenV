@@ -85,3 +85,5 @@ struct ifloat {
 #else
 using ifloat = float;
 #endif
+
+ifloat intToiFloat(int value, int maxValue);

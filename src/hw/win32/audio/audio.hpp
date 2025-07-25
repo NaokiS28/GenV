@@ -17,38 +17,18 @@
 
 #pragma once
 
-#include "common/services/audio.hpp"
+#include "common/services/services.hpp"
 #include "../window-mgr.hpp"
 
 using namespace Audio;
 
-class IWinAudio : public IAudio
+namespace Win32
 {
-public:
-    virtual void setWindow(WindowObject *hWnd) = 0; // We have to do this on windows. Urgh.
-};
-
-class WinAudio : public IWinAudio
-{
-private:
-    WindowObject *gpuWnd = nullptr;
-    IWinAudio *audioDriver = nullptr;
-
-public:
-    WinAudio();
-    ~WinAudio();
-    bool init();
-    void setWindow(WindowObject *hWnd){
-        if(hWnd)
-            gpuWnd = hWnd;
-    }
-    inline bool reset() { return audioDriver ? audioDriver->reset() : false; }
-    inline void shutdown()
+    enum AudioType : uint8_t
     {
-        if (audioDriver)
-            audioDriver->shutdown();
-    }
+        AD_WIN_DSOUND,
+        AD_WIN_WASAPI
+    };
 
-    IAudio *getAudioService() { return audioDriver; }
-
-};
+    IAudio *CreateAudioDriver(AudioType type, WindowObject *wObject);
+}

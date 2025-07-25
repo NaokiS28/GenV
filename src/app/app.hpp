@@ -74,13 +74,15 @@ namespace Apps
         AppExecState state; // Current app working state
         bool appReady;      // App has loaded and ready to be run
 
-        virtual void setAppState(AppExecState state) { state = state; }
+        virtual void setAppState(AppExecState state) { this->state = state; }
 
     public:
+        Application();
         Application(IVideo *_gpu);
         virtual ~Application() = default;
 
         inline virtual bool isReady() { return appReady; }
+        inline virtual AppExecState getState(){ return state; }
 
         virtual int version() = 0;      // Return app's version for logging
         virtual const char *name() = 0; // Return app's name for logging
@@ -114,5 +116,8 @@ namespace Apps
         virtual int init();        // Init the loading screen
         virtual void update();     // Update the loading screens logic
         virtual void render() = 0; // Request loading screen to render it's UI
+        virtual void setAppToLoad(Application *app){
+            this->app = app;
+        }
     };
 }

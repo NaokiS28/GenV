@@ -28,10 +28,6 @@ ErrorScreen::ErrorScreen(ErrorScreenMessage *msg) : Application(Services::getVid
                                                     msg(msg)
 {
     state = APP_STATE_INIT;
-    bgAlpha.setValue(Services::millis(), 0, util::percentOf(80, UINT8_MAX), bgFadeTime);
-    jumpOut.setValue(0);
-    jumpIn.setValue(Services::millis(), Services::getVideo()->getVerticalRes(), 0, toastAnimTime);
-    animState = INTRO_RUN;
 }
 
 int ErrorScreen::init()
@@ -42,6 +38,25 @@ int ErrorScreen::init()
         gpu->getVerticalRes() / 4,
         (gpu->getHorizontalRes() / 10) * 8,
         gpu->getVerticalRes() / 2);
+
+    bgAlpha.setValue(
+        Services::frames(), 
+        0, 
+        util::percentOf(80, UINT8_MAX), 
+        Services::msToFrames(bgFadeTime));
+    jumpOut.setValue(0);
+    jumpIn.setValue(
+        Services::frames(), 
+        Services::getVideo()->getVerticalRes(), 
+        0, 
+        Services::msToFrames(toastAnimTime));
+    playSound = true;
+    animState = INTRO_RUN;
+    errorSound = new WaveFile(eMsgSoundFile);
+    if (Services::getAudio()->uploadSample(errorSound) == Audio::SO_OKAY)
+    {
+        // close sound file?
+    }
     appReady = true;
     return 0;
 }
@@ -51,42 +66,50 @@ void ErrorScreen::update()
     // Animations
     switch (animState)
     {
+    case INTRO_INIT:
+        break;
     case INTRO_RUN:
-        if (jumpIn.isDone(Services::millis()))
+        if (jumpIn.isDone(Services::frames()))
         {
             animState = STOP;
         }
         break;
     case OUTRO_RUN:
-        if (jumpOut.isDone(Services::millis()))
+        if (jumpOut.isDone(Services::frames()))
             animState = STOP;
         break;
     default:
         break;
     }
 
-
     // Border colour flash
     if (msg && msg->style != EM_STYLE_INFO)
     {
-        if (colorIntensity.isDone(Services::millis()))
+        if (colorIntensity.isDone(Services::frames()))
         {
             if (colorIntensity.getTargetValue() != UINT8_MAX)
             {
                 colorIntensity.setValue(
-                    Services::millis(),
+                    Services::frames(),
                     UINT8_MAX,
-                    borderFadeTime);
-
+                    Services::msToFrames(bgFadeTime));
+                playSound = true;
             }
             else
             {
                 colorIntensity.setValue(
-                    Services::millis(),
+                    Services::frames(),
                     150,
-                    borderFadeTime);
+                    Services::msToFrames(bgFadeTime));
             }
         }
+    }
+
+    if (playSound && playCount < maxCount && !errorSound->isPlaying())
+    {
+        playSound = false;
+        playCount++;
+        errorSound->play();
     }
 }
 
@@ -119,7 +142,7 @@ void ErrorScreen::render()
     }
 
     c2 = c1;
-    c1.a = colorIntensity.getValue(Services::millis());
+    c1.a = colorIntensity.getValue(Services::frames());
     Video::premultiply(c1);
 
     // Set yOffset for jumpin or jump out animations
@@ -127,10 +150,10 @@ void ErrorScreen::render()
     switch (animState)
     {
     case INTRO_RUN:
-        yOffset += jumpIn.getValue(Services::millis());
+        yOffset += jumpIn.getValue(Services::frames());
         break;
     case OUTRO_RUN:
-        yOffset += jumpOut.getValue(Services::millis());
+        yOffset += jumpOut.getValue(Services::frames());
         break;
     default:
         break;
@@ -141,8 +164,7 @@ void ErrorScreen::render()
         0, 0,                    // X/Y
         gpu->getHorizontalRes(), // Width
         gpu->getVerticalRes(),   // Height
-        Colors::Alpha(Colors::Black, bgAlpha.getValue(Services::millis()))
-    );
+        Colors::Alpha(Colors::Black, bgAlpha.getValue(Services::frames())));
     gpu->drawRect(area.x, yOffset, area.w, area.h, c1);
     gpu->drawRect(
         area.x + 5, yOffset + 5,
@@ -164,6 +186,8 @@ void ErrorScreen::shutdown()
     state = APP_STATE_SHUTDOWN;
     if (msg && msg != &eMsgUnknownMsg)
         delete msg;
+    if (errorSound != nullptr)
+        delete errorSound;
 }
 
 ErrorScreen::~ErrorScreen()

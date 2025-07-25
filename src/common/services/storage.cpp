@@ -28,7 +28,7 @@ namespace Files
         {
 
             // Copy first part of string for testing
-            char *test = new char(10);
+            char *test = new char[10];
             if (!test)
                 return false;
 
@@ -85,7 +85,7 @@ namespace Files
     {
         if (path || len > 6) // path needs to exist and len needs to allow for xxx:/
         {
-            char *provider = new char(5);
+            char *provider = new char[5];
             strncpy(provider, path, 3);
             int c = 0;
 

@@ -56,7 +56,8 @@ bool AppManager::reload()
 int AppManager::init()
 {
     // Look for an load an entrypoint application
-    loadingScreen = new DEFAULT_LOADER();
+    //loadingScreen = new DEFAULT_LOADER();
+    foregroundApp = new Gauntlet::GauntletApp();
     //foregroundApp = new DEFAULT_APP();     //<- disbaled to cause error screen
     return 0;
 }
@@ -67,8 +68,8 @@ int AppManager::update()
     {
         // Both apps are gone, default
         showErrorScreen(
-            "Application Manager", 
-            "Both app pointers are null",
+            "APPLICATION MANAGER", 
+            "BOTH APP POINTERS ARE NULL",
             EM_STYLE_CRITICAL_ERROR,
             EM_ICON_CRITICAL_ERROR
         );
@@ -247,6 +248,6 @@ bool AppManager::showErrorScreen(ErrorScreenMessage *msg){
         }
     }
 
-    errorScreen = ErrorScreen::create(msg);
+    errorScreen = SadMac::create(msg);
     return (errorScreen != nullptr);
 }

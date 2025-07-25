@@ -26,6 +26,8 @@
 #include "app/app.hpp"
 #include "common/util/rect.h"
 #include "common/util/tween.hpp"
+#include "common/objects/sound.hpp"
+#include "common/formats/wav.hpp"
 
 using namespace Apps;
 
@@ -71,13 +73,15 @@ struct Strings
 
 constexpr const uint16_t bgFadeTime = 500;           // Time in ms for BG to fade to black level to divert user attention
 constexpr const uint16_t toastAnimTime = 250;        // Time in ms for error screen to pop in/pop out
-constexpr const uint16_t borderFadeTime = 600;      // Time in ms for error screen border to fade between color intensity
+constexpr const uint16_t borderFadeTime = 500;      // Time in ms for error screen border to fade between color intensity
 
 constexpr const int MAX_EMSG_LENGTH = 200;
 constexpr const char eMsgInfoStr[] = "INFORMATION: ";
 constexpr const char eMsgWarningStr[] = "WARNING: ";
 constexpr const char eMsgErrorStr[] = "ERROR: ";
 constexpr const char eMsgCriticalStr[] = "CRITICAL ERROR: ";
+
+constexpr const char eMsgSoundFile[] = "C:\\Users\\Naoki\\Nextcloud\\Programming\\GenV\\bin\\KBMHELL.wav";
 
 constexpr const Strings eMsgStrList[] = {
     eMsgInfoStr,
@@ -146,21 +150,23 @@ private:
     AppVersion appVer = AppVersion(0, 0, 1);
     Util::Tween<uint8_t, Util::LinearEasing> colorIntensity;
 
-    ErrorScreenMessage *msg;
+    ErrorScreenMessage *msg = nullptr;
     RectWH area;
 
-    // SoundObject errorSound;
+    Audio::SoundObject *errorSound = nullptr;
     bool playSound = false;
     uint8_t playCount = 0;
-    uint8_t maxCount = 4;
+    uint8_t maxCount = 5;
 
     // Into/Outro Animation
     enum : uint8_t
     {
         STOP,
         INTRO_RUN,
-        OUTRO_RUN
+        OUTRO_RUN,
+        INTRO_INIT
     } animState = INTRO_RUN;
+
     Util::Tween<uint8_t, Util::LinearEasing> bgAlpha;
     Util::Tween<uint16_t, Util::QuadInEasing> jumpOut;
     Util::Tween<uint16_t, Util::QuadOutEasing> jumpIn;

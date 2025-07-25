@@ -67,7 +67,10 @@ namespace System
         virtual int update() = 0;    // Update system manager
         virtual bool shutdown() = 0; // Prepare for app shutdow
 
-        virtual size_t millis() = 0;    // Millis since system start
+        virtual size_t millis() = 0;                        // Millis since system start
+        virtual size_t random(size_t min, size_t max){      // Gets a random number between given values
+            return ((min + rand()) % max);
+        }
 
         virtual bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq) = 0;
         virtual bool unregisterTimerFunc(TFunc func, TChannel timer) = 0;

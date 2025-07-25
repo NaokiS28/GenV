@@ -122,9 +122,28 @@ namespace util
 		return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 	}
 
-	static constexpr inline uint8_t percentOf(size_t percent, size_t max)
+	static constexpr inline uint8_t toPercent(size_t val, size_t max)
 	{
+		if(val > max) val = max;
+		return map(val, 0, max, 0, 100);
+	}
+
+	static constexpr inline size_t percentOf(uint8_t percent, size_t max)
+	{
+		if(percent > 100) percent = 100;
 		return map(percent, 0, 100, 0, max);
+	}
+
+	static constexpr inline size_t scaleP(uint16_t percent, size_t val)
+	{
+		size_t factor = (percent / 100);
+		return (map((percent % 100), 0, 100, 0, val) + (val * factor));
+	}
+
+	static constexpr inline ifloat scaleF(ifloat factor, size_t val)
+	{
+		size_t percent = factor * 100;
+		return scaleP(percent, val);
 	}
 
 	/* Simple "smart" pointer */

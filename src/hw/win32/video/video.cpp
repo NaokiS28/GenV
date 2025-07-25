@@ -19,21 +19,20 @@
 #include "gpu-d3d.hpp"
 #include "gpu-sdl.hpp"
 
-bool WinVideo::init()
+IWinVideo *Win32::CreateVideoDriver(VideoType type, WindowObject *wObject)
 {
-    const char *video = "d3d";
-    if (!strcmp(video, "d3d"))
+    IWinVideo *driver = nullptr;
+    if (wObject)
     {
-        gpuDriver = new DirectXGPU();
+        switch (type)
+        {
+        case VD_WIN_D3D:
+            driver = new DirectXGPU(wObject);
+            break;
+        case VD_WIN_OPENGL:
+            driver = new SDLGPU(wObject);
+            break;
+        }
     }
-    else if (!strcmp(video, "sdl"))
-    {
-        gpuDriver = new SDLGPU();
-    }
-
-    return gpuDriver ? gpuDriver->init() : false;
-}
-
-WinVideo::~WinVideo()
-{
+    return driver;
 }

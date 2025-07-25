@@ -51,8 +51,8 @@ namespace Util
 		size_t elapsed = time - _startTime;
 		size_t progress = (elapsed * TWEEN_UNIT) / _duration;
 
-		int interpolated = _base + (_delta * E::apply(progress)) / TWEEN_UNIT;
-		return static_cast<T>(interpolated);
+		T interpolated = _base + (_delta * static_cast<T>(E::apply(progress))) / static_cast<T>(TWEEN_UNIT);
+		return interpolated;
 	}
 
 	// Explicit instantiations for commonly used types and easing functions.
@@ -68,5 +68,22 @@ namespace Util
 	template class Tween<uint32_t, LinearEasing>;
 	template class Tween<uint32_t, QuadInEasing>;
 	template class Tween<uint32_t, QuadOutEasing>;
+
+	template class Tween<int, QuadInOutEasing>;
+	template class Tween<int, CubicInEasing>;
+	template class Tween<int, CubicOutEasing>;
+	template class Tween<int, CubicInOutEasing>;
+	template class Tween<uint8_t, QuadInOutEasing>;
+	template class Tween<uint8_t, CubicInEasing>;
+	template class Tween<uint8_t, CubicOutEasing>;
+	template class Tween<uint8_t, CubicInOutEasing>;
+	template class Tween<uint16_t, QuadInOutEasing>;
+	template class Tween<uint16_t, CubicInEasing>;
+	template class Tween<uint16_t, CubicOutEasing>;
+	template class Tween<uint16_t, CubicInOutEasing>;
+	template class Tween<uint32_t, QuadInOutEasing>;
+	template class Tween<uint32_t, CubicInEasing>;
+	template class Tween<uint32_t, CubicOutEasing>;
+	template class Tween<uint32_t, CubicInOutEasing>;
 
 }

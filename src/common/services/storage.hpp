@@ -37,6 +37,7 @@
  *  fdd0://     would be the first floppy disk drive
  *  pcc0://     would be the first PCMCIA flash/ATA storage card
  *  pcc1://     would be the second PCMCIA flash/ATA storage card
+ *  mcc0://     would be the first memory card
  *  fsd0://     would be the first Flash storage device of any intergrated flash storage
  *  rom0://     would be the first ROM chip in a ROM bank
  *  ram0://     would be the first writable RAM disk device (please read notes on this)
@@ -66,6 +67,7 @@ namespace Files
         RDD,
         FDD,
         PCC,
+        MCC,
         FSD,
         ROM,
         RAM,
@@ -149,6 +151,7 @@ namespace Files
     constexpr const char *rddStr = "rdd";
     constexpr const char *fddStr = "fdd";
     constexpr const char *pccStr = "pcc";
+    constexpr const char *mccStr = "mcc";
     constexpr const char *fsdStr = "fsd";
     constexpr const char *romStr = "rom";
     constexpr const char *ramStr = "ram";
@@ -160,6 +163,7 @@ namespace Files
         rddStr,
         fddStr,
         pccStr,
+        mccStr,
         fsdStr,
         romStr,
         ramStr,
@@ -196,26 +200,33 @@ namespace Files
 
     };
 
+    // Forward declaration
+    class FileObject;
+
     class IStorage
     {
     public:
         IStorage() = default;
-        ~IStorage() {}
+        virtual ~IStorage() {}
 
         virtual bool init() = 0;
         virtual bool reset() = 0;
         virtual void shutdown() = 0;
 
-        virtual int openFile(const char *path) { return 0; }
-        virtual int closeFile() { return 0; }
-        virtual int writeFile() { return 0; }
-        virtual int newFile(const char *path, const char *filename) { return 0; }
-        virtual int deleteFile() { return 0; }
+        virtual int openFile(const char *filePath, bool lock, Files::FileObject *fObj) { return 0; }
+        virtual int closeFile(Files::FileObject *fObj) { return 0; }
+        virtual int writeFile(Files::FileObject *fObj) { return 0; }
+        virtual int renameFile(const char* fileName, Files::FileObject *fObj) { return 0; }
+        virtual int newFile(const char *filePath, const char *filename, Files::FileObject *fObj) { return 0; }
+        virtual int deleteFile(Files::FileObject *fObj) { return 0; }
         virtual int readFile(size_t offset, size_t length) { return 0; }
 
         // Gets a list of drives present in the system and returns the total count.
         virtual uint8_t getDriveList(IStorageDevice *list) = 0;
+        virtual const char *getWorkingDirectory() = 0;
 
     private:
     };
+
+    class NullStorage;
 }

@@ -18,27 +18,38 @@
 #pragma once
 
 #include <dsound.h>
+#include <unordered_map>
 #include "audio.hpp"
 
 #include "common/objects/sound.hpp"
 
-class DirectSound : public IWinAudio
+class DirectSound : public IAudio
 {
 private:
     WindowObject *gpuWnd;
 
-    LPDIRECTSOUND8          dsdev = nullptr;
-    LPDIRECTSOUNDBUFFER     dsbuffer = nullptr;
+    LPDIRECTSOUND8 dsdev = nullptr;
+    std::unordered_map<uint32_t, LPDIRECTSOUNDBUFFER> dsbufferMap;
+    uint32_t nextSampleID = 1;      // start from 1 to reserve 0 for "invalid"
+
+    LPDIRECTSOUNDBUFFER getSoundBuffer(Audio::SoundObject *sObj);
 
 public:
-    DirectSound(WindowObject *hWnd);
+    DirectSound(WindowObject *wObj);
     ~DirectSound();
 
-    void setWindow(WindowObject *hWnd);
-    bool init();
-    bool reset();
-    void shutdown();
+    bool init() override;
+    bool reset() override;
+    void shutdown() override;
 
-    
-    bool LoadWavFile(const char* filename);
+    bool play(Audio::SoundObject *sObj) override;
+    bool stop(Audio::SoundObject *sObj) override;
+    bool pause(Audio::SoundObject *sObj) override;
+    bool isPlaying(Audio::SoundObject *sObj) override;
+
+    int uploadSample(Audio::SoundObject *sObj) override;
+
+    inline bool pause(LPDIRECTSOUNDBUFFER buffer){
+        return (buffer == nullptr ? false : SUCCEEDED(buffer->Stop()));
+    }
 };

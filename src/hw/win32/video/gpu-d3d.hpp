@@ -22,11 +22,13 @@
 #include <d3dx9.h>
 
 #include "common/objects/texture.hpp"
+#include "common/objects/tile.hpp"
 #include "common/objects/sprite.hpp"
 #include "video.hpp"
 #include <windows.h>
 #include <cstdio>
 #include <vector>
+#include <unordered_map>
 
 struct D3DAdaptor
 {
@@ -45,7 +47,7 @@ struct D3DAdaptor
     }
 };
 
-class D3DTexture : public TextureObject
+class D3DTexture : public Textures::TextureObject
 {
 private:
     LPDIRECT3DDEVICE9 d3dDevice;
@@ -62,16 +64,20 @@ public:
 class DirectXGPU : public IWinVideo
 {
 private:
-    LPDIRECT3D9 d3d;
-    LPDIRECT3DDEVICE9 d3ddev;
-    LPD3DXFONT d3dfont;
-    LPDIRECT3DTEXTURE9 d3dtexture;
-    LPDIRECT3DSURFACE9 backBuffer;
-    LPDIRECT3DVERTEXBUFFER9 vbo;
+    WindowObject *gpuWnd = nullptr;
 
-    WindowObject *gpuWnd;
+    LPDIRECT3D9 d3d = nullptr;
+    LPDIRECT3DDEVICE9 d3ddev = nullptr;
+    LPD3DXFONT d3dfont = nullptr;
+    LPDIRECT3DSURFACE9 backBuffer = nullptr;
+    LPDIRECT3DVERTEXBUFFER9 vbo = nullptr;
 
-    D3DAdaptor *adaptorList;
+    std::unordered_map<uint32_t, LPDIRECT3DTEXTURE9> d3dTexMap;
+    uint32_t nextTextureID = 1; // start from 1 to reserve 0 for "invalid"
+
+    LPDIRECT3DTEXTURE9 getTexBuffer(Textures::TextureObject *tObj);
+
+    D3DAdaptor *adaptorList = nullptr;
 
     inline RECT rectangle(int x, int y, int w, int h)
     {
@@ -88,16 +94,21 @@ private:
 
     struct D3DSpriteVertex
     {
+        public:
+        D3DSpriteVertex(){}
+        D3DSpriteVertex(Vertex v) : x(v.pos.x), y(v.pos.y), z(v.pos.z), rhw(v.rhw), u(v.tex.u), v(v.tex.v){}
+        D3DSpriteVertex(float _x, float _y, float _z, float _r, float _u, float _v) :
+            x(_x), y(_y), z(_z), rhw(_r), u(_u), v(_v){}
         float x, y, z, rhw;
         float u, v; // texture coordinates
         static const DWORD FVF = D3DFVF_XYZRHW | D3DFVF_TEX1;
     };
 
 public:
-    DirectXGPU();
+    DirectXGPU(WindowObject *wObj);
     ~DirectXGPU();
 
-    void setWindow(WindowObject *wObj) override;
+    bool setWindow(WindowObject *wObj) override;
 
     bool init() override;
     bool reset() override;
@@ -122,11 +133,26 @@ public:
     void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) override;
     void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) override;
 
-    void drawText(const char *str, int len, int x, int y, int w, int h, Color color);
+    void drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode = TALIGN_LEFT) override;
 
-    void drawSpriteObject(SpriteObject *obj);
+    void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) override;
+    void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) override;
+
+    int drawTextureObject(
+        Textures::TextureObject *tObj,
+        int x, int y, int w, int h,
+        ifloat u1, ifloat v1,
+        ifloat u2, ifloat v2);
+    
+        int drawTextureObject(
+            Textures::TextureObject *tObj,
+            int x, int y,
+            Vertex v[]);
 
     void releaseResources();
+
+    int uploadTexture(Textures::TextureObject *tObj);
+    int releaseTexture(Textures::TextureObject *tObj);
 
     // Direct3D Specific
     LPDIRECT3DDEVICE9 getDirectXDevice() { return d3ddev; }

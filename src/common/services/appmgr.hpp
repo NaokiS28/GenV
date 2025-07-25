@@ -20,6 +20,7 @@
 
 #include "app/app.hpp"
 #include "app/builtin/errorscr/errorscr.hpp"
+#include "app/sadmac/sadmac.hpp"
 
 namespace Apps
 {
@@ -36,7 +37,7 @@ namespace Apps
             Apps::Application *foregroundApp = nullptr;
             Apps::Application *backgroundApp = nullptr;
             Apps::AppLoader *loadingScreen = nullptr;
-            ErrorScreen *errorScreen = nullptr;
+            SadMac *errorScreen = nullptr;
     
             void quitApp(AppSelect app = APP_FOREGROUND);
             void swapApps();

@@ -18,8 +18,12 @@
 #pragma once
 #include "builtin/loadscr/loadscr.hpp"
 #include "builtin/errorscr/errorscr.hpp"
+#include "builtin/textload/textload.hpp"
 #include "ps1/biosldr.hpp"
 #include "ps1/shellapp.hpp"
+#include "sadmac/sadmac.hpp"
+#include "tmss/tmss.hpp"
+#include "gauntlet/gaunt_app.hpp"
 
 #define DEFAULT_APP PSXShell
-#define DEFAULT_LOADER PSXLoader
+#define DEFAULT_LOADER TextLoader

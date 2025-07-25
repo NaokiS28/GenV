@@ -20,6 +20,7 @@
 #include <windows.h>
 #include <vector>
 #include "common/services/storage.hpp"
+#include "common/objects/file.hpp"
 #include "../window-mgr.hpp"
 
 class WinStorage : public Files::IStorage
@@ -49,8 +50,7 @@ private:
                     0xbf, 0xc1, 0x08, 0x00, 0x2b, 0xe1, 0x03, 0x18};
     GUID fddGUID = {0x4d36e980, 0xe325, 0x11ce,
                     0xbf, 0xc1, 0x08, 0x00, 0x2b, 0xe1, 0x03, 0x18};
-    
-    
+
     bool registerDevNotification(GUID devGuid, HDEVNOTIFY &hDev);
 
 public:
@@ -59,14 +59,24 @@ public:
     bool reset() { return 0; }
     void shutdown();
 
+    int openFile(const char *path, bool lock, Files::FileObject *fObj) override;
+    int closeFile(Files::FileObject *fObj) override;
+    int writeFile(Files::FileObject *fObj) override;
+    int newFile(const char *path, const char *filename, Files::FileObject *fObj) override;
+    int deleteFile(Files::FileObject *fObj) override;
+    int readFile(size_t offset, size_t length) override;
+    int renameFile(const char* fileName, Files::FileObject *fObj) override;
+
+
     bool isFloppy(char driveLetter);
     bool GetDriveBusType(char driveLetter, STORAGE_BUS_TYPE &outBusType);
     void hardwareChanged(WPARAM wParam, LPARAM lParam);
 
-    void setWindow(WindowObject *gpuWnd)
+    void setWindow(WindowObject *wObj)
     {
-        gpuWnd = gpuWnd;
+        this->gpuWnd = wObj;
     }
 
     uint8_t getDriveList(Files::IStorageDevice *list);
+    const char *getWorkingDirectory();
 };

@@ -21,27 +21,19 @@
 
 using namespace Audio;
 
-WinAudio::WinAudio()
+IAudio *Win32::CreateAudioDriver(AudioType type, WindowObject *wObject)
 {
-}
-
-bool WinAudio::init()
-{
-    const char *audio = "dxs";
-    if (!strcmp(audio, "dxs"))
+    IAudio *driver = nullptr;
+    if (wObject)
     {
-        audioDriver = new DirectSound(gpuWnd);
+        switch (type)
+        {
+        case AD_WIN_DSOUND:
+            driver = new DirectSound(wObject);
+            break;
+        default:
+            break;
+        }
     }
-
-    if (audioDriver)
-    {
-        audioDriver->setWindow(gpuWnd);
-        return audioDriver->init();
-    }
-
-    return false;
-}
-
-WinAudio::~WinAudio()
-{
+    return driver;
 }

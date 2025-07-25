@@ -52,11 +52,9 @@ namespace System
     {
     private:
         WindowManager winManager;
-        WinVideo video;
-        WinAudio audio;
         WinStorage storage;
 
-        WindowObject *gpuWnd;
+        WindowObject *gpuWnd = nullptr;
         HINSTANCE hInst;
 
         LARGE_INTEGER freq;

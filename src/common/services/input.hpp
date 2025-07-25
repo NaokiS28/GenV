@@ -24,6 +24,10 @@ namespace Input
     public:
         IInput() = default;
         virtual ~IInput() = default;
-        virtual bool shutdown() = 0;
+        virtual bool init() = 0;
+        virtual bool reset() = 0;
+        virtual void shutdown() = 0;
     };
+
+    class NullInput;
 }

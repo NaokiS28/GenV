@@ -35,6 +35,14 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin")
 
+include (TestBigEndian)
+TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+if(IS_BIG_ENDIAN)
+ message(STATUS "BIG_ENDIAN")
+else()
+ message(STATUS "LITTLE_ENDIAN")
+endif()
+
 if(PSX)
 	set(GFX_NO_FLOAT)
 endif()
@@ -56,10 +64,20 @@ if(WIN32)
 		src/hw/win32/system.cpp
 		src/hw/win32/win_platform.cpp
 		src/common/util/hash.cpp
+		src/common/util/ifloat.cpp
 		src/common/util/log.cpp
 		src/common/util/misc.cpp
 		src/common/util/text.cpp
 		src/common/util/tween.cpp
+		src/common/objects/file.cpp
+		src/common/objects/sound.cpp
+		src/common/objects/tile.cpp
+		src/common/objects/sprite.cpp
+		src/common/objects/texture.cpp
+		src/common/objects/texture/missingtex.c
+		src/common/formats/soundfile.cpp
+		src/common/formats/riff.cpp
+		src/common/formats/wav.cpp
 		src/common/services/services.cpp
 		src/common/services/storage.cpp
 		src/common/services/appmgr.cpp
@@ -67,9 +85,21 @@ if(WIN32)
 		src/app/app.cpp
 		src/app/builtin/errorscr/errorscr.cpp
 		src/app/builtin/loadscr/loadscr.cpp
+		src/app/builtin/textload/textload.cpp
+
+		src/app/sadmac/sadmac.cpp
+		src/app/tmss/tmss.cpp
 
 		src/app/ps1/biosldr.cpp
 		src/app/ps1/shellapp.cpp
+
+		src/app/gauntlet/gaunt_app.cpp
+		src/app/gauntlet/gaunt_screens.cpp
+		src/app/gauntlet/gaunt_title.cpp
+		src/app/gauntlet/gaunt_field.cpp
+		src/app/gauntlet/field/map.cpp
+		src/app/gauntlet/field/walltile.cpp
+		src/app/gauntlet/field/floortile.cpp
 	)
 else()
     add_executable(

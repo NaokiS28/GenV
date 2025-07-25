@@ -16,21 +16,49 @@
  */
 
 #pragma once
-
+#include <cstring>
+#include <stdexcept>
 #include <stddef.h>
 #include <stdint.h>
+#include "common/services/storage.hpp"
 
 class DataObject
 {
 public:
-    DataObject() {}
+    DataObject(size_t length) {
+        this->data = new uint8_t[length];
+        if(data != nullptr){
+            memset(data, 0, length);
+            this->length = length;
+        }
+    }
     ~DataObject()
     {
-        if (data)
-            delete data;
+        delete[] data;
     }
 
-private:
+    template<typename T>
+    T* as() {
+        if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
+        return reinterpret_cast<T*>(data);
+    }
+
+    template<typename T>
+    const T* as() const {
+        if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
+        return reinterpret_cast<const T*>(data);
+    }
+
+    template<typename T>
+    void set(const T& value) {
+        if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
+        std::memcpy(data, &value, sizeof(T));
+    }
+
+    uint8_t* getRawData() { return data; }
+    size_t getDataLen() { return length; }
+
+    private:
     size_t length = 0;
     uint8_t *data = nullptr;
 };

@@ -19,6 +19,9 @@
 #include <stdint.h>
 #include "common/util/templates.hpp"
 #include "common/util/rect.h"
+#include "common/objects/texture.hpp"
+#include "common/objects/sprite.hpp"
+#include "common/objects/tile.hpp"
 
 #include "vesa.hpp"
 #include "color.hpp"
@@ -89,14 +92,27 @@ namespace Video
         GPU_GRADIENT_Ds
     };
 
+    enum TextAlign
+    {
+        TALIGN_LEFT,
+        TALIGN_CENTER,
+        TALIGN_RIGHT
+    };
+
     class IVideo
     {
     protected:
         Monitor screen;
+        size_t frameCount = 0;
 
     public:
         IVideo() = default;
         virtual ~IVideo() = default;
+
+        inline size_t getFrameCount()
+        {
+            return frameCount;
+        }
 
         virtual bool init() = 0;
         virtual bool reset() = 0;
@@ -160,14 +176,15 @@ namespace Video
             return false;
         }
 
-        inline bool toggleFullscreen(){
+        inline bool toggleFullscreen()
+        {
             return setFullscreen(this->getFullscreenMode() != Video::Windowed ? Video::Windowed : Video::Fullscreen, 800, 600);
         }
 
-        virtual FullscreenMode getFullscreenMode(){ 
-            return FullscreenMode::Fullscreen; 
+        virtual FullscreenMode getFullscreenMode()
+        {
+            return FullscreenMode::Fullscreen;
         }
-
 
         virtual void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const = 0;
 
@@ -184,7 +201,64 @@ namespace Video
         virtual void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) = 0;
         virtual void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) = 0;
 
-        virtual void drawText(const char *str, int len, int x, int y, int w, int h, Color color) = 0;
+        virtual void drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode = TALIGN_LEFT) = 0;
+
+        virtual int uploadTexture(Textures::TextureObject *tObj) = 0;
+        virtual int releaseTexture(Textures::TextureObject *tObj) = 0;
+
+        inline int drawTextureObject(Textures::TextureObject *tObj, int x, int y, int w, int h, RectUV area)
+        {
+            return drawTextureObject(
+                tObj,
+                x, y, w, h,
+                area.u1, area.v1, area.u2, area.v2);
+        }
+        inline int drawTextureObject(
+            Textures::TextureObject *tObj, RectWH rect,
+            ifloat u1, ifloat v1, ifloat u2, ifloat v2)
+        {
+            return drawTextureObject(
+                tObj,
+                rect.x, rect.y, rect.w, rect.h,
+                u1, v1, u2, v2);
+        }
+        inline int drawTextureObject(Textures::TextureObject *tObj, RectWH rect, RectUV area)
+        {
+            return drawTextureObject(
+                tObj,
+                rect.x, rect.y, rect.w, rect.h,
+                area.u1, area.v1, area.u2, area.v2);
+        }
+        virtual int drawTextureObject(
+            Textures::TextureObject *tObj,
+            int x, int y, int w, int h,
+            ifloat u1, ifloat v1,
+            ifloat u2, ifloat v2) = 0;
+        
+        virtual int drawTextureObject(
+            Textures::TextureObject *tObj,
+            int x, int y,
+            Vertex v[]) = 0;
+
+        inline void drawSpriteObject(Sprites::SpriteObject *sObj)
+        {
+            Sprites::SpritePosition pos = sObj->getPosition();
+            Textures::TextureObject *tex = sObj->getTexture();
+            drawSpriteObject(sObj, pos.x, pos.y, tex->width, tex->height);
+        }
+        inline void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y)
+        {
+            Textures::TextureObject *tex = sObj->getTexture();
+            drawSpriteObject(sObj, x, y, tex->width, tex->height);
+        }
+        virtual void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) = 0;
+
+        inline void drawTileObject(Sprites::TileObject *tObj, int x, int y)
+        {
+            Textures::TextureObject *tex = tObj->getTexture();
+            drawTileObject(tObj, x, y, tex->width, tex->height);
+        }
+        virtual void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) = 0;
     };
 
     class Image
