@@ -48,6 +48,5 @@ target_sources(
 
 target_include_directories(
     psx_common PUBLIC
-	src
-	libc
+	${CMAKE_SOURCE_DIR}/lib/psx/
 )
