@@ -26,7 +26,7 @@
 
 using namespace Apps;
 
-class LoadingScreen : public AppLoader {
+class LoadingScreen : public LoadScreenApp {
     private:
         const char *appName = "LoadingScreen(NRC)";
         AppVersion appVer = AppVersion(0, 0, 1);

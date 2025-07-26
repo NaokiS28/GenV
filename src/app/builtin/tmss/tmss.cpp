@@ -20,10 +20,11 @@
 
 namespace Apps
 {
-    TMSS::TMSS() : Application(Services::getVideo())
+    TMSS::TMSS()
     {
-        state = APP_STATE_RUN;
-        //appReady = true;
+        this->state = APP_STATE_RUN;
+        // appReady = true;
+        this->timer = Services::millis();
         reload();
     }
 
@@ -40,5 +41,12 @@ namespace Apps
             gpu->getVerticalRes() / 2 - 30,
             500,
             60};
+    }
+
+    void TMSS::update()
+    {
+        if((Services::millis() - timer) >= iTimeToShow){
+            this->state = APP_STATE_QUIT;
+        }
     }
 }

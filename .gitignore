@@ -40,6 +40,8 @@
 
 !/lib/
 
+!/tools/
+
 # Thumbnails
 ._*
 

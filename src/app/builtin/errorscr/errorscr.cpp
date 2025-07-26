@@ -23,14 +23,13 @@
 
 using namespace Apps;
 
-ErrorScreen::ErrorScreen(ErrorScreenMessage *msg) : Application(Services::getVideo()),
-                                                    colorIntensity(UINT8_MAX),
-                                                    msg(msg)
+DefaultErrorScreen::DefaultErrorScreen(ErrorScreenMessage *msg) : colorIntensity(UINT8_MAX)
 {
     state = APP_STATE_INIT;
+    this->msg = msg;
 }
 
-int ErrorScreen::init()
+int DefaultErrorScreen::init()
 {
     state = APP_STATE_RUN;
     area = RectWH(
@@ -61,7 +60,7 @@ int ErrorScreen::init()
     return 0;
 }
 
-void ErrorScreen::update()
+void DefaultErrorScreen::update()
 {
     // Animations
     switch (animState)
@@ -113,7 +112,7 @@ void ErrorScreen::update()
     }
 }
 
-void ErrorScreen::reload()
+void DefaultErrorScreen::reload()
 {
     area = RectWH(
         gpu->getHorizontalRes() / 10,
@@ -122,7 +121,7 @@ void ErrorScreen::reload()
         gpu->getVerticalRes() / 2);
 }
 
-void ErrorScreen::render()
+void DefaultErrorScreen::render()
 {
     Color c1; // Animates
     Color c2; // Not animates
@@ -181,7 +180,7 @@ void ErrorScreen::render()
     gpu->drawText(eMsgOptionList[msg->action].str, eMsgOptionList[msg->action].len, area.x + 20, (yOffset + area.h) - 60, area.w - 20, 100, Colors::White);
 }
 
-void ErrorScreen::shutdown()
+void DefaultErrorScreen::shutdown()
 {
     state = APP_STATE_SHUTDOWN;
     if (msg && msg != &eMsgUnknownMsg)
@@ -190,7 +189,7 @@ void ErrorScreen::shutdown()
         delete errorSound;
 }
 
-ErrorScreen::~ErrorScreen()
+DefaultErrorScreen::~DefaultErrorScreen()
 {
     shutdown();
 }

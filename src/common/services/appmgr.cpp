@@ -16,11 +16,12 @@
  */
 
 #include "appmgr.hpp"
-#include "app/applist.hpp"
 
 #define CloseApp(app) {app->shutdown(); delete app; app = nullptr;}
 
 using namespace Apps;
+
+extern "C++" Apps::Application* genv_register_app();
 
 AppManager::AppManager()
 {
@@ -55,10 +56,17 @@ bool AppManager::reload()
 
 int AppManager::init()
 {
-    // Look for an load an entrypoint application
-    //loadingScreen = new DEFAULT_LOADER();
-    foregroundApp = new Gauntlet::GauntletApp();
-    //foregroundApp = new DEFAULT_APP();     //<- disbaled to cause error screen
+    loadingScreen = new Apps::TMSS;
+    if( !loadingScreen){
+        showErrorScreen("APP INIT FAILURE", "INVALID LOADER", EM_STYLE_CRITICAL_ERROR, EM_ICON_CRITICAL_ERROR);
+        return -1;
+    }
+    foregroundApp = genv_register_app();
+    if (!foregroundApp) {
+        showErrorScreen("APP INIT FAILURE", "INVALID ENTRYPOINT", EM_STYLE_CRITICAL_ERROR, EM_ICON_CRITICAL_ERROR);
+        return -1;
+    }
+
     return 0;
 }
 
@@ -248,6 +256,6 @@ bool AppManager::showErrorScreen(ErrorScreenMessage *msg){
         }
     }
 
-    errorScreen = SadMac::create(msg);
+    errorScreen = DefaultErrorScreen::create(msg);
     return (errorScreen != nullptr);
 }

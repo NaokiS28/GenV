@@ -81,7 +81,12 @@ private:
 
     inline RECT rectangle(int x, int y, int w, int h)
     {
-        return RECT(x, y, x + w, y + h);
+        RECT r;
+        r.left = x;
+        r.top = y;
+        r.right = y + w;
+        r.bottom = x + h;
+        return r;
     }
 
     struct D3DVertex

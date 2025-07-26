@@ -19,8 +19,10 @@
 #include <stdbool.h>
 
 #include "app/app.hpp"
+#include "app/builtin/tmss/tmss.hpp"
+#include "app/builtin/loadscr/loadscr.hpp"
 #include "app/builtin/errorscr/errorscr.hpp"
-#include "app/sadmac/sadmac.hpp"
+#include "app/builtin/textload/textload.hpp"
 
 namespace Apps
 {
@@ -36,8 +38,8 @@ namespace Apps
         private:
             Apps::Application *foregroundApp = nullptr;
             Apps::Application *backgroundApp = nullptr;
-            Apps::AppLoader *loadingScreen = nullptr;
-            SadMac *errorScreen = nullptr;
+            Apps::LoadScreenApp *loadingScreen = nullptr;
+            Apps::ErrorScreenApp *errorScreen = nullptr;
     
             void quitApp(AppSelect app = APP_FOREGROUND);
             void swapApps();

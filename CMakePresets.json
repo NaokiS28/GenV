@@ -7,45 +7,78 @@
     },
     "configurePresets": [
         {
-            "name": "debug",
-            "displayName": "Debug build",
+            "name": "win-debug",
+            "displayName": "Debug build (Win64)",
             "description": "Build the project with no optimization and assertions enabled.",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw32.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/mingw32.cmake"
             }
         },
         {
-            "name": "release",
-            "displayName": "Release build",
+            "name": "win-release",
+            "displayName": "Release build (Win64)",
             "description": "Build the project with performance optimization and assertions stripped.",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw32.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/mingw32.cmake"
             }
         },
         {
-            "name": "min-size-release",
-            "displayName": "Minimum size release build",
+            "name": "win-min-size-release",
+            "displayName": "Minimum size release build (Win64)",
             "description": "Build the project with size optimization and assertions stripped.",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "MinSizeRel",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw32.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/mingw32.cmake"
+            }   
+        },
+        {
+            "name": "psx-debug",
+            "displayName": "Debug build (PSX)",
+            "description": "Build the project with no optimization and assertions enabled.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake"
+            }
+        },
+        {
+            "name": "psx-release",
+            "displayName": "Release build (PSX)",
+            "description": "Build the project with performance optimization and assertions stripped.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake"
+            }
+        },
+        {
+            "name": "psx-min-size-release",
+            "displayName": "Minimum size release build (PSX)",
+            "description": "Build the project with size optimization and assertions stripped.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "MinSizeRel",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake"
             }   
         }
     ],
     "buildPresets": [
         {
-            "name": "Debug",
-            "description": "Debug",
-            "displayName": "Debug",
-            "configurePreset": "debug"
+            "name": "Debug  (Win64)",
+            "description": "Debug  (Win64)",
+            "displayName": "Debug  (Win64)",
+            "configurePreset": "win-debug"
         }
     ]
 }

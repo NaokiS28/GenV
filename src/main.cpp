@@ -24,10 +24,10 @@
 
 int main(int argc, char *argv[])
 {
-   LOG_APP("Starting UXDX...");
+   LOG_APP("Starting GenV...");
 
    if(!Services::startup()) {
-      LOG_APP("UXDX failed to init.");
+      LOG_APP("GenV failed to init.");
       return -1;
    }
                              

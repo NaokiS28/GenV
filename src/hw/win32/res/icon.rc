@@ -16,4 +16,4 @@
 */
 
 #include "resources.h"
-IDI_GenVICON ICON "GenV.ico"
+IDI_GenVICON ICON "DXUX.ico"

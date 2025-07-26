@@ -4,7 +4,7 @@
 
 #include "resources.h"
 
-IDI_GenVICON ICON "GenV.ico"
+IDI_GenVICON ICON "DXUX.ico"
 
 VS_VERSION_INFO VERSIONINFO
     FILEVERSION 0,0,0,0

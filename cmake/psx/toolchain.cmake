@@ -19,6 +19,7 @@ cmake_minimum_required(VERSION 3.25)
 set(
 	TOOLCHAIN_PATH ""
 	CACHE PATH "Directory containing GCC toolchain (if not listed in PATH)"
+	PSX_PLATFORM "YES"
 )
 
 # Prevent CMake from using any host compiler by manually overriding the platform

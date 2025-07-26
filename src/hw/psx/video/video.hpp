@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * gaunt_screens.hpp - Created on 12-06-2025
+ * video.hpp - Created on 26-04-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -16,10 +16,25 @@
  */
 
 #pragma once
-#include "gaunt_title.hpp"
-#include "gaunt_field.hpp"
+#include <windows.h>
+#include "common/services/video/video.hpp"
+#include "hw/win32/window-mgr.hpp"
 
-namespace Gauntlet
+using namespace Video;
+
+class IWinVideo : public IVideo
 {
-    GauntletSubApp *createNewApp(GauntletApps app);
+public:
+    virtual bool setWindow(WindowObject *wObj) = 0;
+};
+
+namespace Win32
+{
+    enum VideoType : uint8_t
+    {
+        VD_WIN_D3D,
+        VD_WIN_OPENGL
+    };
+
+    IWinVideo *CreateVideoDriver(VideoType type, WindowObject *wObject);
 }

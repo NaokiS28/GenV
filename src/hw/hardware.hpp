@@ -19,10 +19,12 @@
 #pragma once
 
 // Windows Targets
-#ifdef _WIN32
+#if defined(_WIN32)
 #include "win32/targetver.h"
 #include "win32/system.hpp"
 
 #define SYSTEM_CLASS WinSystem
+
+#elif defined(_PSX)
 
 #endif

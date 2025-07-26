@@ -20,7 +20,7 @@
 #include "common/util/rect.h"
 
 namespace Apps {
-class TextLoader : public AppLoader
+class TextLoader : public LoadScreenApp
 {
 private:
     const char *appName = "TextLoader(NRC)";

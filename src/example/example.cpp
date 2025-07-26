@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * biosldr.hpp - Created on 12-05-2025
+ * example.CPP - Created on 26-07-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,31 +15,29 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
 #include "app/app.hpp"
 
 using namespace Apps;
 
-class PSXLoader : public AppLoader
-{
-private:
-    const char *appName = "PSX Loader";
-    const AppVersion appVer = AppVersion(0, 0, 1);
+class GenV_Demo : public Application {
+    private:
+        const char *appName = "GenV_Demo (NRC)";
+        AppVersion appVer = AppVersion(0, 0, 1);
 
-    // AudioObject* bootChime;
-    // SpriteObject* makerLogo;
-    // SpriteObject* makerText;
-    // ModelObject* diamond[3];
+    public:
+        GenV_Demo() : Application() {}
 
-public:
-    PSXLoader();
-    ~PSXLoader(){}
+        int init() override {}
+        void update() override {}
+        void render() override {}
+        void reload() override {}
+        void shutdown() override {}
 
-    int version() override { return appVer.toInt(); };               // Return app's version for logging
-    const char *name() override { return appName; };          // Return app's name for logging
-    
-    int init() override { return 0; }
-    void update() override {}
-    void render() override {}
+        const char *name() override { return appName; }
+        int version() override { return appVer.toInt(); }
 };
+
+extern "C++" Apps::Application* genv_register_app(){
+    static GenV_Demo app;
+    return &app;
+}

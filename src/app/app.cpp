@@ -20,21 +20,17 @@
 
 using namespace Apps;
 
-Application::Application() :
-    gpu(Services::getVideo()),
-    state(APP_STATE_LOAD),
-    appReady(false)
+Application::Application() : gpu(Services::getVideo()),
+                             state(APP_STATE_LOAD),
+                             appReady(false)
 {
 }
 
-
-Application::Application(IVideo *_gpu) :
-    gpu(_gpu),
-    state(APP_STATE_LOAD),
-    appReady(false)
+Application::Application(IVideo *_gpu) : gpu(_gpu),
+                                         state(APP_STATE_LOAD),
+                                         appReady(false)
 {
 }
-
 
 int Application::loadProgress(const char *&str)
 {
@@ -42,19 +38,39 @@ int Application::loadProgress(const char *&str)
     return 100;
 }
 
-
 /* Application Loader Preset */
 
-AppLoader::AppLoader() :
-    Application(Services::getVideo())
+LoadScreenApp::LoadScreenApp() : Application(Services::getVideo())
 {
-
 }
 
-int AppLoader::init(){
+int LoadScreenApp::init()
+{
     return 0;
 }
 
-void AppLoader::update(){
+void LoadScreenApp::update()
+{
+}
 
+ErrorScreenApp::ErrorScreenApp() : Application(Services::getVideo())
+{
+}
+
+ErrorScreenApp::~ErrorScreenApp()
+{
+    state = APP_STATE_SHUTDOWN;
+    if (msg && msg != &eMsgUnknownMsg)
+        delete msg;
+    if (errorSound != nullptr)
+        delete errorSound;
+}
+
+int ErrorScreenApp::init()
+{
+    return 0;
+}
+
+void ErrorScreenApp::update()
+{
 }
