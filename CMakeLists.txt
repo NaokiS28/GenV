@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along with
 # GenV. If not, see <https://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.29)
 
 #execute_process(COMMAND ${CMAKE_COMMAND} -E environment)
 
@@ -25,12 +25,20 @@ project(
 	HOMEPAGE_URL "https://github.com/NaokiS28/GenV"
 )
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+if(GENV_PLATFORM STREQUAL "PSX")
+    # Set up compiler flags and initialize the Python environment used to run the
+    # scripts in the tools directory.
+	message(STATUS "files are being included?")
+    include(${CMAKE_SOURCE_DIR}/cmake/psx/setup.cmake)
+    include(${CMAKE_SOURCE_DIR}/cmake/psx/tools.cmake)
+endif()
+
 # Store current platform from preset
 if(NOT DEFINED GENV_PLATFORM)
     message(FATAL_ERROR "GENV_PLATFORM is not set! Please use a CMake preset.")
 endif()
-
-#find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 ## Main executable
 
@@ -119,7 +127,8 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 	if(GENV_PLATFORM STREQUAL "PC")
     	target_link_libraries(genv PRIVATE hw_win32)
 	elseif(GENV_PLATFORM STREQUAL "PSX")
-    	target_link_libraries(genv PRIVATE hw_psx)
+		add_subdirectory(${CMAKE_SOURCE_DIR}/lib/psx)
+    	target_link_libraries(genv PRIVATE hw_psx psx_common)
 	else()
         message(FATAL_ERROR "No supported platform backend selected.")
     endif()

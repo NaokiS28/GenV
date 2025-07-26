@@ -12,7 +12,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.29)
 
 # Create a user-editable variable to allow for a custom toolchain path to be
 # specified by passing -DTOOLCHAIN_PATH=... to CMake.

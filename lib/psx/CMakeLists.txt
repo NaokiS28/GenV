@@ -30,12 +30,10 @@ project(
 # other options.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-
-include(cmake/setup.cmake)
-include(cmake/tools.cmake)
-add_library(psx_common OBJECT)
+add_library(psx_common STATIC)
 
 target_sources(
+	psx_common PUBLIC
 	libc/clz.s
 	libc/crt0.c
 	libc/cxxsupport.cpp
