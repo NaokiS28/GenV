@@ -36,5 +36,5 @@ const char *WordWrap(const char* text, RectWH boundry){
         }
         token = strtok(str, " -");
     }
-
+    return nullptr;
 }

@@ -25,6 +25,11 @@ project(
 	HOMEPAGE_URL "https://github.com/NaokiS28/GenV"
 )
 
+# Store current platform from preset
+if(NOT DEFINED GENV_PLATFORM)
+    message(FATAL_ERROR "GENV_PLATFORM is not set! Please use a CMake preset.")
+endif()
+
 #find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 ## Main executable
@@ -88,19 +93,10 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 		${CMAKE_SOURCE_DIR}/src/
 	)
 
-    add_executable(genv
+    add_executable(
+		genv
         src/main.cpp                      # Engine main
     )
-
-    target_link_libraries(genv PRIVATE game_code genv_common)
-
-	if(WIN32)
-    	target_link_libraries(genv PRIVATE hw_win32)
-	elseif(PSX_PLATFORM)
-    	target_link_libraries(genv PRIVATE hw_psx)
-	else()
-        message(FATAL_ERROR "No supported platform backend selected.")
-    endif()
 
 	target_compile_features(
 		genv PRIVATE
@@ -115,6 +111,18 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 		ENABLE_FS_LOGGING=1
 		ENABLE_LOG_BUFFER=1
 	)
+
+    target_link_libraries(genv PRIVATE game_code genv_common)
+
+	message(STATUS "Building for: ${GENV_PLATFORM}")
+
+	if(GENV_PLATFORM STREQUAL "PC")
+    	target_link_libraries(genv PRIVATE hw_win32)
+	elseif(GENV_PLATFORM STREQUAL "PSX")
+    	target_link_libraries(genv PRIVATE hw_psx)
+	else()
+        message(FATAL_ERROR "No supported platform backend selected.")
+    endif()
 
     #target_include_directories(genv_main PRIVATE ../include)
 endif()

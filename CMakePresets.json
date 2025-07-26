@@ -11,10 +11,11 @@
             "displayName": "Debug build (Win64)",
             "description": "Build the project with no optimization and assertions enabled.",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build",
+            "binaryDir": "${sourceDir}/build/pc",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/mingw32.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/toolchain.cmake",
+                "GENV_PLATFORM": "PC"
             }
         },
         {
@@ -22,10 +23,11 @@
             "displayName": "Release build (Win64)",
             "description": "Build the project with performance optimization and assertions stripped.",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build",
+            "binaryDir": "${sourceDir}/build/pc",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/mingw32.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/toolchain.cmake",
+                "GENV_PLATFORM": "PC"
             }
         },
         {
@@ -33,10 +35,11 @@
             "displayName": "Minimum size release build (Win64)",
             "description": "Build the project with size optimization and assertions stripped.",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build",
+            "binaryDir": "${sourceDir}/build/pc",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "MinSizeRel",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/mingw32.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/toolchain.cmake",
+                "GENV_PLATFORM": "PC"
             }   
         },
         {
@@ -44,10 +47,11 @@
             "displayName": "Debug build (PSX)",
             "description": "Build the project with no optimization and assertions enabled.",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build",
+            "binaryDir": "${sourceDir}/build/psx",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake",
+                "GENV_PLATFORM": "PSX"
             }
         },
         {
@@ -55,10 +59,11 @@
             "displayName": "Release build (PSX)",
             "description": "Build the project with performance optimization and assertions stripped.",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build",
+            "binaryDir": "${sourceDir}/build/psx",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake",
+                "GENV_PLATFORM": "PSX"
             }
         },
         {
@@ -66,10 +71,11 @@
             "displayName": "Minimum size release build (PSX)",
             "description": "Build the project with size optimization and assertions stripped.",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build",
+            "binaryDir": "${sourceDir}/build/psx",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "MinSizeRel",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake",
+                "GENV_PLATFORM": "PSX"
             }   
         }
     ],

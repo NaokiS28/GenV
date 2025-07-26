@@ -1,4 +1,4 @@
-# ps1-bare-metal - (C) 2023-2024 spicyjpeg
+# GenV - (C) 2023-2024 NaokiS, spicyjpeg
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -22,9 +22,9 @@ set(
 )
 
 # Prevent CMake from using any host compiler by manually overriding the platform
-# and setting it to "Generic" (i.e. no defaults).
-set(CMAKE_SYSTEM_NAME      Generic)
-set(CMAKE_SYSTEM_PROCESSOR mipsel)
+# and setting it to "generic" (i.e. no defaults).
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_PROCESSOR i686)
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
@@ -49,10 +49,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # mipsel-linux-gnu one if available.
 find_program(
 	gccBinaryPath
-		mipsel-none-elf-gcc
-		mipsel-unknown-elf-gcc
-		mipsel-linux-gnu-gcc
+		i686-w64-mingw32-gcc
 	HINTS
+		"C:/msys64/mingw64/bin"
+		"C:/tools/msys64/mingw64/bin"
 		"${TOOLCHAIN_PATH}"
 		"${TOOLCHAIN_PATH}/bin"
 		"${TOOLCHAIN_PATH}/../bin"
