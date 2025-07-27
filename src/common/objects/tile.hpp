@@ -18,7 +18,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <cstring>
+#include <string.h>
 #include "texture.hpp"
 #include "common/util/ifloat.hpp"
 #include "common/util/rect.h"

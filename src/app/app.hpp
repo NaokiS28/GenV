@@ -152,13 +152,13 @@ namespace Apps
 
     struct Strings
     {
-        constexpr Strings() : str(nullptr), len(0) {}
-        constexpr Strings(const char *str) : str(str)
+        Strings() : str(nullptr), len(0) {}
+        Strings(const char *str) : str(str)
         {
             if (str)
                 len = strlen(str);
         }
-        constexpr Strings(const char *str, int len) : str(str), len(len) {}
+        Strings(const char *str, int len) : str(str), len(len) {}
         const char *str;
         int len = 0;
     };
@@ -175,7 +175,7 @@ namespace Apps
 
     constexpr const char eMsgSoundFile[] = "C:\\Users\\Naoki\\Nextcloud\\Programming\\GenV\\bin\\KBMHELL.wav";
 
-    constexpr const Strings eMsgStrList[] = {
+    const Strings eMsgStrList[] = {
         eMsgInfoStr,
         eMsgWarningStr,
         eMsgErrorStr,
@@ -185,7 +185,7 @@ namespace Apps
     constexpr const char eMsgOptionTest[] = "TEST BUTTON = Test menu";
     constexpr const char eMsgOptionTestSrv[] = "SERVICE BUTTON = Continue\r\nTEST BUTTON = Test menu";
 
-    constexpr const Strings eMsgOptionList[] = {
+    const Strings eMsgOptionList[] = {
         eMsgOptionNone,
         eMsgOptionTest,
         eMsgOptionTestSrv};

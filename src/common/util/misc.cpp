@@ -17,7 +17,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <time.h>
+//#include <time.h>
 #include "common/util/hash.hpp"
 #include "common/util/misc.hpp"
 #include "common/util/templates.hpp"
@@ -113,7 +113,7 @@ size_t Date::toString(char *output) const {
 		second
 	);
 }
-
+/*
 void Date::fromCurrentTime(void) {
 	auto timeValue = time(nullptr);
 	tm   timeObj;
@@ -127,5 +127,5 @@ void Date::fromCurrentTime(void) {
 	minute = timeObj.tm_min;
 	second = timeObj.tm_sec;
 }
-
+*/
 }

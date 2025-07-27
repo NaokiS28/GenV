@@ -16,7 +16,6 @@
  */
 
 #include "errorscr.hpp"
-#include <stdexcept>
 
 #include "common/util/templates.hpp"
 #include "common/services/services.hpp"

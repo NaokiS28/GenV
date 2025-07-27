@@ -16,7 +16,7 @@
  */
 
 #include <stdint.h>
-#include <cstring>
+#include <string.h>
 
 #include "storage.hpp"
 

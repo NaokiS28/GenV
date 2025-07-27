@@ -18,6 +18,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdlib.h>
 #include "video/video.hpp"
 #include "sys/timer.hpp"
 

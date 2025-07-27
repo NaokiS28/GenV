@@ -16,7 +16,7 @@
 */
 
 #include "text.h"
-#include <cstring>
+#include <string.h>
 
 const char *WordWrap(const char* text, RectWH boundry){
     if(text == nullptr) return nullptr;
@@ -24,7 +24,7 @@ const char *WordWrap(const char* text, RectWH boundry){
     char *token;
     char *str = new char(strlen(text));
     int newLines = 0;
-    int lineWidth = 0;
+    //int lineWidth = 0;
 
     if(str == nullptr) return nullptr;
     strcpy(str, text);

@@ -17,7 +17,7 @@
 #pragma once
 
 // Include printf() from the third-party library.
-#include "vendor/printf.h"
+#include "../vendor/printf.h"
 
 #define putchar _putchar
 #define getchar _getchar

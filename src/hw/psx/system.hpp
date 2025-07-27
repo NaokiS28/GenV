@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include <tchar.h>
 #include <stdbool.h>
 
 #include "common/services/services.hpp"
@@ -43,7 +42,7 @@ namespace System
 
         inline bool linkServices()
         {
-            assert(this != nullptr);
+            //assert(this != nullptr);
             Services::setSystem(this);
             return true;
         }

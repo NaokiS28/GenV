@@ -15,8 +15,8 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-if(PSX_PLATFORM)
+if(GENV_PLATFORM STREQUAL "PSX")
     add_subdirectory(psx)
-elseif(WIN32)
+elseif(GENV_PLATFORM STREQUAL "PC")
     add_subdirectory(win32)
 endif()

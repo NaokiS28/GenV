@@ -27,7 +27,7 @@ class GenV_Demo : public Application {
     public:
         GenV_Demo() : Application() {}
 
-        int init() override {}
+        int init() override { return 0; }
         void update() override {}
         void render() override {}
         void reload() override {}

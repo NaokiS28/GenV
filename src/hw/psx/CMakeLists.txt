@@ -31,7 +31,6 @@ project(
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Add the directory where ps1_bare_metal is defined
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/psx)
 
 add_library(hw_psx STATIC)
 
@@ -46,6 +45,10 @@ target_include_directories(
     hw_psx PUBLIC
 	${CMAKE_SOURCE_DIR}/src/hw/psx
 	${CMAKE_SOURCE_DIR}/src/common
+	${CMAKE_SOURCE_DIR}/lib/psx
+	${CMAKE_SOURCE_DIR}/lib/psx/libc
+	${CMAKE_SOURCE_DIR}/lib/psx/ps1
+	${CMAKE_SOURCE_DIR}/lib/psx/vendor	
 )
 
 target_link_libraries(hw_psx PRIVATE genv_common)

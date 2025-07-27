@@ -30,7 +30,7 @@ project(
 # other options.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(psx_common STATIC)
+add_library(psx_common OBJECT)
 
 target_sources(
 	psx_common PUBLIC
@@ -49,4 +49,7 @@ target_sources(
 target_include_directories(
     psx_common PUBLIC
 	${CMAKE_SOURCE_DIR}/lib/psx/
+	${CMAKE_SOURCE_DIR}/lib/psx/libc
+	${CMAKE_SOURCE_DIR}/lib/psx/ps1
+	${CMAKE_SOURCE_DIR}/lib/psx/vendor
 )

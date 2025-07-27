@@ -19,6 +19,8 @@
 #include "data.hpp"
 #include "common/util/hash.hpp"
 
+using namespace std;
+
 namespace Files
 {
     constexpr const uint8_t paramListSize = 10;
@@ -81,7 +83,7 @@ namespace Files
                 (getSize() - filePos) < sizeof(T))
                 return result;
 
-            std::memcpy(&result, data->getRawData() + filePos, sizeof(T));
+            memcpy(&result, data->getRawData() + filePos, sizeof(T));
             filePos += sizeof(T);
 
             if (filePos >= getSize() && allowWrap)
@@ -107,7 +109,7 @@ namespace Files
             if (length > bufferSize)
                 return false;
 
-            std::memcpy(&data, this->data->getRawData() + filePos, (unitLen * length));
+            memcpy(&data, this->data->getRawData() + filePos, (unitLen * length));
             filePos += (unitLen * length);
 
             if (filePos >= getSize())
@@ -137,7 +139,7 @@ namespace Files
             if ((getSize() - filePos) < sizeof(T))
                 return false;
 
-            std::memcpy(&result, data->getRawData() + filePos, sizeof(T));
+            memcpy(&result, data->getRawData() + filePos, sizeof(T));
 
             return result;
         }
@@ -155,7 +157,7 @@ namespace Files
             if (length > bufferSize)
                 return false;
 
-            std::memcpy(&buffer, data->getRawData() + filePos, (bufferSize * length));
+            memcpy(&buffer, data->getRawData() + filePos, (bufferSize * length));
 
             return true;
         }

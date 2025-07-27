@@ -16,11 +16,13 @@
  */
 
 #pragma once
-#include <cstring>
-#include <stdexcept>
+#include <string.h>
+//#include <stdexcept>
 #include <stddef.h>
 #include <stdint.h>
 #include "common/services/storage.hpp"
+
+using namespace std;
 
 class DataObject
 {
@@ -39,20 +41,20 @@ public:
 
     template<typename T>
     T* as() {
-        if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
+        //if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
         return reinterpret_cast<T*>(data);
     }
 
     template<typename T>
     const T* as() const {
-        if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
+        //if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
         return reinterpret_cast<const T*>(data);
     }
 
     template<typename T>
     void set(const T& value) {
-        if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
-        std::memcpy(data, &value, sizeof(T));
+        //if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
+        memcpy(data, &value, sizeof(T));
     }
 
     uint8_t* getRawData() { return data; }

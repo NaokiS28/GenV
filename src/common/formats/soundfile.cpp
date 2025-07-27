@@ -16,8 +16,10 @@
  */
 
 #include "soundfile.hpp"
-#include <cstring>
+#include <string.h>
 #include "wav.hpp"
+
+using namespace std;
 
 namespace Audio
 {
@@ -45,7 +47,7 @@ namespace Audio
         Audio::SoundObject *sObj = nullptr;
         
         for(auto &af : AudioFormatList){
-            const char *pos = std::strstr(filePath, af.ext);
+            const char *pos = strstr(filePath, af.ext);
             if(pos != nullptr){
                 switch (af.format){
                     case ecAudioFormat::AF_WAVE:

@@ -1,3 +1,7 @@
+# Project: Vigfell - Copyright (C) 2025 NaokiS
+# CMakeLists.txt - Created on 25-07-2025
+# 
+
 # GenV - Copyright (C) 2025 NaokiS, spicyjpeg
 # CMakeLists.txt - Created on 21-04-2025
 # 
@@ -30,9 +34,10 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 if(GENV_PLATFORM STREQUAL "PSX")
     # Set up compiler flags and initialize the Python environment used to run the
     # scripts in the tools directory.
-	message(STATUS "files are being included?")
     include(${CMAKE_SOURCE_DIR}/cmake/psx/setup.cmake)
     include(${CMAKE_SOURCE_DIR}/cmake/psx/tools.cmake)
+	add_compile_definitions(PSX)
+    remove_definitions(-D_WIN32 -DWIN32)
 endif()
 
 # Store current platform from preset
@@ -86,6 +91,7 @@ add_library(genv_common STATIC
 target_include_directories(genv_common PUBLIC
     ${CMAKE_SOURCE_DIR}/src/
 )
+link_libraries(genv_common)
 
 add_subdirectory(src/hw)
 
@@ -100,6 +106,9 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 		game_code PRIVATE
 		${CMAKE_SOURCE_DIR}/src/
 	)
+	
+	link_libraries(game_code)
+
 
     add_executable(
 		genv
@@ -127,8 +136,16 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 	if(GENV_PLATFORM STREQUAL "PC")
     	target_link_libraries(genv PRIVATE hw_win32)
 	elseif(GENV_PLATFORM STREQUAL "PSX")
-		add_subdirectory(${CMAKE_SOURCE_DIR}/lib/psx)
+		add_subdirectory(${CMAKE_SOURCE_DIR}/lib/psx/)
     	target_link_libraries(genv PRIVATE hw_psx psx_common)
+		target_include_directories(
+			genv PUBLIC
+			${CMAKE_SOURCE_DIR}/lib/psx/libc
+		)
+		target_include_directories(
+			genv_common PUBLIC
+			${CMAKE_SOURCE_DIR}/lib/psx/libc
+		)
 	else()
         message(FATAL_ERROR "No supported platform backend selected.")
     endif()

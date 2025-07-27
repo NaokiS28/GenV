@@ -39,6 +39,7 @@ char *strpbrk(const char *str, const char *breakset);
 char *strstr(const char *str, const char *substr);
 
 size_t strlen(const char *str);
+size_t strnlen(const char *str, size_t count);
 char *strcat(char *dest, const char *src);
 char *strncat(char *dest, const char *src, size_t count);
 char *strdup(const char *str);

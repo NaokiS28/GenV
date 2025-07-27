@@ -17,7 +17,7 @@
 
 #include "common/services/video/video.hpp"
 #include "vidutil.hpp"
-#include <cstring>
+#include <string.h>
 
 const char *GetDisplayName(LPCSTR devName, DWORD devNum){
     DISPLAY_DEVICE dd;

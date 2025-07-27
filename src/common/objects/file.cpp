@@ -76,8 +76,8 @@ namespace Files
 
     uint8_t FileObject::read()
     {
-        if (!this->data->getRawData())
-            throw std::runtime_error("No data loaded");
+        //if (!this->data->getRawData())
+        //    throw std::runtime_error("No data loaded");
 
         uint8_t d = data->getRawData()[filePos++];
 

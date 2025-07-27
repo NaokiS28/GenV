@@ -26,6 +26,7 @@ namespace Textures
 {
     DefaultTexture::DefaultTexture()
     {
+#ifndef PSX
         TextureObject::bitmap = stbi_load_from_memory(
             missingTextureImg,
             missingTextureSize,
@@ -33,6 +34,7 @@ namespace Textures
             &height,
             &bpp,
             0);
+#endif
         TextureObject::textureID = "DefaultTexture"_h;
     }
 
@@ -52,7 +54,7 @@ namespace Textures
     {
         if (file == nullptr)
             file = new Files::FileObject();
-
+#ifndef PSX
         if (file != nullptr)
         {
             int result = file->openFile(filePath, false);
@@ -73,7 +75,7 @@ namespace Textures
                     return Files::FO_OKAY;
             }
         }
-
+#endif
         return Files::FO_ERROR_BADOBJECT;
     }
 

@@ -22,7 +22,7 @@
  */
 
 #pragma once
-#include <cstring>
+#include <string.h>
 #include "app/app.hpp"
 #include "common/util/rect.h"
 #include "common/util/tween.hpp"
