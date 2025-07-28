@@ -28,6 +28,16 @@ namespace Apps
         reload();
     }
 
+    void TMSS::loadApp(){
+        state = APP_STATE_INIT;
+    }
+
+    int TMSS::init()
+    {
+        reload();
+        return 0;
+    }
+
     void TMSS::render()
     {
         gpu->fillScreen(Colors::Black);
@@ -45,7 +55,8 @@ namespace Apps
 
     void TMSS::update()
     {
-        if((Services::millis() - timer) >= iTimeToShow){
+        if ((Services::millis() - timer) >= iTimeToShow)
+        {
             this->state = APP_STATE_QUIT;
         }
     }

@@ -55,7 +55,6 @@ int DefaultErrorScreen::init()
     {
         // close sound file?
     }
-    appReady = true;
     return 0;
 }
 

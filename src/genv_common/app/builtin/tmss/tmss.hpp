@@ -37,10 +37,12 @@ namespace Apps
     public:
         TMSS();
 
+        int init();
         void update();
         void render();
         void reload();
         void shutdown() {}
+        void loadApp();
 
         const char *name() { return appName; }
         int version() { return appVer.toInt(); }

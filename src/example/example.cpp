@@ -19,25 +19,41 @@
 
 using namespace Apps;
 
-class GenV_Demo : public Application {
-    private:
-        const char *appName = "GenV_Demo (NRC)";
-        AppVersion appVer = AppVersion(0, 0, 1);
+class GenV_Demo : public Application
+{
+private:
+    const char *appName = "GenV_Demo (NRC)";
+    AppVersion appVer = AppVersion(0, 0, 1);
+    Coord txtOrigin;
 
-    public:
-        GenV_Demo() : Application() {}
+public:
+    GenV_Demo() : Application() {}
 
-        int init() override { return 0; }
-        void update() override {}
-        void render() override {}
-        void reload() override {}
-        void shutdown() override {}
+    int init() override
+    {
+        state = APP_STATE_RUN;
+        reload();
+        return 0;
+    }
+    void update() override {}
+    void render() override
+    {
+        gpu->fillScreen(Colors::Black);
+        gpu->drawText("This is an example string.", 27, txtOrigin.x, txtOrigin.y, 500, 100, Colors::White, Video::TALIGN_CENTER);
+    }
+    void reload() override
+    {
+        txtOrigin = Coord(gpu->getHorizontalRes() / 2,
+                          gpu->getVerticalRes() / 2);
+    }
+    void shutdown() override {}
 
-        const char *name() override { return appName; }
-        int version() override { return appVer.toInt(); }
+    const char *name() override { return appName; }
+    int version() override { return appVer.toInt(); }
 };
 
-extern "C++" Apps::Application* genv_register_app(){
-    static GenV_Demo* app = new GenV_Demo;
+extern "C++" Apps::Application *genv_register_app()
+{
+    static GenV_Demo *app = new GenV_Demo;
     return app;
 }

@@ -23,7 +23,6 @@ namespace Apps
     TextLoader::TextLoader()
     {
         state = APP_STATE_RUN;
-        appReady = true;
         reload();
     }
 
