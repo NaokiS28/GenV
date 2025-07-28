@@ -15,5 +15,5 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "resources.h"
+#include "../resources.h"
 IDI_GenVICON ICON "DXUX.ico"

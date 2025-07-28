@@ -15,7 +15,11 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef VENDOR_H
+#define VENDOR_H
 #pragma once
 
 #include "vendor_conf.h"
 #include "stb_image.h"
+
+#endif

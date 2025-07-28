@@ -20,7 +20,6 @@
 
 #include "common/util/hash.hpp"
 #include "common/objects/file.hpp"
-#include "common/vendor/stb_image.h"
 
 namespace Textures
 {

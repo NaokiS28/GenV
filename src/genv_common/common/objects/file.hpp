@@ -19,8 +19,6 @@
 #include "data.hpp"
 #include "common/util/hash.hpp"
 
-using namespace std;
-
 namespace Files
 {
     constexpr const uint8_t paramListSize = 10;

@@ -52,7 +52,9 @@ find_program(
 	gccBinaryPath
 		i686-w64-mingw32-gcc
 	HINTS
+		"C:/msys64/mingw32/bin"
 		"C:/msys64/mingw64/bin"
+		"C:/tools/msys64/mingw32/bin"
 		"C:/tools/msys64/mingw64/bin"
 		"${TOOLCHAIN_PATH}"
 		"${TOOLCHAIN_PATH}/bin"
@@ -83,9 +85,9 @@ endif()
 # cross-compiling.
 string(REGEX MATCH "^(.+-)gcc(.*)$" dummy "${gccBinaryPath}")
 
-set(CMAKE_ASM_COMPILER "${CMAKE_MATCH_1}gcc${CMAKE_MATCH_2}")
-set(CMAKE_C_COMPILER   "${CMAKE_MATCH_1}gcc${CMAKE_MATCH_2}")
-set(CMAKE_CXX_COMPILER "${CMAKE_MATCH_1}g++${CMAKE_MATCH_2}")
+set(CMAKE_ASM_COMPILER "${CMAKE_MATCH_1}gcc${CMAKE_MATCH_2}" CACHE STRING "" FORCE)
+set(CMAKE_C_COMPILER   "${CMAKE_MATCH_1}gcc${CMAKE_MATCH_2}" CACHE STRING "" FORCE)
+set(CMAKE_CXX_COMPILER "${CMAKE_MATCH_1}g++${CMAKE_MATCH_2}" CACHE STRING "" FORCE)
 set(CMAKE_AR           "${CMAKE_MATCH_1}ar${CMAKE_MATCH_2}")
 set(CMAKE_LINKER       "${CMAKE_MATCH_1}ld${CMAKE_MATCH_2}")
 set(CMAKE_RANLIB       "${CMAKE_MATCH_1}ranlib${CMAKE_MATCH_2}")

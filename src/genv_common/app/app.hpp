@@ -73,7 +73,6 @@ namespace Apps
     protected:
         IVideo *gpu;        // Local pointer to GPU object to use
         AppExecState state; // Current app working state
-        bool appReady;      // App has loaded and ready to be run
 
         virtual void setAppState(AppExecState state) { this->state = state; }
 
@@ -82,7 +81,7 @@ namespace Apps
         Application(IVideo *_gpu);
         virtual ~Application() = default;
 
-        inline virtual bool isReady() { return appReady; }
+        inline virtual bool isReady() { return state != APP_STATE_LOAD; }
         inline virtual AppExecState getState() { return state; }
 
         virtual int version() = 0;      // Return app's version for logging
@@ -93,7 +92,7 @@ namespace Apps
         virtual int init() = 0;    // Initialize app
         virtual void update() = 0; // Update the app's logic
         virtual void render() = 0; // Request app to draw it's UI
-        virtual void loadApp() {}  // Call app to load next file/object (app handles any loading list)
+        virtual void loadApp() { state = APP_STATE_INIT; }  // Call app to load next file/object (app handles any loading list)
         virtual void shutdown() {} // Request app to begin unloading and finilization
         virtual void reload() {}   // Request app to restart from the begining (or reload assets)
     };

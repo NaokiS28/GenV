@@ -21,14 +21,12 @@
 using namespace Apps;
 
 Application::Application() : gpu(Services::getVideo()),
-                             state(APP_STATE_LOAD),
-                             appReady(false)
+                             state(APP_STATE_LOAD)
 {
 }
 
 Application::Application(IVideo *_gpu) : gpu(_gpu),
-                                         state(APP_STATE_LOAD),
-                                         appReady(false)
+                                         state(APP_STATE_LOAD)
 {
 }
 

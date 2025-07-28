@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "resources.h"
 #include "common/services/services.hpp"
 #include "common/util/log.hpp"
 

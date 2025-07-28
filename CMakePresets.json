@@ -8,37 +8,37 @@
     "configurePresets": [
         {
             "name": "win-debug",
-            "displayName": "Debug build (Win64)",
+            "displayName": "Debug build (Win32)",
             "description": "Build the project with no optimization and assertions enabled.",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/pc",
+            "binaryDir": "${sourceDir}/build/win32",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/toolchain.cmake",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
                 "GENV_PLATFORM": "win32"
             }
         },
         {
             "name": "win-release",
-            "displayName": "Release build (Win64)",
+            "displayName": "Release build (Win32)",
             "description": "Build the project with performance optimization and assertions stripped.",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/pc",
+            "binaryDir": "${sourceDir}/build/win32",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/toolchain.cmake",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
                 "GENV_PLATFORM": "win32"
             }
         },
         {
             "name": "win-min-size-release",
-            "displayName": "Minimum size release build (Win64)",
+            "displayName": "Minimum size release build (Win32)",
             "description": "Build the project with size optimization and assertions stripped.",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/pc",
+            "binaryDir": "${sourceDir}/build/win32",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "MinSizeRel",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/toolchain.cmake",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
                 "GENV_PLATFORM": "win32"
             }   
         },

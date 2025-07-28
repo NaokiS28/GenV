@@ -22,8 +22,6 @@
 #include <stdint.h>
 #include "common/services/storage.hpp"
 
-using namespace std;
-
 class DataObject
 {
 public:

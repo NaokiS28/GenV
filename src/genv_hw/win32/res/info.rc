@@ -2,7 +2,7 @@
 #include "winres.h"
 #undef APSTUDIO_READONLY_SYMBOLS
 
-#include "resources.h"
+#include "../resources.h"
 
 IDI_GenVICON ICON "DXUX.ico"
 

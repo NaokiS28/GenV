@@ -18,7 +18,7 @@
 #pragma once
 #include <windows.h>
 #include "common/services/video/video.hpp"
-#include "hw/win32/window-mgr.hpp"
+#include "window-mgr.hpp"
 
 using namespace Video;
 

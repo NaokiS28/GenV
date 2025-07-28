@@ -30,10 +30,10 @@ project(
 # other options.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(hw_win32 STATIC)
+add_library(genv_hw_win32 STATIC)
 
 target_sources(
-    hw_win32 PRIVATE
+    genv_hw_win32 PRIVATE
 	video/gpu-d3d.cpp
 	video/gpu-sdl.cpp
 	video/video.cpp
@@ -49,26 +49,15 @@ target_sources(
 )
 
 target_include_directories(
-	hw_win32 PUBLIC
-	${CMAKE_SOURCE_DIR}/src/hw/win32
-)
-
-target_compile_options(
-	hw_win32 PRIVATE
-	-Wall
-	-Wextra
-	-Wno-unused-parameter
-	$<$<COMPILE_LANGUAGE:CXX>:
-		-Wno-pmf-conversions		
-    >
-	-g
+	genv_hw_win32 PUBLIC
+	${CMAKE_SOURCE_DIR}/src/genv_hw/win32
+	${CMAKE_SOURCE_DIR}/src/genv_common
 )
 	
-set(COMMON_LIBS winmm user32)
-target_link_libraries(hw_win32 PRIVATE genv_common)
+set(COMMON_LIBS winmm user32 genv_common)
 
 if(MINGW)
-    target_link_libraries(hw_win32 PRIVATE ${COMMON_LIBS} dsound dxguid d3d9 d3dx9 gdi32 winmm)
+    target_link_libraries(genv_hw_win32 PRIVATE ${COMMON_LIBS} dsound dxguid d3d9 d3dx9 gdi32 winmm)
 elseif(MSVC)
-    target_link_libraries(hw_win32 PRIVATE ${COMMON_LIBS} dsound dxguid d3d9 d3dx9 Msimg32 winmm)
+    target_link_libraries(genv_hw_win32 PRIVATE ${COMMON_LIBS} dsound dxguid d3d9 d3dx9 Msimg32 winmm)
 endif()

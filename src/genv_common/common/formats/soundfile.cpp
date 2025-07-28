@@ -19,7 +19,6 @@
 #include <string.h>
 #include "wav.hpp"
 
-using namespace std;
 
 namespace Audio
 {

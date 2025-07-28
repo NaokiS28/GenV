@@ -96,8 +96,3 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 	)
 
 endif()
-
-add_custom_target(graphviz ALL
-	COMMAND ${CMAKE_COMMAND} "--graphviz=foo.dot" .
-	COMMAND dot -Tpng foo.dot -o ../../foo.png
-)
