@@ -32,29 +32,24 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Add the directory where ps1_bare_metal is defined
 
-add_library(hw_psx STATIC)
+add_library(genv_hw_psx STATIC)
 
-target_sources(hw_psx PRIVATE
+target_sources(genv_hw_psx PRIVATE
     video/video.cpp
     audio.cpp
     system.cpp
 	#file/file.cpp
+	cpu/cache.s
 )
 
 target_include_directories(
-    hw_psx PUBLIC
+    genv_hw_psx PUBLIC
 	${CMAKE_SOURCE_DIR}/src/hw/psx
-	${CMAKE_SOURCE_DIR}/src/common
-	${CMAKE_SOURCE_DIR}/lib/psx
-	${CMAKE_SOURCE_DIR}/lib/psx/libc
-	${CMAKE_SOURCE_DIR}/lib/psx/ps1
-	${CMAKE_SOURCE_DIR}/lib/psx/vendor	
+	${CMAKE_SOURCE_DIR}/src/genv_common
 )
 
-target_link_libraries(hw_psx PRIVATE genv_common)
-
-target_compile_options(hw_psx PRIVATE
-    $<$<CXX_COMPILER_ID:GNU,Clang>:
-        -Wall -Wextra -Wno-unused-parameter -Wno-pmf-conversions -g
-    >
-)
+#target_compile_options(genv_hw_psx PRIVATE
+#    $<$<CXX_COMPILER_ID:GNU,Clang>:
+#        -Wall -Wextra -Wno-unused-parameter -Wno-pmf-conversions -g
+#    >
+#)

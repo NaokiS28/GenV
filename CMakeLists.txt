@@ -23,7 +23,7 @@ cmake_minimum_required(VERSION 3.29)
 
 project(
 	GenV
-	LANGUAGES    C CXX
+	LANGUAGES    C CXX ASM
 	VERSION      1.0.0
 	DESCRIPTION  ""
 	HOMEPAGE_URL "https://github.com/NaokiS28/GenV"
@@ -31,19 +31,15 @@ project(
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
-if(GENV_PLATFORM STREQUAL "PSX")
-    # Set up compiler flags and initialize the Python environment used to run the
-    # scripts in the tools directory.
-    include(${CMAKE_SOURCE_DIR}/cmake/psx/setup.cmake)
-    include(${CMAKE_SOURCE_DIR}/cmake/psx/tools.cmake)
-	add_compile_definitions(PSX)
-    remove_definitions(-D_WIN32 -DWIN32)
-endif()
-
 # Store current platform from preset
 if(NOT DEFINED GENV_PLATFORM)
     message(FATAL_ERROR "GENV_PLATFORM is not set! Please use a CMake preset.")
 endif()
+
+message(STATUS "Building for: ${GENV_PLATFORM}")
+include(cmake/${GENV_PLATFORM}/setup.cmake)
+include(cmake/${GENV_PLATFORM}/tools.cmake)
+
 
 ## Main executable
 
@@ -51,7 +47,7 @@ endif()
 # tools (such as clangd) to automatically configure include directories and
 # other options.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/${GENV_PLATFORM}")
 
 include (TestBigEndian)
 TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
@@ -61,64 +57,34 @@ else()
 	message(STATUS "LITTLE_ENDIAN")
 endif()
 
-# GenV shared core headers
-add_library(genv_common STATIC
-	src/common/util/hash.cpp
-	src/common/util/ifloat.cpp
-	src/common/util/log.cpp
-	src/common/util/misc.cpp
-	src/common/util/text.cpp
-	src/common/util/tween.cpp
-	src/common/objects/file.cpp
-	src/common/objects/sound.cpp
-	src/common/objects/tile.cpp
-	src/common/objects/sprite.cpp
-	src/common/objects/texture.cpp
-	src/common/objects/texture/missingtex.c
-	src/common/formats/soundfile.cpp
-	src/common/formats/riff.cpp
-	src/common/formats/wav.cpp
-	src/common/services/services.cpp
-	src/common/services/storage.cpp
-	src/common/services/appmgr.cpp
-	src/common/services/sys/timer.cpp
-	src/app/app.cpp
-	src/app/builtin/errorscr/errorscr.cpp
-	src/app/builtin/loadscr/loadscr.cpp
-	src/app/builtin/textload/textload.cpp	
-	src/app/builtin/tmss/tmss.cpp	
-)
-target_include_directories(genv_common PUBLIC
-    ${CMAKE_SOURCE_DIR}/src/
-)
-link_libraries(genv_common)
+#set(GENV_PLATFORM win CACHE STRING "Target platform to build for (win or psx)")
 
-add_subdirectory(src/hw)
+if(NOT COMMAND addGenVExecutable)
+    # use default add_executable() if it hasn't been overridden by the toolchain script
+    function(addGenVExecutable name)
+        add_executable(${name} ${ARGN})
+    endfunction()
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Generic")
+    # add global dependency on bare metal libc (must be done here)
+    add_subdirectory(lib/libc)
+    link_libraries(libc)
+endif()
+
+add_subdirectory(src/genv_common)
+add_subdirectory(src/genv_hw/${GENV_PLATFORM})
+target_link_libraries(genv_common PRIVATE genv_hw_${GENV_PLATFORM})
+
 
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     message(STATUS "Building default GenV test app")
 
-	add_library(game_code OBJECT
-		src/example/example.cpp		# Demo example
-	)
+	add_subdirectory(src/example)
+	target_link_libraries(game_code PRIVATE genv_common)
 
-	target_include_directories(
-		game_code PRIVATE
-		${CMAKE_SOURCE_DIR}/src/
-	)
-	
-	link_libraries(game_code)
-
-
-    add_executable(
-		genv
-        src/main.cpp                      # Engine main
-    )
-
-	target_compile_features(
-		genv PRIVATE
-		cxx_std_20
-	)
+	addGenVExecutable(genv src/main.cpp ...)
+	target_link_libraries(genv PRIVATE genv_common game_code)
 
 	target_compile_definitions(
 		genv PRIVATE
@@ -129,26 +95,9 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 		ENABLE_LOG_BUFFER=1
 	)
 
-    target_link_libraries(genv PRIVATE game_code genv_common)
-
-	message(STATUS "Building for: ${GENV_PLATFORM}")
-
-	if(GENV_PLATFORM STREQUAL "PC")
-    	target_link_libraries(genv PRIVATE hw_win32)
-	elseif(GENV_PLATFORM STREQUAL "PSX")
-		add_subdirectory(${CMAKE_SOURCE_DIR}/lib/psx/)
-    	target_link_libraries(genv PRIVATE hw_psx psx_common)
-		target_include_directories(
-			genv PUBLIC
-			${CMAKE_SOURCE_DIR}/lib/psx/libc
-		)
-		target_include_directories(
-			genv_common PUBLIC
-			${CMAKE_SOURCE_DIR}/lib/psx/libc
-		)
-	else()
-        message(FATAL_ERROR "No supported platform backend selected.")
-    endif()
-
-    #target_include_directories(genv_main PRIVATE ../include)
 endif()
+
+add_custom_target(graphviz ALL
+	COMMAND ${CMAKE_COMMAND} "--graphviz=foo.dot" .
+	COMMAND dot -Tpng foo.dot -o ../../foo.png
+)

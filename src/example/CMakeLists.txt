@@ -15,8 +15,19 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-if(GENV_PLATFORM STREQUAL "PSX")
-    add_subdirectory(psx)
-elseif(GENV_PLATFORM STREQUAL "PC")
-    add_subdirectory(win32)
-endif()
+project(
+	GenV-Demo
+	LANGUAGES    C CXX
+	VERSION      1.0.0
+	DESCRIPTION  ""
+	HOMEPAGE_URL "https://github.com/NaokiS28/GenV"
+)
+
+# GenV shared core headers
+add_library(game_code STATIC
+	example.cpp
+)
+
+target_include_directories(game_code PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/example
+)

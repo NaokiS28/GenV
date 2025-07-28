@@ -59,6 +59,7 @@ target_compile_options(
 		-mgpopt
 		-mno-extern-sdata
 		-G8
+		-DGENV_PSX
 	$<$<COMPILE_LANGUAGE:CXX>:
 		# These options will only be added when compiling C++ source files.
 		-fno-exceptions

@@ -38,6 +38,6 @@ class GenV_Demo : public Application {
 };
 
 extern "C++" Apps::Application* genv_register_app(){
-    static GenV_Demo app;
-    return &app;
+    static GenV_Demo* app = new GenV_Demo;
+    return app;
 }

@@ -25,6 +25,7 @@ set(
 # and setting it to "Generic" (i.e. no defaults).
 set(CMAKE_SYSTEM_NAME      Generic)
 set(CMAKE_SYSTEM_PROCESSOR mipsel)
+set(GENV_PLATFORM)
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)

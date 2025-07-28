@@ -18,11 +18,11 @@
 // This file is used to include all hardware drives specific to the given platform.
 #pragma once
 
-#if defined(PSX)
+#if defined(GENV_PSX)
 #include "psx/system.hpp"
 #define SYSTEM_CLASS PSXSystem
 
-#elif defined(_WIN32)
+#elif defined(GENV_WIN32)
 // Windows Targets
 #include "win32/targetver.h"
 #include "win32/system.hpp"

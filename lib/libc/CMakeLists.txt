@@ -17,39 +17,36 @@ cmake_minimum_required(VERSION 3.25)
 
 project(
 	PS1-Bare-Metal
-	LANGUAGES    C CXX
+	LANGUAGES    C CXX ASM
 	VERSION      1.0.0
 	DESCRIPTION  ""
 	HOMEPAGE_URL "https://github.com/NaokiS28/GenV"
 )
 
-## PS1 Bare Metal
+## Bare Metal
 
 # Always generate compile_commands.json when building. This allows some IDEs and
 # tools (such as clangd) to automatically configure include directories and
 # other options.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(psx_common OBJECT)
-
-target_sources(
-	psx_common PUBLIC
+add_library(
+	libc STATIC
 	libc/clz.s
 	libc/crt0.c
 	libc/cxxsupport.cpp
 	libc/malloc.c
-	libc/misc.c
+	libc/serial.c
 	libc/setjmp.s
 	libc/string.c
 	libc/string.s
-	ps1/cache.s
+	libc/random.c
 	vendor/printf.c
 )
 
 target_include_directories(
-    psx_common PUBLIC
-	${CMAKE_SOURCE_DIR}/lib/psx/
-	${CMAKE_SOURCE_DIR}/lib/psx/libc
-	${CMAKE_SOURCE_DIR}/lib/psx/ps1
-	${CMAKE_SOURCE_DIR}/lib/psx/vendor
+    libc PUBLIC
+	${CMAKE_SOURCE_DIR}/lib/libc
+	${CMAKE_SOURCE_DIR}/lib/libc/libc
+	${CMAKE_SOURCE_DIR}/lib/libc/vendor
 )

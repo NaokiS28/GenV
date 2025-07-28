@@ -26,7 +26,7 @@ namespace Textures
 {
     DefaultTexture::DefaultTexture()
     {
-#ifndef PSX
+#ifndef GENV_PSX
         TextureObject::bitmap = stbi_load_from_memory(
             missingTextureImg,
             missingTextureSize,
@@ -54,7 +54,7 @@ namespace Textures
     {
         if (file == nullptr)
             file = new Files::FileObject();
-#ifndef PSX
+#ifndef GENV_PSX
         if (file != nullptr)
         {
             int result = file->openFile(filePath, false);

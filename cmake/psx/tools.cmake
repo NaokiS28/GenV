@@ -39,7 +39,7 @@ find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
 
 # Define some helper functions that rely on the Python scripts in the tools
 # folder.
-function(addPS1Executable name)
+function(addGenVExecutable name)
 	add_executable(${name} ${ARGN})
 
 	# As the GCC linker outputs executables in ELF format, a script must be run
@@ -51,9 +51,9 @@ function(addPS1Executable name)
 		BYPRODUCTS ${name}.psexe
 		COMMAND
 			"${Python3_EXECUTABLE}"
-			"${PROJECT_SOURCE_DIR}/tools/convertExecutable.py"
+			"${PROJECT_SOURCE_DIR}/tools/psx/convertExecutable.py"
 			"$<TARGET_FILE:${name}>"
-			${name}.psexe
+			"${PROJECT_SOURCE_DIR}/bin/psx/${name}.psexe"
 		VERBATIM
 	)
 endfunction()
@@ -67,11 +67,11 @@ function(addPS1ExecutableAdv name loadAddress stackTop region)
 		BYPRODUCTS "${name}.psexe"
 		COMMAND
 			"${Python3_EXECUTABLE}"
-			"${PROJECT_SOURCE_DIR}/tools/convertExecutable.py"
+			"${PROJECT_SOURCE_DIR}/tools/psx/convertExecutable.py"
 			-r "${region}"
 			-s "${stackTop}"
 			"$<TARGET_FILE:${name}>"
-			${name}.psexe
+			"${PROJECT_SOURCE_DIR}/bin/psx/${name}.psexe"
 		VERBATIM
 	)
 endfunction()
@@ -82,7 +82,7 @@ function(convertImage input bpp)
 		DEPENDS "${PROJECT_SOURCE_DIR}/${input}"
 		COMMAND
 			"${Python3_EXECUTABLE}"
-			"${PROJECT_SOURCE_DIR}/tools/convertImage.py"
+			"${PROJECT_SOURCE_DIR}/tools/psx/convertImage.py"
 			-b ${bpp}
 			"${PROJECT_SOURCE_DIR}/${input}"
 			${ARGN}

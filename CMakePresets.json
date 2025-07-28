@@ -2,7 +2,7 @@
     "version": 6,
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 25,
+        "minor": 29,
         "patch": 0
     },
     "configurePresets": [
@@ -15,7 +15,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/toolchain.cmake",
-                "GENV_PLATFORM": "PC"
+                "GENV_PLATFORM": "win32"
             }
         },
         {
@@ -27,7 +27,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/toolchain.cmake",
-                "GENV_PLATFORM": "PC"
+                "GENV_PLATFORM": "win32"
             }
         },
         {
@@ -39,7 +39,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "MinSizeRel",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win/toolchain.cmake",
-                "GENV_PLATFORM": "PC"
+                "GENV_PLATFORM": "win32"
             }   
         },
         {
@@ -50,8 +50,8 @@
             "binaryDir": "${sourceDir}/build/psx",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake",
-                "GENV_PLATFORM": "PSX"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
+                "GENV_PLATFORM": "psx"
             }
         },
         {
@@ -62,8 +62,8 @@
             "binaryDir": "${sourceDir}/build/psx",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake",
-                "GENV_PLATFORM": "PSX"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
+                "GENV_PLATFORM": "psx"
             }
         },
         {
@@ -74,17 +74,9 @@
             "binaryDir": "${sourceDir}/build/psx",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "MinSizeRel",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/PSX/toolchain.cmake",
-                "GENV_PLATFORM": "PSX"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
+                "GENV_PLATFORM": "psx"
             }   
-        }
-    ],
-    "buildPresets": [
-        {
-            "name": "Debug  (Win64)",
-            "description": "Debug  (Win64)",
-            "displayName": "Debug  (Win64)",
-            "configurePreset": "win-debug"
         }
     ]
 }

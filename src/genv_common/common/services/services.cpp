@@ -18,7 +18,7 @@
 #include "services.hpp"
 #include "common/util/log.hpp"
 
-#include "hw/hardware.hpp"
+#include "hardware.hpp"
 
 // Static member definitions
 Audio::IAudio *Services::s_audio = nullptr;
@@ -43,8 +43,8 @@ bool Services::startup()
         return false;
     }
 
-    Apps::AppManager &apps = Services::getAppMgr();
-    if (apps.init())
+    Apps::AppManager* apps = Services::getAppMgrInstance();
+    if (apps->init())
     {
         LOG_APP("App manager failed to init.");
         shutdown();
@@ -95,7 +95,7 @@ void Services::shutdown()
 {
     // Is it weird to force the system driver to start up the services but we shut them down?
     // I feel its weird
-    Services::getAppMgr().shutdown();
+    Services::getAppMgrInstance()->shutdown();
 
     if (Services::s_audio)
     {

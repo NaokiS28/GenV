@@ -15,7 +15,7 @@
  */
 
 #include <stdio.h>
-#include "ps1/registers.h"
+#include "psx_serial.h"
 
 /* Serial port stdin/stdout */
 
@@ -90,13 +90,4 @@ void __cxa_pure_virtual(void) {
 
 	for (;;)
 		__asm__ volatile("");
-}
-
-int rand(){
-	// TODO: Actually randomise this
-	static int r = 0;
-	r += 123;
-	r *= r;
-	r >>= 1;
-	return r;
 }

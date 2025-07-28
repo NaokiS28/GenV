@@ -83,10 +83,10 @@ public:
     static System::ISystem *getSystem() { return s_system; }
 
     // AppManager is a static subsystem that orchestrates "apps" running
-    static Apps::AppManager &getAppMgr()
+    static Apps::AppManager *getAppMgrInstance()
     {
-        static Apps::AppManager apps;
-        return apps;
+        static Apps::AppManager *instance = new Apps::AppManager();
+        return instance;
     }
 
     // Setters
@@ -96,19 +96,19 @@ public:
     static void setInput(Input::IInput *input);
     static void setStorage(Files::IStorage *storage);
 
-
     static bool startup();
     static void shutdown();
 
     static size_t millis(); // Forwarder function to system millis with protection
     static size_t frames(); // Forwarder function to gpu frame counter with protection
-    static inline size_t secondsToFrames(size_t seconds){
+    static inline size_t secondsToFrames(size_t seconds)
+    {
         return msToFrames(seconds * 1000);
-    }   // Returns how many frames will pass in a given timeperiod
-    static size_t msToFrames(size_t millis);    // Returns how many frames will pass in a given timeperiod
+    } // Returns how many frames will pass in a given timeperiod
+    static size_t msToFrames(size_t millis);      // Returns how many frames will pass in a given timeperiod
     static size_t random(size_t min, size_t max); // Forwarder function to system random function with protection
-    static uint16_t getHorizontalRes(); // Forward function to gpu getHRes function with protection
-    static uint16_t getVerticalRes(); // Forward function to gpu getVRes function with protection
+    static uint16_t getHorizontalRes();           // Forward function to gpu getHRes function with protection
+    static uint16_t getVerticalRes();             // Forward function to gpu getVRes function with protection
 
 private:
     // Static pointers to service implementations
@@ -119,14 +119,16 @@ private:
     static System::ISystem *s_system;
 };
 
-namespace System {
-    inline size_t millis(){ return Services::millis(); }
-    inline size_t random(size_t min, size_t max){ return Services::random(min, max); }
+namespace System
+{
+    inline size_t millis() { return Services::millis(); }
+    inline size_t random(size_t min, size_t max) { return Services::random(min, max); }
 }
 
-namespace Video {
-    inline size_t frames(){ return Services::frames(); }
-    inline size_t msToFrames(size_t millis){ return Services::msToFrames(millis); }
+namespace Video
+{
+    inline size_t frames() { return Services::frames(); }
+    inline size_t msToFrames(size_t millis) { return Services::msToFrames(millis); }
     inline uint16_t getHorizontalRes() { return Services::getHorizontalRes(); }
     inline uint16_t getVerticalRes() { return Services::getVerticalRes(); }
 }
