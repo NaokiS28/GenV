@@ -47,9 +47,3 @@ target_include_directories(
 	${CMAKE_SOURCE_DIR}/src/hw/psx
 	${CMAKE_SOURCE_DIR}/src/genv_common
 )
-
-#target_compile_options(genv_hw_psx PRIVATE
-#    $<$<CXX_COMPILER_ID:GNU,Clang>:
-#        -Wall -Wextra -Wno-unused-parameter -Wno-pmf-conversions -g
-#    >
-#)

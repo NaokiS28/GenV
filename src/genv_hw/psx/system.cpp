@@ -22,9 +22,6 @@
 
 namespace System
 {
-    //IWinVideo *video(){ return static_cast<IWinVideo *>(Services::getVideo()); }
-    //IAudio *audio(){ return Services::getAudio(); }
-
     bool PSXSystem::init()
     {
         // You must set the system service before initing further drivers
@@ -46,8 +43,7 @@ namespace System
         {
             return 1;
         }
-
-        //setResolution(0,0); // TODO: Fullscreen and Borderless are fucked up.
+        
         return true;
     }
 

@@ -20,31 +20,87 @@
 #include "common/services/video/video.hpp"
 #include "common/objects/sprite.hpp"
 #include "common/objects/tile.hpp"
+#include "gpucmd.h"
 
 using namespace Video;
+
+namespace Video
+{
+    constexpr const VideoResolution PSX_Resolutions[] = {
+        {"PSX 256x240p", 256, 240, AspectRatio::R16_15, PORTABLE | SDTV | PROGRESSIVE},
+        {"PSX 320x240p", 320, 240, AspectRatio::R4_3, PORTABLE | SDTV | PROGRESSIVE},
+        {"PSX 368x240p", 368, 240, AspectRatio::R4_3, PORTABLE | SDTV | PROGRESSIVE},
+        {"PSX 512x240p", 512, 240, AspectRatio::R16_9, PORTABLE | SDTV | PROGRESSIVE | WIDESCREEN},
+        {"PSX 640x240p", 640, 240, AspectRatio::R16_9, PORTABLE | SDTV | PROGRESSIVE | WIDESCREEN},
+        {"PSX 256x240i", 256, 240, AspectRatio::R16_15, PORTABLE | SDTV | INTERLACED},
+        {"PSX 320x240i", 320, 240, AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
+        {"PSX 368x240i", 368, 240, AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
+        {"PSX 512x240i", 512, 240, AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED | WIDESCREEN},
+        {"PSX 640x240i", 640, 240, AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED | WIDESCREEN},
+        {"PSX 256x480i", 256, 480, AspectRatio::R16_15, PORTABLE | SDTV | INTERLACED},
+        {"PSX 320x480i", 320, 480, AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
+        {"PSX 368x480i", 368, 480, AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
+        {"PSX 512x480i", 512, 480, AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED},
+        {"PSX 640x480i", 640, 480, AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED}};
+
+    constexpr VideoModeList PSX_Video_Modes = {
+        .length = (sizeof(PSX_Resolutions) / sizeof(VideoResolution)),
+        .list = PSX_Resolutions};
+
+    constexpr int iPSXDMAListSize = 1024;
+}
 
 class PSXGPU : public IVideo
 {
 private:
+    typedef struct
+    {
+        uint32_t data[Video::iPSXDMAListSize];
+        uint32_t *nextPacket;
+    } DMAChain;
+
+    bool screenBufferPage = 0;
+    uint16_t dmaPtrIdx = 0;
+    DMAChain dmaChains[2];
+    bool useDMA = false;
+    GP1VideoMode mode = GP1_MODE_NTSC;
+
+    int frameX = 0;
+    int frameY = 0;
+
+    void waitForGP0Ready(void);
+    void waitForVSync(void);
+    void swapFrameBuffer();
+    void sendLinkedList(const void *data);
+    uint32_t *allocatePacket(DMAChain *chain, int numCommands);
+    uint32_t *gpuListPtr = nullptr;
+    DMAChain *chain = nullptr;
+
+    void addToDMAList(uint32_t cmd);
+    void directWrite(uint32_t cmd);
+    void (PSXGPU::*GPUCMD)(uint32_t) = &PSXGPU::directWrite;
+    void enableDMA(bool state);
+
 public:
     PSXGPU();
     bool init() override;
     bool reset() override { return false; }
-    bool beginRender() override { return 0; }
-    bool endRender() override { return 0; }
+    bool beginRender() override;
+    bool endRender() override;
     bool shutdown() override { return 0; }
 
-    int getSupportedResolutions(VideoModeList &list) { return 0; }
-
-    int setResolution(int w, int h, bool updateWindow = true)
+    const VideoModeList *getSupportedResolutions()
     {
-        return 0;
+        return &PSX_Video_Modes;
     }
 
+    int setResolution(int w, int h, bool updateWindow = true) override;
     bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0) override
     {
         return true;
     }
+
+    void fillScreen(Color color) override;
 
     void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const override {
     };
@@ -92,9 +148,11 @@ public:
     void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) override
     {
     }
+    
     void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) override
     {
     }
+
     int drawTextureObject(
         Textures::TextureObject *tObj,
         int x, int y, int w, int h,

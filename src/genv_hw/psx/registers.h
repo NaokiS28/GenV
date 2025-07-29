@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <psx_serial.h>
 #include <stdint.h>
 
 #define _ADDR8(addr)  ((volatile uint8_t *) (addr))
@@ -30,17 +31,6 @@
 #define F_CPU      33868800
 #define F_GPU_NTSC 53693175
 #define F_GPU_PAL  53203425
-
-typedef enum {
-	DEV0_BASE  = 0xbf000000,
-	EXP1_BASE  = 0xbf000000,
-	CACHE_BASE = 0x9f800000, // Cannot be accessed from KSEG1
-	IO_BASE    = 0xbf801000,
-	EXP2_BASE  = 0xbf802000,
-	EXP3_BASE  = 0xbfa00000,
-	DEV2_BASE  = 0xbfc00000,
-	CPU_BASE   = 0xfffe0000
-} BaseAddress;
 
 /* Bus interface */
 
@@ -71,8 +61,6 @@ typedef enum {
 #define BIU_DEV5_CTRL _MMIO32(IO_BASE | 0x018) // CD-ROM
 #define BIU_EXP2_CTRL _MMIO32(IO_BASE | 0x01c) // PIO/debug
 #define BIU_COM_DELAY _MMIO32(IO_BASE | 0x020)
-
-#include <psx_serial.h>
 
 /* DRAM controller */
 

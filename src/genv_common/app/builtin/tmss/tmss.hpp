@@ -18,17 +18,30 @@
 #pragma once
 #include "app/app.hpp"
 #include "common/util/rect.h"
+#include "common/util/tween.hpp"
 
 namespace Apps
 {
     constexpr const int iTimeToShow = 4000;
+    constexpr const int iFadeTime = 500;
     
     class TMSS : public LoadScreenApp
     {
     private:
         const char *appName = "TMSS(NRC)";
         AppVersion appVer = AppVersion(0, 0, 1);
-        uint32_t timer = 0;
+        int timer = -1;
+
+        enum {
+            TMSS_FadeIn,
+            TMSS_Delay,
+            TMSS_FadeOut,
+            TMSS_Exit
+        } tmssAnimStep = TMSS_FadeIn; 
+
+        uint8_t alpha = 0;
+        Util::Tween<uint16_t, Util::QuadInEasing> fadeIn;
+        Util::Tween<uint16_t, Util::QuadOutEasing> fadeOut;
 
         const char *tmssText = "CREATED WITH\nOR RUNNING UNDER\nGEN-V MULTIPLATFORM ENGINE.";
 
@@ -42,7 +55,6 @@ namespace Apps
         void render();
         void reload();
         void shutdown() {}
-        void loadApp();
 
         const char *name() { return appName; }
         int version() { return appVer.toInt(); }

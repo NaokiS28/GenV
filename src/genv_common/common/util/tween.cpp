@@ -23,35 +23,38 @@ namespace Util
 
 	// Configure the tween for a transition: set start, end, and duration.
 	template <typename T, typename E>
-	void Tween<T, E>::setValue(size_t time, T start, T target, size_t duration)
+	void Tween<T, E>::setValue(size_t time, T start, T target, size_t duration, bool play)
 	{
 		_startTime = time;
 		_base = start;
 		_delta = target - start;
 		_endTime = time + duration;
 		_duration = duration;
+		_go = play;
 	}
 
 	// Immediately set the value (no animation).
 	template <typename T, typename E>
-	void Tween<T, E>::setValue(T target)
+	void Tween<T, E>::setValue(T target, bool play)
 	{
 		_base = target;
 		_delta = static_cast<T>(0); // No delta (no interpolation)
 		_endTime = 0;				// Disables interpolation
+		_go = play;
 	}
 
 	// Compute the interpolated value at a given time.
 	template <typename T, typename E>
 	T Tween<T, E>::getValue(size_t time) const
 	{
-		if (time >= _endTime)
+		if (!_go || time >= _endTime)
 			return _base + _delta;
 
 		size_t elapsed = time - _startTime;
 		size_t progress = (elapsed * TWEEN_UNIT) / _duration;
 
-		T interpolated = _base + (_delta * static_cast<T>(E::apply(progress))) / static_cast<T>(TWEEN_UNIT);
+		T i = static_cast<T>(E::apply(progress));
+		T interpolated = _base + ((_delta * static_cast<T>(i > 0 ? i : 1)) / static_cast<T>(TWEEN_UNIT));
 		return interpolated;
 	}
 
@@ -59,9 +62,6 @@ namespace Util
 	template class Tween<int, LinearEasing>;
 	template class Tween<int, QuadInEasing>;
 	template class Tween<int, QuadOutEasing>;
-	template class Tween<uint8_t, LinearEasing>;
-	template class Tween<uint8_t, QuadInEasing>;
-	template class Tween<uint8_t, QuadOutEasing>;
 	template class Tween<uint16_t, LinearEasing>;
 	template class Tween<uint16_t, QuadInEasing>;
 	template class Tween<uint16_t, QuadOutEasing>;
@@ -73,10 +73,6 @@ namespace Util
 	template class Tween<int, CubicInEasing>;
 	template class Tween<int, CubicOutEasing>;
 	template class Tween<int, CubicInOutEasing>;
-	template class Tween<uint8_t, QuadInOutEasing>;
-	template class Tween<uint8_t, CubicInEasing>;
-	template class Tween<uint8_t, CubicOutEasing>;
-	template class Tween<uint8_t, CubicInOutEasing>;
 	template class Tween<uint16_t, QuadInOutEasing>;
 	template class Tween<uint16_t, CubicInEasing>;
 	template class Tween<uint16_t, CubicOutEasing>;

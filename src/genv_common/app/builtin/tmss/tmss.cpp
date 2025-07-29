@@ -17,31 +17,32 @@
 
 #include "tmss.hpp"
 #include "common/services/services.hpp"
+#include "common/util/tween.hpp"
 
 namespace Apps
 {
     TMSS::TMSS()
     {
-        this->state = APP_STATE_RUN;
-        // appReady = true;
-        this->timer = Services::millis();
+        this->state = APP_STATE_INIT;
         reload();
-    }
-
-    void TMSS::loadApp(){
-        state = APP_STATE_INIT;
     }
 
     int TMSS::init()
     {
+        fadeIn.setValue(Services::frames(), 0, 255, Services::msToFrames(iFadeTime), Util::TWEEN_STOP);
+        fadeOut.setValue(Services::frames(), 255, 0, Services::msToFrames(iFadeTime), Util::TWEEN_STOP);
         reload();
+        state = APP_STATE_RUN;
         return 0;
     }
 
     void TMSS::render()
     {
+        Color c = Colors::White;
+        c.a = alpha;
+        premultiply(c);
         gpu->fillScreen(Colors::Black);
-        gpu->drawText(tmssText, 56, textPos.x, textPos.y, textPos.w, textPos.h, Colors::White, TALIGN_CENTER);
+        gpu->drawText(tmssText, 56, textPos.x, textPos.y, textPos.w, textPos.h, c, TALIGN_CENTER);
     }
 
     void TMSS::reload()
@@ -55,9 +56,36 @@ namespace Apps
 
     void TMSS::update()
     {
-        if ((Services::millis() - timer) >= iTimeToShow)
+        switch (tmssAnimStep)
         {
-            this->state = APP_STATE_QUIT;
+        case TMSS_FadeIn:
+            if(!fadeIn.isDone(Services::frames()) && !fadeIn.isRunning())
+                fadeIn.go();
+            alpha = fadeIn.getValue(Services::frames());
+            if (fadeIn.isDone(Services::frames()))
+            {
+                tmssAnimStep = TMSS_Delay;
+                timer = Services::millis();
+            }
+            break;
+        case TMSS_FadeOut:
+            if(!fadeOut.isDone(Services::frames()) && !fadeOut.isRunning())
+                fadeOut.go();
+            alpha = fadeOut.getValue(Services::frames());
+            if (fadeOut.isDone(Services::frames()))
+            {
+                tmssAnimStep = TMSS_Exit;
+            }
+            break;
+        case TMSS_Delay:
+            if ((Services::millis() - timer) >= iTimeToShow)
+            {
+                tmssAnimStep = TMSS_FadeOut;
+            }
+            break;
+        case TMSS_Exit:
+        default:
+            state = APP_STATE_QUIT;
         }
     }
 }

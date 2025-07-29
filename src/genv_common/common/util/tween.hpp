@@ -21,6 +21,11 @@
 
 namespace Util
 {
+	enum : bool
+	{
+		TWEEN_STOP = false,
+		TWEEN_PLAY = true
+	};
 
 	// Define the resolution of the tweening scale (used for interpolation).
 	constexpr int TWEEN_UNIT = 1024;
@@ -95,16 +100,26 @@ namespace Util
 	{
 	public:
 		// Set the tween with a start, target, and duration.
-		void setValue(size_t time, T start, T target, size_t duration);
+		void setValue(size_t time, T start, T target, size_t duration, bool play = true);
 
 		// Instantly set the value without animation.
-		void setValue(T target);
+		void setValue(T target, bool play = true);
 
 		// Get the interpolated value at a given time.
 		T getValue(size_t time) const;
 
-		inline bool isDone(size_t time) const
+		inline void go() { _go = true; }
+		inline void stop() { _go = false; }
+		inline bool isRunning() { return _go; }
+
+		inline bool isDone(size_t time)
 		{
+			// If tween is paused, continually updated the timer until it's running again.
+			if (!_go)
+			{
+				_startTime += time;
+				_endTime += time;
+			}
 			return time >= _endTime;
 		}
 
@@ -129,6 +144,7 @@ namespace Util
 		}
 
 	private:
+		bool _go = true;	   // Tween is playing
 		int _base = 0;		   // Starting value
 		int _delta = 0;		   // Difference to target
 		size_t _startTime = 0; // When tween started

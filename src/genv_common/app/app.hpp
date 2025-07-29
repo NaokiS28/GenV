@@ -151,13 +151,9 @@ namespace Apps
 
     struct Strings
     {
-        Strings() : str(nullptr), len(0) {}
-        Strings(const char *str) : str(str)
-        {
-            if (str)
-                len = strlen(str);
-        }
-        Strings(const char *str, int len) : str(str), len(len) {}
+        Strings(){}
+        Strings(const char *str);
+        Strings(const char *str, int len);
         const char *str;
         int len = 0;
     };
@@ -202,13 +198,7 @@ namespace Apps
             const char *message,
             ErrorMessageStyle style = ErrorMessageStyle::EM_STYLE_DEFAULT,
             ErrorMessageIcon icon = ErrorMessageIcon::EM_ICON_DEFAULT,
-            ErrorMessageOptions action = ErrorMessageOptions::EM_BUTTONS_TEST_SEVICE)
-        {
-            this->title = Strings(title, strnlen(title, MAX_EMSG_LENGTH));
-            this->message = Strings(message, strnlen(message, MAX_EMSG_LENGTH));
-            this->style = style;
-            this->action = action;
-        }
+            ErrorMessageOptions action = ErrorMessageOptions::EM_BUTTONS_TEST_SEVICE);
         ErrorScreenMessage(
             const char *title,
             int tLen,
@@ -216,16 +206,7 @@ namespace Apps
             int mLen,
             ErrorMessageStyle style = ErrorMessageStyle::EM_STYLE_DEFAULT,
             ErrorMessageIcon icon = ErrorMessageIcon::EM_ICON_DEFAULT,
-            ErrorMessageOptions action = ErrorMessageOptions::EM_BUTTONS_TEST_SEVICE)
-        {
-            this->title.str = title;
-            this->title.len = tLen;
-            this->message.str = message;
-            this->message.len = mLen;
-            this->style = style;
-            this->icon = icon;
-            this->action = action;
-        }
+            ErrorMessageOptions action = ErrorMessageOptions::EM_BUTTONS_TEST_SEVICE);
     };
 
     static ErrorScreenMessage eMsgUnknownMsg = {

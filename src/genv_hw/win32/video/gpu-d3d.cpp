@@ -118,7 +118,7 @@ bool DirectXGPU::init()
     //               OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
     //              TEXT("Unispace"), &d3dfont);
 
-    D3DXCreateFont(d3ddev, 20, 0, 0, 1, FALSE, DEFAULT_CHARSET,
+    D3DXCreateFont(d3ddev, 32, 0, 0, 1, FALSE, DEFAULT_CHARSET,
                    OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
                    TEXT("8514oem"), &d3dfont);
 

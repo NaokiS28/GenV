@@ -104,6 +104,7 @@ namespace Video
     protected:
         Monitor screen;
         size_t frameCount = 0;
+        bool useDoubleBuffer = true;
 
     public:
         IVideo() = default;
@@ -119,6 +120,14 @@ namespace Video
         virtual bool beginRender() = 0;
         virtual bool endRender() = 0;
         virtual bool shutdown() = 0;
+
+        virtual void disableDoubleBuffer(){
+            useDoubleBuffer = false;
+        }
+
+        virtual void enableDoubleBuffer(){
+            useDoubleBuffer = true;
+        }
 
         inline void drawRect(RectWH &rect, Color color)
         {
@@ -146,7 +155,7 @@ namespace Video
             drawGradientRectVVar(rect.x, rect.y, rect.w, rect.h, top, bottom, startPoint, endPoint);
         }
 
-        inline void fillScreen(Color color)
+        virtual void fillScreen(Color color)
         {
             drawRect(0, 0, screen.res.width, screen.res.height, color);
         }
@@ -160,6 +169,9 @@ namespace Video
         inline int getDPI() { return screen.dpi; }
         virtual void getMonitorInfo(Monitor &m) const { m = screen; }
 
+        inline int setResolution(VideoResolution v, bool updateWindow = true){
+            return setResolution(v.width, v.height, updateWindow);
+        }
         virtual int setResolution(int _width, int _height, bool updateWindow = true)
         {
             this->screen.res.width = _width;
@@ -168,7 +180,7 @@ namespace Video
         }
 
         // Returns a list of video output modes that the application can set and use
-        virtual int getSupportedResolutions(VideoModeList &list) = 0;
+        const virtual VideoModeList* getSupportedResolutions() = 0;
 
         // Attempts to set the fullscreen state and returns current fullscreen state
         virtual bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0)

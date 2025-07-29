@@ -20,6 +20,9 @@
 #pragma once
 
 #include "vendor_conf.h"
+
+#ifndef GENV_PSX
 #include "stb_image.h"
+#endif
 
 #endif

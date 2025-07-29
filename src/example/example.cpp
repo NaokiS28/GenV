@@ -43,8 +43,8 @@ public:
     }
     void reload() override
     {
-        txtOrigin = Coord(gpu->getHorizontalRes() / 2,
-                          gpu->getVerticalRes() / 2);
+        txtOrigin = Coord((gpu->getHorizontalRes() / 2) - 250,
+                          (gpu->getVerticalRes() / 2) - 50);
     }
     void shutdown() override {}
 

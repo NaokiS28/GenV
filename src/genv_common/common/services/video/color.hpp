@@ -124,5 +124,6 @@ namespace Video
         c.r = (uint8_t)((c.r * c.a) / 255);
         c.g = (uint8_t)((c.g * c.a) / 255);
         c.b = (uint8_t)((c.b * c.a) / 255);
+        c.a = 255;
     }
 }

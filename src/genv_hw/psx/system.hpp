@@ -28,13 +28,15 @@
 
 namespace System
 {
+    constexpr const char* szSystemName = "PlayStation";
+    constexpr const char* szMakeName = "Sony";
+
     // PSX specific system manager interface.
     class PSXSystem : public ISystem
     {
     private:
         uint8_t sm_state; // System Manager state for returning to main.cpp
 
-        bool initWindowClass();
         int initVideo();
         int initAudio();
         int initIO() { return 0; }
@@ -42,10 +44,16 @@ namespace System
 
         inline bool linkServices()
         {
-            //assert(this != nullptr);
             Services::setSystem(this);
             return true;
         }
+
+        SystemInfo siPSX = {
+            .type = SYS_Console,
+            .make = szMakeName,
+            .name = szSystemName,
+            .flags = SYS_No_Window_Mode
+        };
 
     public:
         PSXSystem() : sm_state(System::SM_NORMAL)
@@ -59,6 +67,10 @@ namespace System
         bool setResolution(int w, int h); // Sets window resolution (internal viewport)
         bool setFullscreen(Video::FullscreenMode mode){ return false; }
         bool toggleFullscreen(){ return false; }
+
+        const SystemInfo* getSysInfo() const override {
+            return &siPSX;
+        }
 
         size_t millis();
 

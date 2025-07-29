@@ -36,7 +36,7 @@ class DefaultErrorScreen : public ErrorScreenApp
 private:
     const char *appName = "ErrorScreen(NRC)";
     AppVersion appVer = AppVersion(0, 0, 1);
-    Util::Tween<uint8_t, Util::LinearEasing> colorIntensity;
+    Util::Tween<uint16_t, Util::LinearEasing> colorIntensity;
 
     RectWH area;
 
@@ -49,7 +49,7 @@ private:
         INTRO_INIT
     } animState = INTRO_RUN;
 
-    Util::Tween<uint8_t, Util::LinearEasing> bgAlpha;
+    Util::Tween<uint16_t, Util::LinearEasing> bgAlpha;
     Util::Tween<uint16_t, Util::QuadInEasing> jumpOut;
     Util::Tween<uint16_t, Util::QuadOutEasing> jumpIn;
 

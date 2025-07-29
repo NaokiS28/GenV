@@ -76,6 +76,8 @@ namespace System
             return true;
         }
 
+        SystemInfo siWindows;
+
     public:
         WinSystem() : sm_state(System::SM_NORMAL)
         {
@@ -90,6 +92,10 @@ namespace System
         bool setResolution(int w, int h); // Sets window resolution (internal viewport)
         bool setFullscreen(Video::FullscreenMode mode);
         bool toggleFullscreen();
+
+        const SystemInfo* getSysInfo() const override {
+            return &siWindows;
+        }
 
         size_t millis();
 

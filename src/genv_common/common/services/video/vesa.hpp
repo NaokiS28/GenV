@@ -30,7 +30,8 @@ namespace VESA
         R5_3,
         R5_4,
         R16_9,
-        R16_10
+        R16_10,
+        R16_15
     };
 
     struct Ratio
@@ -48,6 +49,7 @@ namespace VESA
         {5, 4},   // R5_4
         {16, 9},  // R16_9
         {16, 10}, // R16_10
+        {16, 15}, // R16_10
     };
 
     constexpr Ratio getAspectRatioParts(AspectRatio ar)
@@ -81,8 +83,8 @@ namespace VESA
 
     struct VideoModeList
     {
-        int length;
-        VideoResolution *list;
+        const int length;
+        const VideoResolution *list;
     };
 
     constexpr VideoResolution Custom = {"Custom", 0, 0, AspectRatio::INVALID, NONE};

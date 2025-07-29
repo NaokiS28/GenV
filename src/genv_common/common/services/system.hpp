@@ -56,6 +56,27 @@ namespace System
         * Services::setInput(IInput *input);
     */
 
+    enum SysType : uint32_t {
+        SYS_Unknown,
+        SYS_Arcade,
+        SYS_Console,
+        SYS_Computer,
+        SYS_Handheld
+    };
+
+    enum SysFlags : uint32_t {
+        SYS_No_Window_Mode = (1 << 0),
+        SYS_No_Switch_Res = (1 << 1),
+    };
+
+    struct SystemInfo {
+        uint32_t type = SysType::SYS_Unknown;
+        const char* make = nullptr;
+        const char* name = nullptr;
+        const char* osname = nullptr;
+        uint32_t flags = 0;
+    };
+
     class ISystem
     {
     public:
@@ -67,6 +88,8 @@ namespace System
         virtual bool init() = 0;     // Init system then load and init hardware services
         virtual int update() = 0;    // Update system manager
         virtual bool shutdown() = 0; // Prepare for app shutdow
+
+        virtual const SystemInfo* getSysInfo() const = 0;
 
         virtual size_t millis() = 0;                        // Millis since system start
         virtual size_t random(size_t min, size_t max){      // Gets a random number between given values

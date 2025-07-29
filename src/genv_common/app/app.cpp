@@ -25,6 +25,50 @@ Application::Application() : gpu(Services::getVideo()),
 {
 }
 
+ErrorScreenMessage::ErrorScreenMessage(
+    const char *title,
+    const char *message,
+    ErrorMessageStyle style,
+    ErrorMessageIcon icon,
+    ErrorMessageOptions action)
+{
+    this->title = Strings(title, strnlen(title, MAX_EMSG_LENGTH));
+    this->message = Strings(message, strnlen(message, MAX_EMSG_LENGTH));
+    this->style = style;
+    this->action = action;
+}
+
+ErrorScreenMessage::ErrorScreenMessage(
+    const char *title,
+    int tLen,
+    const char *message,
+    int mLen,
+    ErrorMessageStyle style,
+    ErrorMessageIcon icon,
+    ErrorMessageOptions action)
+{
+    this->title.str = title;
+    this->title.len = tLen;
+    this->message.str = message;
+    this->message.len = mLen;
+    this->style = style;
+    this->icon = icon;
+    this->action = action;
+}
+
+Strings::Strings(const char *str)
+{
+    this->str = str;
+    if (str)
+        this->len = strlen(str);
+}
+
+Strings::Strings(const char *str, int len)
+{
+    this->str = str;
+    this->len = len;
+}
+
 Application::Application(IVideo *_gpu) : gpu(_gpu),
                                          state(APP_STATE_LOAD)
 {
