@@ -56,6 +56,10 @@ ErrorScreenMessage::ErrorScreenMessage(
     this->action = action;
 }
 
+Strings::Strings(){
+
+}
+
 Strings::Strings(const char *str)
 {
     this->str = str;

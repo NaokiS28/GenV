@@ -25,6 +25,7 @@ add_library(genv_common STATIC
 	common/util/misc.cpp
 	common/util/text.cpp
 	common/util/tween.cpp
+	common/objects/object.cpp
 	common/objects/file.cpp
 	common/objects/sound.cpp
 	common/objects/tile.cpp
@@ -36,6 +37,7 @@ add_library(genv_common STATIC
 	common/formats/wav.cpp
 	common/services/services.cpp
 	common/services/storage.cpp
+	common/services/video/video.cpp
 	common/services/appmgr.cpp
 	common/services/sys/timer.cpp
 	app/app.cpp

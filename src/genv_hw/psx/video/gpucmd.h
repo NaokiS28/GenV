@@ -252,11 +252,24 @@ typedef enum {
 	GP1_HRES_640     = 3 << 0  // Dotclock divided by 4
 } GP1HorizontalRes;
 
+const GP1HorizontalRes GP1HorizontalResList[] = {
+	GP1_HRES_256,
+	GP1_HRES_320,
+	GP1_HRES_368,
+	GP1_HRES_512,
+	GP1_HRES_640
+};
+
 typedef enum {
 	GP1_VRES_BITMASK = 1,
 	GP1_VRES_256     = 0,
 	GP1_VRES_512     = 1
 } GP1VerticalRes;
+
+const GP1VerticalRes GP1VerticalResList[] = {
+	GP1_VRES_256,
+	GP1_VRES_512
+};
 
 typedef enum {
 	GP1_MODE_BITMASK = 1,

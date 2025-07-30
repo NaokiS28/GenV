@@ -151,7 +151,7 @@ namespace Apps
 
     struct Strings
     {
-        Strings(){}
+        Strings();
         Strings(const char *str);
         Strings(const char *str, int len);
         const char *str;

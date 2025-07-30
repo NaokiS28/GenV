@@ -19,6 +19,7 @@
 
 #include "common/util/log.hpp"
 #include "common/util/misc.hpp"
+#include "video/video.hpp"
 
 namespace System
 {
@@ -27,19 +28,19 @@ namespace System
         // You must set the system service before initing further drivers
         linkServices();
 
-        if (initVideo())
+        if (initVideo() != 0)
         {
             return 1;
         }
-        if (initFiles())
+        if (initFiles() != 0)
         {
             return 1;
         }
-        if (initAudio())
+        if (initAudio() != 0)
         {
             return 1;
         }
-        if (initIO())
+        if (initIO() != 0)
         {
             return 1;
         }
@@ -58,8 +59,10 @@ namespace System
 
     int PSXSystem::initVideo()
     {
-        //Services::setVideo(vDriver);
-        //video()->setResolution(gpuWnd->size.w, gpuWnd->size.h);
+        IVideo *vDriver = new PSXGPU;
+        if(!vDriver || vDriver->init())
+            return -1;
+        Services::setVideo(vDriver);
         return 0;
     }
 
