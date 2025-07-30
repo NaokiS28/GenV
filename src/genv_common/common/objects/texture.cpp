@@ -20,11 +20,10 @@
 #include "common/vendor/vendor.h"
 #include "common/services/services.hpp"
 #include "texture/missingtex.h"
-#include "common/util/hash.hpp"
 
 namespace Textures
 {
-    DefaultTexture::DefaultTexture()
+    DefaultTexture::DefaultTexture() : TextureObject()
     {
 #ifndef GENV_PSX
         TextureObject::bitmap = stbi_load_from_memory(
@@ -35,17 +34,15 @@ namespace Textures
             &bpp,
             0);
 #endif
-        TextureObject::textureID = "DefaultTexture"_h;
+        setObjectID("DefaultTexture"_h);
     }
-
-    TextureObject::TextureObject() {}
 
     TextureObject::~TextureObject()
     {
         Services::getVideo()->releaseTexture(this);
     }
 
-    TextureObject::TextureObject(const char *filePath)
+    TextureObject::TextureObject(const char *filePath) : ObjectBase()
     {
         loadTextureFile(filePath);
     }
@@ -69,7 +66,7 @@ namespace Textures
                     4);
 
                 bitmapLength = ((sizeof(uint32_t) * width) * height);
-                textureID = Files::getFileNameHash(this->file);
+                setObjectID(Files::getFileNameHash(this->file));
 
                 if (bitmap != nullptr)
                     return Files::FO_OKAY;
@@ -81,8 +78,8 @@ namespace Textures
 
     int TextureObject::uploadTexture()
     {
-        if (!textureID)
-            Files::getFileNameHash(this->file);
+        if (!getObjectID())
+            setObjectID(Files::getFileNameHash(this->file));
         return Services::getVideo()->uploadTexture(this);
     }
 

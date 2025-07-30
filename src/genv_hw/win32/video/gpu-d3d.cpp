@@ -172,7 +172,7 @@ int DirectXGPU::uploadTexture(Textures::TextureObject *tObj)
 
     texture->UnlockRect(0);
 
-    d3dTexMap[tObj->textureID] = texture;
+    d3dTexMap[tObj->getObjectID()] = texture;
 
     return 0;
 }
@@ -182,7 +182,7 @@ int DirectXGPU::releaseTexture(Textures::TextureObject *tObj)
     if (!d3ddev || !d3d || tObj == nullptr)
         return -1;
 
-    auto it = d3dTexMap.find(tObj->getTextureID());
+    auto it = d3dTexMap.find(tObj->getObjectID());
     if (it == d3dTexMap.end())
         return -2;
 
@@ -193,7 +193,7 @@ int DirectXGPU::releaseTexture(Textures::TextureObject *tObj)
 
 LPDIRECT3DTEXTURE9 DirectXGPU::getTexBuffer(Textures::TextureObject *tObj)
 {
-    auto it = d3dTexMap.find(tObj->getTextureID());
+    auto it = d3dTexMap.find(tObj->getObjectID());
     if (it == d3dTexMap.end())
         return nullptr;
 

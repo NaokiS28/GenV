@@ -24,6 +24,8 @@
 
 using namespace Video;
 
+#define LOG_GPU(fmt, ...) LOG("PSXGPU", fmt __VA_OPT__(, ) __VA_ARGS__)
+
 namespace Video
 {
     constexpr const VideoResolution PSX_Resolutions[] = {
@@ -43,11 +45,16 @@ namespace Video
         {"PSX 512x480i", 512, 480, AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED},
         {"PSX 640x480i", 640, 480, AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED}};
 
-    constexpr VideoModeList PSX_Video_Modes = {
-        .length = (sizeof(PSX_Resolutions) / sizeof(VideoResolution)),
-        .list = PSX_Resolutions};
+    constexpr const uint16_t PSX_Refresh_Rates[2] = {50, 60};
 
-    constexpr int iPSXDMAListSize = 1024;
+    constexpr const VideoModeList PSX_Video_Modes = {
+        .resLength = (sizeof(PSX_Resolutions) / sizeof(VideoResolution)),
+        .resList = PSX_Resolutions,
+        .refreshLength = 2,
+        .refreshList = PSX_Refresh_Rates};
+
+    constexpr const int iPSXDMAListSize = 1024;
+    constexpr const uint8_t bPSXDMAChunkSize = 16;
 }
 
 class PSXGPU : public IVideo
@@ -63,13 +70,15 @@ private:
     uint16_t dmaPtrIdx = 0;
     DMAChain dmaChains[2];
     bool useDMA = false;
-    GP1VideoMode mode = GP1_MODE_NTSC;
+    GP1VideoMode gpuMode = GP1_MODE_NTSC;
 
     int frameX = 0;
     int frameY = 0;
 
     void waitForGP0Ready(void);
     void waitForVSync(void);
+    void waitForDMADone(void);
+
     void swapFrameBuffer();
     void sendLinkedList(const void *data);
     uint32_t *allocatePacket(DMAChain *chain, int numCommands);
@@ -80,6 +89,12 @@ private:
     void directWrite(uint32_t cmd);
     void (PSXGPU::*GPUCMD)(uint32_t) = &PSXGPU::directWrite;
     void enableDMA(bool state);
+
+    int PSXGPU::uploadTexture(
+        Textures::TextureObject *tObj,
+        int x,
+        int y
+    );
 
 public:
     PSXGPU();
@@ -135,20 +150,13 @@ public:
     {
     }
 
-    int uploadTexture(Textures::TextureObject *tObj) override
-    {
-        return 0;
-    }
-
-    int releaseTexture(Textures::TextureObject *tObj) override
-    {
-        return 0;
-    }
+    int uploadTexture(Textures::TextureObject *tObj) override;
+    int releaseTexture(Textures::TextureObject *tObj) override;
 
     void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) override
     {
     }
-    
+
     void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) override
     {
     }

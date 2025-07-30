@@ -73,7 +73,6 @@ private:
     LPDIRECT3DVERTEXBUFFER9 vbo = nullptr;
 
     std::unordered_map<uint32_t, LPDIRECT3DTEXTURE9> d3dTexMap;
-    uint32_t nextTextureID = 1; // start from 1 to reserve 0 for "invalid"
 
     LPDIRECT3DTEXTURE9 getTexBuffer(Textures::TextureObject *tObj);
 

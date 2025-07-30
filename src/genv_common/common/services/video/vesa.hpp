@@ -83,8 +83,10 @@ namespace VESA
 
     struct VideoModeList
     {
-        const int length;
-        const VideoResolution *list;
+        const uint16_t resLength = 0;
+        const VideoResolution *resList = nullptr;
+        const uint8_t refreshLength = 0;
+        const uint16_t *refreshList = nullptr;
     };
 
     constexpr VideoResolution Custom = {"Custom", 0, 0, AspectRatio::INVALID, NONE};

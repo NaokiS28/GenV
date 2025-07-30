@@ -18,36 +18,34 @@
 #pragma once
 #include <stdint.h>
 
-#include "common/util/hash.hpp"
-#include "common/objects/file.hpp"
+#include "object.hpp"
+#include "file.hpp"
 
 namespace Textures
 {
-    class TextureObject
+    class TextureObject : public ObjectBase
     {
     private:
         Files::FileObject *file = nullptr;
 
     public:
-        enum BitsPerPixel
+        enum BitsPerPixel : uint8_t
         {
             INVALID,
             BPP_1BIT,
             BPP_2BIT,
             BPP_4BIT,
             BPP_8BIT
-        };
+        } bpp;
 
         int width = 0;
         int height = 0;
-        int n = 0;
-        int bpp = INVALID;
+        int page = 0;
 
         const uint8_t *bitmap = nullptr;
         size_t bitmapLength = 0;
-        util::Hash textureID = 0;
 
-        TextureObject();
+        TextureObject::TextureObject() : ObjectBase() {}
         TextureObject(const char *filePath);
         virtual ~TextureObject();
 
@@ -56,11 +54,6 @@ namespace Textures
         virtual size_t getTextureSize()
         {
             return bitmapLength;
-        }
-
-        inline uint32_t getTextureID()
-        {
-            return textureID;
         }
     };
 

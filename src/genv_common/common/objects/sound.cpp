@@ -25,4 +25,16 @@ namespace Audio
     bool SoundObject::pause() { return Services::getAudio()->pause(this); }
     bool SoundObject::isPlaying() { return Services::getAudio()->isPlaying(this); }
     int SoundObject::uploadSample() { return Services::getAudio()->uploadSample(this); }
+
+    SoundObject *createSample(const char* filePath){
+        SoundObject *sObj = new SoundObject;
+        if (sObj != nullptr)
+        {
+            if (sObj->loadSoundFile(filePath) == Files::FO_OKAY)
+                return sObj;
+            else
+                delete sObj;
+        }
+        return nullptr;
+    }
 }

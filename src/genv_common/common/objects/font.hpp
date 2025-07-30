@@ -25,7 +25,7 @@ struct FontMetrics {
 
 class FontObject {
     protected:
-        TextureObject *texture;
+        Textures::TextureObject *texture;
     
     public:
         FontObject(){}

@@ -17,14 +17,10 @@
 
 #pragma once
 #include "data.hpp"
-#include "common/util/hash.hpp"
+#include "object.hpp"
 
 namespace Files
 {
-    constexpr const uint8_t paramListSize = 10;
-    constexpr const uint8_t paramNotFound = UINT8_MAX;
-    constexpr const util::Hash paramEntryNull = UINT32_MAX;
-
     enum : uint8_t
     {
         FO_OKAY,                // Success
@@ -42,18 +38,12 @@ namespace Files
         FO_ERROR_UNKNOWN        // Unknown or unexpected error occured
     };
 
-    struct FileParameter
-    {
-        util::Hash hash = 0;
-        size_t param = 0;
-    };
-
-    class FileObject
+    class FileObject : public ObjectBase
     {
 
     public:
-        FileObject();
-        FileObject(const char *filePath, bool lock = false)
+        FileObject() : ObjectBase(){}
+        FileObject(const char *filePath, bool lock = false) : ObjectBase()
         {
             openFile(filePath, lock);
         }
@@ -164,11 +154,6 @@ namespace Files
         void setDataObj(DataObject *dObj) { data = dObj; }
         size_t getSize() { return (data ? data->getDataLen() : 0); }
 
-        bool setParam(util::Hash object, size_t param);  // Set a parameter value. Will add a new entry if list has none
-        bool getParam(util::Hash object, size_t &param); // Get a parameter value
-        uint8_t getParamPos(util::Hash object);          // Find a parameter position in list
-        bool deleteParam(util::Hash object);             // Deletes a parameter in the list. Returns false is param was not found
-
         inline void rewind()
         {
             filePos = 0;
@@ -176,11 +161,10 @@ namespace Files
 
         inline void rewind(size_t byteCount)
         {
-            if(byteCount > filePos)
+            if (byteCount > filePos)
                 filePos = 0;
             filePos -= byteCount;
         }
-
 
         inline bool setPosition(size_t pos)
         {
@@ -219,8 +203,6 @@ namespace Files
         size_t filePos = 0;
         uint16_t permissions = 0x0000; // If it is ever needed. UNIX style.
         DataObject *data = nullptr;
-
-        FileParameter paramList[paramListSize];
     };
 
     const char *getFileNamePos(FileObject *fObj);

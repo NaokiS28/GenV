@@ -22,7 +22,7 @@
 
 class ModelObject {
     private:
-    TextureObject *tex;
+    Textures::TextureObject *tex;
 
     struct ModelPosition
     {

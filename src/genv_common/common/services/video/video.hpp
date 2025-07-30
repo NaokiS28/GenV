@@ -22,6 +22,7 @@
 #include "common/objects/texture.hpp"
 #include "common/objects/sprite.hpp"
 #include "common/objects/tile.hpp"
+#include "common/util/log.hpp"
 
 #include "vesa.hpp"
 #include "color.hpp"
@@ -35,6 +36,16 @@ namespace Video
         Windowed,   // App is in window mode
         Borderless, // App is in borderless fullscreen mode
         Fullscreen  // App is in dedicated, resolution switching fullscreen mode
+    };
+    
+    enum VideoResult : int {
+        V_RES_UNSUPPORTED = -3,
+        V_RES_LIST_INVALID = -2,
+        V_RES_INVALID = -1,
+        V_OK,
+        V_RES_TOO_HIGH,         // The requested resolution was beyond the system's capabilities, the resolution was clamped
+        V_RES_MODIFIED = 128,         // The requested resolution didn't exist in the video drivers capabilities, was modified to the nearest fit.
+        V_REFRESH_MODIFIED = (0x80 << 8),         // The requested refresh rate didn't exist in the video drivers capabilities, was modified to the nearest fit.
     };
 
     // DPI/Scaling stuff
@@ -181,6 +192,7 @@ namespace Video
 
         // Returns a list of video output modes that the application can set and use
         const virtual VideoModeList* getSupportedResolutions() = 0;
+        uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t w, uint16_t h, uint16_t r = 60) const;
 
         // Attempts to set the fullscreen state and returns current fullscreen state
         virtual bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0)
@@ -215,6 +227,9 @@ namespace Video
 
         virtual void drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode = TALIGN_LEFT) = 0;
 
+        virtual Textures::TextureObject *createTexture(const char *filePath){
+            return Textures::createTexture(filePath);
+        }
         virtual int uploadTexture(Textures::TextureObject *tObj) = 0;
         virtual int releaseTexture(Textures::TextureObject *tObj) = 0;
 

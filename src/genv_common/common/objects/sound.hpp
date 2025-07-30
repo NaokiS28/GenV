@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "object.hpp"
 #include "file.hpp"
 #include "common/formats/riff.hpp"
 
@@ -62,18 +63,18 @@ namespace Audio
         return (time ? time : 1);
     }
 
-    class SoundObject
+    class SoundObject : public ObjectBase
     {
     public:
-        SoundObject() {
+        SoundObject() : ObjectBase() {
             file = new Files::FileObject();
         }
-        SoundObject(const char *filePath) {
+        SoundObject(const char *filePath) : ObjectBase() {
             file = new Files::FileObject();
             if(file != nullptr)
                 loadSoundFile(filePath);
         }
-        SoundObject(Files::FileObject *fObj){
+        SoundObject(Files::FileObject *fObj) : ObjectBase(){
             noDeleteFile = true;
             file = fObj;
         }
@@ -139,4 +140,6 @@ namespace Audio
         size_t  startPoint = 0;
         size_t  endPoint = 0;
     };
+
+    SoundObject *createSample(const char *filePath);
 }

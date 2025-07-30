@@ -23,7 +23,7 @@
 #include "../registers.h"
 
 #define GPUC (this->*GPUCMD)
-#define GP0RRDY(cmdcount)                             \
+#define GP0RDY(cmdcount)                              \
 	if (!useDMA)                                      \
 	{                                                 \
 		waitForGP0Ready();                            \
@@ -49,19 +49,22 @@ void PSXGPU::addToDMAList(uint32_t cmd)
 
 bool PSXGPU::init()
 {
-	mode = static_cast<GP1VideoMode>(GPU_GP1 & GP1_STAT_FB_MODE_BITMASK);
+	gpuMode = static_cast<GP1VideoMode>(GPU_GP1 & GP1_STAT_FB_MODE_BITMASK);
 	GPU_GP1 = gp1_resetGPU();
-	setResolution(320, 240);
+	setResolution(640, 480);
 
-	GP0RRDY(4);
+	GP0RDY(4);
 	GPUC(gp0_texpage(0, true, false));
 	GPUC(gp0_fbOffset1(0, 0));
 	GPUC(gp0_fbOffset2(320 - 1, 240 - 1));
 	GPUC(gp0_fbOrigin(0, 0));
 	fillScreen(Colors::Blue);
+	swapFrameBuffer();
+	fillScreen(Colors::Blue);
+	swapFrameBuffer();
 	GPU_GP1 = gp1_fbOffset(0, 0);
 	GPU_GP1 = gp1_dispBlank(false);
-	enableDMA(true);
+	// enableDMA(true);
 	return 0;
 }
 
@@ -71,18 +74,39 @@ int PSXGPU::setResolution(int w, int h, bool updateWindow)
 	// derived from the GPU's internal clocks, will center the picture on most
 	// displays and upscalers.
 	int x = 0x760;
-	int y = (mode == GP1_MODE_PAL) ? 0xa3 : 0x88;
+	int y = (gpuMode == GP1_MODE_PAL) ? 0xa3 : 0x88;
 
-	screen.res.width = w;
-	screen.res.height = h;
-	screen.refreshRate = (mode == GP1_MODE_NTSC ? 60 : 50);
+	int result = 0;
+	if (w > 640 || h > 320)
+		result = V_RES_TOO_HIGH;
+	w = (w > 640 ? 640 : w);
+	h = (h > 480 ? 480 : h);
+
+	uint32_t mode = findNearestVideoMode(&PSX_Video_Modes, w, h);
+	if (mode < 0)
+	{
+		LOG_GPU("findNearestVideoMode(%u,%u,%u) failed with %u.", &PSX_Video_Modes, w, h, mode);
+		return mode;
+	}
+
+	VideoResolution vidMode = PSX_Video_Modes.resList[(mode & 0x7F)];
+	if (mode & V_RES_MODIFIED)
+	{
+		LOG_GPU("requested %ux%u, but this is not a valid mode. Using %ux%u instead.", w, h, vidMode.width, vidMode.height);
+		if (!result)
+			result = V_RES_MODIFIED;
+	}
+
+	screen.res.width = vidMode.width;
+	screen.res.height = vidMode.height;
+	screen.refreshRate = (mode == GP1_MODE_NTSC ? 60 : 50); // Refresh rate is constant.
 
 	// Set the resolution. The GPU provides a number of fixed horizontal (256,
 	// 320, 368, 512, 640) and vertical (240-256, 480-512) resolutions to pick
 	// from, which affect how fast pixels are output and thus how "stretched"
 	// the framebuffer will appear.
-	GP1HorizontalRes horizontalRes = GP1_HRES_320;
-	GP1VerticalRes verticalRes = GP1_VRES_256;
+	GP1HorizontalRes horizontalRes = GP1HorizontalResList[mode % 5];
+	GP1VerticalRes verticalRes = GP1VerticalResList[((mode & 0x7F) >= 10)]; // Either 256 or 512, no inbetween
 
 	// Set the number of displayed rows and columns. These values are in GPU
 	// clock units rather than pixels, thus they are dependent on the selected
@@ -90,17 +114,22 @@ int PSXGPU::setResolution(int w, int h, bool updateWindow)
 	int offsetX = (w * gp1_clockMultiplierH(horizontalRes)) / 2;
 	int offsetY = (h / gp1_clockDividerV(verticalRes)) / 2;
 
+	bool interlace = false;
+	if (verticalRes != GP1_VRES_256)
+		interlace = true;
+
 	// Hand all parameters over to the GPU by sending GP1 commands.
-	GP0RRDY(3);
+	GP0RDY(3);
 	GPU_GP1 = gp1_fbRangeH(x - offsetX, x + offsetX);
 	GPU_GP1 = gp1_fbRangeV(y - offsetY, y + offsetY);
 	GPU_GP1 = gp1_fbMode(
 		horizontalRes,
 		verticalRes,
-		mode,
-		false,
+		gpuMode,
+		interlace,
 		GP1_COLOR_16BPP);
-	return 0;
+
+	return result;
 }
 
 void PSXGPU::waitForGP0Ready(void)
@@ -111,9 +140,14 @@ void PSXGPU::waitForGP0Ready(void)
 		__asm__ volatile("");
 }
 
+void PSXGPU::waitForDMADone(void) {
+	while (DMA_CHCR(DMA_GPU) & DMA_CHCR_ENABLE)
+		__asm__ volatile("");
+}
+
 void PSXGPU::fillScreen(Color color)
 {
-	GP0RRDY(3);
+	GP0RDY(3);
 	GPUC(gp0_rgb(color.r, color.g, color.b) | gp0_vramFill());
 	GPUC(gp0_xy(frameX, frameY));
 	GPUC(gp0_xy(screen.res.width, screen.res.height));
@@ -150,7 +184,7 @@ void PSXGPU::swapFrameBuffer()
 
 	GPU_GP1 = gp1_fbOffset(frameX, frameY);
 
-	GP0RRDY(4);
+	GP0RDY(4);
 	GPUC(gp0_texpage(0, true, false));
 	GPUC(gp0_fbOffset1(frameX, frameY));
 	GPUC(gp0_fbOffset2(
@@ -176,7 +210,7 @@ uint32_t *PSXGPU::allocatePacket(DMAChain *chain, int numCommands)
 	// Make sure we haven't yet run out of space for future packets or a linked
 	// list terminator, then return a pointer to the packet's first GP0 command.
 	assert(chain->nextPacket < &(chain->data)[iPSXDMAListSize]);
-
+	dmaPtrIdx = 0;
 	return &ptr[1];
 }
 
@@ -201,7 +235,7 @@ void PSXGPU::sendLinkedList(const void *data)
 bool PSXGPU::beginRender()
 {
 	swapFrameBuffer();
-	return 0;
+	return 1;
 }
 
 bool PSXGPU::endRender()
@@ -212,7 +246,7 @@ bool PSXGPU::endRender()
 	waitForVSync();
 	if (useDMA)
 		sendLinkedList(chain->data);
-	return 0;
+	return 1;
 }
 
 void PSXGPU::enableDMA(bool state)
@@ -231,4 +265,61 @@ void PSXGPU::enableDMA(bool state)
 		DMA_DPCR = (DMA_DPCR & ~DMA_DPCR_CH_ENABLE(DMA_GPU));
 		GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_NONE);
 	}
+}
+
+int PSXGPU::uploadTexture(Textures::TextureObject *tObj){
+
+	uploadTexture();
+}
+
+int PSXGPU::releaseTexture(Textures::TextureObject *tObj){
+
+}
+
+
+int PSXGPU::uploadTexture(
+	Textures::TextureObject *tObj,
+	int x,
+	int y
+)
+{
+	waitForDMADone();
+	assert(!((uint32_t) tObj->bitmap % 4));
+
+	// Calculate how many 32-bit words will be sent from the width and height of
+	// the texture. If more than 16 words have to be sent, configure DMA to
+	// split the transfer into 16-word chunks in order to make sure the GPU will
+	// not miss any data.
+	size_t length = (tObj->width * tObj->height) / 2;
+	size_t chunkSize, numChunks;
+
+	if (length < bPSXDMAChunkSize) {
+		chunkSize = length;
+		numChunks = 1;
+	} else {
+		chunkSize = bPSXDMAChunkSize;
+		numChunks = length / bPSXDMAChunkSize;
+
+		// Make sure the length is an exact multiple of 16 words, as otherwise
+		// the last chunk would be dropped (the DMA unit does not support
+		// "incomplete" chunks). Note that this will impose limitations on the
+		// size of VRAM uploads.
+		assert(!(length % bPSXDMAChunkSize));
+	}
+
+	// Put the GPU into VRAM upload mode by sending the appropriate GP0 command
+	// and our coordinates.
+	waitForGP0Ready();
+	GPU_GP0 = gp0_vramWrite();
+	GPU_GP0 = gp0_xy(x, y);
+	GPU_GP0 = gp0_xy(tObj->width, tObj->height);
+
+	// Give DMA a pointer to the beginning of the data and tell it to send it in
+	// slice (chunked) mode.
+	DMA_MADR(DMA_GPU) = (uint32_t) tObj->bitmap;
+	DMA_BCR (DMA_GPU) = chunkSize | (numChunks << 16);
+	DMA_CHCR(DMA_GPU) = 0
+		| DMA_CHCR_WRITE
+		| DMA_CHCR_MODE_SLICE
+		| DMA_CHCR_ENABLE;
 }

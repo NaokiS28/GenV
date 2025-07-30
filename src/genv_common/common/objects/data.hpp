@@ -20,12 +20,14 @@
 //#include <stdexcept>
 #include <stddef.h>
 #include <stdint.h>
+
+#include "object.hpp"
 #include "common/services/storage.hpp"
 
-class DataObject
+class DataObject : public ObjectBase
 {
 public:
-    DataObject(size_t length) {
+    DataObject(size_t length) : ObjectBase() {
         this->data = new uint8_t[length];
         if(data != nullptr){
             memset(data, 0, length);

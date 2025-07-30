@@ -48,7 +48,9 @@ namespace Audio
         virtual bool pause(Audio::SoundObject *sObj) = 0;
         virtual bool isPlaying(Audio::SoundObject *sObj) = 0;
 
-
+        virtual Audio::SoundObject *createSample(const char *filePath){
+            return Audio::createSample(filePath);
+        }
         virtual int uploadSample(Audio::SoundObject *sObj) = 0;
     };
 }

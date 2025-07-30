@@ -20,15 +20,6 @@
 
 namespace Files
 {
-    FileObject::FileObject()
-    {
-        for (int i = 0; i < paramListSize; i++)
-        {
-            paramList[i].hash = paramEntryNull;
-            paramList[i].param = 0;
-        }
-    }
-
     FileObject::~FileObject()
     {
         delete[] fileName;
@@ -118,68 +109,6 @@ namespace Files
             return UINT8_MAX;
 
         return this->data->getRawData()[filePos + 1];
-    }
-
-    bool FileObject::setParam(util::Hash object, size_t param)
-    {
-        uint8_t pos = getParamPos(object);
-        if (pos == paramNotFound)
-        {
-            // Not in list
-            for (int i = 0; i < paramListSize; i++)
-            {
-                if (paramList[i].hash == paramEntryNull)
-                {
-                    paramList[i].hash = object;
-                    paramList[i].param = param;
-                    return true;
-                }
-            }
-            return false;
-        }
-        else
-        {
-            paramList[pos].hash = object;
-            paramList[pos].param = param;
-            return true;
-        }
-    }
-
-    // Get metadata - Used for file handling
-    bool FileObject::getParam(util::Hash object, size_t &param)
-    {
-        uint8_t pos = getParamPos(object);
-        if (pos == paramNotFound)
-        {
-            param = paramEntryNull;
-            return false;
-        }
-        param = paramList[pos].param;
-        return true;
-    }
-
-    uint8_t FileObject::getParamPos(util::Hash object)
-    {
-        for (int i = 0; i < paramListSize; i++)
-        {
-            if (paramList[i].hash == object)
-            {
-                return i;
-            }
-        }
-        return paramNotFound;
-    }
-
-    bool FileObject::deleteParam(util::Hash object)
-    {
-        uint8_t pos = getParamPos(object);
-        if (pos != paramNotFound)
-        {
-            paramList[pos].hash = paramEntryNull;
-            paramList[pos].param = 0;
-            return true;
-        }
-        return false;
     }
 
     const char *getFileNamePos(FileObject *fObj)
