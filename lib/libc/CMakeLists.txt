@@ -33,6 +33,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(
 	libc STATIC
 	libc/clz.s
+	libc/precrt0.s
 	libc/crt0.c
 	libc/cxxsupport.cpp
 	libc/malloc.c

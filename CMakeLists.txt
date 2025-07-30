@@ -36,6 +36,10 @@ if(NOT DEFINED GENV_PLATFORM)
     message(FATAL_ERROR "GENV_PLATFORM is not set! Please use a CMake preset.")
 endif()
 
+if(CONFIG EQUAL "Debug")
+	add_definitions(ENABLE_APP_LOGGING)
+endif()
+
 message(STATUS "Building for: ${GENV_PLATFORM}")
 include(cmake/${GENV_PLATFORM}/setup.cmake)
 include(cmake/${GENV_PLATFORM}/tools.cmake)
@@ -75,7 +79,6 @@ endif()
 add_subdirectory(src/genv_common)
 add_subdirectory(src/genv_hw/${GENV_PLATFORM})
 target_link_libraries(genv_common PRIVATE genv_hw_${GENV_PLATFORM})
-
 
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     message(STATUS "Building default GenV test app")

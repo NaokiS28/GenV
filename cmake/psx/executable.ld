@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-ENTRY(_start)
+ENTRY(_startWrapper)
 
 MEMORY {
 	/*

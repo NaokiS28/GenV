@@ -2,6 +2,28 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "gdb",
+            "request": "attach",
+            "name": "(gdb) GenV-PSX",
+            "target": "localhost:3333",
+            "remote": true,
+            "stopAtConnect": true,
+            "executable": "./bin/psx/genv.elf",
+            "gdbpath": "/usr/bin/gdb-multiarch",
+            "windows": {
+                "gdbpath": "C:/gdb-multiarch/bin/gdb.exe",
+            },
+            "cwd": "${workspaceRoot}",
+            "autorun": [
+                "set substitute-path /project .",
+                "monitor reset shellhalt",
+                "load ./bin/psx/genv.elf",
+                "tbreak main",
+                "continue",
+            ],
+            "valuesFormatting": "parseText"
+        },
+        {
             "name": "Debug (cmake)",
             "type": "cppdbg",
             "request": "launch",
