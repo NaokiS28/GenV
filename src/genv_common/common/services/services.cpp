@@ -43,7 +43,7 @@ bool Services::startup()
         return false;
     }
 
-    Apps::AppManager* apps = Services::getAppMgrInstance();
+    Apps::AppManager *apps = Services::getAppMgrInstance();
     if (apps->init())
     {
         LOG_APP("App manager failed to init.");
@@ -54,11 +54,13 @@ bool Services::startup()
     return true;
 }
 
-void Services::setAudio(Audio::IAudio *audio){
-    if(!audio)
+void Services::setAudio(Audio::IAudio *audio)
+{
+    if (!audio)
         return;
 
-    if(s_audio){
+    if (s_audio)
+    {
         s_audio->shutdown();
         delete s_audio;
     }
@@ -66,11 +68,13 @@ void Services::setAudio(Audio::IAudio *audio){
     s_audio = audio;
 }
 
-void Services::setInput(Input::IInput *input){
-    if(!input)
+void Services::setInput(Input::IInput *input)
+{
+    if (!input)
         return;
 
-    if(s_input){
+    if (s_input)
+    {
         s_input->shutdown();
         delete s_input;
     }
@@ -78,18 +82,19 @@ void Services::setInput(Input::IInput *input){
     s_input = input;
 }
 
-void Services::setStorage(Files::IStorage *storage){
-    if(!storage)
+void Services::setStorage(Files::IStorage *storage)
+{
+    if (!storage)
         return;
 
-    if(s_storage){
+    if (s_storage)
+    {
         s_storage->shutdown();
         delete s_storage;
     }
 
     s_storage = storage;
 }
-
 
 void Services::shutdown()
 {
@@ -119,78 +124,118 @@ void Services::shutdown()
     }
 }
 
-size_t Services::millis(){
+size_t Services::millis()
+{
     System::ISystem *sys = Services::getSystem();
-    if(sys != nullptr) return sys->millis();
+    if (sys != nullptr)
+        return sys->millis();
     return 0;
 }
 
-size_t Services::random(size_t min, size_t max){
+size_t Services::random(size_t min, size_t max)
+{
     System::ISystem *sys = Services::getSystem();
-    if(sys != nullptr) return sys->random(min, max);
+    if (sys != nullptr)
+        return sys->random(min, max);
     return 0;
 }
 
-size_t Services::frames(){
+size_t Services::frames()
+{
     Video::IVideo *gpu = Services::getVideo();
-    if(gpu != nullptr) return gpu->getFrameCount();
+    if (gpu != nullptr)
+        return gpu->getFrameCount();
     return 0;
 }
 
-uint16_t Services::getHorizontalRes(){
+uint16_t Services::getHorizontalRes()
+{
     Video::IVideo *gpu = Services::getVideo();
-    if(gpu != nullptr) return gpu->getHorizontalRes();
+    if (gpu != nullptr)
+        return gpu->getHorizontalRes();
     return 0;
 }
 
-uint16_t Services::getVerticalRes(){
+uint16_t Services::getVerticalRes()
+{
     Video::IVideo *gpu = Services::getVideo();
-    if(gpu != nullptr) return gpu->getVerticalRes();
+    if (gpu != nullptr)
+        return gpu->getVerticalRes();
     return 0;
 }
 
-size_t Services::msToFrames(size_t millis){
+uint16_t Services::getRefreshRate()
+{
+    Video::IVideo *gpu = Services::getVideo();
+    if (gpu != nullptr)
+        return gpu->getRefreshRate();
+    return 0;
+}
+
+
+size_t Services::msToFrames(size_t millis)
+{
     Video::IVideo *gpu = Services::getVideo();
     size_t framerate = gpu->getRefreshRate();
 
-    if(millis < 17)
+    if (millis < 17)
         millis = 17;
-    if(framerate < 20 || framerate > 480)
+    if (framerate < 20 || framerate > 480)
         framerate = 60;
-    
+
     size_t msPerFrame = (1000 / framerate);
     return (millis / msPerFrame);
 }
 
-
-namespace Audio {
-        NullAudio::NullAudio(){}
-        NullAudio::~NullAudio(){}
-        bool NullAudio::init(){ return true; }
-        bool NullAudio::reset(){ return true; }
-        void NullAudio::shutdown(){ return; }
-        bool NullAudio::play(Audio::SoundObject *sObj){ return false; }
-        bool NullAudio::stop(Audio::SoundObject *sObj){ return false; }
-        bool NullAudio::pause(Audio::SoundObject *sObj){ return false; }
-        bool NullAudio::isPlaying(Audio::SoundObject *sObj){ return false; }
-
-        int NullAudio::uploadSample(Audio::SoundObject *sObj){ return Audio::IA_ERROR_INVALIDFUNC; }
+void Services::tickWatchdog()
+{
+    auto sys = dynamic_cast<ArcadeSystem *>(Services::getSystem());
+    if (sys != nullptr)
+    {
+        sys->tickWatchdog();
+    }
 }
 
-namespace Input {
-        NullInput::NullInput(){}
-        NullInput::~NullInput(){}
-        bool NullInput::init(){ return true; }
-        bool NullInput::reset(){ return true; }
-        void NullInput::shutdown(){ return; }
+void Services::testWatchdog()
+{
+    auto sys = dynamic_cast<ArcadeSystem *>(Services::getSystem());
+    if (sys != nullptr)
+    {
+        sys->disableWatchdogTicking();
+    }
 }
 
-namespace Files {
-        NullStorage::NullStorage(){}
-        NullStorage::~NullStorage(){}
-        bool NullStorage::init(){ return true; }
-        bool NullStorage::reset(){ return true; }
-        void NullStorage::shutdown(){ return; }
-        uint8_t NullStorage::getDriveList(IStorageDevice *list) { return 0; }
-        const char *NullStorage::getWorkingDirectory() { return nullptr; }
+namespace Audio
+{
+    NullAudio::NullAudio() {}
+    NullAudio::~NullAudio() {}
+    bool NullAudio::init() { return true; }
+    bool NullAudio::reset() { return true; }
+    void NullAudio::shutdown() { return; }
+    bool NullAudio::play(Audio::SoundObject *sObj) { return false; }
+    bool NullAudio::stop(Audio::SoundObject *sObj) { return false; }
+    bool NullAudio::pause(Audio::SoundObject *sObj) { return false; }
+    bool NullAudio::isPlaying(Audio::SoundObject *sObj) { return false; }
+
+    int NullAudio::uploadSample(Audio::SoundObject *sObj) { return Audio::IA_ERROR_INVALIDFUNC; }
+}
+
+namespace Input
+{
+    NullInput::NullInput() {}
+    NullInput::~NullInput() {}
+    bool NullInput::init() { return true; }
+    bool NullInput::reset() { return true; }
+    void NullInput::shutdown() { return; }
+}
+
+namespace Files
+{
+    NullStorage::NullStorage() {}
+    NullStorage::~NullStorage() {}
+    bool NullStorage::init() { return true; }
+    bool NullStorage::reset() { return true; }
+    void NullStorage::shutdown() { return; }
+    uint8_t NullStorage::getDriveList(IStorageDevice *list) { return 0; }
+    const char *NullStorage::getWorkingDirectory() { return nullptr; }
 }

@@ -72,4 +72,6 @@ namespace util
 		memset(dest, 0, len);
 	}
 
+	// Sum a simple 16-bit checksum.
+	uint16_t checksum(const void *data, size_t length);
 }

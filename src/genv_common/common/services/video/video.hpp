@@ -171,9 +171,9 @@ namespace Video
             drawRect(0, 0, screen.res.width, screen.res.height, color);
         }
 
-        inline int getHorizontalRes() { return screen.res.width; }
-        inline int getVerticalRes() { return screen.res.height; }
-        inline int getRefreshRate() { return screen.refreshRate; }
+        inline uint16_t getHorizontalRes() { return screen.res.width; }
+        inline uint16_t getVerticalRes() { return screen.res.height; }
+        inline uint16_t getRefreshRate() { return screen.refreshRate; }
         inline Ratio getAspectRatio() { return getAspectRatioParts(screen.res.aspect); }
         inline const char *getVideoModeName() { return screen.res.name; }
         inline const char *getMonitorName() { return screen.screenName; }
@@ -228,6 +228,7 @@ namespace Video
         virtual void drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode = TALIGN_LEFT) = 0;
 
         virtual Textures::TextureObject *createTexture(const char *filePath){
+            // Override this function if the video system requires a different texture object.
             return Textures::createTexture(filePath);
         }
         virtual int uploadTexture(Textures::TextureObject *tObj) = 0;

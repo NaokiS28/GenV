@@ -23,6 +23,7 @@
 #include "appmgr.hpp"
 #include "storage.hpp"
 #include "system.hpp"
+#include "arcade/arcade.hpp"
 
 namespace Audio
 {
@@ -76,11 +77,11 @@ class Services
 {
 public:
     // Getters
-    static Audio::IAudio *getAudio() { return s_audio; }
-    static Video::IVideo *getVideo() { return s_video; }
-    static Input::IInput *getInput() { return s_input; }
-    static Files::IStorage *getStorage() { return s_storage; }
-    static System::ISystem *getSystem() { return s_system; }
+    static Audio::IAudio *getAudio(void) { return s_audio; }
+    static Video::IVideo *getVideo(void) { return s_video; }
+    static Input::IInput *getInput(void) { return s_input; }
+    static Files::IStorage *getStorage(void) { return s_storage; }
+    static System::ISystem *getSystem(void) { return s_system; }
 
     // AppManager is a static subsystem that orchestrates "apps" running
     static Apps::AppManager *getAppMgrInstance()
@@ -96,19 +97,33 @@ public:
     static void setInput(Input::IInput *input);
     static void setStorage(Files::IStorage *storage);
 
-    static bool startup();
-    static void shutdown();
+    static bool startup(void);
+    static void shutdown(void);
 
-    static size_t millis(); // Forwarder function to system millis with protection
-    static size_t frames(); // Forwarder function to gpu frame counter with protection
+    // Forwarder function to tick the watchdog chip on systems that use one
+    static void tickWatchdog(void);     
+    // Forwarder function to test the watchdog chip. 
+    // ⚠️ WARNING ⚠️ THIS WILL FORCIBLY REBOOT THE SYSTEM IF THE WATCHDOG IS WORKING
+    static void testWatchdog(void);
+    // Forwarder function to system millis with protection     
+    static size_t millis(void);         
+    // Forwarder function to gpu frame counter with protection
+    static size_t frames(void); 
+    // Returns how many frames will pass in a given timeperiod      
     static inline size_t secondsToFrames(size_t seconds)
     {
         return msToFrames(seconds * 1000);
-    } // Returns how many frames will pass in a given timeperiod
-    static size_t msToFrames(size_t millis);      // Returns how many frames will pass in a given timeperiod
-    static size_t random(size_t min, size_t max); // Forwarder function to system random function with protection
-    static uint16_t getHorizontalRes();           // Forward function to gpu getHRes function with protection
-    static uint16_t getVerticalRes();             // Forward function to gpu getVRes function with protection
+    } 
+    // Returns how many frames will pass in a given timeperiod
+    static size_t msToFrames(size_t millis);    
+    // Forwarder function to system random function with protection  
+    static size_t random(size_t min, size_t max); 
+    // Forward function to gpu getHorizontalRes function with protection
+    static uint16_t getHorizontalRes(void);
+    // Forward function to gpu getVerticalRes function with protection           
+    static uint16_t getVerticalRes(void);   
+    // Forward function to gpu getRefreshRate function with protection           
+    static uint16_t getRefreshRate(void);           
 
 private:
     // Static pointers to service implementations
@@ -121,14 +136,22 @@ private:
 
 namespace System
 {
-    inline size_t millis() { return Services::millis(); }
+    // Forwarder function to system millis with protection     
+    inline size_t millis(void) { return Services::millis(); }
+    // Forwarder function to system random function with protection  
     inline size_t random(size_t min, size_t max) { return Services::random(min, max); }
 }
 
 namespace Video
 {
-    inline size_t frames() { return Services::frames(); }
+    // Forwarder function to gpu frame counter with protection
+    inline size_t frames(void) { return Services::frames(); }
+    // Returns how many frames will pass in a given timeperiod
     inline size_t msToFrames(size_t millis) { return Services::msToFrames(millis); }
-    inline uint16_t getHorizontalRes() { return Services::getHorizontalRes(); }
-    inline uint16_t getVerticalRes() { return Services::getVerticalRes(); }
+    // Forward function to gpu getHorizontalRes function with protection
+    inline uint16_t getHorizontalRes(void) { return Services::getHorizontalRes(); }
+    // Forward function to gpu getVerticalRes function with protection           
+    inline uint16_t getVerticalRes(void) { return Services::getVerticalRes(); }
+    // Forward function to gpu getVerticalRes function with protection           
+    inline uint16_t getRefreshRate(void) { return Services::getRefreshRate(); }
 }

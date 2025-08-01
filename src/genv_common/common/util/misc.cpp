@@ -17,60 +17,61 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-//#include <time.h>
+// #include <time.h>
 #include "common/util/hash.hpp"
 #include "common/util/misc.hpp"
 #include "common/util/templates.hpp"
 
-namespace util {
+namespace util
+{
 
-/* Date and time class */
+	/* Date and time class */
 
-bool Date::isValid(void) const {
-	if ((hour > 23) || (minute > 59) || (second > 59))
-		return false;
-	if ((month < 1) || (month > 12))
-		return false;
-	if ((day < 1) || (day > getMonthDayCount()))
-		return false;
+	bool Date::isValid(void) const
+	{
+		if ((hour > 23) || (minute > 59) || (second > 59))
+			return false;
+		if ((month < 1) || (month > 12))
+			return false;
+		if ((day < 1) || (day > getMonthDayCount()))
+			return false;
 
-	return true;
-}
-
-bool Date::isLeapYear(void) const {
-	if (year % 4)
-		return false;
-	if (!(year % 100) && (year % 400))
-		return false;
-
-	return true;
-}
-
-int Date::getDayOfWeek(void) const {
-	// See https://datatracker.ietf.org/doc/html/rfc3339#appendix-B
-	int _year = year, _month = month - 2;
-
-	if (_month <= 0) {
-		_month += 12;
-		_year--;
+		return true;
 	}
 
-	int century = _year / 100;
-	_year      %= 100;
+	bool Date::isLeapYear(void) const
+	{
+		if (year % 4)
+			return false;
+		if (!(year % 100) && (year % 400))
+			return false;
 
-	int weekday = 0
-		+ day
-		+ (_month * 26 - 2) / 10
-		+ _year
-		+ _year / 4
-		+ century / 4
-		+ century * 5;
+		return true;
+	}
 
-	return weekday % 7;
-}
+	int Date::getDayOfWeek(void) const
+	{
+		// See https://datatracker.ietf.org/doc/html/rfc3339#appendix-B
+		int _year = year, _month = month - 2;
 
-int Date::getMonthDayCount(void) const {
-	switch (month) {
+		if (_month <= 0)
+		{
+			_month += 12;
+			_year--;
+		}
+
+		int century = _year / 100;
+		_year %= 100;
+
+		int weekday = 0 + day + (_month * 26 - 2) / 10 + _year + _year / 4 + century / 4 + century * 5;
+
+		return weekday % 7;
+	}
+
+	int Date::getMonthDayCount(void) const
+	{
+		switch (month)
+		{
 		case 2:
 			return isLeapYear() ? 29 : 28;
 
@@ -82,50 +83,59 @@ int Date::getMonthDayCount(void) const {
 
 		default:
 			return 31;
-	}
-}
-
-uint32_t Date::toDOSTime(void) const {
-	int _year = year - 1980;
-
-	if (!isValid())
-		return 0;
-	if ((_year < 0) || (_year > 127))
-		return 0;
-
-	return 0
-		| (_year  << 25)
-		| (month  << 21)
-		| (day    << 16)
-		| (hour   << 11)
-		| (minute <<  5)
-		| (second >>  1);
-}
-
-size_t Date::toString(char *output) const {
-	if (!isValid()) {
-		*output = 0;
-		return 0;
+		}
 	}
 
-	return sprintf(
-		output, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute,
-		second
-	);
-}
-/*
-void Date::fromCurrentTime(void) {
-	auto timeValue = time(nullptr);
-	tm   timeObj;
+	uint32_t Date::toDOSTime(void) const
+	{
+		int _year = year - 1980;
 
-	localtime_s(&timeObj, &timeValue);
+		if (!isValid())
+			return 0;
+		if ((_year < 0) || (_year > 127))
+			return 0;
 
-	year   = timeObj.tm_year + 1900;
-	month  = timeObj.tm_mon  + 1;
-	day    = timeObj.tm_mday;
-	hour   = timeObj.tm_hour;
-	minute = timeObj.tm_min;
-	second = timeObj.tm_sec;
-}
-*/
+		return 0 | (_year << 25) | (month << 21) | (day << 16) | (hour << 11) | (minute << 5) | (second >> 1);
+	}
+
+	size_t Date::toString(char *output) const
+	{
+		if (!isValid())
+		{
+			*output = 0;
+			return 0;
+		}
+
+		return sprintf(
+			output, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute,
+			second);
+	}
+	/*
+	void Date::fromCurrentTime(void) {
+		auto timeValue = time(nullptr);
+		tm   timeObj;
+
+		localtime_s(&timeObj, &timeValue);
+
+		year   = timeObj.tm_year + 1900;
+		month  = timeObj.tm_mon  + 1;
+		day    = timeObj.tm_mday;
+		hour   = timeObj.tm_hour;
+		minute = timeObj.tm_min;
+		second = timeObj.tm_sec;
+	}
+	*/
+
+	uint16_t checksum(const void *data, size_t length)
+	{
+		uint16_t sum = 0;
+		const uint8_t *_data = (const uint8_t *)data;
+
+		for(size_t idx = 0; idx < length; idx++)
+		{
+			sum += *(_data + idx);
+		}
+		return sum;
+	}
+
 }
