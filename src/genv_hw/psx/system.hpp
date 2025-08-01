@@ -28,19 +28,33 @@
 
 namespace System
 {
-    constexpr const char* szSystemName = "PlayStation";
-    constexpr const char* szMakeName = "Sony";
+    namespace PSX {
+        constexpr const char* szSystemName = "PlayStation";
+        constexpr const char* szMakeName = "Sony";
+    }
 
-    // PSX specific system manager interface.
+    /*
+     * PSX System base class
+     * This system implements the code neccesary to run GenV on a PlayStation 1.
+     * Any system that is based on the PlayStation 1 can be derrived from this
+     * class, where the Audio, Video, Input and File storage modules can be changed
+     * out.
+     * 
+     * When making a derrived system, if the base function is NOT overriden, it will
+     * be assumed that the derrived system uses the same functionality as the
+     * PlayStation 1. An example of this is the System 573 derivative where the CPU
+     * and GPU are the same, but the audio, input and files system change (audio is
+     * expanded upon with the Digital Sound IO board)
+    */
     class PSXSystem : public ISystem
     {
     private:
         uint8_t sm_state; // System Manager state for returning to main.cpp
 
-        int initVideo();
-        int initAudio();
-        int initIO() { return 0; }
-        int initFiles();
+        virtual int initVideo();
+        virtual int initAudio();
+        virtual int initIO() { return 0; }
+        virtual int initFiles();
 
         inline bool linkServices()
         {
@@ -50,8 +64,8 @@ namespace System
 
         SystemInfo siPSX = {
             .type = SYS_Console,
-            .make = szMakeName,
-            .name = szSystemName,
+            .make = PSX::szMakeName,
+            .name = PSX::szSystemName,
             .flags = SYS_No_Window_Mode
         };
 
@@ -59,16 +73,16 @@ namespace System
         PSXSystem() : sm_state(System::SM_NORMAL)
         {
         }
-        ~PSXSystem() {}
+        virtual ~PSXSystem() = default;
 
-        bool init() override;             // Registers Windows app class and inits drivers
-        int update() override;            // Process wWindows messages
-        bool shutdown() override;         // Prepare drivers and app for close
-        bool setResolution(int w, int h); // Sets window resolution (internal viewport)
+        virtual bool init() override;             // Registers Windows app class and inits drivers
+        virtual int update() override;            // Process wWindows messages
+        virtual bool shutdown() override;         // Prepare drivers and app for close
+        virtual bool setResolution(int w, int h); // Sets window resolution (internal viewport)
         bool setFullscreen(Video::FullscreenMode mode){ return false; }
         bool toggleFullscreen(){ return false; }
 
-        const SystemInfo* getSysInfo() const override {
+        virtual const SystemInfo* getSysInfo() const override {
             return &siPSX;
         }
 

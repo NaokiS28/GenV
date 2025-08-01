@@ -55,6 +55,8 @@ namespace Video
 
     constexpr const int iPSXDMAListSize = 1024;
     constexpr const uint8_t bPSXDMAChunkSize = 16;
+
+
 }
 
 class PSXGPU : public IVideo
@@ -65,6 +67,14 @@ private:
         uint32_t data[Video::iPSXDMAListSize];
         uint32_t *nextPacket;
     } DMAChain;
+
+    typedef struct
+    {
+        int x = 0, y = 0;
+        Textures::TextureObject *tObj = nullptr;
+    } TextureEntry;
+
+    
 
     bool screenBufferPage = 0;
     uint16_t dmaPtrIdx = 0;
@@ -150,6 +160,7 @@ public:
     {
     }
 
+    //Textures::TextureObject *createTexture(const char *filePath);
     int uploadTexture(Textures::TextureObject *tObj) override;
     int releaseTexture(Textures::TextureObject *tObj) override;
 

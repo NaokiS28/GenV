@@ -35,11 +35,16 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(genv_hw_psx STATIC)
 
 target_sources(genv_hw_psx PRIVATE
-    video/video.cpp
     audio.cpp
     system.cpp
 	#file/file.cpp
 	cpu/cache.s
+	system/sys.c
+	system/sys.s
+	system/unhandledexc.c
+	file/pcdrv.s
+	audio/spu.cpp
+    video/video.cpp
 )
 
 target_include_directories(
