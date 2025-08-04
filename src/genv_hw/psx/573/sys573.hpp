@@ -16,6 +16,7 @@
  */
 
 #include "../system.hpp"
+#include "../video/video.hpp"
 #include "registers573.hpp"
 #include "common/services/arcade/arcade.hpp"
 
@@ -27,7 +28,7 @@ namespace System
         constexpr const char *szMakeName = "KONAMI";
     }
 
-    class Sys573System : public PSXSystem, public ArcadeSystem
+    class Sys573System : public PSXSystem, public IArcadeSystem
     {
     private:
         SystemInfo si573 = {
@@ -72,5 +73,12 @@ namespace System
 
         uint8_t setOutputs(uint8_t bank, uint8_t data) override;
         uint8_t setSingleOutput(uint8_t outputNumber, bool state) override;
+    };
+}
+
+namespace Video {
+    class Sys573Video : public PSXGPU {
+        public:
+            Sys573Video();
     };
 }

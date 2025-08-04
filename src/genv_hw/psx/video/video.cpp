@@ -33,7 +33,11 @@
 		gpuListPtr = allocatePacket(chain, cmdcount); \
 	}
 
-PSXGPU::PSXGPU()
+PSXGPU::PSXGPU() : _texmgr(TextureManager::VRAM_1MIB)
+{
+}
+
+PSXGPU::PSXGPU(uint8_t vram_size) : _texmgr(vram_size)
 {
 }
 
@@ -51,7 +55,7 @@ bool PSXGPU::init()
 {
 	gpuMode = static_cast<GP1VideoMode>(GPU_GP1 & GP1_STAT_FB_MODE_BITMASK);
 	GPU_GP1 = gp1_resetGPU();
-	setResolution(640, 480);
+	setResolution(320, 240);
 
 	GP0RDY(4);
 	GPUC(gp0_texpage(0, true, false));
@@ -116,7 +120,10 @@ int PSXGPU::setResolution(int w, int h, bool updateWindow)
 
 	bool interlace = false;
 	if (verticalRes != GP1_VRES_256)
+	{
+		useDoubleBuffer = false;
 		interlace = true;
+	}
 
 	// Hand all parameters over to the GPU by sending GP1 commands.
 	GP0RDY(3);
@@ -129,6 +136,13 @@ int PSXGPU::setResolution(int w, int h, bool updateWindow)
 		interlace,
 		GP1_COLOR_16BPP);
 
+	// Marks the screen buffer areas as unavailable for textures and CLUTs
+	if (useDoubleBuffer)
+	{
+		h *= 2;
+	}
+	_texmgr.markFrameBuffer(0, 0, w, h);
+
 	return result;
 }
 
@@ -140,7 +154,8 @@ void PSXGPU::waitForGP0Ready(void)
 		__asm__ volatile("");
 }
 
-void PSXGPU::waitForDMADone(void) {
+void PSXGPU::waitForDMADone(void)
+{
 	while (DMA_CHCR(DMA_GPU) & DMA_CHCR_ENABLE)
 		__asm__ volatile("");
 }
@@ -179,8 +194,8 @@ void PSXGPU::swapFrameBuffer()
 	else
 		screenBufferPage = 0;
 
-	frameX = (screenBufferPage ? screen.res.width : 0);
-	frameY = 0;
+	frameX = 0;
+	frameY = (screenBufferPage ? screen.res.height : 0);
 
 	GPU_GP1 = gp1_fbOffset(frameX, frameY);
 
@@ -267,24 +282,28 @@ void PSXGPU::enableDMA(bool state)
 	}
 }
 
-int PSXGPU::uploadTexture(Textures::TextureObject *tObj){
-
-	uploadTexture();
-}
-
-int PSXGPU::releaseTexture(Textures::TextureObject *tObj){
-
-}
-
-
-int PSXGPU::uploadTexture(
-	Textures::TextureObject *tObj,
-	int x,
-	int y
-)
+Textures::TextureObject *PSXGPU::createTexture(const char *filePath)
 {
+	PSXTextureObject *tObj = new PSXTextureObject;
+	if (tObj != nullptr)
+	{
+		if (tObj->loadTextureFile(filePath) == Files::FO_OKAY)
+			return tObj;
+		else
+			delete tObj;
+	}
+
+	static PSXDefaultTexture txDefault;
+	return &txDefault;
+}
+
+int PSXGPU::uploadTexture(Textures::TextureObject *tObj)
+{
+	PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
+	_texmgr.allocateTexture(ptObj);
+
 	waitForDMADone();
-	assert(!((uint32_t) tObj->bitmap % 4));
+	assert(!((uint32_t)tObj->bitmap % 4));
 
 	// Calculate how many 32-bit words will be sent from the width and height of
 	// the texture. If more than 16 words have to be sent, configure DMA to
@@ -293,10 +312,13 @@ int PSXGPU::uploadTexture(
 	size_t length = (tObj->width * tObj->height) / 2;
 	size_t chunkSize, numChunks;
 
-	if (length < bPSXDMAChunkSize) {
+	if (length < bPSXDMAChunkSize)
+	{
 		chunkSize = length;
 		numChunks = 1;
-	} else {
+	}
+	else
+	{
 		chunkSize = bPSXDMAChunkSize;
 		numChunks = length / bPSXDMAChunkSize;
 
@@ -307,6 +329,11 @@ int PSXGPU::uploadTexture(
 		assert(!(length % bPSXDMAChunkSize));
 	}
 
+	int vramX = 256 * (ptObj->vramP % TextureManager::PSX_GPU_PAGE_GRID_COLS);
+	int vramY = 256 * (ptObj->vramP / TextureManager::PSX_GPU_PAGE_GRID_COLS);
+	int x = vramX + ptObj->vramX;
+	int y = vramY + ptObj->vramY;
+
 	// Put the GPU into VRAM upload mode by sending the appropriate GP0 command
 	// and our coordinates.
 	waitForGP0Ready();
@@ -316,10 +343,13 @@ int PSXGPU::uploadTexture(
 
 	// Give DMA a pointer to the beginning of the data and tell it to send it in
 	// slice (chunked) mode.
-	DMA_MADR(DMA_GPU) = (uint32_t) tObj->bitmap;
-	DMA_BCR (DMA_GPU) = chunkSize | (numChunks << 16);
-	DMA_CHCR(DMA_GPU) = 0
-		| DMA_CHCR_WRITE
-		| DMA_CHCR_MODE_SLICE
-		| DMA_CHCR_ENABLE;
+	DMA_MADR(DMA_GPU) = (uint32_t)tObj->bitmap;
+	DMA_BCR(DMA_GPU) = chunkSize | (numChunks << 16);
+	DMA_CHCR(DMA_GPU) = 0 | DMA_CHCR_WRITE | DMA_CHCR_MODE_SLICE | DMA_CHCR_ENABLE;
+}
+
+int PSXGPU::releaseTexture(Textures::TextureObject *tObj)
+{
+	PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
+	_texmgr.deallocateTexture(ptObj);
 }

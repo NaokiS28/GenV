@@ -21,10 +21,23 @@ namespace System
 {
     bool Sys573System::init()
     {
+        testSwitchLatching = false;     // Test switch is push button
     }
 
     int Sys573System::update()
     {
+        // Tick each coin counter if there's data to add.
+        // Gets all counter buffers as a boolean value.
+        uint8_t cc = getCoinCounterBuffer();
+        for(int i = 0; cc != 0; i++){
+            if(cc & 0x1)
+                increaseCoinCounter(i);
+            cc >>= 1;
+        }
+
+        if(false){  // Test button read from JAMMA and JVS
+
+        }
     }
 
     bool Sys573System::shutdown()
@@ -47,7 +60,7 @@ namespace System
         }
         else
         {
-            return ArcadeSystem::increaseCoinCounter(counter);
+            return increaseCoinCounter(counter);
         }
     }
 
@@ -61,7 +74,7 @@ namespace System
             return 0;
         } else {
             // JVS/IO
-            ArcadeSystem::setOutputs(bank, data);
+            setOutputs(bank, data);
         }
     }
     uint8_t Sys573System::setSingleOutput(uint8_t outputNumber, bool state)
@@ -77,7 +90,13 @@ namespace System
             return outputNumber;
         } else {
             // JVS/IO
-            ArcadeSystem::setSingleOutput(outputNumber, state);
+            setSingleOutput(outputNumber, state);
         }
+    }
+}
+
+namespace Video {
+    Sys573Video::Sys573Video() : PSXGPU(TextureManager::VRAM_2MIB)
+    {    
     }
 }

@@ -18,36 +18,37 @@
 #pragma once
 
 #include "common/services/video/video.hpp"
-#include "common/objects/sprite.hpp"
-#include "common/objects/tile.hpp"
+
 #include "gpucmd.h"
+#include "texmgr.hpp"
+#include "psxtex.hpp"
 
 using namespace Video;
 
 #define LOG_GPU(fmt, ...) LOG("PSXGPU", fmt __VA_OPT__(, ) __VA_ARGS__)
 
-namespace Video
+namespace PSX
 {
-    constexpr const VideoResolution PSX_Resolutions[] = {
-        {"PSX 256x240p", 256, 240, AspectRatio::R16_15, PORTABLE | SDTV | PROGRESSIVE},
-        {"PSX 320x240p", 320, 240, AspectRatio::R4_3, PORTABLE | SDTV | PROGRESSIVE},
-        {"PSX 368x240p", 368, 240, AspectRatio::R4_3, PORTABLE | SDTV | PROGRESSIVE},
-        {"PSX 512x240p", 512, 240, AspectRatio::R16_9, PORTABLE | SDTV | PROGRESSIVE | WIDESCREEN},
-        {"PSX 640x240p", 640, 240, AspectRatio::R16_9, PORTABLE | SDTV | PROGRESSIVE | WIDESCREEN},
-        {"PSX 256x240i", 256, 240, AspectRatio::R16_15, PORTABLE | SDTV | INTERLACED},
-        {"PSX 320x240i", 320, 240, AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
-        {"PSX 368x240i", 368, 240, AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
-        {"PSX 512x240i", 512, 240, AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED | WIDESCREEN},
-        {"PSX 640x240i", 640, 240, AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED | WIDESCREEN},
-        {"PSX 256x480i", 256, 480, AspectRatio::R16_15, PORTABLE | SDTV | INTERLACED},
-        {"PSX 320x480i", 320, 480, AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
-        {"PSX 368x480i", 368, 480, AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
-        {"PSX 512x480i", 512, 480, AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED},
-        {"PSX 640x480i", 640, 480, AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED}};
+    constexpr const Video::VideoResolution PSX_Resolutions[] = {
+        {"PSX 256x240p", 256, 240, Video::AspectRatio::R16_15, PORTABLE | SDTV | PROGRESSIVE},
+        {"PSX 320x240p", 320, 240, Video::AspectRatio::R4_3, PORTABLE | SDTV | PROGRESSIVE},
+        {"PSX 368x240p", 368, 240, Video::AspectRatio::R4_3, PORTABLE | SDTV | PROGRESSIVE},
+        {"PSX 512x240p", 512, 240, Video::AspectRatio::R16_9, PORTABLE | SDTV | PROGRESSIVE | WIDESCREEN},
+        {"PSX 640x240p", 640, 240, Video::AspectRatio::R16_9, PORTABLE | SDTV | PROGRESSIVE | WIDESCREEN},
+        {"PSX 256x240i", 256, 240, Video::AspectRatio::R16_15, PORTABLE | SDTV | INTERLACED},
+        {"PSX 320x240i", 320, 240, Video::AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
+        {"PSX 368x240i", 368, 240, Video::AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
+        {"PSX 512x240i", 512, 240, Video::AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED | WIDESCREEN},
+        {"PSX 640x240i", 640, 240, Video::AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED | WIDESCREEN},
+        {"PSX 256x480i", 256, 480, Video::AspectRatio::R16_15, PORTABLE | SDTV | INTERLACED},
+        {"PSX 320x480i", 320, 480, Video::AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
+        {"PSX 368x480i", 368, 480, Video::AspectRatio::R4_3, PORTABLE | SDTV | INTERLACED},
+        {"PSX 512x480i", 512, 480, Video::AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED},
+        {"PSX 640x480i", 640, 480, Video::AspectRatio::R16_9, PORTABLE | SDTV | INTERLACED}};
 
     constexpr const uint16_t PSX_Refresh_Rates[2] = {50, 60};
 
-    constexpr const VideoModeList PSX_Video_Modes = {
+    constexpr const Video::VideoModeList PSX_Video_Modes = {
         .resLength = (sizeof(PSX_Resolutions) / sizeof(VideoResolution)),
         .resList = PSX_Resolutions,
         .refreshLength = 2,
@@ -55,26 +56,20 @@ namespace Video
 
     constexpr const int iPSXDMAListSize = 1024;
     constexpr const uint8_t bPSXDMAChunkSize = 16;
-
-
 }
 
+using namespace PSX;
 class PSXGPU : public IVideo
 {
-private:
+    
+protected:
     typedef struct
     {
-        uint32_t data[Video::iPSXDMAListSize];
+        uint32_t data[iPSXDMAListSize];
         uint32_t *nextPacket;
     } DMAChain;
 
-    typedef struct
-    {
-        int x = 0, y = 0;
-        Textures::TextureObject *tObj = nullptr;
-    } TextureEntry;
-
-    
+    TextureManager _texmgr;
 
     bool screenBufferPage = 0;
     uint16_t dmaPtrIdx = 0;
@@ -91,6 +86,7 @@ private:
 
     void swapFrameBuffer();
     void sendLinkedList(const void *data);
+
     uint32_t *allocatePacket(DMAChain *chain, int numCommands);
     uint32_t *gpuListPtr = nullptr;
     DMAChain *chain = nullptr;
@@ -100,14 +96,10 @@ private:
     void (PSXGPU::*GPUCMD)(uint32_t) = &PSXGPU::directWrite;
     void enableDMA(bool state);
 
-    int PSXGPU::uploadTexture(
-        Textures::TextureObject *tObj,
-        int x,
-        int y
-    );
-
 public:
     PSXGPU();
+    PSXGPU(uint8_t vram_size);
+    
     bool init() override;
     bool reset() override { return false; }
     bool beginRender() override;
@@ -160,7 +152,7 @@ public:
     {
     }
 
-    //Textures::TextureObject *createTexture(const char *filePath);
+    Textures::TextureObject *createTexture(const char *filePath);
     int uploadTexture(Textures::TextureObject *tObj) override;
     int releaseTexture(Textures::TextureObject *tObj) override;
 

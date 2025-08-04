@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "../video/cop0.h"
+#include "../cpu/cop0.h"
 #include "../video/gte.h"
 #include "../registers.h"
 

@@ -45,6 +45,12 @@ target_sources(genv_hw_psx PRIVATE
 	file/pcdrv.s
 	audio/spu.cpp
     video/video.cpp
+    video/texmgr.cpp
+)
+
+target_compile_definitions(
+	genv_hw_psx PRIVATE
+	GENV_PSX_VRAM_SIZE=1
 )
 
 target_include_directories(

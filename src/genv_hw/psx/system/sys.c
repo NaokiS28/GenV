@@ -17,7 +17,7 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "../video/cop.h"
+#include "../cpu/cop0.h"
 #include "../video/gte.h"
 #include "../registers.h"
 #include "sys.h"
