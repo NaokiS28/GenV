@@ -16,12 +16,19 @@
  */
 
 #include "appmgr.hpp"
+#include "services.hpp"
+#include "common/util/log.hpp"
 
-#define CloseApp(app) {app->shutdown(); delete app; app = nullptr;}
+#define CloseApp(app)    \
+    {                    \
+        app->shutdown(); \
+        delete app;      \
+        app = nullptr;   \
+    }
 
 using namespace Apps;
 
-extern "C++" Apps::Application* genv_register_app();
+extern "C++" Apps::Application *genv_register_app();
 
 AppManager::AppManager()
 {
@@ -38,49 +45,88 @@ AppManager::~AppManager()
 
 bool AppManager::shutdown()
 {
-    if (foregroundApp) CloseApp(foregroundApp);
-    if (backgroundApp) CloseApp(backgroundApp);
-    if (loadingScreen) CloseApp(loadingScreen);
-    if (errorScreen) CloseApp(errorScreen);
+    if (foregroundApp)
+        CloseApp(foregroundApp);
+    if (backgroundApp)
+        CloseApp(backgroundApp);
+    if (loadingScreen)
+        CloseApp(loadingScreen);
+    if (errorScreen)
+        CloseApp(errorScreen);
     return 1;
 }
 
 bool AppManager::reload()
 {
-    if (foregroundApp) foregroundApp->reload();
-    if (backgroundApp) backgroundApp->reload();
-    if (loadingScreen) loadingScreen->reload();
-    if (errorScreen) errorScreen->reload();
+    if (foregroundApp)
+        foregroundApp->reload();
+    if (backgroundApp)
+        backgroundApp->reload();
+    if (loadingScreen)
+        loadingScreen->reload();
+    if (errorScreen)
+        errorScreen->reload();
     return 1;
 }
 
 int AppManager::init()
 {
+    if (!asys)
+    {
+        asys = System::GetArcadeInterface();
+        if (asys)
+            LOG_APP("System is in arcade mode.");
+    }
+    
     loadingScreen = new Apps::TMSS;
-    if( !loadingScreen){
-        showErrorScreen("APP INIT FAILURE", "INVALID LOADER", EM_STYLE_CRITICAL_ERROR, EM_ICON_CRITICAL_ERROR);
+    if (!loadingScreen)
+    {
+        showErrorScreen("APP INIT FAILURE", "INVALID LOADER", GENV_APP_ERR_INVALID_LOADER, EM_STYLE_CRITICAL_ERROR, EM_ICON_CRITICAL_ERROR);
         return -1;
     }
     foregroundApp = genv_register_app();
-    if (!foregroundApp) {
-        showErrorScreen("APP INIT FAILURE", "INVALID ENTRYPOINT", EM_STYLE_CRITICAL_ERROR, EM_ICON_CRITICAL_ERROR);
+    if (!foregroundApp)
+    {
+        showErrorScreen("APP INIT FAILURE", "INVALID ENTRYPOINT", GENV_APP_ERR_INVALID_GAME, EM_STYLE_CRITICAL_ERROR, EM_ICON_CRITICAL_ERROR);
         return -1;
     }
+
+    enteredTestMode = ASYS_GAME_MODE;
 
     return 0;
 }
 
 int AppManager::update()
 {
-    if (!foregroundApp && !backgroundApp && !errorScreen)
+    if (asys)
+    {
+        if (asys->gameTestMode() && enteredTestMode < ASYS_LOAD_TEST_APP)
+        {
+            ArcadeTestApp *fgApp = static_cast<ArcadeTestApp *>(foregroundApp);
+            ArcadeTestApp *bgApp = static_cast<ArcadeTestApp *>(backgroundApp);
+            if (fgApp == nullptr && bgApp == nullptr)
+            {
+                // Will loop and close apps
+                quitApp(APP_FOREGROUND);
+                enteredTestMode = ASYS_CLOSE_GAME_APPS;
+            }
+        }
+        else if (!asys->gameTestMode() && enteredTestMode != ASYS_GAME_MODE || enteredTestMode != ASYS_LOAD_GAME_APP)
+        {
+            quitApp(APP_FOREGROUND);
+            enteredTestMode = ASYS_LOAD_GAME_APP;
+        }
+    }
+
+    if (!foregroundApp && !backgroundApp && !errorScreen && (asys && enteredTestMode == ASYS_GAME_MODE))
     {
         // Both apps are gone, default
         showErrorScreen(
-            "APPLICATION MANAGER", 
+            "APPLICATION MANAGER",
             "BOTH APP POINTERS ARE NULL",
+            GENV_APP_ERR_NO_APPS,
             EM_STYLE_CRITICAL_ERROR,
-            EM_ICON_CRITICAL_ERROR
-        );
+            EM_ICON_CRITICAL_ERROR);
     }
     else
     {
@@ -176,6 +222,21 @@ int AppManager::update()
         }
     }
 
+    if (asys && !foregroundApp && !backgroundApp)
+    {
+        if (enteredTestMode == ASYS_CLOSE_GAME_APPS)
+        {
+            foregroundApp = new GenVTestApp;
+            if (foregroundApp != nullptr)
+                enteredTestMode = ASYS_LOAD_TEST_APP;
+        }
+        else if (enteredTestMode == ASYS_TEST_MODE)
+        {
+            init();
+            enteredTestMode = 0;
+        }
+    }
+
     return 0;
 }
 
@@ -214,11 +275,14 @@ void AppManager::quitApp(AppSelect app)
     switch (app)
     {
     case APP_FOREGROUND:
-        if (foregroundApp) foregroundApp->shutdown();
-        if (backgroundApp) swapApps();
+        if (foregroundApp)
+            foregroundApp->shutdown();
+        if (backgroundApp)
+            swapApps();
         break;
     case APP_BACKGROUND:
-        if (backgroundApp) backgroundApp->shutdown();
+        if (backgroundApp)
+            backgroundApp->shutdown();
         break;
     default:
         break;
@@ -232,24 +296,29 @@ int AppManager::loadApp()
 }
 
 bool AppManager::showErrorScreen(
-    const char *title, 
-    const char *text, 
-    ErrorMessageStyle style, 
-    ErrorMessageIcon icon
-){
-    ErrorScreenMessage *esApp = new ErrorScreenMessage(title, text, style, icon);
-    if(!esApp) return false;
+    const char *title,
+    const char *text,
+    const uint32_t errorCode,
+    ErrorMessageStyle style,
+    ErrorMessageIcon icon)
+{
+    ErrorScreenMessage *esApp = new ErrorScreenMessage(title, text, errorCode, style, icon);
+    if (!esApp)
+        return false;
 
     return showErrorScreen(esApp);
 }
 
-bool AppManager::showErrorScreen(ErrorScreenMessage *msg){
-    if(!msg)
+bool AppManager::showErrorScreen(ErrorScreenMessage *msg)
+{
+    if (!msg)
         return false;
-    
-    if(errorScreen){
+
+    if (errorScreen)
+    {
         ErrorMessageStyle currSeverity = errorScreen->getSeverity();
-        if(msg->style >= currSeverity){
+        if (msg->style >= currSeverity)
+        {
             errorScreen->shutdown();
             delete errorScreen;
             errorScreen = nullptr;

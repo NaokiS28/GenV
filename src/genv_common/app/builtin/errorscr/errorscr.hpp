@@ -60,10 +60,11 @@ public:
     static DefaultErrorScreen *create(
         const char *title,
         const char *text,
+        const uint32_t errorCode,
         ErrorMessageStyle style,
         ErrorMessageIcon icon)
     {
-        ErrorScreenMessage *nMsg = new ErrorScreenMessage(title, text, style, icon);
+        ErrorScreenMessage *nMsg = new ErrorScreenMessage(title, text, errorCode, style, icon);
         if (!nMsg)
             nMsg = &eMsgUnknownMsg;
 

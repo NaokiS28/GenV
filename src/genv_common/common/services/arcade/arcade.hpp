@@ -34,7 +34,7 @@
  * * Watchdog - If the hardware has a watchdog, it MUST be supported by Genv.
  */
 
-namespace Arcade
+namespace ArcadeEnv
 {
     struct DIPSwitches
     {
@@ -49,22 +49,24 @@ namespace Arcade
     };
 }
 
-class ArcadeSystem
+class IArcadeSystem
 {
 private:
-    Arcade::DIPSwitches _dips;
+    ArcadeEnv::DIPSwitches _dips;
     NVRAM _eeprom;
-    Arcade::CoinData *playerCoins = nullptr;
+    ArcadeEnv::CoinData *playerCoins = nullptr;
 
 protected:
     uint8_t physicalPlayers = 0;
     uint8_t physicalCoinSlots = 0;
 
-    bool enableWatchdogTicking = true; // ⚠️ WARNING ⚠️ Unless you are testWatchdog(), DONT TOUCH.
-    bool enableTestMode = false;
+    bool enableWatchdogTicking = true;  // ⚠️ WARNING ⚠️ Unless you are testWatchdog(), DONT TOUCH.
+    bool testSwitchLatching = false;    // If false, enableTestMode must be disabled by the Test Menu exiting. If true, test screen will exit when enableTestMode goes low,
+    bool enableTestMode = false;        // On systems with a switch, this will mirror the switch ON-OFF state. On push button systems, this will toggle on
 
     uint8_t setPhysicalPlayers(uint8_t players);
     uint8_t setPhysicalCoinSlots(uint8_t slots);
+    virtual uint8_t getCoinCounterBuffer(int8_t slot = -1);
     virtual uint8_t addCoin(uint8_t slot, uint8_t amount);
     virtual uint8_t addServiceCoin(uint8_t slot = 0, uint8_t amount = 1);
     virtual uint8_t increaseCoinCounter(uint8_t counter);
@@ -103,6 +105,10 @@ public:
     // Returns as many coin counters as is requested by size
     uint8_t coinsAvailable(uint8_t *array, uint8_t size);
 
+    // True if the test switch is a sliding or rocker switch. False if a push button.
+    // If false, any game test menu must have an "EXIT TO GAME" menu option.
+    bool testSwitchIsLatching() { return testSwitchLatching; }
+    
     // True if the engine should go into test mode.
     // The engine will have priority over the game and will quit the game app.
     bool gameTestMode() { return enableTestMode; }

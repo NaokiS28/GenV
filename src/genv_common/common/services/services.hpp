@@ -101,29 +101,32 @@ public:
     static void shutdown(void);
 
     // Forwarder function to tick the watchdog chip on systems that use one
-    static void tickWatchdog(void);     
-    // Forwarder function to test the watchdog chip. 
+    static void tickWatchdog(void);
+    // Forwarder function to test the watchdog chip.
     // ⚠️ WARNING ⚠️ THIS WILL FORCIBLY REBOOT THE SYSTEM IF THE WATCHDOG IS WORKING
     static void testWatchdog(void);
-    // Forwarder function to system millis with protection     
-    static size_t millis(void);         
+    // Forwarder function to system millis with protection
+    static size_t millis(void);
     // Forwarder function to gpu frame counter with protection
-    static size_t frames(void); 
-    // Returns how many frames will pass in a given timeperiod      
+    static size_t frames(void);
+    // Returns how many frames will pass in a given timeperiod
     static inline size_t secondsToFrames(size_t seconds)
     {
         return msToFrames(seconds * 1000);
-    } 
+    }
     // Returns how many frames will pass in a given timeperiod
-    static size_t msToFrames(size_t millis);    
-    // Forwarder function to system random function with protection  
-    static size_t random(size_t min, size_t max); 
+    static size_t msToFrames(size_t millis);
+    // Forwarder function to system random function with protection
+    static size_t random(size_t min, size_t max);
     // Forward function to gpu getHorizontalRes function with protection
     static uint16_t getHorizontalRes(void);
-    // Forward function to gpu getVerticalRes function with protection           
-    static uint16_t getVerticalRes(void);   
-    // Forward function to gpu getRefreshRate function with protection           
-    static uint16_t getRefreshRate(void);           
+    // Forward function to gpu getVerticalRes function with protection
+    static uint16_t getVerticalRes(void);
+    // Forward function to gpu getRefreshRate function with protection
+    static uint16_t getRefreshRate(void);
+
+    // Gets the current RTC time (or system up-time if RTC not available)
+    static uint32_t getTime();
 
 private:
     // Static pointers to service implementations
@@ -136,10 +139,20 @@ private:
 
 namespace System
 {
-    // Forwarder function to system millis with protection     
+    // Forwarder function to system millis with protection
     inline size_t millis(void) { return Services::millis(); }
-    // Forwarder function to system random function with protection  
+    // Forwarder function to system random function with protection
     inline size_t random(size_t min, size_t max) { return Services::random(min, max); }
+
+    // Gets the current system with arcade extenstions if the system is an arcade system.
+    // Returns nullptr if it is not an arcade system.
+    IArcadeSystem *GetArcadeInterface()
+    {
+        System::ISystem *Genv_Sys = Services::getSystem();
+        return (Genv_Sys && Genv_Sys->getSysInfo()->type == System::SYS_Arcade)
+                   ? reinterpret_cast<IArcadeSystem *>(Genv_Sys)
+                   : nullptr;
+    }
 }
 
 namespace Video
@@ -150,8 +163,22 @@ namespace Video
     inline size_t msToFrames(size_t millis) { return Services::msToFrames(millis); }
     // Forward function to gpu getHorizontalRes function with protection
     inline uint16_t getHorizontalRes(void) { return Services::getHorizontalRes(); }
-    // Forward function to gpu getVerticalRes function with protection           
+    // Forward function to gpu getVerticalRes function with protection
     inline uint16_t getVerticalRes(void) { return Services::getVerticalRes(); }
-    // Forward function to gpu getVerticalRes function with protection           
+    // Forward function to gpu getVerticalRes function with protection
     inline uint16_t getRefreshRate(void) { return Services::getRefreshRate(); }
 }
+
+// TODO: Is this macro of any real benefit now? GetArcadeInterface does the important thing.
+// This macro is a short hand to mean that this code should only be run if the system
+// is an arcade system. Otherwise it is skipped. Use Genv_Arcade to access arcade
+// system specific functions. Uses static_cast to avoid RTTI
+#define ArcadeFunc(action)                                         \
+    do                                                             \
+    {                                                              \
+        IArcadeSystem *Genv_Arcade = System::GetArcadeInterface(); \
+        if (Genv_Arcade)                                           \
+        {                                                          \
+            action                                                 \
+        }                                                          \
+    } while (0)

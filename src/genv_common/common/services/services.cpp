@@ -189,20 +189,21 @@ size_t Services::msToFrames(size_t millis)
 
 void Services::tickWatchdog()
 {
-    auto sys = dynamic_cast<ArcadeSystem *>(Services::getSystem());
-    if (sys != nullptr)
-    {
-        sys->tickWatchdog();
-    }
+    ArcadeFunc(
+        Genv_Arcade->tickWatchdog();
+    );
 }
 
 void Services::testWatchdog()
 {
-    auto sys = dynamic_cast<ArcadeSystem *>(Services::getSystem());
-    if (sys != nullptr)
-    {
-        sys->disableWatchdogTicking();
-    }
+    ArcadeFunc(
+        Genv_Arcade->disableWatchdogTicking();
+    );
+}
+
+uint32_t Services::getTime(){
+    // TODO: Get RTC time and format it
+    return 0;
 }
 
 namespace Audio

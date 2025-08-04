@@ -45,6 +45,7 @@ enum GENV_Error_Codes : ErrorCode {
     GENV_ERR_CONFIG_INVALID              = 0x0004,
     GENV_ERR_CALIBRATION_REQUIRED        = 0x0005,
     GENV_ERR_RESOURCES_UNAVAILABLE       = 0x0006,
+    GENV_ERR_CRITICAL_APP_ERROR          = 0x0007,
 
     // -------------------------------
     // 0x01xx Inputs & Controls
@@ -184,6 +185,7 @@ constexpr const char *GENV_ErrorCode_String(ErrorCode code) noexcept {
         case GENV_ERR_CONFIG_INVALID:             return "Invalid config";
         case GENV_ERR_CALIBRATION_REQUIRED:       return "Calibration required";
         case GENV_ERR_RESOURCES_UNAVAILABLE:      return "Resources unavailable";
+        case GENV_ERR_CRITICAL_APP_ERROR:         return "Critical app error (0x%X)";
 
         // 0x01xx Inputs & Controls
         case GENV_ERR_BTN_STUCK:                  return "Button stuck (%u, %u)";

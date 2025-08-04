@@ -45,7 +45,6 @@ struct PlayerAnalytics
         uint16_t checksum = 0;
         uint32_t blockLength = GENV_NVRAM_AnalyticsLength;
     } header;
-    uint32_t totalCoins = 0;
     uint32_t totalGames = 0;
     uint32_t minutesPlayed = 0;
     uint32_t averageSeconds = 0;
@@ -168,8 +167,13 @@ struct NVRAM
     PlayerAnalytics *playerAnalytics = nullptr;  // Location of the player analytics table
     PlayerHighscore *playerScoreTable = nullptr; // Location of the player highscore table
 
+    // Coin statistics
+    uint8_t coinSlots = 0;              // Physical coin slots present. Used for various coin related checks.
+    uint8_t coinsToStart = 0;           // Coins required to start. The engine won't directly use this, but its a fairly usual requirement that makes it worth standardising.
+    uint32_t totalCoins[6] = {0};       // 4 coin slots + two credit sources. Surely enough for any occasion.
+
     // Error logging
-    uint8_t errorCount = 0; // Count of how many errors since last reset
+    uint8_t errorCount = 0;             // Count of how many errors since last reset
     struct ErrorCodeTable
     {
         uint32_t time = 0;                                          // Time when the error occured

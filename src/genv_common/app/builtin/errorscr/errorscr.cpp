@@ -20,6 +20,8 @@
 #include "common/util/templates.hpp"
 #include "common/services/services.hpp"
 
+#include "common/services/arcade/errorcodes.hpp"
+
 using namespace Apps;
 
 DefaultErrorScreen::DefaultErrorScreen(ErrorScreenMessage *msg) : colorIntensity(UINT8_MAX)
@@ -38,15 +40,15 @@ int DefaultErrorScreen::init()
         gpu->getVerticalRes() / 2);
 
     bgAlpha.setValue(
-        Services::frames(), 
-        0, 
-        util::percentOf(80, UINT8_MAX), 
+        Services::frames(),
+        0,
+        util::percentOf(80, UINT8_MAX),
         Services::msToFrames(bgFadeTime));
     jumpOut.setValue(0);
     jumpIn.setValue(
-        Services::frames(), 
-        Services::getVideo()->getVerticalRes(), 
-        0, 
+        Services::frames(),
+        Services::getVideo()->getVerticalRes(),
+        0,
         Services::msToFrames(toastAnimTime));
     playSound = true;
     animState = INTRO_RUN;
@@ -55,6 +57,12 @@ int DefaultErrorScreen::init()
     {
         // close sound file?
     }
+
+    ArcadeFunc(
+        if (msg->style == EM_STYLE_CRITICAL_ERROR)
+            Genv_Arcade->getNVRAM()
+                .addErrorCode(GENV_ERR_CRITICAL_APP_ERROR, Services::getTime(), msg->errorCode););
+                
     return 0;
 }
 

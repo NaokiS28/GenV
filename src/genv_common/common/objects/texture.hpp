@@ -35,15 +35,17 @@ namespace Textures
             BPP_1BIT,
             BPP_2BIT,
             BPP_4BIT,
-            BPP_8BIT
+            BPP_8BIT,
+            BPP_16BIT,
+            BPP_24BIT
         } bpp;
 
         int width = 0;
         int height = 0;
-        int page = 0;
 
-        const uint8_t *bitmap = nullptr;
         size_t bitmapLength = 0;
+        const uint8_t *bitmap = nullptr;
+        const uint8_t *clut = nullptr;
 
         TextureObject::TextureObject() : ObjectBase() {}
         TextureObject(const char *filePath);

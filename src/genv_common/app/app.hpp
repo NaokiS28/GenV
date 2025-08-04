@@ -20,6 +20,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "app_errorcodes.hpp"
+
 #include "common/services/video/video.hpp"
 #include "common/objects/sound.hpp"
 
@@ -190,12 +192,14 @@ namespace Apps
         ErrorMessageIcon icon = ErrorMessageIcon::EM_ICON_DEFAULT;
         ErrorMessageStyle style = ErrorMessageStyle::EM_STYLE_DEFAULT;
         ErrorMessageOptions action = ErrorMessageOptions::EM_BUTTONS_TEST_SEVICE;
+        uint32_t errorCode = 0x0;
         Strings title, message;
 
         ErrorScreenMessage() {}
         ErrorScreenMessage(
             const char *title,
             const char *message,
+            const uint32_t errorCode,
             ErrorMessageStyle style = ErrorMessageStyle::EM_STYLE_DEFAULT,
             ErrorMessageIcon icon = ErrorMessageIcon::EM_ICON_DEFAULT,
             ErrorMessageOptions action = ErrorMessageOptions::EM_BUTTONS_TEST_SEVICE);
@@ -204,6 +208,7 @@ namespace Apps
             int tLen,
             const char *message,
             int mLen,
+            const uint32_t errorCode,
             ErrorMessageStyle style = ErrorMessageStyle::EM_STYLE_DEFAULT,
             ErrorMessageIcon icon = ErrorMessageIcon::EM_ICON_DEFAULT,
             ErrorMessageOptions action = ErrorMessageOptions::EM_BUTTONS_TEST_SEVICE);
@@ -212,6 +217,7 @@ namespace Apps
     static ErrorScreenMessage eMsgUnknownMsg = {
         "General Application Error", 26,
         "An unexpected and critical error has occured. The application has been stopped.", 80,
+        GENV_APP_ERR_UNKNOWN,
         ErrorMessageStyle::EM_STYLE_CRITICAL_ERROR,
         ErrorMessageIcon::EM_ICON_CRITICAL_ERROR};
 
@@ -245,5 +251,24 @@ namespace Apps
         virtual int init();    // Init the error screen
         virtual void update(); // Update the error screens logic
         virtual void render() = 0;
+    };
+
+    /*
+     * ArcadeTestApp is a special application class that is used only on arcade games
+     * and when the system is in service/test mode. Games that are to be used in arcade
+     * systems MUST implement a test mode and register it within genv_register_app.
+     */
+    class ArcadeTestApp : public Application
+    {
+        friend class AppManager;
+
+    protected:
+        IArcadeSystem *aSystem = nullptr;
+    public:
+        ArcadeTestApp();
+
+        virtual int init();        // Init the loading screen
+        virtual void update();     // Update the loading screens logic
+        virtual void render() = 0; // Request loading screen to render it's UI
     };
 }

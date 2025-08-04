@@ -28,6 +28,7 @@ Application::Application() : gpu(Services::getVideo()),
 ErrorScreenMessage::ErrorScreenMessage(
     const char *title,
     const char *message,
+    const uint32_t errorCode,
     ErrorMessageStyle style,
     ErrorMessageIcon icon,
     ErrorMessageOptions action)
@@ -43,6 +44,7 @@ ErrorScreenMessage::ErrorScreenMessage(
     int tLen,
     const char *message,
     int mLen,
+    const uint32_t errorCode,
     ErrorMessageStyle style,
     ErrorMessageIcon icon,
     ErrorMessageOptions action)
@@ -56,8 +58,8 @@ ErrorScreenMessage::ErrorScreenMessage(
     this->action = action;
 }
 
-Strings::Strings(){
-
+Strings::Strings()
+{
 }
 
 Strings::Strings(const char *str)
@@ -118,5 +120,21 @@ int ErrorScreenApp::init()
 }
 
 void ErrorScreenApp::update()
+{
+}
+
+/* Arcade Test App Preset */
+
+ArcadeTestApp::ArcadeTestApp() : Application(Services::getVideo()),
+    aSystem(System::GetArcadeInterface())
+{
+}
+
+int ArcadeTestApp::init()
+{
+    return 0;
+}
+
+void ArcadeTestApp::update()
 {
 }

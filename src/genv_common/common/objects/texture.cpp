@@ -40,6 +40,8 @@ namespace Textures
     TextureObject::~TextureObject()
     {
         Services::getVideo()->releaseTexture(this);
+        delete[] clut;
+        delete[] bitmap;
     }
 
     TextureObject::TextureObject(const char *filePath) : ObjectBase()
