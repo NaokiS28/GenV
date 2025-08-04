@@ -17,6 +17,8 @@
 !/CMakePresets.json
 !/README.md
 
+!/doc/
+
 /debug/bios/*
 !/debug/
 !/debug/bios/README.md
