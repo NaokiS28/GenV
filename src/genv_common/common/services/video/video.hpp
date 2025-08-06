@@ -37,15 +37,16 @@ namespace Video
         Borderless, // App is in borderless fullscreen mode
         Fullscreen  // App is in dedicated, resolution switching fullscreen mode
     };
-    
-    enum VideoResult : int {
+
+    enum VideoResult : int
+    {
         V_RES_UNSUPPORTED = -3,
         V_RES_LIST_INVALID = -2,
         V_RES_INVALID = -1,
         V_OK,
-        V_RES_TOO_HIGH,         // The requested resolution was beyond the system's capabilities, the resolution was clamped
-        V_RES_MODIFIED = 128,         // The requested resolution didn't exist in the video drivers capabilities, was modified to the nearest fit.
-        V_REFRESH_MODIFIED = (0x80 << 8),         // The requested refresh rate didn't exist in the video drivers capabilities, was modified to the nearest fit.
+        V_RES_TOO_HIGH,                   // The requested resolution was beyond the system's capabilities, the resolution was clamped
+        V_RES_MODIFIED = 128,             // The requested resolution didn't exist in the video drivers capabilities, was modified to the nearest fit.
+        V_REFRESH_MODIFIED = (0x80 << 8), // The requested refresh rate didn't exist in the video drivers capabilities, was modified to the nearest fit.
     };
 
     // DPI/Scaling stuff
@@ -117,8 +118,13 @@ namespace Video
         size_t frameCount = 0;
         bool useDoubleBuffer = true;
 
+        Textures::TextureObject *defaultTexture = nullptr;
+
     public:
-        IVideo() = default;
+        IVideo()
+        {
+            defaultTexture = new Textures::DefaultTexture;
+        };
         virtual ~IVideo() = default;
 
         inline size_t getFrameCount()
@@ -132,11 +138,13 @@ namespace Video
         virtual bool endRender() = 0;
         virtual bool shutdown() = 0;
 
-        virtual void disableDoubleBuffer(){
+        virtual void disableDoubleBuffer()
+        {
             useDoubleBuffer = false;
         }
 
-        virtual void enableDoubleBuffer(){
+        virtual void enableDoubleBuffer()
+        {
             useDoubleBuffer = true;
         }
 
@@ -180,7 +188,8 @@ namespace Video
         inline int getDPI() { return screen.dpi; }
         virtual void getMonitorInfo(Monitor &m) const { m = screen; }
 
-        inline int setResolution(VideoResolution v, bool updateWindow = true){
+        inline int setResolution(VideoResolution v, bool updateWindow = true)
+        {
             return setResolution(v.width, v.height, updateWindow);
         }
         virtual int setResolution(int _width, int _height, bool updateWindow = true)
@@ -191,8 +200,7 @@ namespace Video
         }
 
         // Returns a list of video output modes that the application can set and use
-        const virtual VideoModeList* getSupportedResolutions() = 0;
-        uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t w, uint16_t h, uint16_t r = 60) const;
+        const virtual VideoModeList *getSupportedResolutions() = 0;
 
         // Attempts to set the fullscreen state and returns current fullscreen state
         virtual bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0)
@@ -227,9 +235,17 @@ namespace Video
 
         virtual void drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode = TALIGN_LEFT) = 0;
 
-        virtual Textures::TextureObject *createTexture(const char *filePath){
+        virtual Textures::TextureObject *createTexture()
+        {
             // Override this function if the video system requires a different texture object.
-            return Textures::createTexture(filePath);
+            Textures::TextureObject *tObj = Textures::createTexture();
+            return (tObj != nullptr ? tObj : defaultTexture);
+        }
+        virtual Textures::TextureObject *createTexture(const char *filePath)
+        {
+            // Override this function if the video system requires a different texture object.
+            Textures::TextureObject *tObj = Textures::createTexture(filePath);
+            return (tObj != nullptr ? tObj : defaultTexture);
         }
         virtual int uploadTexture(Textures::TextureObject *tObj) = 0;
         virtual int releaseTexture(Textures::TextureObject *tObj) = 0;
@@ -262,7 +278,7 @@ namespace Video
             int x, int y, int w, int h,
             ifloat u1, ifloat v1,
             ifloat u2, ifloat v2) = 0;
-        
+
         virtual int drawTextureObject(
             Textures::TextureObject *tObj,
             int x, int y,
@@ -303,4 +319,7 @@ namespace Video
         void draw(int x, int y, int alpha = 255) const;
         void draw(int x, int y, int sx, int sy, int w, int h, int a = 255) const;
     };
+
+    uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t w, uint16_t h, uint16_t r = 60);
+
 }

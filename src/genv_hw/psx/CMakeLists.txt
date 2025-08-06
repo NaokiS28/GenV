@@ -46,6 +46,9 @@ target_sources(genv_hw_psx PRIVATE
 	audio/spu.cpp
     video/video.cpp
     video/texmgr.cpp
+    video/psxtex.cpp
+
+	
 )
 
 target_compile_definitions(
@@ -58,3 +61,5 @@ target_include_directories(
 	${CMAKE_SOURCE_DIR}/src/hw/psx
 	${CMAKE_SOURCE_DIR}/src/genv_common
 )
+
+target_link_libraries(genv_hw_psx PRIVATE genv_objects genv_formats genv_common)

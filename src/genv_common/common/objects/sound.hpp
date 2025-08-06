@@ -23,6 +23,8 @@
 
 namespace Audio
 {
+    static constexpr const char *GENV_SOUND_OBJ_TYPENAME = "GenVSoundObject";
+
     enum : uint8_t
     {
         SO_OKAY,                // Success
@@ -40,7 +42,8 @@ namespace Audio
         SO_ERROR_UNKNOWN        // Unknown or unexpected error occured
     };
 
-    enum {
+    enum
+    {
         SO_BITDEPTH_8 = 8,
         SO_BITDEPTH_16 = 16,
         SO_BITDEPTH_32 = 32
@@ -48,17 +51,19 @@ namespace Audio
 
     constexpr uint8_t alwaysLoop = UINT8_MAX;
 
-    struct SampleMeta {
-        const char *name = nullptr;     // Sample name, if needed
-        uint8_t     channels = 0;       // Mono, Stereo
-        uint8_t     bitDepth = 0;       // The bitdepth of the sound, IE 8-Bits per sample
-        uint32_t    sampleRate = 0;     // The sample rate in Hz (eg 41,600)
-        size_t      sampleLength = 0;   // How many samples long the sound is
-        uint32_t    id = 0;             // ID for the audio driver to use (set and used by audio driver)
+    struct SampleMeta
+    {
+        const char *name = nullptr; // Sample name, if needed
+        uint8_t channels = 0;       // Mono, Stereo
+        uint8_t bitDepth = 0;       // The bitdepth of the sound, IE 8-Bits per sample
+        uint32_t sampleRate = 0;    // The sample rate in Hz (eg 41,600)
+        size_t sampleLength = 0;    // How many samples long the sound is
+        uint32_t id = 0;            // ID for the audio driver to use (set and used by audio driver)
     };
 
     // Returns the given sameple's play length in seconds.
-    constexpr size_t getSampleTime(SampleMeta meta){
+    constexpr size_t getSampleTime(SampleMeta meta)
+    {
         size_t time = (meta.sampleLength / meta.sampleRate);
         return (time ? time : 1);
     }
@@ -66,20 +71,28 @@ namespace Audio
     class SoundObject : public ObjectBase
     {
     public:
-        SoundObject() : ObjectBase() {
+        SoundObject() : ObjectBase()
+        {
             file = new Files::FileObject();
+            setObjectType(GENV_SOUND_OBJ_TYPENAME);
         }
-        SoundObject(const char *filePath) : ObjectBase() {
+        SoundObject(const char *filePath) : ObjectBase()
+        {
             file = new Files::FileObject();
-            if(file != nullptr)
+            if (file != nullptr)
                 loadSoundFile(filePath);
+            setObjectType(GENV_SOUND_OBJ_TYPENAME);
         }
-        SoundObject(Files::FileObject *fObj) : ObjectBase(){
+        SoundObject(Files::FileObject *fObj) : ObjectBase()
+        {
             noDeleteFile = true;
             file = fObj;
+            setObjectType(GENV_SOUND_OBJ_TYPENAME);
         }
-        virtual ~SoundObject() {
-            if(!noDeleteFile){
+        virtual ~SoundObject()
+        {
+            if (!noDeleteFile)
+            {
                 delete file;
             }
         }
@@ -89,36 +102,42 @@ namespace Audio
         virtual bool pause();
         virtual bool isPlaying();
 
-
-        virtual int loadSoundFile(const char *filePath){ 
+        virtual int loadSoundFile(const char *filePath)
+        {
             return file->openFile(filePath, false);
         }
 
         virtual int uploadSample();
-        virtual size_t getPlayPosition(){ return currentPos; }
-        virtual size_t getPlayTime(){ return getSampleTime(meta); }
+        virtual size_t getPlayPosition() { return currentPos; }
+        virtual size_t getPlayTime() { return getSampleTime(meta); }
 
-        inline bool restart(){
+        inline bool restart()
+        {
             return (stop() && play());
         }
 
-        inline bool isValid(){
+        inline bool isValid()
+        {
             return valid;
         }
 
-        inline void *getSampleData(){
+        inline void *getSampleData()
+        {
             return sampleData;
         }
 
-        inline SampleMeta getMeta(){
+        inline SampleMeta getMeta()
+        {
             return meta;
         }
 
-        inline void setSampleID(uint32_t id){
+        inline void setSampleID(uint32_t id)
+        {
             meta.id = id;
         }
 
-        inline uint32_t getSampleID(){
+        inline uint32_t getSampleID()
+        {
             return meta.id;
         }
 
@@ -129,16 +148,16 @@ namespace Audio
         Files::FileObject *file;
         SampleMeta meta;
 
-        void   *sampleData = nullptr;
+        void *sampleData = nullptr;
 
-        bool    valid = false;
-        bool    loop = false;
+        bool valid = false;
+        bool loop = false;
         uint8_t loopCount = 0;
-        size_t  loopStartPoint = 0;
-        size_t  loopEndPoint = 0;
-        size_t  currentPos = 0;
-        size_t  startPoint = 0;
-        size_t  endPoint = 0;
+        size_t loopStartPoint = 0;
+        size_t loopEndPoint = 0;
+        size_t currentPos = 0;
+        size_t startPoint = 0;
+        size_t endPoint = 0;
     };
 
     SoundObject *createSample(const char *filePath);

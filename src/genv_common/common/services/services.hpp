@@ -146,13 +146,7 @@ namespace System
 
     // Gets the current system with arcade extenstions if the system is an arcade system.
     // Returns nullptr if it is not an arcade system.
-    IArcadeSystem *GetArcadeInterface()
-    {
-        System::ISystem *Genv_Sys = Services::getSystem();
-        return (Genv_Sys && Genv_Sys->getSysInfo()->type == System::SYS_Arcade)
-                   ? reinterpret_cast<IArcadeSystem *>(Genv_Sys)
-                   : nullptr;
-    }
+    IArcadeSystem *GetArcadeInterface();
 }
 
 namespace Video
@@ -176,7 +170,7 @@ namespace Video
 #define ArcadeFunc(action)                                         \
     do                                                             \
     {                                                              \
-        IArcadeSystem *Genv_Arcade = System::GetArcadeInterface(); \
+        System::IArcadeSystem *Genv_Arcade = System::GetArcadeInterface(); \
         if (Genv_Arcade)                                           \
         {                                                          \
             action                                                 \

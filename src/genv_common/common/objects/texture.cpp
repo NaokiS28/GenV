@@ -34,7 +34,7 @@ namespace Textures
             &bpp,
             0);
 #endif
-        setObjectID("DefaultTexture"_h);
+        setObjectID("DefaultTexture");
     }
 
     TextureObject::~TextureObject()
@@ -47,6 +47,7 @@ namespace Textures
     TextureObject::TextureObject(const char *filePath) : ObjectBase()
     {
         loadTextureFile(filePath);
+        setObjectType(GENV_TEXTURE_OBJ_TYPENAME);
     }
 
     int TextureObject::loadTextureFile(const char *filePath)
@@ -85,6 +86,12 @@ namespace Textures
         return Services::getVideo()->uploadTexture(this);
     }
 
+    TextureObject *createTexture()
+    {
+        TextureObject *tObj = new TextureObject;
+        return tObj;
+    }
+
     TextureObject *createTexture(const char *filePath)
     {
         TextureObject *tObj = new TextureObject;
@@ -92,11 +99,11 @@ namespace Textures
         {
             if (tObj->loadTextureFile(filePath) == Files::FO_OKAY)
                 return tObj;
-            else
+            else{
                 delete tObj;
+                tObj = nullptr;
+            }
         }
-
-        static DefaultTexture txDefault;
-        return &txDefault;
+        return tObj;
     }
 }

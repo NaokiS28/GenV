@@ -24,6 +24,12 @@ constexpr const uint8_t paramListSize = 10;
 constexpr const uint8_t paramNotFound = UINT8_MAX;
 constexpr const util::Hash paramEntryNull = UINT32_MAX;
 
+enum ObjectErrorCodes {
+    GENV_OBJ_OKAY,
+    GENV_OBJ_INVALID,
+    GENV_OBJ_WRONG_TYPE
+};
+
 struct ObjectParameter
 {
     util::Hash hash = 0;
@@ -34,6 +40,7 @@ class ObjectBase
 {
 private:
     util::Hash objectID = 0;
+    util::Hash objectType = 0;
     ObjectParameter paramList[paramListSize];
 
 protected:
@@ -50,6 +57,19 @@ protected:
         objectID = hash;
     }
 
+    inline void setObjectType(const char *str)
+    {
+        if (str != nullptr)
+        {
+            objectType = util::hash(str, strlen(str));
+        }
+    }
+
+    inline void setObjectType(util::Hash hash)
+    {
+        objectType = hash;
+    }
+
 public:
     ObjectBase();
     virtual ~ObjectBase() = default;
@@ -62,5 +82,10 @@ public:
     inline util::Hash getObjectID()
     {
         return objectID;
+    }
+
+    inline util::Hash getObjectType()
+    {
+        return objectType;
     }
 };

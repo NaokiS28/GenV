@@ -24,11 +24,12 @@ namespace Sprites
     TileObject::TileObject()
     {
         resetTransform();
+        texture = Services::getVideo()->createTexture();
     }
 
     TileObject::TileObject(const char *filePath)
     {
-        texture = Textures::createTexture(filePath);
+        texture = Services::getVideo()->createTexture(filePath);
     }
 
     int TileObject::draw(int x, int y)

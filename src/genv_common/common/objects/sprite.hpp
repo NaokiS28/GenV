@@ -25,6 +25,8 @@
 
 namespace Sprites
 {
+    static constexpr const char* GENV_SPRITE_OBJ_TYPENAME = "GenVSpriteObject";
+
     struct SpritePosition
     {
         ifloat x, y, z, rhw; // screen-space position, z=0.0f, rhw=1.0f

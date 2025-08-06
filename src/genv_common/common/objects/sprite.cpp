@@ -23,11 +23,12 @@ namespace Sprites
 {
     SpriteObject::SpriteObject()
     {
+        texture = Services::getVideo()->createTexture();
     }
 
     SpriteObject::SpriteObject(const char *filePath)
     {
-        texture = Textures::createTexture(filePath);
+        texture = Services::getVideo()->createTexture(filePath);
     }
 
     void SpriteObject::draw(int x, int y, int w, int h){

@@ -20,7 +20,7 @@
 
 #if defined(GENV_PSX)
 #include "psx/system.hpp"
-#define SYSTEM_CLASS PSXSystem
+#define SYSTEM_CLASS PSX::PSXSystem
 
 #elif defined(GENV_573)
 #include "psx/573/system.hpp"

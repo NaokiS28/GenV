@@ -23,22 +23,26 @@
 
 namespace Textures
 {
+    static constexpr const char *GENV_TEXTURE_OBJ_TYPENAME = "GenVTextureObject";
+
+    enum BitsPerPixel : uint8_t
+    {
+        INVALID,
+        BPP_1BIT = 1,
+        BPP_2BIT = 2,
+        BPP_4BIT = 4,
+        BPP_8BIT = 8,
+        BPP_16BIT = 16,
+        BPP_24BIT = 24
+    };
+
     class TextureObject : public ObjectBase
     {
     private:
         Files::FileObject *file = nullptr;
 
     public:
-        enum BitsPerPixel : uint8_t
-        {
-            INVALID,
-            BPP_1BIT,
-            BPP_2BIT,
-            BPP_4BIT,
-            BPP_8BIT,
-            BPP_16BIT,
-            BPP_24BIT
-        } bpp;
+        BitsPerPixel bpp;
 
         int width = 0;
         int height = 0;
@@ -47,7 +51,7 @@ namespace Textures
         const uint8_t *bitmap = nullptr;
         const uint8_t *clut = nullptr;
 
-        TextureObject::TextureObject() : ObjectBase() {}
+        TextureObject() : ObjectBase() {}
         TextureObject(const char *filePath);
         virtual ~TextureObject();
 
@@ -67,5 +71,19 @@ namespace Textures
         ~DefaultTexture() override {} // If this isnt overiding the default texture destructor, program will seg fault when closing.
     };
 
+    TextureObject *createTexture();
     TextureObject *createTexture(const char *filePath);
+}
+
+// Is pow(bpp,2), really.
+static constexpr const size_t genv_bpp(uint8_t bpp)
+{
+    size_t r = 2;
+    if (bpp < 2)
+        return bpp;
+    for (int p = 1; p < bpp; p++)
+    {
+        r <<= 1;
+    }
+    return r;
 }

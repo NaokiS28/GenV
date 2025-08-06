@@ -18,8 +18,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "../cpu/cop0.h"
-#include "../video/gte.h"
+
+#include "../cpu/cop0gte.h"
 #include "../registers.h"
 
 typedef struct

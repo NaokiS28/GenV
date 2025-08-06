@@ -17,10 +17,19 @@
 
 #include "psxtex.hpp"
 
-namespace PSX
+namespace System::PSX::GPU
 {
+    PSXTextureObject::PSXTextureObject() : Textures::TextureObject()
+    {
+        setObjectType(GENV_PSX_TEXTURE_TYPE_NAME);
+    }
+    
+    PSXTextureObject::~PSXTextureObject()
+    {
+    }
+
     PSXDefaultTexture::PSXDefaultTexture() : PSXTextureObject()
     {
-        setObjectID("DefaultTexture"_h);
+        setObjectID("DefaultTexture");
     }
 }

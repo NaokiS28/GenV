@@ -1,8 +1,8 @@
-# Compiling UXDX
-This guide briefly covers how to compile UXDX in its current form.
+# Compiling GenV
+This guide briefly covers how to compile GenV in its current form.
 
 ## Prerequisites
-* VSCode
+* VS Code/Codium
 * Ninja
 * CMake
 

@@ -57,7 +57,7 @@ namespace Apps
         Apps::LoadScreenApp *loadingScreen = nullptr;
         Apps::ErrorScreenApp *errorScreen = nullptr;
 
-        ArcadeSystem *asys = nullptr;
+        System::IArcadeSystem *asys = nullptr;
 
         void quitApp(AppSelect app = APP_FOREGROUND);
         void swapApps();

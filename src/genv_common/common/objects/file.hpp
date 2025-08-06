@@ -21,6 +21,8 @@
 
 namespace Files
 {
+    static constexpr const char *GENV_FILE_OBJ_TYPENAME = "GenVFileObject";
+
     enum : uint8_t
     {
         FO_OKAY,                // Success
@@ -42,10 +44,14 @@ namespace Files
     {
 
     public:
-        FileObject() : ObjectBase(){}
+        FileObject() : ObjectBase()
+        {
+            setObjectType(GENV_FILE_OBJ_TYPENAME);
+        }
         FileObject(const char *filePath, bool lock = false) : ObjectBase()
         {
             openFile(filePath, lock);
+            setObjectType(GENV_FILE_OBJ_TYPENAME);
         }
         virtual ~FileObject();
 

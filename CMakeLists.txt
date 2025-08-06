@@ -30,6 +30,8 @@ project(
 )
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 
 # Store current platform from preset
 if(NOT DEFINED GENV_PLATFORM)
@@ -52,6 +54,34 @@ include(cmake/${GENV_PLATFORM}/tools.cmake)
 # other options.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/${GENV_PLATFORM}")
+
+# Enable compile commands for completeness (optional)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Find Graphviz 'dot' executable
+find_program(DOT_EXECUTABLE dot)
+
+# Automatically generate dependency graph when CMake runs
+if (DOT_EXECUTABLE)
+    # Generate .dot file during configuration
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} --graphviz=${CMAKE_BINARY_DIR}/build_graph.dot ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        OUTPUT_QUIET ERROR_QUIET
+    )
+
+    # Also generate a PNG automatically
+    execute_process(
+        COMMAND ${DOT_EXECUTABLE} -Tpng ${CMAKE_BINARY_DIR}/build_graph.dot -o ${CMAKE_BINARY_DIR}/build_graph.png
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        OUTPUT_QUIET ERROR_QUIET
+    )
+
+    message(STATUS "Generated build_graph.dot and build_graph.png in ${CMAKE_BINARY_DIR}")
+else()
+    message(WARNING "Graphviz 'dot' tool not found — dependency graph will not be generated")
+endif()
+
 
 include (TestBigEndian)
 TEST_BIG_ENDIAN(IS_BIG_ENDIAN)

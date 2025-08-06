@@ -15,7 +15,21 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-project(genv_common LANGUAGES C CXX)
+add_library(genv_objects STATIC
+	common/objects/object.cpp
+	common/objects/file.cpp
+	common/objects/sound.cpp
+	common/objects/tile.cpp
+	common/objects/sprite.cpp
+	common/objects/texture.cpp
+	common/objects/texture/missingtex.c
+)
+
+add_library(genv_formats STATIC
+	common/formats/soundfile.cpp
+	common/formats/riff.cpp
+	common/formats/wav.cpp
+)
 
 # GenV shared core headers
 add_library(genv_common STATIC
@@ -25,29 +39,42 @@ add_library(genv_common STATIC
 	common/util/misc.cpp
 	common/util/text.cpp
 	common/util/tween.cpp
-	common/objects/object.cpp
-	common/objects/file.cpp
-	common/objects/sound.cpp
-	common/objects/tile.cpp
-	common/objects/sprite.cpp
-	common/objects/texture.cpp
-	common/objects/texture/missingtex.c
-	common/formats/soundfile.cpp
-	common/formats/riff.cpp
-	common/formats/wav.cpp
 	common/services/services.cpp
 	common/services/storage.cpp
 	common/services/video/video.cpp
 	common/services/appmgr.cpp
 	common/services/sys/timer.cpp
+	common/services/arcade/arcade.cpp
+	common/services/arcade/nvram.cpp
+)
+
+add_library(genv_app_core STATIC
 	app/app.cpp
 	app/builtin/errorscr/errorscr.cpp
 	app/builtin/loadscr/loadscr.cpp
 	app/builtin/textload/textload.cpp	
 	app/builtin/tmss/tmss.cpp	
+	app/builtin/arcade/testmode.cpp	
 )
 
+target_link_libraries(genv_common PUBLIC genv_app_core)
 target_include_directories(genv_common PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw
+)
+
+target_link_libraries(genv_objects PUBLIC genv_common) 
+target_include_directories(genv_objects PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/genv_common
+)
+
+target_link_libraries(genv_formats PUBLIC genv_common) 
+target_include_directories(genv_formats PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/genv_common
+)
+
+target_link_libraries(genv_app_core PUBLIC genv_common genv_objects genv_formats) 
+target_include_directories(genv_app_core PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/genv_common
+    ${CMAKE_SOURCE_DIR}/src/app
 )

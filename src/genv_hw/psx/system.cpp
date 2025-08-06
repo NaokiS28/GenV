@@ -21,7 +21,7 @@
 #include "common/util/misc.hpp"
 #include "video/video.hpp"
 
-namespace System
+namespace System::PSX
 {
     bool PSXSystem::init()
     {
@@ -44,23 +44,23 @@ namespace System
         {
             return 1;
         }
-        
+
         return true;
     }
 
     bool PSXSystem::setResolution(int w, int h)
     {
-        //if (!video())
-            return false;
+        // if (!video())
+        return false;
 
-        sm_state = System::SM_RESIZE;
-        //return video()->setResolution(w, h);
+        sm_state = SM_RESIZE;
+        // return video()->setResolution(w, h);
     }
 
     int PSXSystem::initVideo()
     {
-        IVideo *vDriver = new PSXGPU;
-        if(!vDriver || vDriver->init())
+        IVideo *vDriver = new GPU::PSXGPU;
+        if (!vDriver || vDriver->init())
             return -1;
         Services::setVideo(vDriver);
         return 0;
@@ -68,25 +68,25 @@ namespace System
 
     int PSXSystem::initAudio()
     {
-        //IAudio *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND, gpuWnd);
-        //if (!aDriver || !aDriver->init())
-            return -2;
+        // IAudio *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND, gpuWnd);
+        // if (!aDriver || !aDriver->init())
+        return -2;
 
-        //Services::setAudio(aDriver);
-        //return 0;
+        // Services::setAudio(aDriver);
+        // return 0;
     }
 
     int PSXSystem::initFiles()
     {
         return -2;
 
-        //Services::setStorage(&storage);
-        //return 0;
+        // Services::setStorage(&storage);
+        // return 0;
     }
 
     int PSXSystem::update()
     {
-        sm_state = System::SM_NORMAL;
+        sm_state = SM_NORMAL;
 
         return sm_state;
     }

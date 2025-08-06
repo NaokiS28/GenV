@@ -22,16 +22,10 @@
 #include "common/services/services.hpp"
 #include "common/services/sys/timer.hpp"
 
-//#include "video/video.hpp"
-//#include "audio/audio.hpp"
-//#include "file/file.hpp"
-
-namespace System
+namespace System::PSX
 {
-    namespace PSX {
-        constexpr const char* szSystemName = "PlayStation";
-        constexpr const char* szMakeName = "Sony";
-    }
+    constexpr const char *szPS1SystemName = "PlayStation";
+    constexpr const char *szPS1MakeName = "Sony";
 
     /*
      * PSX System base class
@@ -39,13 +33,13 @@ namespace System
      * Any system that is based on the PlayStation 1 can be derrived from this
      * class, where the Audio, Video, Input and File storage modules can be changed
      * out.
-     * 
+     *
      * When making a derrived system, if the base function is NOT overriden, it will
      * be assumed that the derrived system uses the same functionality as the
      * PlayStation 1. An example of this is the System 573 derivative where the CPU
      * and GPU are the same, but the audio, input and files system change (audio is
      * expanded upon with the Digital Sound IO board)
-    */
+     */
     class PSXSystem : public ISystem
     {
     private:
@@ -62,15 +56,14 @@ namespace System
             return true;
         }
 
-        SystemInfo siPSX = {
+        SystemInfo siPS1 = {
             .type = SYS_Console,
-            .make = PSX::szMakeName,
-            .name = PSX::szSystemName,
-            .flags = SYS_No_Window_Mode
-        };
+            .make = szPS1MakeName,
+            .name = szPS1SystemName,
+            .flags = SYS_No_Window_Mode};
 
     public:
-        PSXSystem() : sm_state(System::SM_NORMAL)
+        PSXSystem() : sm_state(SM_NORMAL)
         {
         }
         virtual ~PSXSystem() = default;
@@ -79,25 +72,26 @@ namespace System
         virtual int update() override;            // Process wWindows messages
         virtual bool shutdown() override;         // Prepare drivers and app for close
         virtual bool setResolution(int w, int h); // Sets window resolution (internal viewport)
-        bool setFullscreen(Video::FullscreenMode mode){ return false; }
-        bool toggleFullscreen(){ return false; }
+        bool setFullscreen(Video::FullscreenMode mode) { return false; }
+        bool toggleFullscreen() { return false; }
 
-        virtual const SystemInfo* getSysInfo() const override {
-            return &siPSX;
+        virtual const SystemInfo *getSysInfo() const override
+        {
+            return &siPS1;
         }
 
         size_t millis();
 
         inline bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq)
         {
-            //if (timer == TChannel::TIMER1)
-                //return sysTimer.registerFunction(func, freq);
+            // if (timer == TChannel::TIMER1)
+            // return sysTimer.registerFunction(func, freq);
             return false;
         }
         inline bool unregisterTimerFunc(TFunc func, TChannel timer)
         {
-            //if (timer == TChannel::TIMER1)
-                //return sysTimer.unregisterFunction(func);
+            // if (timer == TChannel::TIMER1)
+            // return sysTimer.unregisterFunction(func);
             return false;
         }
     };

@@ -17,9 +17,6 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "../cpu/cop0.h"
-#include "../video/gte.h"
-#include "../registers.h"
 #include "sys.h"
 
 #define BIOS_ENTRY_POINT ((VoidFunction)   0xbfc00000)

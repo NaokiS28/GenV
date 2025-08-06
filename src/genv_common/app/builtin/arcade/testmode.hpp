@@ -29,7 +29,7 @@ private:
     AppVersion appVer = AppVersion(0, 0, 1);
 
 public:
-    GenVTestApp() : ArcadeTestApp() {}
+    GenVTestApp();
     int init(void) override;
     void update(void) override;
     void render(void) override;

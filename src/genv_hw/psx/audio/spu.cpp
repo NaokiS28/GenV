@@ -17,9 +17,11 @@
 #include <assert.h>
 #include <stdint.h>
 #include "spu.hpp"
-//#include "common/util.hpp"
+#include "common/util/hash.hpp"
+#include "common/util/templates.hpp"
 #include "../registers.h"
-//#include "ps1/system.h"
+#include "../system/sys.h"
+
 
 namespace spu
 {
@@ -72,7 +74,7 @@ namespace spu
             SPU_DATA = 0;
 
         SPU_CTRL = SPU_CTRL_XFER_WRITE | SPU_CTRL_ENABLE;
-        _waitForStatus(SPU_CTRL_XFER_BITMASK | SPU_STAT_BUSY, SPU_CTRL_XFER_WRITE);
+        _waitForStatus((SPU_CTRL_XFER_BITMASK | SPU_STAT_BUSY), SPU_CTRL_XFER_WRITE);
         delayMicroseconds(100);
 
         SPU_CTRL = SPU_CTRL_UNMUTE | SPU_CTRL_ENABLE;
@@ -149,7 +151,7 @@ namespace spu
     {
         length /= 4;
 
-        util::assertAligned<uint32_t>(data);
+        //util::assertAligned<uint32_t>(data);
         // assert(!(length % _DMA_CHUNK_SIZE));
         length = (length + _DMA_CHUNK_SIZE - 1) / _DMA_CHUNK_SIZE;
 

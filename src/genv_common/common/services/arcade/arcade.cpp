@@ -25,6 +25,7 @@ namespace System
     {
         // TODO: Is this needing any extra logic?
         physicalPlayers = players;
+        return players;
     }
 
     uint8_t IArcadeSystem::setPhysicalCoinSlots(uint8_t slots)
@@ -60,7 +61,6 @@ namespace System
         if (!playerCoins || slot >= physicalCoinSlots)
             return false;
 
-        int8_t coinsIn = 0;
         if (slot < 0)
         {
             for (int8_t p = 0; p < physicalCoinSlots; p++)

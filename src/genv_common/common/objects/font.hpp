@@ -19,8 +19,18 @@
 
 #include "texture.hpp"
 
+struct GlyphMetrics {
+    uint16_t x = 0, y = 0, width = 0;
+};
+
 struct FontMetrics {
-    
+    enum : uint8_t {
+        FONT_NONE,
+        FONT_ITALIC,
+        FONT_BOLD,
+    } flags;
+    int lineSpacing = 0;    // Adds/removes spacing between lines if called to do so.
+    int kerning = 0;        // Kerning is only used for certain letters if the context calls for it.
 };
 
 class FontObject {

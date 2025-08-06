@@ -19,9 +19,9 @@
 
 namespace Video
 {
-    uint32_t IVideo::findNearestVideoMode(const VideoModeList *list, uint16_t reqW, uint16_t reqH, uint16_t reqR) const
+    uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t reqW, uint16_t reqH, uint16_t reqR)
     {
-        if(list == nullptr)
+        if (list == nullptr)
             return V_RES_LIST_INVALID;
         if (list->resLength == 0 || list->resList == nullptr || list->refreshLength == 0 || list->refreshList == nullptr)
             return V_RES_LIST_INVALID;
@@ -111,5 +111,4 @@ namespace Video
 
         return result;
     }
-
 }

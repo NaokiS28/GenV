@@ -17,17 +17,25 @@
 
 #include "testmode.hpp"
 
-int GenVTestApp::init(){
+GenVTestApp::GenVTestApp() : ArcadeTestApp()
+{
+}
+
+int GenVTestApp::init()
+{
     return 0;
 }
-void GenVTestApp::update(){
-    if(aSystem->getTestMode()){
-
-    } else {
+void GenVTestApp::update()
+{
+    if (aSystem->runTestMode())
+    {
+    }
+    else
+    {
         state = APP_STATE_QUIT;
         // leave
     }
 }
-void GenVTestApp::render(){
-
+void GenVTestApp::render()
+{
 }

@@ -1,7 +1,13 @@
 {
     "psi-header.variables": [
-        ["projectCreationYear", "2025"],
-        ["projectname", "GenV"]
+        [
+            "projectCreationYear",
+            "2025"
+        ],
+        [
+            "projectname",
+            "GenV"
+        ]
     ],
     "psi-header.config": {
         "forceToTop": true,
@@ -23,18 +29,18 @@
         {
             "language": "c",
             "begin": "/*",
-			"prefix": " * ",
-			"end": "*/",
-			"forceToTop": true,
+            "prefix": " * ",
+            "end": "*/",
+            "forceToTop": true,
         },
-        {  
+        {
             "language": "cpp",
             "mapTo": "c"
         },
         {
             "language": "*",
-			"prefix": "# ",
-			"forceToTop": true,
+            "prefix": "# ",
+            "forceToTop": true,
         }
     ],
     "psi-header.templates": [
@@ -115,6 +121,9 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "cstring": "cpp",
-        "map": "cpp"
-    }
+        "map": "cpp",
+        "registers.h": "c",
+        "gte.h": "c"
+    },
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
 }

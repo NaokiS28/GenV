@@ -100,7 +100,7 @@ int AppManager::update()
 {
     if (asys)
     {
-        if (asys->gameTestMode() && enteredTestMode < ASYS_LOAD_TEST_APP)
+        if (asys->runTestMode() && enteredTestMode < ASYS_LOAD_TEST_APP)
         {
             ArcadeTestApp *fgApp = static_cast<ArcadeTestApp *>(foregroundApp);
             ArcadeTestApp *bgApp = static_cast<ArcadeTestApp *>(backgroundApp);
@@ -111,7 +111,7 @@ int AppManager::update()
                 enteredTestMode = ASYS_CLOSE_GAME_APPS;
             }
         }
-        else if (!asys->gameTestMode() && enteredTestMode != ASYS_GAME_MODE || enteredTestMode != ASYS_LOAD_GAME_APP)
+        else if (!asys->runTestMode() && (enteredTestMode != ASYS_GAME_MODE || enteredTestMode != ASYS_LOAD_GAME_APP))
         {
             quitApp(APP_FOREGROUND);
             enteredTestMode = ASYS_LOAD_GAME_APP;

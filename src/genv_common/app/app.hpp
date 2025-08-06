@@ -22,6 +22,7 @@
 
 #include "app_errorcodes.hpp"
 
+#include "common/services/arcade/arcade.hpp"
 #include "common/services/video/video.hpp"
 #include "common/objects/sound.hpp"
 
@@ -263,7 +264,7 @@ namespace Apps
         friend class AppManager;
 
     protected:
-        IArcadeSystem *aSystem = nullptr;
+        System::IArcadeSystem *aSystem = nullptr;
     public:
         ArcadeTestApp();
 
