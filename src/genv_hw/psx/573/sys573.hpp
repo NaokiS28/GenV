@@ -22,63 +22,68 @@
 
 namespace System
 {
-    namespace KSYS573
+    namespace PSX
     {
-        constexpr const char *szSystemName = "System 573";
-        constexpr const char *szMakeName = "KONAMI";
+        namespace KSYS573
+        {
+            constexpr const char *szSystemName = "System 573";
+            constexpr const char *szMakeName = "KONAMI";
+        }
+
+        class Sys573System : public PSXSystem, public IArcadeSystem
+        {
+        private:
+            SystemInfo si573 = {
+                .type = SYS_Arcade,
+                .make = KSYS573::szMakeName,
+                .name = KSYS573::szSystemName,
+                .flags = SYS_No_Window_Mode};
+
+            int initAudio();
+            int initIO() { return 0; }
+            int initFiles();
+
+            uint32_t getJAMMAInputs(void);
+
+            uint8_t outputBanks = 1;
+
+        public:
+            Sys573System() : PSXSystem() {}
+            ~Sys573System() = default;
+
+            bool init() override;     // Registers Windows app class and inits drivers
+            int update() override;    // Process wWindows messages
+            bool shutdown() override; // Prepare drivers and app for close
+
+            int readNVRAM() override;
+            int writeNVRAM() override;
+
+            uint8_t increaseCoinCounter(uint8_t counter) override;
+
+            void tickWatchdog(void) override
+            {
+                if (enableWatchdogTicking)
+                {
+                    SYS573_WATCHDOG = 0;
+                }
+            }
+
+            const SystemInfo *getSysInfo() const override
+            {
+                return &si573;
+            }
+
+            uint8_t setOutputs(uint8_t bank, uint8_t data) override;
+            uint8_t setSingleOutput(uint8_t outputNumber, bool state) override;
+        };
     }
 
-    class Sys573System : public PSXSystem, public IArcadeSystem
+    namespace Video
     {
-    private:
-        SystemInfo si573 = {
-            .type = SYS_Arcade,
-            .make = KSYS573::szMakeName,
-            .name = KSYS573::szSystemName,
-            .flags = SYS_No_Window_Mode};
-
-        int initAudio();
-        int initIO() { return 0; }
-        int initFiles();
-
-        uint32_t getJAMMAInputs(void);
-
-        uint8_t outputBanks = 1;
-
-    public:
-        Sys573System() : PSXSystem() {}
-        ~Sys573System() = default;
-
-        bool init() override;     // Registers Windows app class and inits drivers
-        int update() override;    // Process wWindows messages
-        bool shutdown() override; // Prepare drivers and app for close
-
-        int readNVRAM() override;
-        int writeNVRAM() override;
-
-        uint8_t increaseCoinCounter(uint8_t counter) override;
-
-        void tickWatchdog(void) override
+        class Sys573Video : public PSXGPU
         {
-            if (enableWatchdogTicking)
-            {
-                SYS573_WATCHDOG = 0;
-            }
-        }
-
-        const SystemInfo *getSysInfo() const override
-        {
-            return &si573;
-        }
-
-        uint8_t setOutputs(uint8_t bank, uint8_t data) override;
-        uint8_t setSingleOutput(uint8_t outputNumber, bool state) override;
-    };
-}
-
-namespace Video {
-    class Sys573Video : public PSXGPU {
         public:
             Sys573Video();
-    };
+        };
+    }
 }

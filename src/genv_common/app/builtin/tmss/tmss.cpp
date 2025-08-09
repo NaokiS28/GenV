@@ -29,8 +29,8 @@ namespace Apps
 
     int TMSS::init()
     {
-        fadeIn.setValue(Services::frames(), 0, 255, Services::msToFrames(iFadeTime), Util::TWEEN_STOP);
-        fadeOut.setValue(Services::frames(), 255, 0, Services::msToFrames(iFadeTime), Util::TWEEN_STOP);
+        fadeIn.setValue(Video::frames(), 0, 255, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
+        fadeOut.setValue(Video::frames(), 255, 0, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
         reload();
         state = APP_STATE_RUN;
         return 0;
@@ -59,26 +59,26 @@ namespace Apps
         switch (tmssAnimStep)
         {
         case TMSS_FadeIn:
-            if(!fadeIn.isDone(Services::frames()) && !fadeIn.isRunning())
+            if(!fadeIn.isDone(Video::frames()) && !fadeIn.isRunning())
                 fadeIn.go();
-            alpha = fadeIn.getValue(Services::frames());
-            if (fadeIn.isDone(Services::frames()))
+            alpha = fadeIn.getValue(Video::frames());
+            if (fadeIn.isDone(Video::frames()))
             {
                 tmssAnimStep = TMSS_Delay;
-                timer = Services::millis();
+                timer = System::millis();
             }
             break;
         case TMSS_FadeOut:
-            if(!fadeOut.isDone(Services::frames()) && !fadeOut.isRunning())
+            if(!fadeOut.isDone(Video::frames()) && !fadeOut.isRunning())
                 fadeOut.go();
-            alpha = fadeOut.getValue(Services::frames());
-            if (fadeOut.isDone(Services::frames()))
+            alpha = fadeOut.getValue(Video::frames());
+            if (fadeOut.isDone(Video::frames()))
             {
                 tmssAnimStep = TMSS_Exit;
             }
             break;
         case TMSS_Delay:
-            if ((Services::millis() - timer) >= iTimeToShow)
+            if ((System::millis() - timer) >= iTimeToShow)
             {
                 tmssAnimStep = TMSS_FadeOut;
             }

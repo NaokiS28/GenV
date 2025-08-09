@@ -16,6 +16,7 @@
  */
 
 #include "video.hpp"
+#include "common/services/services.hpp"
 
 namespace Video
 {
@@ -111,4 +112,25 @@ namespace Video
 
         return result;
     }
+
+    size_t msToFrames(size_t millis)
+    {
+        size_t framerate = Services::getVideo()->getRefreshRate();
+
+        if (millis < 17)
+            millis = 17;
+        if (framerate < 20 || framerate > 480)
+            framerate = 60;
+
+        size_t msPerFrame = (1000 / framerate);
+        return (millis / msPerFrame);
+    }
+
+    size_t frames(){
+        return Services::getVideo()->getFrameCount();
+    }
+
+    uint16_t getHorizontalRes(){ return Services::getVideo()->getHorizontalRes(); }
+    uint16_t getVerticalRes(){ return Services::getVideo()->getVerticalRes(); }
+
 }

@@ -18,6 +18,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "iface_storage.hpp"
 #include "common/util/misc.hpp"
 
 /*
@@ -195,38 +196,4 @@ namespace Files
     // Returns a default 0 if function fails to process the path.
     uint8_t getProviderSubIndex(const char *path, int len);
 
-    struct IStorageDevice
-    {
-
-    };
-
-    // Forward declaration
-    class FileObject;
-
-    class IStorage
-    {
-    public:
-        IStorage() = default;
-        virtual ~IStorage() {}
-
-        virtual bool init() = 0;
-        virtual bool reset() = 0;
-        virtual void shutdown() = 0;
-
-        virtual int openFile(const char *filePath, bool lock, Files::FileObject *fObj) { return 0; }
-        virtual int closeFile(Files::FileObject *fObj) { return 0; }
-        virtual int writeFile(Files::FileObject *fObj) { return 0; }
-        virtual int renameFile(const char* fileName, Files::FileObject *fObj) { return 0; }
-        virtual int newFile(const char *filePath, const char *filename, Files::FileObject *fObj) { return 0; }
-        virtual int deleteFile(Files::FileObject *fObj) { return 0; }
-        virtual int readFile(size_t offset, size_t length) { return 0; }
-
-        // Gets a list of drives present in the system and returns the total count.
-        virtual uint8_t getDriveList(IStorageDevice *list) = 0;
-        virtual const char *getWorkingDirectory() = 0;
-
-    private:
-    };
-
-    class NullStorage;
 }

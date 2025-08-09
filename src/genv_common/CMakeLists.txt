@@ -39,13 +39,20 @@ add_library(genv_common STATIC
 	common/util/misc.cpp
 	common/util/text.cpp
 	common/util/tween.cpp
+	common/services/genv_sys.cpp
+	common/services/adminkey.cpp
 	common/services/services.cpp
-	common/services/storage.cpp
+	common/services/storage/storage.cpp
+	common/services/storage/nullstorage.cpp
 	common/services/video/video.cpp
+	common/services/video/nullvideo.cpp
+	common/services/audio/nullaudio.cpp
+	common/services/io/nullinput.cpp
 	common/services/appmgr.cpp
-	common/services/sys/timer.cpp
-	common/services/arcade/arcade.cpp
-	common/services/arcade/nvram.cpp
+	common/services/system/timer.cpp
+	common/services/system/system.cpp
+	common/services/system/arcade/arcade.cpp
+	common/services/system/arcade/nvram.cpp
 )
 
 add_library(genv_app_core STATIC
@@ -57,7 +64,7 @@ add_library(genv_app_core STATIC
 	app/builtin/arcade/testmode.cpp	
 )
 
-target_link_libraries(genv_common PUBLIC genv_app_core)
+target_link_libraries(genv_common PUBLIC genv_app_core genv_hw_common)
 target_include_directories(genv_common PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw

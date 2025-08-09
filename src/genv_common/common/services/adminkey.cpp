@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * hardware.hpp - Created on 24-04-2025
+ * adminkey.cpp - Created on 09-08-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,12 +15,8 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// This file is used to include all hardware drives specific to the given platform.
-#pragma once
+#include "adminkey.hpp"
 
-#include "common/services/system/iface_system.hpp"
-
-namespace System
-{
-    ISystem *makeNewSystem();
+AdminClass_Key::AdminClass_Key(){
+    // Do nothing
 }

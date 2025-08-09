@@ -107,6 +107,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Generic")
 endif()
 
 add_subdirectory(src/genv_common)
+add_subdirectory(src/genv_hw)
 add_subdirectory(src/genv_hw/${GENV_PLATFORM})
 target_link_libraries(genv_common PRIVATE genv_hw_${GENV_PLATFORM})
 

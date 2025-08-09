@@ -49,7 +49,8 @@ namespace System::PSX::GPU
 		defaultTexture = new PSXDefaultTexture;
 	}
 
-	PSXGPU::~PSXGPU(){
+	PSXGPU::~PSXGPU()
+	{
 	}
 
 	void PSXGPU::directWrite(uint32_t cmd)
@@ -64,8 +65,13 @@ namespace System::PSX::GPU
 
 	bool PSXGPU::init()
 	{
-		gpuMode = static_cast<GP1VideoMode>(GPU_GP1 & GP1_STAT_FB_MODE_BITMASK);
 		GPU_GP1 = gp1_resetGPU();
+		GPU_GP1 = gp1_resetFIFO();
+
+		TIMER_CTRL(0) = TIMER_CTRL_EXT_CLOCK;
+		TIMER_CTRL(1) = TIMER_CTRL_EXT_CLOCK;
+
+		gpuMode = static_cast<GP1VideoMode>(GPU_GP1 & GP1_STAT_FB_MODE_BITMASK);
 		setResolution(320, 240);
 
 		GP0RDY(4);
@@ -306,7 +312,8 @@ namespace System::PSX::GPU
 		{
 			if (ptObj->loadTextureFile(filePath) == Files::FO_OKAY)
 				return ptObj;
-			else{
+			else
+			{
 				delete ptObj;
 				ptObj = nullptr;
 			}

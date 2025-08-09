@@ -22,7 +22,7 @@
 
 #include "app_errorcodes.hpp"
 
-#include "common/services/arcade/arcade.hpp"
+#include "common/services/system/system.hpp"
 #include "common/services/video/video.hpp"
 #include "common/objects/sound.hpp"
 

@@ -22,7 +22,7 @@
 #include <stdint.h>
 
 #include "object.hpp"
-#include "common/services/storage.hpp"
+#include "common/services/storage/storage.hpp"
 
 class DataObject : public ObjectBase
 {

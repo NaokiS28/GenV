@@ -151,7 +151,7 @@ namespace Sprites
 
     void TileObject::fillScreen(int x, int y)
     {
-        fillArea(x, y, Services::getHorizontalRes(), Services::getVerticalRes());
+        fillArea(x, y, Video::getHorizontalRes(), Video::getVerticalRes());
     }
 
     void TileObject::fillArea(int x, int y, int w, int h)

@@ -15,11 +15,12 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-# GenV shared core headers
-add_library(game_code STATIC
-	example.cpp
+add_library(genv_hw_common STATIC
+	hardware.cpp
 )
 
-target_include_directories(game_code PUBLIC
-    ${CMAKE_SOURCE_DIR}/src/example
+target_link_libraries(genv_hw_common PRIVATE genv_hw_${GENV_PLATFORM})
+target_include_directories(genv_hw_common PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/genv_common
+    ${CMAKE_SOURCE_DIR}/src/genv_hw
 )

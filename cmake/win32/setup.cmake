@@ -46,6 +46,7 @@ target_compile_options(
     >
 	-g
 		-DGENV_WIN32
+		-DGENV_COMPUTER
 	$<IF:$<CONFIG:Debug>,
 		# These options will only be added if CMAKE_BUILD_TYPE is set to Debug.
 		-Og

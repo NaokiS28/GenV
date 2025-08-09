@@ -20,7 +20,7 @@
 #include "common/util/templates.hpp"
 #include "common/services/services.hpp"
 
-#include "common/services/arcade/errorcodes.hpp"
+#include "common/services/system/arcade/errorcodes.hpp"
 
 using namespace Apps;
 
@@ -40,16 +40,16 @@ int DefaultErrorScreen::init()
         gpu->getVerticalRes() / 2);
 
     bgAlpha.setValue(
-        Services::frames(),
+        Video::frames(),
         0,
         util::percentOf(80, UINT8_MAX),
-        Services::msToFrames(bgFadeTime));
+        Video::msToFrames(bgFadeTime));
     jumpOut.setValue(0);
     jumpIn.setValue(
-        Services::frames(),
+        Video::frames(),
         Services::getVideo()->getVerticalRes(),
         0,
-        Services::msToFrames(toastAnimTime));
+        Video::msToFrames(toastAnimTime));
     playSound = true;
     animState = INTRO_RUN;
     errorSound = new WaveFile(eMsgSoundFile);
@@ -61,7 +61,7 @@ int DefaultErrorScreen::init()
     ArcadeFunc(
         if (msg->style == EM_STYLE_CRITICAL_ERROR)
             Genv_Arcade->getNVRAM()
-                .addErrorCode(GENV_ERR_CRITICAL_APP_ERROR, Services::getTime(), msg->errorCode););
+                .addErrorCode(GENV_ERR_CRITICAL_APP_ERROR, System::getTime(), msg->errorCode););
                 
     return 0;
 }
@@ -74,13 +74,13 @@ void DefaultErrorScreen::update()
     case INTRO_INIT:
         break;
     case INTRO_RUN:
-        if (jumpIn.isDone(Services::frames()))
+        if (jumpIn.isDone(Video::frames()))
         {
             animState = STOP;
         }
         break;
     case OUTRO_RUN:
-        if (jumpOut.isDone(Services::frames()))
+        if (jumpOut.isDone(Video::frames()))
             animState = STOP;
         break;
     default:
@@ -90,22 +90,22 @@ void DefaultErrorScreen::update()
     // Border colour flash
     if (msg && msg->style != EM_STYLE_INFO)
     {
-        if (colorIntensity.isDone(Services::frames()))
+        if (colorIntensity.isDone(Video::frames()))
         {
             if (colorIntensity.getTargetValue() != UINT8_MAX)
             {
                 colorIntensity.setValue(
-                    Services::frames(),
+                    Video::frames(),
                     UINT8_MAX,
-                    Services::msToFrames(bgFadeTime));
+                    Video::msToFrames(bgFadeTime));
                 playSound = true;
             }
             else
             {
                 colorIntensity.setValue(
-                    Services::frames(),
+                    Video::frames(),
                     150,
-                    Services::msToFrames(bgFadeTime));
+                    Video::msToFrames(bgFadeTime));
             }
         }
     }
@@ -147,7 +147,7 @@ void DefaultErrorScreen::render()
     }
 
     c2 = c1;
-    c1.a = colorIntensity.getValue(Services::frames());
+    c1.a = colorIntensity.getValue(Video::frames());
     Video::premultiply(c1);
 
     // Set yOffset for jumpin or jump out animations
@@ -155,10 +155,10 @@ void DefaultErrorScreen::render()
     switch (animState)
     {
     case INTRO_RUN:
-        yOffset += jumpIn.getValue(Services::frames());
+        yOffset += jumpIn.getValue(Video::frames());
         break;
     case OUTRO_RUN:
-        yOffset += jumpOut.getValue(Services::frames());
+        yOffset += jumpOut.getValue(Video::frames());
         break;
     default:
         break;
@@ -169,7 +169,7 @@ void DefaultErrorScreen::render()
         0, 0,                    // X/Y
         gpu->getHorizontalRes(), // Width
         gpu->getVerticalRes(),   // Height
-        Colors::Alpha(Colors::Black, bgAlpha.getValue(Services::frames())));
+        Colors::Alpha(Colors::Black, bgAlpha.getValue(Video::frames())));
     gpu->drawRect(area.x, yOffset, area.w, area.h, c1);
     gpu->drawRect(
         area.x + 5, yOffset + 5,

@@ -26,32 +26,20 @@ Video::IVideo *Services::s_video = nullptr;
 Input::IInput *Services::s_input = nullptr;
 Files::IStorage *Services::s_storage = nullptr;
 System::ISystem *Services::s_system = nullptr;
+Apps::AppManager *Services::s_app = nullptr;
 
-bool Services::startup()
+void Services::setVideo(Video::IVideo *video)
 {
-    // Pointer for system and reference for app manager. Again, this seems... not right.
-    // Works... but not right. Context: This stuff was moved into here but was in main.
+    if (!video)
+        return;
 
-    s_audio = new Audio::NullAudio();
-    s_input = new Input::NullInput();
-    s_storage = new Files::NullStorage();
-
-    s_system = new System::SYSTEM_CLASS(); // Hardware specific, see hw/hardware.hpp
-    if (s_system == nullptr || !s_system->init())
-    { // Always init system manager first.
-        LOG_APP("System manager failed to init.");
-        return false;
-    }
-
-    Apps::AppManager *apps = Services::getAppMgrInstance();
-    if (apps->init())
+    if (s_video)
     {
-        LOG_APP("App manager failed to init.");
-        shutdown();
-        return false;
+        s_video->shutdown();
+        delete s_video;
     }
 
-    return true;
+    s_video = video;
 }
 
 void Services::setAudio(Audio::IAudio *audio)
@@ -96,157 +84,56 @@ void Services::setStorage(Files::IStorage *storage)
     s_storage = storage;
 }
 
-void Services::shutdown()
+void Services::destroySystem()
 {
-    // Is it weird to force the system driver to start up the services but we shut them down?
-    // I feel its weird
-    Services::getAppMgrInstance()->shutdown();
-
-    if (Services::s_audio)
-    {
-        Services::s_audio->shutdown();
-        delete s_audio;
-    }
-    if (Services::s_video)
-    {
-        Services::s_video->shutdown();
-        delete s_video;
-    }
-    if (Services::s_input)
-    {
-        Services::s_input->shutdown();
-        delete s_input;
-    }
-    if (Services::s_system)
-    {
-        Services::s_system->shutdown();
-        delete s_system;
-    }
+    if (!s_system)
+        return;
+    s_system->shutdown();
+    delete s_system;
+    s_system = nullptr;
 }
 
-size_t Services::millis()
+void Services::destroyVideo()
 {
-    System::ISystem *sys = Services::getSystem();
-    if (sys != nullptr)
-        return sys->millis();
-    return 0;
+    if (!s_video)
+        return;
+    s_video->shutdown();
+    delete s_video;
+    s_video = nullptr;
 }
 
-size_t Services::random(size_t min, size_t max)
+void Services::destroyAudio()
 {
-    System::ISystem *sys = Services::getSystem();
-    if (sys != nullptr)
-        return sys->random(min, max);
-    return 0;
+    if (!s_audio)
+        return;
+    s_audio->shutdown();
+    delete s_audio;
+    s_audio = nullptr;
 }
 
-size_t Services::frames()
+void Services::destroyInput()
 {
-    Video::IVideo *gpu = Services::getVideo();
-    if (gpu != nullptr)
-        return gpu->getFrameCount();
-    return 0;
+    if (!s_input)
+        return;
+    s_input->shutdown();
+    delete s_input;
+    s_input = nullptr;
 }
 
-uint16_t Services::getHorizontalRes()
+void Services::destroyStorage()
 {
-    Video::IVideo *gpu = Services::getVideo();
-    if (gpu != nullptr)
-        return gpu->getHorizontalRes();
-    return 0;
+    if (!s_storage)
+        return;
+    s_storage->shutdown();
+    delete s_storage;
+    s_storage = nullptr;
 }
 
-uint16_t Services::getVerticalRes()
+void Services::destroyAppManager()
 {
-    Video::IVideo *gpu = Services::getVideo();
-    if (gpu != nullptr)
-        return gpu->getVerticalRes();
-    return 0;
-}
-
-uint16_t Services::getRefreshRate()
-{
-    Video::IVideo *gpu = Services::getVideo();
-    if (gpu != nullptr)
-        return gpu->getRefreshRate();
-    return 0;
-}
-
-
-size_t Services::msToFrames(size_t millis)
-{
-    Video::IVideo *gpu = Services::getVideo();
-    size_t framerate = gpu->getRefreshRate();
-
-    if (millis < 17)
-        millis = 17;
-    if (framerate < 20 || framerate > 480)
-        framerate = 60;
-
-    size_t msPerFrame = (1000 / framerate);
-    return (millis / msPerFrame);
-}
-
-void Services::tickWatchdog()
-{
-    ArcadeFunc(
-        Genv_Arcade->tickWatchdog();
-    );
-}
-
-void Services::testWatchdog()
-{
-    ArcadeFunc(
-        Genv_Arcade->disableWatchdogTicking();
-    );
-}
-
-uint32_t Services::getTime(){
-    // TODO: Get RTC time and format it
-    return 0;
-}
-
-namespace System {
-    
-    IArcadeSystem *GetArcadeInterface(){
-        System::ISystem *Genv_Sys = Services::getSystem();
-        return (Genv_Sys && Genv_Sys->getSysInfo()->type == System::SYS_Arcade)
-                   ? reinterpret_cast<IArcadeSystem *>(Genv_Sys)
-                   : nullptr;
-    };
-}
-
-namespace Audio
-{
-    NullAudio::NullAudio() {}
-    NullAudio::~NullAudio() {}
-    bool NullAudio::init() { return true; }
-    bool NullAudio::reset() { return true; }
-    void NullAudio::shutdown() { return; }
-    bool NullAudio::play(Audio::SoundObject *sObj) { return false; }
-    bool NullAudio::stop(Audio::SoundObject *sObj) { return false; }
-    bool NullAudio::pause(Audio::SoundObject *sObj) { return false; }
-    bool NullAudio::isPlaying(Audio::SoundObject *sObj) { return false; }
-
-    int NullAudio::uploadSample(Audio::SoundObject *sObj) { return Audio::IA_ERROR_INVALIDFUNC; }
-}
-
-namespace Input
-{
-    NullInput::NullInput() {}
-    NullInput::~NullInput() {}
-    bool NullInput::init() { return true; }
-    bool NullInput::reset() { return true; }
-    void NullInput::shutdown() { return; }
-}
-
-namespace Files
-{
-    NullStorage::NullStorage() {}
-    NullStorage::~NullStorage() {}
-    bool NullStorage::init() { return true; }
-    bool NullStorage::reset() { return true; }
-    void NullStorage::shutdown() { return; }
-    uint8_t NullStorage::getDriveList(IStorageDevice *list) { return 0; }
-    const char *NullStorage::getWorkingDirectory() { return nullptr; }
+    if (!s_app)
+        return;
+    s_app->shutdown();
+    delete s_app;
+    s_app = nullptr;
 }

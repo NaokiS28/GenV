@@ -17,61 +17,15 @@
 
 #pragma once
 
-#include "video/video.hpp"
-#include "audio.hpp"
-#include "input.hpp"
+#include "adminkey.hpp"
+#include "genv_sys.hpp"
 #include "appmgr.hpp"
-#include "storage.hpp"
-#include "system.hpp"
-#include "arcade/arcade.hpp"
 
-namespace Audio
-{
-    class NullAudio : public IAudio
-    {
-    public:
-        NullAudio();
-        ~NullAudio();
-        bool init() override;
-        bool reset() override;
-        void shutdown() override;
-        bool play(Audio::SoundObject *sObj) override;
-        bool stop(Audio::SoundObject *sObj) override;
-        bool pause(Audio::SoundObject *sObj) override;
-        bool isPlaying(Audio::SoundObject *sObj) override;
-        int uploadSample(Audio::SoundObject *sObj) override;
-    };
-}
-
-namespace Input
-{
-    class NullInput : public IInput
-    {
-    public:
-        NullInput();
-        ~NullInput();
-        bool init() override;
-        bool reset() override;
-        void shutdown() override;
-    };
-}
-
-namespace Files
-{
-    class NullStorage : public IStorage
-    {
-    public:
-        NullStorage();
-        ~NullStorage();
-        bool init() override;
-        bool reset() override;
-        void shutdown() override;
-        uint8_t getDriveList(IStorageDevice *list) override;
-        const char *getWorkingDirectory() override;
-    };
-}
-
-// Not sure I like this setup but it does *work*
+#include "video/iface_video.hpp"
+#include "audio/iface_audio.hpp"
+#include "io/iface_input.hpp"
+#include "storage/iface_storage.hpp"
+#include "system/iface_system.hpp"
 
 class Services
 {
@@ -82,97 +36,42 @@ public:
     static Input::IInput *getInput(void) { return s_input; }
     static Files::IStorage *getStorage(void) { return s_storage; }
     static System::ISystem *getSystem(void) { return s_system; }
+    static Apps::AppManager *getAppMgr(void) { return s_app; }
 
-    // AppManager is a static subsystem that orchestrates "apps" running
-    static Apps::AppManager *getAppMgrInstance()
-    {
-        static Apps::AppManager *instance = new Apps::AppManager();
-        return instance;
-    }
+    static inline void setSystem(AdminClass_Key key, System::ISystem *sys) { setSystem(sys); }
+    static inline void setVideo(AdminClass_Key key, Video::IVideo *video) { setVideo(video); }
+    static inline void setAudio(AdminClass_Key key, Audio::IAudio *audio) { setAudio(audio); }
+    static inline void setInput(AdminClass_Key key, Input::IInput *input) { setInput(input); }
+    static inline void setStorage(AdminClass_Key key, Files::IStorage *storage) { setStorage(storage); }
+    static inline void setAppManager(AdminClass_Key key, Apps::AppManager *app) { setAppManager(app); }
 
-    // Setters
+    static inline void destroySystem(AdminClass_Key key) { destroySystem(); }
+    static inline void destroyVideo(AdminClass_Key key) { destroyVideo(); }
+    static inline void destroyAudio(AdminClass_Key key) { destroyAudio(); }
+    static inline void destroyInput(AdminClass_Key key) { destroyInput(); }
+    static inline void destroyStorage(AdminClass_Key key) { destroyStorage(); }
+    static inline void destroyAppManager(AdminClass_Key key) { destroyAppManager(); }
+
+private:
     static void setSystem(System::ISystem *sys) { s_system = sys; }
-    static void setVideo(Video::IVideo *video) { s_video = video; }
+    static void setVideo(Video::IVideo *video);
     static void setAudio(Audio::IAudio *audio);
     static void setInput(Input::IInput *input);
     static void setStorage(Files::IStorage *storage);
+    static void setAppManager(Apps::AppManager *app) { s_app = app; }
 
-    static bool startup(void);
-    static void shutdown(void);
+    static void destroySystem();
+    static void destroyVideo();
+    static void destroyAudio();
+    static void destroyInput();
+    static void destroyStorage();
+    static void destroyAppManager();
 
-    // Forwarder function to tick the watchdog chip on systems that use one
-    static void tickWatchdog(void);
-    // Forwarder function to test the watchdog chip.
-    // ⚠️ WARNING ⚠️ THIS WILL FORCIBLY REBOOT THE SYSTEM IF THE WATCHDOG IS WORKING
-    static void testWatchdog(void);
-    // Forwarder function to system millis with protection
-    static size_t millis(void);
-    // Forwarder function to gpu frame counter with protection
-    static size_t frames(void);
-    // Returns how many frames will pass in a given timeperiod
-    static inline size_t secondsToFrames(size_t seconds)
-    {
-        return msToFrames(seconds * 1000);
-    }
-    // Returns how many frames will pass in a given timeperiod
-    static size_t msToFrames(size_t millis);
-    // Forwarder function to system random function with protection
-    static size_t random(size_t min, size_t max);
-    // Forward function to gpu getHorizontalRes function with protection
-    static uint16_t getHorizontalRes(void);
-    // Forward function to gpu getVerticalRes function with protection
-    static uint16_t getVerticalRes(void);
-    // Forward function to gpu getRefreshRate function with protection
-    static uint16_t getRefreshRate(void);
-
-    // Gets the current RTC time (or system up-time if RTC not available)
-    static uint32_t getTime();
-
-private:
     // Static pointers to service implementations
     static Audio::IAudio *s_audio;
     static Video::IVideo *s_video;
     static Input::IInput *s_input;
     static Files::IStorage *s_storage;
     static System::ISystem *s_system;
+    static Apps::AppManager *s_app;
 };
-
-namespace System
-{
-    // Forwarder function to system millis with protection
-    inline size_t millis(void) { return Services::millis(); }
-    // Forwarder function to system random function with protection
-    inline size_t random(size_t min, size_t max) { return Services::random(min, max); }
-
-    // Gets the current system with arcade extenstions if the system is an arcade system.
-    // Returns nullptr if it is not an arcade system.
-    IArcadeSystem *GetArcadeInterface();
-}
-
-namespace Video
-{
-    // Forwarder function to gpu frame counter with protection
-    inline size_t frames(void) { return Services::frames(); }
-    // Returns how many frames will pass in a given timeperiod
-    inline size_t msToFrames(size_t millis) { return Services::msToFrames(millis); }
-    // Forward function to gpu getHorizontalRes function with protection
-    inline uint16_t getHorizontalRes(void) { return Services::getHorizontalRes(); }
-    // Forward function to gpu getVerticalRes function with protection
-    inline uint16_t getVerticalRes(void) { return Services::getVerticalRes(); }
-    // Forward function to gpu getVerticalRes function with protection
-    inline uint16_t getRefreshRate(void) { return Services::getRefreshRate(); }
-}
-
-// TODO: Is this macro of any real benefit now? GetArcadeInterface does the important thing.
-// This macro is a short hand to mean that this code should only be run if the system
-// is an arcade system. Otherwise it is skipped. Use Genv_Arcade to access arcade
-// system specific functions. Uses static_cast to avoid RTTI
-#define ArcadeFunc(action)                                         \
-    do                                                             \
-    {                                                              \
-        System::IArcadeSystem *Genv_Arcade = System::GetArcadeInterface(); \
-        if (Genv_Arcade)                                           \
-        {                                                          \
-            action                                                 \
-        }                                                          \
-    } while (0)

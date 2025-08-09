@@ -22,7 +22,8 @@
 #include <stdbool.h>
 
 #include "common/services/services.hpp"
-#include "common/services/sys/timer.hpp"
+#include "common/services/system/iface_system.hpp"
+#include "common/services/system/timer.hpp"
 
 // Win32
 #include "video/video.hpp"
@@ -69,13 +70,6 @@ namespace System
         int initIO() { return 0; }
         int initFiles();
 
-        inline bool linkServices()
-        {
-            assert(this != nullptr);
-            Services::setSystem(this);
-            return true;
-        }
-
         SystemInfo siWindows;
 
     public:
@@ -98,6 +92,7 @@ namespace System
         }
 
         size_t millis();
+        size_t getTime(){ return 0; }
 
         inline bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq)
         {

@@ -19,7 +19,7 @@
 
 #include <windows.h>
 #include <vector>
-#include "common/services/storage.hpp"
+#include "common/services/storage/storage.hpp"
 #include "common/objects/file.hpp"
 #include "../window-mgr.hpp"
 

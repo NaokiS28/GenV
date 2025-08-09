@@ -25,7 +25,7 @@
 #include "app/builtin/textload/textload.hpp"
 #include "app/builtin/arcade/testmode.hpp"
 
-#include "common/services/arcade/arcade.hpp"
+#include "system/arcade/arcade.hpp"
 
 namespace Apps
 {

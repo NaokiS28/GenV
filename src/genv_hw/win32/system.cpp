@@ -31,8 +31,6 @@ namespace System
         if (!initWindowClass())
             return false;
         SetProcessDPIAware();
-        // You must set the system service before initing further drivers
-        linkServices();
 
         WindowObject *wObj = winManager.NewWindow(hInst);
         if (!wObj)
@@ -96,7 +94,7 @@ namespace System
         if (!vDriver || !vDriver->init())
             return -2;
 
-        Services::setVideo(vDriver);
+        Services::setVideo(adminKey, vDriver);
         video()->setResolution(gpuWnd->size.w, gpuWnd->size.h);
         return 0;
     }
@@ -110,7 +108,7 @@ namespace System
         if (!aDriver || !aDriver->init())
             return -2;
 
-        Services::setAudio(aDriver);
+        Services::setVideo(adminKey, aDriver);
         return 0;
     }
 
@@ -120,7 +118,7 @@ namespace System
         if(!storage.init())
             return -2;
 
-        Services::setStorage(&storage);
+        Services::setVideo(adminKey, &storage);
         return 0;
     }
 

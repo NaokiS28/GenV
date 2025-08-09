@@ -16,17 +16,25 @@
  */
 
 #include "system.hpp"
+#include "registers.h"
 
+#include "video/video.hpp"
+#include "system/sys.h"
+
+#include "common/services/services.hpp"
 #include "common/util/log.hpp"
 #include "common/util/misc.hpp"
-#include "video/video.hpp"
+
 
 namespace System::PSX
 {
     bool PSXSystem::init()
-    {
-        // You must set the system service before initing further drivers
-        linkServices();
+    {        
+        IRQ_MASK = 0;
+        IRQ_STAT = 0;
+        DMA_DPCR = 0;
+        DMA_DICR = DMA_DICR_CH_STAT_BITMASK;
+        cop0_setSR(COP0_SR_Im2 | COP0_SR_CU0 | COP0_SR_CU2);
 
         if (initVideo() != 0)
         {
@@ -45,6 +53,8 @@ namespace System::PSX
             return 1;
         }
 
+        enableInterrupts();
+
         return true;
     }
 
@@ -59,10 +69,11 @@ namespace System::PSX
 
     int PSXSystem::initVideo()
     {
-        IVideo *vDriver = new GPU::PSXGPU;
+        Video::IVideo *vDriver = new GPU::PSXGPU;
         if (!vDriver || vDriver->init())
             return -1;
-        Services::setVideo(vDriver);
+        Services::setVideo(adminKey, vDriver);
+        IRQ_MASK = 1 << IRQ_VSYNC;
         return 0;
     }
 
@@ -72,7 +83,7 @@ namespace System::PSX
         // if (!aDriver || !aDriver->init())
         return -2;
 
-        // Services::setAudio(aDriver);
+        // Services::setVideo(adminKey, aDriver);
         // return 0;
     }
 
@@ -80,7 +91,7 @@ namespace System::PSX
     {
         return -2;
 
-        // Services::setStorage(&storage);
+        // Services::setVideo(adminKey, &storage);
         // return 0;
     }
 

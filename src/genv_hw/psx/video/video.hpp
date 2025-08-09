@@ -19,7 +19,8 @@
 
 #include <stdint.h>
 
-#include "common/services/video/video.hpp"
+#include "common/services/video/iface_video.hpp"
+#include "common/util/log.hpp"
 
 #include "texmgr.hpp"
 #include "gpudef.hpp"

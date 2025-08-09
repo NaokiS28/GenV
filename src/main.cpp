@@ -19,26 +19,19 @@
 #include <string.h>
 
 #include "common/services/services.hpp"
+#include "common/services/genv_sys.hpp"
 #include "common/util/log.hpp"
+
+GenvSystemClass genv;
 
 int main(int argc, char *argv[])
 {
-   LOG_APP("Starting GenV...");
 
-   if (!Services::startup())
-   {
-      LOG_APP("GenV failed to init.");
-#ifndef GENV_WIN32
-      while (1)
-      {
-      }
-#endif
-      return -1;
-   }
+   genv.startup();
 
    System::ISystem *system = Services::getSystem();
-   Video::IVideo *video = Services::getVideo();            // It is assumed the System class will have init'd the I/O driver.
-   Apps::AppManager *apps = Services::getAppMgrInstance(); // AppManager is a singleton and is not changed accross platforms.
+   Video::IVideo *video = Services::getVideo();   // It is assumed the System class will have init'd the I/O driver.
+   Apps::AppManager *apps = Services::getAppMgr();
 
    uint8_t sm_state = System::SM_NORMAL;
    while (sm_state != System::SM_QUIT)
@@ -54,11 +47,11 @@ int main(int argc, char *argv[])
 
       if (video->beginRender())
       {
-         //apps->render();
+         apps->render();
          video->endRender();
       }
    }
 
-   Services::shutdown(); // Shuts down the driver services and deletes them
+   genv.shutdown(); // Shuts down the driver services and deletes them
    return 0;
 }

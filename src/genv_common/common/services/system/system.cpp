@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * hardware.hpp - Created on 24-04-2025
+ * system.cpp - Created on 09-08-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,12 +15,20 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// This file is used to include all hardware drives specific to the given platform.
-#pragma once
-
-#include "common/services/system/iface_system.hpp"
+#include "iface_system.hpp"
+#include "../services.hpp"
 
 namespace System
 {
-    ISystem *makeNewSystem();
+    IArcadeSystem *GetArcadeInterface()
+    {
+        System::ISystem *Genv_Sys = Services::getSystem();
+        return (Genv_Sys && Genv_Sys->getSysInfo()->type == System::SYS_Arcade)
+                   ? reinterpret_cast<IArcadeSystem *>(Genv_Sys)
+                   : nullptr;
+    };
+
+    size_t millis(){ return Services::getSystem()->millis(); }
+    size_t random(size_t min, size_t max){ return Services::getSystem()->random(min, max); }
+    size_t getTime(){ return Services::getSystem()->getTime(); }
 }
