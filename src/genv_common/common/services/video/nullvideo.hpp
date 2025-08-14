@@ -24,7 +24,7 @@
 #include "common/objects/texture.hpp"
 #include "common/objects/sprite.hpp"
 #include "common/objects/tile.hpp"
-#include "common/util/log.hpp"
+#include "common/logger/log.hpp"
 
 namespace Video
 {

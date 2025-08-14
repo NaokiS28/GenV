@@ -18,7 +18,7 @@
 #include "../system.hpp"
 #include "../video/video.hpp"
 #include "registers573.hpp"
-#include "common/services/arcade/arcade.hpp"
+#include "common/services/system/arcade/arcade.hpp"
 
 namespace System
 {

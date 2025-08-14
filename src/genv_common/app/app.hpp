@@ -21,19 +21,25 @@
 #include <stdbool.h>
 
 #include "app_errorcodes.hpp"
+#include "common/util/hash.hpp"
 
-#include "common/services/system/system.hpp"
+#include "common/services/system/iface_system.hpp"
+#include "common/services/system/arcade/iface_arcade.hpp"
 #include "common/services/video/video.hpp"
 #include "common/objects/sound.hpp"
 
 namespace Apps
 {
-    using namespace Video;
 
     // Forward declaration, in appmgr.hpp
     class AppManager;
 
+    // Forward declaration, in iapp_host.hpp
+    struct IAppHost;
+
     static constexpr const char *defaultLoadString = "Loading...";
+
+    using AppID = util::Hash;
 
     enum AppExecState : uint8_t
     {
@@ -45,6 +51,16 @@ namespace Apps
         APP_STATE_ERROR,       // App encountered a severe error and has to stop
         APP_STATE_SHUTDOWN,    // App has been requested to shutdown
         APP_STATE_QUIT         // App has finished and is ready to be deleted from memory
+    };
+
+    enum AppType : uint8_t
+    {
+        APP_TYPE_UNSET,
+        APP_TYPE_NORMAL_APP,
+        APP_TYPE_ARCADE_TEST_APP,
+        APP_TYPE_INFO_SCREEN,
+        APP_TYPE_ERROR_SCREEN,
+        APP_TYPE_LOADING_SCREEN
     };
 
     struct AppVersion
@@ -62,6 +78,19 @@ namespace Apps
         }
     };
 
+    struct AppInfo
+    {
+        const char *name;
+        const char *maker;
+        AppID id;
+        AppVersion version;
+    };
+
+    constexpr AppInfo makeAppInfo(const char *name, const char *maker, AppVersion ver)
+    {
+        return AppInfo{name, maker, (util::hash(name, -1, 0) + util::hash(maker, -1, 0)), ver};
+    }
+
     /*
      * Applications using the Application class are programs that are ran by the engine
      * which allows it to be more modular and change functions rather easily. All apps
@@ -74,30 +103,38 @@ namespace Apps
         friend class AppManager;
 
     protected:
-        IVideo *gpu;        // Local pointer to GPU object to use
+        Video::IVideo *gpu; // Local pointer to GPU object to use
         AppExecState state; // Current app working state
+        AppType type;
 
-        virtual void setAppState(AppExecState state) { this->state = state; }
+        IAppHost *m_host = nullptr;
+        void setHost(IAppHost *host) { m_host = host; }
 
     public:
         Application();
-        Application(IVideo *_gpu);
+        Application(Video::IVideo *_gpu);
         virtual ~Application() = default;
 
         inline virtual bool isReady() { return state != APP_STATE_LOAD; }
         inline virtual AppExecState getState() { return state; }
+        inline virtual AppType getAppType() { return type; }
 
-        virtual int version() = 0;      // Return app's version for logging
-        virtual const char *name() = 0; // Return app's name for logging
+        // App information for logging
+        virtual const AppInfo &info() const = 0;
+        const char *name() const { return info().name; }
+        const char *maker() const { return info().maker; }
+        int version() const { return info().version.toInt(); }
+        AppID id() const { return info().id; }
 
         virtual int loadProgress(const char *&str); // State of initial loading progress in percent (str for custom loading text)
 
-        virtual int init() = 0;    // Initialize app
-        virtual void update() = 0; // Update the app's logic
-        virtual void render() = 0; // Request app to draw it's UI
-        virtual void loadApp() { state = APP_STATE_INIT; }  // Call app to load next file/object (app handles any loading list)
-        virtual void shutdown() {} // Request app to begin unloading and finilization
-        virtual void reload() {}   // Request app to restart from the begining (or reload assets)
+        virtual int init(IAppHost *host) = 0;              // Initialize app
+        virtual void update() = 0;                         // Update the app's logic
+        virtual void render() = 0;                         // Request app to draw it's UI
+        virtual void loadApp() { state = APP_STATE_INIT; } // Call app to load next file/object (app handles any loading list)
+        virtual void shutdown() {}                         // Request app to begin unloading and finilization
+        virtual void reload() {}                           // Request app to restart from the begining (or reload assets)
+        virtual void setAppState(AppExecState state) { this->state = state; }
     };
 
     /*
@@ -116,9 +153,9 @@ namespace Apps
     public:
         LoadScreenApp();
 
-        virtual int init();        // Init the loading screen
-        virtual void update();     // Update the loading screens logic
-        virtual void render() = 0; // Request loading screen to render it's UI
+        virtual int init(IAppHost *host); // Init the loading screen
+        virtual void update();            // Update the loading screens logic
+        virtual void render() = 0;        // Request loading screen to render it's UI
         virtual void setAppToLoad(Application *app)
         {
             this->app = app;
@@ -249,8 +286,8 @@ namespace Apps
                 return ErrorMessageStyle::EM_STYLE_INFO;
         }
 
-        virtual int init();    // Init the error screen
-        virtual void update(); // Update the error screens logic
+        virtual int init(IAppHost *host); // Init the error screen
+        virtual void update();            // Update the error screens logic
         virtual void render() = 0;
     };
 
@@ -265,11 +302,14 @@ namespace Apps
 
     protected:
         System::IArcadeSystem *aSystem = nullptr;
+
     public:
         ArcadeTestApp();
 
-        virtual int init();        // Init the loading screen
-        virtual void update();     // Update the loading screens logic
-        virtual void render() = 0; // Request loading screen to render it's UI
+        virtual int init(IAppHost *host); // Init the loading screen
+        virtual void update();            // Update the loading screens logic
+        virtual void render() = 0;        // Request loading screen to render it's UI
     };
+
+    ArcadeTestApp *getArcadeTestApp(Application *app);
 }

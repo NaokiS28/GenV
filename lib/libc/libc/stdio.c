@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * hardware.hpp - Created on 24-04-2025
+ * stdio.c - Created on 11-08-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,13 +15,28 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// This file is used to include all hardware drives specific to the given platform.
-#pragma once
+#include "stdio.h"
+#include <stddef.h>
 
-#include "common/services/system/iface_system.hpp"
+// Forwards characters to the terminal driver
+int genv_tty_init(void);
+int genv_tty_write(char c);
+int genv_tty_write_bytes(const char *data, size_t n);
+int genv_tty_write_str(const char *str);
+int genv_tty_read(void);
+int genv_tty_read_bytes(const char *data, size_t n);
 
-namespace System
+int _puts(const char *str)
 {
-    // System factory
-    ISystem *makeNewSystem();
+    return genv_tty_write_str(str);
+}
+
+void _putchar(char c)
+{
+    genv_tty_write(c);
+}
+
+int _getchar()
+{
+    return genv_tty_read();
 }

@@ -12,25 +12,28 @@
  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
+ *
+ * This code is based on psyqo's malloc implementation, available here:
+ * https://github.com/grumpycoders/pcsx-redux/blob/main/src/mips/psyqo/src/alloc.c
  */
 
 #pragma once
-
-// Include printf() from the third-party library.
-#include "../vendor/printf.h"
-
-#define puts _puts
-#define putchar _putchar
-#define getchar _getchar
+#ifndef PSX_SIO_H
+#define PSX_SIO_H
+#include <stdint.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-int _puts(const char *str);
-void _putchar(char c);
-int _getchar();
+	int sio1_init(int baud);
+	int sio1_read(char *data, size_t number);
+	int sio1_write(const char *data, size_t number);
+	void sio1_flush();
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

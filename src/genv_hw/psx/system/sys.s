@@ -190,11 +190,11 @@ _exceptionHandler:
 .set TIMER2_CTRL,   IO_BASE | 0x124
 .set TIMER2_RELOAD, IO_BASE | 0x128
 
-.section .text.delayMicroseconds, "ax", @progbits
-.global delayMicroseconds
-.type delayMicroseconds, @function
+.section .text.psx_delayMicroseconds, "ax", @progbits
+.global psx_delayMicroseconds
+.type psx_delayMicroseconds, @function
 
-delayMicroseconds:
+psx_delayMicroseconds:
 	# Calculate the approximate number of CPU cycles that need to be burned,
 	# assuming a 33.8688 MHz clock (1 us = 33.8688 = ~33.875 cycles).
 	sll   $a1, $a0, 8 # cycles = ((us * 271) + 4) / 8
@@ -250,10 +250,10 @@ delayMicroseconds:
 	nop
 
 .section .text.delayMicrosecondsBusy, "ax", @progbits
-.global delayMicrosecondsBusy
-.type delayMicrosecondsBusy, @function
+.global psx_delayMicrosecondsBusy
+.type psx_delayMicrosecondsBusy, @function
 
-delayMicrosecondsBusy:
+psx_delayMicrosecondsBusy:
 	# Calculate the approximate number of CPU cycles that need to be burned,
 	# assuming a 33.8688 MHz clock (1 us = 33.8688 = ~33.875 cycles).
 	sll   $a1, $a0, 8 # cycles = ((us * 271) + 4) / 8

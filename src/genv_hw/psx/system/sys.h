@@ -56,7 +56,7 @@ extern "C"
      * were disabled, any callback set using setInterruptHandler() will be invoked
      * immediately.
      */
-    static inline void enableInterrupts(void)
+    static inline void psx_enableInterrupts(void)
     {
         cop0_setSR(cop0_getSR() | COP0_SR_IEc);
     }
@@ -69,7 +69,7 @@ extern "C"
      *
      * @return True if interrupts were previously enabled, false otherwise
      */
-    static inline bool disableInterrupts(void)
+    static inline bool psx_disableInterrupts(void)
     {
         uint32_t sr = cop0_getSR();
 
@@ -87,7 +87,7 @@ extern "C"
      * @param arg Optional argument to entry point
      * @param stack Pointer to last 8 bytes in the stack
      */
-    static inline void initThread(
+    static inline void psx_initThread(
         Thread *thread, ArgFunction func, void *arg, void *stack)
     {
         register uint32_t gp __asm__("gp");
@@ -105,13 +105,13 @@ extern "C"
      * kernel and flushes the instruction cache (but does not enable interrupts).
      * Must be called only once, before *any* other function in this header is used.
      */
-    void installExceptionHandler(void);
+    void psx_installExceptionHandler(void);
 
     /**
      * @brief Restores the BIOS kernel's exception handler. Must be called before
      * returning to the kernel or launching another executable.
      */
-    void uninstallExceptionHandler(void);
+    void psx_uninstallExceptionHandler(void);
 
     /**
      * @brief Disables interrupts and sets the function that will be called whenever
@@ -132,18 +132,18 @@ extern "C"
      * @param func
      * @param arg Optional argument to be passed to handler
      */
-    void setInterruptHandler(ArgFunction func, void *arg);
+    void psx_setInterruptHandler(ArgFunction func, void *arg);
 
     /**
      * @brief Temporarily disables interrupts, then calls the BIOS function to clear
      * the instruction cache.
      */
-    void flushCache(void);
+    void psx_flushCache(void);
 
     /**
      * @brief Jumps to the entry point in the BIOS. This function does not return.
      */
-    void softReset(void);
+    void psx_softReset(void);
 
     /**
      * @brief Blocks for (roughly) the specified number of microseconds. This
@@ -154,7 +154,7 @@ extern "C"
      *
      * @param time
      */
-    void delayMicroseconds(int time);
+    void psx_delayMicroseconds(int time);
 
     /**
      * @brief Blocks for (roughly) the specified number of microseconds. This
@@ -163,7 +163,7 @@ extern "C"
      *
      * @param time
      */
-    void delayMicrosecondsBusy(int time);
+    void psx_delayMicrosecondsBusy(int time);
 
     /**
      * @brief Checks if the specified interrupt was fired but not yet acknowledged;
@@ -180,7 +180,7 @@ extern "C"
      * @param irq
      * @return True if the IRQ was pending and got acknowledged, false otherwise
      */
-    bool acknowledgeInterrupt(IRQChannel irq);
+    bool psx_acknowledgeInterrupt(IRQChannel irq);
 
     /**
      * @brief Waits for the specified interrupt to be fired for up to the specified
@@ -193,7 +193,7 @@ extern "C"
      * @param timeout
      * @return False in case of a timeout, true otherwise
      */
-    bool waitForInterrupt(IRQChannel irq, int timeout);
+    bool psx_waitForInterrupt(IRQChannel irq, int timeout);
 
     /**
      * @brief Waits for the specified DMA channel to finish any ongoing transfer for
@@ -203,7 +203,7 @@ extern "C"
      * @param timeout
      * @return False in case of a timeout, true otherwise
      */
-    bool waitForDMATransfer(DMAChannel dma, int timeout);
+    bool psx_waitForDMATransfer(DMAChannel dma, int timeout);
 
     /**
      * @brief Pauses the thread calling this function and starts/resumes executing
@@ -213,7 +213,7 @@ extern "C"
      *
      * @param thread Pointer to new thread or NULL for main thread
      */
-    void switchThread(Thread *thread);
+    void psx_switchThread(Thread *thread);
 
     /**
      * @brief Pauses the thread calling this function immediately and starts/resumes
@@ -225,9 +225,9 @@ extern "C"
      *
      * @param thread Pointer to new thread or NULL for main thread
      */
-    static inline void switchThreadImmediate(Thread *thread)
+    static inline void psx_switchThreadImmediate(Thread *thread)
     {
-        switchThread(thread);
+        psx_switchThread(thread);
 
         // Execute a syscall to force the switch to happen.
         __asm__ volatile("syscall 0\n" ::: "memory");

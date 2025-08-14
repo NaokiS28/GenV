@@ -24,6 +24,7 @@
 #pragma once
 #include <string.h>
 #include "app/app.hpp"
+#include "app/iapp_host.hpp"
 #include "common/util/rect.h"
 #include "common/util/tween.hpp"
 #include "common/objects/sound.hpp"
@@ -34,8 +35,11 @@ using namespace Apps;
 class DefaultErrorScreen : public ErrorScreenApp
 {
 private:
-    const char *appName = "ErrorScreen(NRC)";
-    AppVersion appVer = AppVersion(0, 0, 1);
+    static constexpr AppInfo appInfo = makeAppInfo(
+        "Default Error Screen (NRC)", // name
+        "NaokiS",                     // maker
+        AppVersion(0, 0, 1)           // version
+    );
     Util::Tween<uint16_t, Util::LinearEasing> colorIntensity;
 
     RectWH area;
@@ -57,7 +61,7 @@ private:
 
 public:
     // Factory method when creating the message inside
-    static DefaultErrorScreen *create(
+    static ErrorScreenApp *create(
         const char *title,
         const char *text,
         const uint32_t errorCode,
@@ -72,20 +76,22 @@ public:
     }
 
     // Factory method when the user already has an ErrorScreenMessage*
-    static DefaultErrorScreen *create(ErrorScreenMessage *msg)
+    static ErrorScreenApp *create(ErrorScreenMessage *msg)
     {
         if (!msg)
             msg = &eMsgUnknownMsg;
         return new DefaultErrorScreen(msg);
     }
 
+    static constexpr const AppInfo &infoStatic() { return appInfo; }
+
     ~DefaultErrorScreen();
 
-    int init();
-    void update();
-    void render();
-    void reload();
-    void shutdown();
+    int init(IAppHost *host) override;
+    void update() override;
+    void render() override;
+    void reload() override;
+    void shutdown() override;
 
     inline ErrorMessageStyle getSeverity()
     {
@@ -95,6 +101,5 @@ public:
             return ErrorMessageStyle::EM_STYLE_INFO;
     }
 
-    const char *name() { return appName; }
-    int version() { return appVer.toInt(); }
+    const AppInfo &info() const override { return appInfo; }
 };

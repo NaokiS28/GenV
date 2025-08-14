@@ -19,6 +19,8 @@
 
 #include "services.hpp"
 #include "system/iface_system.hpp"
+#include "common/logger/log.hpp"
+#include "terminal/terminal.h"
 
 #include "video/nullvideo.hpp"
 #include "audio/nullaudio.hpp"
@@ -26,6 +28,14 @@
 #include "storage/nullstorage.hpp"
 
 #include "hardware.hpp"
+#include "app/appmgr.hpp"
+#include "app/builtin/errorscr/errorscr.hpp"
+
+#ifdef GENV_COMPUTER
+#include <stdexcept>
+#endif
+
+#define GENV_LOG(fmt, ...) LOG("genv", fmt __VA_OPT__(, ) __VA_ARGS__)
 
 void GenvSystemClass::startup()
 {
@@ -36,33 +46,26 @@ void GenvSystemClass::startup()
     Video::IVideo *video = new Video::NullVideo();
     Input::IInput *input = new Input::NullInput();
     Files::IStorage *storage = new Files::NullStorage();
-    Apps::AppManager *app = new Apps::AppManager();
 
-    LOG_APP("Starting GenV...");    
+    genv_tty_init(115200);
+    GENV_LOG("GenV starting up...");
+
     Services::setStorage(adminKey, storage);
     Services::setInput(adminKey, input);
     Services::setAudio(adminKey,audio);
     Services::setVideo(adminKey, video);
     Services::setSystem(adminKey, system);
 
-    if (system == nullptr || !system->init())
+    if (system == nullptr || system->init() != 0)
     { // Always init system manager first.
-        LOG_APP("System manager failed to init.");
-        halt();
-    }
-
-    LOG_APP("Starting application manager...");
-    Services::setAppManager(adminKey, app);
-    if (app == nullptr || !app->init()){
-        LOG_APP("Application manager failed to init.");
+        GENV_LOG("System manager failed to init.");
         halt();
     }
 }
 
 void GenvSystemClass::shutdown()
 {
-    LOG_APP("GenV is shutting down...");
-    Services::destroyAppManager(adminKey);
+    GENV_LOG("GenV is shutting down...");
     Services::destroyStorage(adminKey);
     Services::destroyInput(adminKey);
     Services::destroyAudio(adminKey);
@@ -74,11 +77,11 @@ void GenvSystemClass::halt(int return_code)
 {
     shutdown();
 #ifndef GENV_COMPUTER
-    LOG_APP("GenV has halted.");
+    GENV_LOG("GenV has halted.");
     while (1)
     {
     }
 #else
-    return return_code;
+    throw std::runtime_error("GenV has halted.");
 #endif
 }

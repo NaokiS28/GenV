@@ -18,123 +18,138 @@
 #include "app.hpp"
 #include "common/services/services.hpp"
 
-using namespace Apps;
-
-Application::Application() : gpu(Services::getVideo()),
-                             state(APP_STATE_LOAD)
+namespace Apps
 {
-}
+    Application::Application() : gpu(Services::getVideo()),
+                                 state(APP_STATE_LOAD)
+    {
+        type = APP_TYPE_NORMAL_APP;
+    }
 
-ErrorScreenMessage::ErrorScreenMessage(
-    const char *title,
-    const char *message,
-    const uint32_t errorCode,
-    ErrorMessageStyle style,
-    ErrorMessageIcon icon,
-    ErrorMessageOptions action)
-{
-    this->title = Strings(title, strnlen(title, MAX_EMSG_LENGTH));
-    this->message = Strings(message, strnlen(message, MAX_EMSG_LENGTH));
-    this->style = style;
-    this->action = action;
-}
+    ErrorScreenMessage::ErrorScreenMessage(
+        const char *title,
+        const char *message,
+        const uint32_t errorCode,
+        ErrorMessageStyle style,
+        ErrorMessageIcon icon,
+        ErrorMessageOptions action)
+    {
+        this->title = Strings(title, strnlen(title, MAX_EMSG_LENGTH));
+        this->message = Strings(message, strnlen(message, MAX_EMSG_LENGTH));
+        this->style = style;
+        this->action = action;
+    }
 
-ErrorScreenMessage::ErrorScreenMessage(
-    const char *title,
-    int tLen,
-    const char *message,
-    int mLen,
-    const uint32_t errorCode,
-    ErrorMessageStyle style,
-    ErrorMessageIcon icon,
-    ErrorMessageOptions action)
-{
-    this->title.str = title;
-    this->title.len = tLen;
-    this->message.str = message;
-    this->message.len = mLen;
-    this->style = style;
-    this->icon = icon;
-    this->action = action;
-}
+    ErrorScreenMessage::ErrorScreenMessage(
+        const char *title,
+        int tLen,
+        const char *message,
+        int mLen,
+        const uint32_t errorCode,
+        ErrorMessageStyle style,
+        ErrorMessageIcon icon,
+        ErrorMessageOptions action)
+    {
+        this->title.str = title;
+        this->title.len = tLen;
+        this->message.str = message;
+        this->message.len = mLen;
+        this->style = style;
+        this->icon = icon;
+        this->action = action;
+    }
 
-Strings::Strings()
-{
-}
+    Strings::Strings()
+    {
+    }
 
-Strings::Strings(const char *str)
-{
-    this->str = str;
-    if (str)
-        this->len = strlen(str);
-}
+    Strings::Strings(const char *str)
+    {
+        this->str = str;
+        if (str)
+            this->len = strlen(str);
+    }
 
-Strings::Strings(const char *str, int len)
-{
-    this->str = str;
-    this->len = len;
-}
+    Strings::Strings(const char *str, int len)
+    {
+        this->str = str;
+        this->len = len;
+    }
 
-Application::Application(IVideo *_gpu) : gpu(_gpu),
-                                         state(APP_STATE_LOAD)
-{
-}
+    Application::Application(Video::IVideo *_gpu) : gpu(_gpu),
+                                                    state(APP_STATE_LOAD)
+    {
+    }
 
-int Application::loadProgress(const char *&str)
-{
-    str = defaultLoadString;
-    return 100;
-}
+    int Application::loadProgress(const char *&str)
+    {
+        str = defaultLoadString;
+        return 100;
+    }
 
-/* Application Loader Preset */
+    /* Application Loader Preset */
 
-LoadScreenApp::LoadScreenApp() : Application(Services::getVideo())
-{
-}
+    LoadScreenApp::LoadScreenApp() : Application(Services::getVideo())
+    {
+        type = APP_TYPE_LOADING_SCREEN;
+    }
 
-int LoadScreenApp::init()
-{
-    return 0;
-}
+    int LoadScreenApp::init(IAppHost *host)
+    {
+        setHost(host);
+        return 0;
+    }
 
-void LoadScreenApp::update()
-{
-}
+    void LoadScreenApp::update()
+    {
+    }
 
-ErrorScreenApp::ErrorScreenApp() : Application(Services::getVideo())
-{
-}
+    ErrorScreenApp::ErrorScreenApp() : Application(Services::getVideo())
+    {
+        type = APP_TYPE_ERROR_SCREEN;
+    }
 
-ErrorScreenApp::~ErrorScreenApp()
-{
-    state = APP_STATE_SHUTDOWN;
-    if (msg && msg != &eMsgUnknownMsg)
-        delete msg;
-    if (errorSound != nullptr)
-        delete errorSound;
-}
+    ErrorScreenApp::~ErrorScreenApp()
+    {
+        state = APP_STATE_SHUTDOWN;
+        if (msg && msg != &eMsgUnknownMsg)
+            delete msg;
+        if (errorSound != nullptr)
+            delete errorSound;
+    }
 
-int ErrorScreenApp::init()
-{
-    return 0;
-}
+    int ErrorScreenApp::init(IAppHost *host)
+    {
+        setHost(host);
+        return 0;
+    }
 
-void ErrorScreenApp::update()
-{
-}
+    void ErrorScreenApp::update()
+    {
+    }
 
-/* Arcade Test App Preset */
+    /* Arcade Test App Preset */
 
-ArcadeTestApp::ArcadeTestApp() : Application(Services::getVideo()),
-    aSystem(System::GetArcadeInterface())
-{
-}
+    ArcadeTestApp::ArcadeTestApp() : Application(Services::getVideo())
+    {
+        aSystem = System::GetArcadeInterface();
+        type = APP_TYPE_ARCADE_TEST_APP;
+    }
 
-int ArcadeTestApp::init()
-{
-    return 0;
-}
+    int ArcadeTestApp::init(IAppHost *host)
+    {
+        setHost(host);
+        return 0;
+    }
 
-void ArcadeTestApp::update()
-{
+    void ArcadeTestApp::update()
+    {
+    }
+
+    ArcadeTestApp *getArcadeTestApp(Application *app)
+    {
+        if (!app || app->getAppType() != APP_TYPE_ARCADE_TEST_APP)
+            return nullptr;
+        return static_cast<ArcadeTestApp *>(app);
+    }
 }

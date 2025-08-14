@@ -19,21 +19,34 @@
 
 #include <stdint.h>
 #include "app/app.hpp"
+#include "app/iapp_host.hpp"
 
 using namespace Apps;
 
 class GenVTestApp : public ArcadeTestApp
 {
 private:
-    const char *appName = "Test Mode (NRC)";
-    AppVersion appVer = AppVersion(0, 0, 1);
+    static constexpr AppInfo appInfo = makeAppInfo(
+        "Arcade Test Mode (NRC)", // name
+        "NaokiS",                 // maker
+        AppVersion(0, 0, 1)       // version
+    );
 
 public:
+    static ArcadeTestApp *createArcadeApp() { return new GenVTestApp; }
+    static Application *createApp() { return new GenVTestApp; }
+    static constexpr const AppInfo &infoStatic() { return appInfo; }
+
     GenVTestApp();
-    int init(void) override;
+
+    static inline ArcadeTestApp *create()
+    {
+        return new GenVTestApp();
+    }
+
+    int init(IAppHost *host) override;
     void update(void) override;
     void render(void) override;
 
-    const char *name(void) override { return appName; }
-    int version(void) override { return appVer.toInt(); }
+    const AppInfo &info() const override { return appInfo; }
 };

@@ -16,7 +16,7 @@
  */
 
 #include "services.hpp"
-#include "common/util/log.hpp"
+#include "common/logger/log.hpp"
 
 #include "hardware.hpp"
 
@@ -26,7 +26,6 @@ Video::IVideo *Services::s_video = nullptr;
 Input::IInput *Services::s_input = nullptr;
 Files::IStorage *Services::s_storage = nullptr;
 System::ISystem *Services::s_system = nullptr;
-Apps::AppManager *Services::s_app = nullptr;
 
 void Services::setVideo(Video::IVideo *video)
 {
@@ -127,13 +126,4 @@ void Services::destroyStorage()
     s_storage->shutdown();
     delete s_storage;
     s_storage = nullptr;
-}
-
-void Services::destroyAppManager()
-{
-    if (!s_app)
-        return;
-    s_app->shutdown();
-    delete s_app;
-    s_app = nullptr;
 }

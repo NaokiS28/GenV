@@ -15,43 +15,8 @@
  */
 
 #include <stdio.h>
-#include "psx_serial.h"
-
 /* Serial port stdin/stdout */
 
-void initSerialIO(int baud) {
-	SIO_CTRL(1) = SIO_CTRL_RESET;
-
-	SIO_MODE(1) = 0
-		| SIO_MODE_BAUD_DIV1
-		| SIO_MODE_DATA_8
-		| SIO_MODE_STOP_1;
-	SIO_BAUD(1) = F_CPU / baud;
-	SIO_CTRL(1) = 0
-		| SIO_CTRL_TX_ENABLE
-		| SIO_CTRL_RX_ENABLE
-		| SIO_CTRL_RTS;
-}
-
-void _putchar(char ch) {
-	// The serial interface will buffer but not send any data if the CTS input
-	// is not asserted, so we are going to abort if CTS is not set to avoid
-	// waiting forever.
-	while (
-		(SIO_STAT(1) & (SIO_STAT_TX_NOT_FULL | SIO_STAT_CTS)) == SIO_STAT_CTS
-	)
-		__asm__ volatile("");
-
-	if (SIO_STAT(1) & SIO_STAT_CTS)
-		SIO_DATA(1) = ch;
-}
-
-int _getchar(void) {
-	while (!(SIO_STAT(1) & SIO_STAT_RX_NOT_EMPTY))
-		__asm__ volatile("");
-
-	return SIO_DATA(1);
-}
 
 int _puts(const char *str) {
 	int length = 1;

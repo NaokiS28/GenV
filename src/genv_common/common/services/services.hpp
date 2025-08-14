@@ -19,7 +19,6 @@
 
 #include "adminkey.hpp"
 #include "genv_sys.hpp"
-#include "appmgr.hpp"
 
 #include "video/iface_video.hpp"
 #include "audio/iface_audio.hpp"
@@ -36,21 +35,18 @@ public:
     static Input::IInput *getInput(void) { return s_input; }
     static Files::IStorage *getStorage(void) { return s_storage; }
     static System::ISystem *getSystem(void) { return s_system; }
-    static Apps::AppManager *getAppMgr(void) { return s_app; }
 
     static inline void setSystem(AdminClass_Key key, System::ISystem *sys) { setSystem(sys); }
     static inline void setVideo(AdminClass_Key key, Video::IVideo *video) { setVideo(video); }
     static inline void setAudio(AdminClass_Key key, Audio::IAudio *audio) { setAudio(audio); }
     static inline void setInput(AdminClass_Key key, Input::IInput *input) { setInput(input); }
     static inline void setStorage(AdminClass_Key key, Files::IStorage *storage) { setStorage(storage); }
-    static inline void setAppManager(AdminClass_Key key, Apps::AppManager *app) { setAppManager(app); }
 
     static inline void destroySystem(AdminClass_Key key) { destroySystem(); }
     static inline void destroyVideo(AdminClass_Key key) { destroyVideo(); }
     static inline void destroyAudio(AdminClass_Key key) { destroyAudio(); }
     static inline void destroyInput(AdminClass_Key key) { destroyInput(); }
     static inline void destroyStorage(AdminClass_Key key) { destroyStorage(); }
-    static inline void destroyAppManager(AdminClass_Key key) { destroyAppManager(); }
 
 private:
     static void setSystem(System::ISystem *sys) { s_system = sys; }
@@ -58,14 +54,12 @@ private:
     static void setAudio(Audio::IAudio *audio);
     static void setInput(Input::IInput *input);
     static void setStorage(Files::IStorage *storage);
-    static void setAppManager(Apps::AppManager *app) { s_app = app; }
 
     static void destroySystem();
     static void destroyVideo();
     static void destroyAudio();
     static void destroyInput();
     static void destroyStorage();
-    static void destroyAppManager();
 
     // Static pointers to service implementations
     static Audio::IAudio *s_audio;
@@ -73,5 +67,4 @@ private:
     static Input::IInput *s_input;
     static Files::IStorage *s_storage;
     static System::ISystem *s_system;
-    static Apps::AppManager *s_app;
 };

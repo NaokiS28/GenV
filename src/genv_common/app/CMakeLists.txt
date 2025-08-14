@@ -15,19 +15,22 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-project(
-	GenV-Demo
-	LANGUAGES    C CXX
-	VERSION      1.0.0
-	DESCRIPTION  ""
-	HOMEPAGE_URL "https://github.com/NaokiS28/GenV"
+add_subdirectory(builtin)
+
+add_library(genv_app_core STATIC
+	app.cpp
+)
+target_link_libraries(genv_app_core PUBLIC genv_common genv_services genv_logger) 
+target_include_directories(genv_app_core PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/genv_common
+    ${CMAKE_SOURCE_DIR}/src/app
 )
 
-# GenV shared core headers
-add_library(game_code STATIC
-	example.cpp
+add_library(genv_app_manager STATIC
+	appmgr.cpp
 )
-
-target_include_directories(game_code PUBLIC
-    ${CMAKE_SOURCE_DIR}/src/example
+target_link_libraries(genv_app_manager PUBLIC game_code genv_builtin_apps genv_app_core genv_logger) 
+target_include_directories(genv_app_manager PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/genv_common
+    ${CMAKE_SOURCE_DIR}/src/app
 )

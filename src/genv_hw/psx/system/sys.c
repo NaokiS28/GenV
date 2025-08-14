@@ -46,7 +46,7 @@ static inline void _flushCache(void) {
 
 void _exceptionVector(void);
 
-void installExceptionHandler(void) {
+void psx_installExceptionHandler(void) {
 	// Clear all pending IRQ flags and prevent the interrupt controller from
 	// generating further IRQs.
 	IRQ_MASK = 0;
@@ -73,7 +73,7 @@ void installExceptionHandler(void) {
 	cop0_setSR(COP0_SR_Im2 | COP0_SR_CU0 | COP0_SR_CU2);
 }
 
-void uninstallExceptionHandler(void) {
+void psx_uninstallExceptionHandler(void) {
 	// Disable interrupts at the COP0 side.
 	cop0_setSR(COP0_SR_CU0 | COP0_SR_CU2);
 
@@ -90,31 +90,31 @@ void uninstallExceptionHandler(void) {
 	_flushCache();
 }
 
-void setInterruptHandler(ArgFunction func, void *arg) {
-	disableInterrupts();
+void psx_setInterruptHandler(ArgFunction func, void *arg) {
+	psx_disableInterrupts();
 
 	interruptHandler    = func;
 	interruptHandlerArg = arg;
 	atomic_signal_fence(memory_order_release);
 }
 
-void flushCache(void) {
-	bool enable = disableInterrupts();
+void psx_flushCache(void) {
+	bool enable = psx_disableInterrupts();
 
 	_flushCache();
 	if (enable)
-		enableInterrupts();
+		psx_enableInterrupts();
 }
 
-void softReset(void) {
-	disableInterrupts();
+void psx_softReset(void) {
+	psx_disableInterrupts();
 	BIOS_ENTRY_POINT();
 	__builtin_unreachable();
 }
 
 /* IRQ acknowledgement */
 
-bool acknowledgeInterrupt(IRQChannel irq) {
+bool psx_acknowledgeInterrupt(IRQChannel irq) {
 	if (IRQ_STAT & (1 << irq)) {
 		IRQ_STAT = ~(1 << irq);
 		return true;
@@ -123,23 +123,23 @@ bool acknowledgeInterrupt(IRQChannel irq) {
 	return false;
 }
 
-bool waitForInterrupt(IRQChannel irq, int timeout) {
+bool psx_waitForInterrupt(IRQChannel irq, int timeout) {
 	for (; timeout > 0; timeout -= 10) {
-		if (acknowledgeInterrupt(irq))
+		if (psx_acknowledgeInterrupt(irq))
 			return true;
 
-		delayMicroseconds(10);
+		psx_delayMicroseconds(10);
 	}
 
 	return false;
 }
 
-bool waitForDMATransfer(DMAChannel dma, int timeout) {
+bool psx_waitForDMATransfer(DMAChannel dma, int timeout) {
 	for (; timeout > 0; timeout -= 10) {
 		if (!(DMA_CHCR(dma) & DMA_CHCR_ENABLE))
 			return true;
 
-		delayMicroseconds(10);
+		psx_delayMicroseconds(10);
 	}
 
 	return false;
@@ -147,7 +147,7 @@ bool waitForDMATransfer(DMAChannel dma, int timeout) {
 
 /* Thread switching */
 
-void switchThread(Thread *thread) {
+void psx_switchThread(Thread *thread) {
 	if (!thread)
 		thread = &_mainThread;
 

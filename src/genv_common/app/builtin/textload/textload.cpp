@@ -26,10 +26,18 @@ namespace Apps
         reload();
     }
 
+    TextLoader::TextLoader(Application *appToLoad)
+    {
+        state = APP_STATE_RUN;
+        this->setAppToLoad(appToLoad);
+        reload();
+    }
+
+
     void TextLoader::render()
     {
-        gpu->fillScreen(Colors::Black);
-        gpu->drawText(loadingText, 15, textPos.x, textPos.y, textPos.w, textPos.h, Colors::White, TALIGN_CENTER);
+        gpu->fillScreen(Video::Colors::Black);
+        gpu->drawText(loadingText, 15, textPos.x, textPos.y, textPos.w, textPos.h, Video::Colors::White, Video::TALIGN_CENTER);
     }
 
     void TextLoader::reload()

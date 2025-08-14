@@ -29,6 +29,15 @@ namespace System
         constexpr const char *szPS1SystemName = "PlayStation";
         constexpr const char *szPS1MakeName = "Sony";
 
+        enum {
+            PSX_SYS_OK,
+            PSX_SYS_VIDEO_INIT_FAIL,
+            PSX_SYS_SOUND_INIT_FAIL,
+            PSX_SYS_CDROM_INIT_FAIL,
+            PSX_SYS_FILE_INIT_FAIL,
+            PSX_SYS_IO_INIT_FAIL,
+        };
+
         /*
          * PSX System base class
          * This system implements the code neccesary to run GenV on a PlayStation 1.
@@ -49,7 +58,7 @@ namespace System
 
             virtual int initVideo();
             virtual int initAudio();
-            virtual int initIO() { return 0; }
+            virtual int initIO();
             virtual int initFiles();
 
             SystemInfo siPS1 = {
@@ -59,12 +68,10 @@ namespace System
                 .flags = SYS_No_Window_Mode};
 
         public:
-            PSXSystem() : sm_state(SM_NORMAL)
-            {
-            }
+            PSXSystem();
             virtual ~PSXSystem() = default;
 
-            virtual bool init() override;             // Registers Windows app class and inits drivers
+            virtual int init() override;             // Registers Windows app class and inits drivers
             virtual int update() override;            // Process wWindows messages
             virtual bool shutdown() override;         // Prepare drivers and app for close
             virtual bool setResolution(int w, int h); // Sets window resolution (internal viewport)

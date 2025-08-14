@@ -15,14 +15,6 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-project(
-	PS1-Bare-Metal
-	LANGUAGES    C CXX ASM
-	VERSION      1.0.0
-	DESCRIPTION  ""
-	HOMEPAGE_URL "https://github.com/NaokiS28/GenV"
-)
-
 ## Bare Metal
 
 # Always generate compile_commands.json when building. This allows some IDEs and
@@ -37,7 +29,8 @@ add_library(
 	libc/crt0.c
 	libc/cxxsupport.cpp
 	libc/malloc.c
-	libc/serial.c
+	libc/stdio.c
+	libc/stdlib.c
 	libc/setjmp.s
 	libc/string.c
 	libc/string.s
@@ -45,6 +38,7 @@ add_library(
 	vendor/printf.c
 )
 
+target_link_libraries(libc PUBLIC genv_terminal)
 target_include_directories(
     libc PUBLIC
 	${CMAKE_SOURCE_DIR}/lib/libc

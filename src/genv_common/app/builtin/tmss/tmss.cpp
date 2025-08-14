@@ -21,28 +21,37 @@
 
 namespace Apps
 {
-    TMSS::TMSS()
+    TMSS::TMSS() : LoadScreenApp()
     {
         this->state = APP_STATE_INIT;
         reload();
     }
 
-    int TMSS::init()
+    TMSS::TMSS(Application *appToLoad) : LoadScreenApp()
+    {
+        this->setAppToLoad(appToLoad);
+        this->state = APP_STATE_INIT;
+        reload();
+    }
+
+
+    int TMSS::init(IAppHost* host)
     {
         fadeIn.setValue(Video::frames(), 0, 255, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
         fadeOut.setValue(Video::frames(), 255, 0, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
         reload();
+        m_host = host;
         state = APP_STATE_RUN;
         return 0;
     }
 
     void TMSS::render()
     {
-        Color c = Colors::White;
+        Video::Color c = Video::Colors::White;
         c.a = alpha;
         premultiply(c);
-        gpu->fillScreen(Colors::Black);
-        gpu->drawText(tmssText, 56, textPos.x, textPos.y, textPos.w, textPos.h, c, TALIGN_CENTER);
+        gpu->fillScreen(Video::Colors::Black);
+        gpu->drawText(tmssText, 56, textPos.x, textPos.y, textPos.w, textPos.h, c, Video::TALIGN_CENTER);
     }
 
     void TMSS::reload()

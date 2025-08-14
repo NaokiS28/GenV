@@ -18,6 +18,7 @@
 #include <assert.h>
 
 #include "arcade.hpp"
+#include "iface_arcade.hpp"
 
 namespace System
 {

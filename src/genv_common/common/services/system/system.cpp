@@ -22,7 +22,7 @@ namespace System
 {
     IArcadeSystem *GetArcadeInterface()
     {
-        System::ISystem *Genv_Sys = Services::getSystem();
+        ISystem *Genv_Sys = Services::getSystem();
         return (Genv_Sys && Genv_Sys->getSysInfo()->type == System::SYS_Arcade)
                    ? reinterpret_cast<IArcadeSystem *>(Genv_Sys)
                    : nullptr;

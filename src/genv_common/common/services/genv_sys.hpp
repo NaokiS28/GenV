@@ -21,8 +21,9 @@
 
 class GenvSystemClass
 {
-    private:
+private:
     AdminClass_Key adminKey;
+
 public:
     GenvSystemClass() : adminKey(AdminClass_Key()) {}
     void startup();

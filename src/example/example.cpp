@@ -16,21 +16,30 @@
  */
 
 #include "app/app.hpp"
+#include "app/iapp_host.hpp"
 
 using namespace Apps;
 
 class GenV_Demo : public Application
 {
 private:
-    const char *appName = "GenV_Demo (NRC)";
-    AppVersion appVer = AppVersion(0, 0, 1);
+    static constexpr AppInfo appInfo = makeAppInfo(
+        "GenV_Demo (NRC)",   // name
+        "NaokiS",            // maker
+        AppVersion(0,0,1)    // version
+    );
+
     Coord txtOrigin;
 
 public:
+    static Application* createApp() { return new GenV_Demo; }
+    static constexpr const AppInfo& infoStatic() { return appInfo; }
+
     GenV_Demo() : Application() {}
 
-    int init() override
+    int init(IAppHost *host) override
     {
+        setHost(host);
         state = APP_STATE_RUN;
         reload();
         return 0;
@@ -38,8 +47,8 @@ public:
     void update() override {}
     void render() override
     {
-        gpu->fillScreen(Colors::Black);
-        gpu->drawText("This is an example string.", 27, txtOrigin.x, txtOrigin.y, 500, 100, Colors::White, Video::TALIGN_CENTER);
+        gpu->fillScreen(Video::Colors::Black);
+        gpu->drawText("This is an example string.", 27, txtOrigin.x, txtOrigin.y, 500, 100, Video::Colors::White, Video::TALIGN_CENTER);
     }
     void reload() override
     {
@@ -48,12 +57,13 @@ public:
     }
     void shutdown() override {}
 
-    const char *name() override { return appName; }
-    int version() override { return appVer.toInt(); }
+    const AppInfo& info() const override { return appInfo; }
 };
 
-extern "C++" Apps::Application *genv_register_app()
+extern "C++" int genv_register_apps(Apps::IAppHost *host)
 {
-    static GenV_Demo *app = new GenV_Demo;
-    return app;
+    if(!host)
+        return -1;
+    host->registerApplicationFactory(GenV_Demo::createApp, &GenV_Demo::infoStatic(), APP_SCREEN_TITLE);
+    return 0;
 }

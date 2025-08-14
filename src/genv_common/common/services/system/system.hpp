@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "arcade/arcade.hpp"
+#include "arcade/iface_arcade.hpp"
 #include "../video/iface_video.hpp"
 
 namespace System

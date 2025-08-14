@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #include "common/services/video/iface_video.hpp"
-#include "common/util/log.hpp"
+#include "common/logger/log.hpp"
 
 #include "texmgr.hpp"
 #include "gpudef.hpp"
@@ -31,6 +31,8 @@
 namespace System::PSX::GPU
 {
     using namespace Video;
+
+    uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t w, uint16_t h, uint16_t r = 60);
 
     class PSXGPU : public IVideo
     {

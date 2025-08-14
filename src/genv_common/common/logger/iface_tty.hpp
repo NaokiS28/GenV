@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * loader.cpp - Created on 26-04-2025
+ * terminal.hpp - Created on 10-08-2025
  * 
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,23 +15,17 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "loadscr.hpp"
+#pragma once
 
-using namespace Apps;
+#include <stdint.h>
 
-LoadingScreen::LoadingScreen()
-{
+class ITerminal {
+    public:
+        ITerminal() = default;
+        virtual ~ITerminal() = default;
+        virtual void setBaud(int baud) = 0;
+        virtual void setPort(int port) = 0;
+        virtual void writeChar() = 0;
+        virtual char readChar() = 0;
 
-}
-
-int LoadingScreen::init(){
-    return 0;
-}
-
-void LoadingScreen::update(){
-    
-}
-
-void LoadingScreen::render(){
-
-}
+};

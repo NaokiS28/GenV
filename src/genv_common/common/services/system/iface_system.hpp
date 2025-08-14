@@ -43,7 +43,7 @@ namespace System
         ISystem(ISystem &other) = delete;
         void operator=(const ISystem &) = delete;
 
-        virtual bool init() = 0;     // Init system then load and init hardware services
+        virtual int init() = 0;     // Init system then load and init hardware services
         virtual int update() = 0;    // Update system manager
         virtual bool shutdown() = 0; // Prepare for app shutdow
 

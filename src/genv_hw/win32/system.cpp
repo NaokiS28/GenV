@@ -18,7 +18,7 @@
 #include "system.hpp"
 #include "resources.h"
 
-#include "common/util/log.hpp"
+#include "common/logger/log.hpp"
 #include "common/util/misc.hpp"
 
 namespace System

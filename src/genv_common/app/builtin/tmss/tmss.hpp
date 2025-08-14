@@ -17,6 +17,7 @@
 
 #pragma once
 #include "app/app.hpp"
+#include "app/iapp_host.hpp"
 #include "common/util/rect.h"
 #include "common/util/tween.hpp"
 
@@ -24,20 +25,24 @@ namespace Apps
 {
     constexpr const int iTimeToShow = 4000;
     constexpr const int iFadeTime = 500;
-    
+
     class TMSS : public LoadScreenApp
     {
     private:
-        const char *appName = "TMSS(NRC)";
-        AppVersion appVer = AppVersion(0, 0, 1);
+        static constexpr AppInfo appInfo = makeAppInfo(
+            "TMSS (NRC)",       // name
+            "NaokiS",           // maker
+            AppVersion(0, 0, 1) // version
+        );
         int timer = -1;
 
-        enum {
+        enum
+        {
             TMSS_FadeIn,
             TMSS_Delay,
             TMSS_FadeOut,
             TMSS_Exit
-        } tmssAnimStep = TMSS_FadeIn; 
+        } tmssAnimStep = TMSS_FadeIn;
 
         uint8_t alpha = 0;
         Util::Tween<uint16_t, Util::QuadInEasing> fadeIn;
@@ -48,15 +53,19 @@ namespace Apps
         RectWH textPos;
 
     public:
-        TMSS();
+        static LoadScreenApp *createApp() { return new TMSS; }
+        static LoadScreenApp *createApp(Application *app) { return new TMSS(app); }
+        static constexpr const AppInfo &infoStatic() { return appInfo; }
 
-        int init();
+        TMSS();
+        TMSS(Application *appToLoad);
+
+        int init(IAppHost *host);
         void update();
         void render();
         void reload();
         void shutdown() {}
 
-        const char *name() { return appName; }
-        int version() { return appVer.toInt(); }
+        const AppInfo &info() const override { return appInfo; }
     };
 }

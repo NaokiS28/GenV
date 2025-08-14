@@ -21,8 +21,9 @@ GenVTestApp::GenVTestApp() : ArcadeTestApp()
 {
 }
 
-int GenVTestApp::init()
+int GenVTestApp::init(IAppHost *host)
 {
+    m_host = host;
     return 0;
 }
 void GenVTestApp::update()

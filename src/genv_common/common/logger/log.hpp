@@ -18,7 +18,7 @@
 
 #include <stddef.h>
 
-namespace util {
+namespace Logs {
 
 /* Logging framework */
 
@@ -65,7 +65,7 @@ extern Logger logger;
 /* Logging macros */
 
 #define LOG(type, fmt, ...) \
-	util::logger.log( \
+	Logs::logger.log( \
 		type ",%s(%d): " fmt, __func__, __LINE__ __VA_OPT__(,) __VA_ARGS__ \
 	)
 

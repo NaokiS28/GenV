@@ -42,13 +42,12 @@ target_sources(genv_hw_psx PRIVATE
 	system/sys.c
 	system/sys.s
 	system/unhandledexc.c
+	system/serial.c
 	file/pcdrv.s
 	audio/spu.cpp
     video/video.cpp
     video/texmgr.cpp
     video/psxtex.cpp
-
-	
 )
 
 target_compile_definitions(
@@ -62,4 +61,4 @@ target_include_directories(
 	${CMAKE_SOURCE_DIR}/src/genv_common
 )
 
-target_link_libraries(genv_hw_psx PRIVATE genv_objects genv_formats genv_common)
+target_link_libraries(genv_hw_psx PRIVATE genv_common genv_util genv_terminal)

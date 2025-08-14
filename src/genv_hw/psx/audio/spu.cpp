@@ -39,7 +39,7 @@ namespace spu
             if ((SPU_STAT & mask) == value)
                 return true;
 
-            delayMicroseconds(10);
+            psx_delayMicroseconds(10);
         }
 
         return false;
@@ -75,7 +75,7 @@ namespace spu
 
         SPU_CTRL = SPU_CTRL_XFER_WRITE | SPU_CTRL_ENABLE;
         _waitForStatus((SPU_CTRL_XFER_BITMASK | SPU_STAT_BUSY), SPU_CTRL_XFER_WRITE);
-        delayMicroseconds(100);
+        psx_delayMicroseconds(100);
 
         SPU_CTRL = SPU_CTRL_UNMUTE | SPU_CTRL_ENABLE;
         resetAllChannels();
@@ -155,7 +155,7 @@ namespace spu
         // assert(!(length % _DMA_CHUNK_SIZE));
         length = (length + _DMA_CHUNK_SIZE - 1) / _DMA_CHUNK_SIZE;
 
-        if (!waitForDMATransfer(DMA_SPU, _DMA_TIMEOUT))
+        if (!psx_waitForDMATransfer(DMA_SPU, _DMA_TIMEOUT))
             return 0;
 
         uint16_t ctrlReg = SPU_CTRL & ~SPU_CTRL_XFER_BITMASK;
@@ -173,7 +173,7 @@ namespace spu
         DMA_CHCR(DMA_SPU) = DMA_CHCR_WRITE | DMA_CHCR_MODE_SLICE | DMA_CHCR_ENABLE;
 
         if (wait)
-            waitForDMATransfer(DMA_SPU, _DMA_TIMEOUT);
+            psx_waitForDMATransfer(DMA_SPU, _DMA_TIMEOUT);
 
         return length * _DMA_CHUNK_SIZE * 4;
     }

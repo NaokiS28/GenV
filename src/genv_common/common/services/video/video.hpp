@@ -106,9 +106,9 @@ namespace Video
         TALIGN_RIGHT
     };
 
-    uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t w, uint16_t h, uint16_t r = 60);
     size_t msToFrames(size_t millis);
     size_t frames();
     uint16_t getHorizontalRes();
     uint16_t getVerticalRes();
+    uint16_t getRefreshRate();
 }

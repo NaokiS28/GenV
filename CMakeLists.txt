@@ -1,7 +1,3 @@
-# Project: Vigfell - Copyright (C) 2025 NaokiS
-# CMakeLists.txt - Created on 25-07-2025
-# 
-
 # GenV - Copyright (C) 2025 NaokiS, spicyjpeg
 # CMakeLists.txt - Created on 21-04-2025
 # 
@@ -62,24 +58,25 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_program(DOT_EXECUTABLE dot)
 
 # Automatically generate dependency graph when CMake runs
-if (DOT_EXECUTABLE)
+if (false)
     # Generate .dot file during configuration
+    message(STATUS "Generating dependancy graph")
     execute_process(
         COMMAND ${CMAKE_COMMAND} --graphviz=${CMAKE_BINARY_DIR}/build_graph.dot ${CMAKE_BINARY_DIR}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        OUTPUT_QUIET ERROR_QUIET
+        ERROR_QUIET
     )
 
     # Also generate a PNG automatically
     execute_process(
         COMMAND ${DOT_EXECUTABLE} -Tpng ${CMAKE_BINARY_DIR}/build_graph.dot -o ${CMAKE_BINARY_DIR}/build_graph.png
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        OUTPUT_QUIET ERROR_QUIET
+        ERROR_QUIET
     )
 
     message(STATUS "Generated build_graph.dot and build_graph.png in ${CMAKE_BINARY_DIR}")
 else()
-    message(WARNING "Graphviz 'dot' tool not found — dependency graph will not be generated")
+   # message(WARNING "Graphviz 'dot' tool not found — dependency graph will not be generated")
 endif()
 
 
@@ -106,19 +103,19 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Generic")
     link_libraries(libc)
 endif()
 
-add_subdirectory(src/genv_common)
-add_subdirectory(src/genv_hw)
+add_subdirectory(src/genv_common/common)
+add_subdirectory(src/genv_common/app)
+add_subdirectory(src/genv_common/terminal)
 add_subdirectory(src/genv_hw/${GENV_PLATFORM})
-target_link_libraries(genv_common PRIVATE genv_hw_${GENV_PLATFORM})
 
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     message(STATUS "Building default GenV test app")
 
 	add_subdirectory(src/example)
-	target_link_libraries(game_code PRIVATE genv_common)
+	target_link_libraries(game_code PRIVATE genv_common genv_util genv_app_core genv_services genv_logger)
 
-	addGenVExecutable(genv src/main.cpp ...)
-	target_link_libraries(genv PRIVATE genv_common game_code)
+	addGenVExecutable(genv src/main.cpp)
+	target_link_libraries(genv PRIVATE genv_services genv_app_manager)
 
 	target_compile_definitions(
 		genv PRIVATE

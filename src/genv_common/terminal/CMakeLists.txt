@@ -15,12 +15,7 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-add_library(genv_hw_common STATIC
-	hardware.cpp
+add_library(genv_terminal STATIC
+	terminal.c
 )
 
-target_link_libraries(genv_hw_common PRIVATE genv_hw_${GENV_PLATFORM})
-target_include_directories(genv_hw_common PUBLIC
-    ${CMAKE_SOURCE_DIR}/src/genv_common
-    ${CMAKE_SOURCE_DIR}/src/genv_hw
-)
