@@ -26,14 +26,14 @@ using namespace Apps;
 
 DefaultErrorScreen::DefaultErrorScreen(ErrorScreenMessage *msg) : colorIntensity(UINT8_MAX)
 {
-    state = APP_STATE_INIT;
+    setAppState(APP_STATE_INIT);
     this->msg = msg;
 }
 
-int DefaultErrorScreen::init(IAppHost* host)
+int DefaultErrorScreen::init(IAppHost *host)
 {
     m_host = host;
-    state = APP_STATE_RUN;
+    setAppState(APP_STATE_RUN);
     area = RectWH(
         gpu->getHorizontalRes() / 10,
         gpu->getVerticalRes() / 4,
@@ -63,7 +63,7 @@ int DefaultErrorScreen::init(IAppHost* host)
         if (msg->style == EM_STYLE_CRITICAL_ERROR)
             Genv_Arcade->getNVRAM()
                 .addErrorCode(GENV_ERR_CRITICAL_APP_ERROR, System::getTime(), msg->errorCode););
-                
+
     return 0;
 }
 
@@ -189,7 +189,7 @@ void DefaultErrorScreen::render()
 
 void DefaultErrorScreen::shutdown()
 {
-    state = APP_STATE_SHUTDOWN;
+    setAppState(APP_STATE_SHUTDOWN);
     if (msg && msg != &eMsgUnknownMsg)
         delete msg;
     if (errorSound != nullptr)

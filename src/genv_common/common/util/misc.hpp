@@ -22,34 +22,8 @@
 
 namespace util
 {
-
-	/* Date and time class */
-
-	class Date
-	{
-	public:
-		uint16_t year;
-		uint8_t month, day, hour, minute, second;
-
-		inline void reset(void)
-		{
-			year = 2024;
-			month = 1;
-			day = 1;
-			hour = 0;
-			minute = 0;
-			second = 0;
-		}
-
-		bool isValid(void) const;
-		bool isLeapYear(void) const;
-		int getDayOfWeek(void) const;
-		int getMonthDayCount(void) const;
-		uint32_t toDOSTime(void) const;
-		size_t toString(char *output) const;
-
-		void fromCurrentTime(void);
-	};
+	inline uint8_t dec2bcd(uint8_t n) { return (n / 10 * 16) + (n % 10); }
+	inline uint8_t bcd2dec(uint8_t n) { return (n / 16 * 10) + (n % 16); }
 
 	/* Critical section helper */
 

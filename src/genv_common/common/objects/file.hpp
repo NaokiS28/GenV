@@ -70,7 +70,7 @@ namespace Files
         template <typename T>
         T readAs()
         {
-            T result;
+            T result{};
 
             // Ensure there's enough data left
             if (!this->data->getRawData() ||
@@ -213,4 +213,4 @@ namespace Files
 
     const char *getFileNamePos(FileObject *fObj);
     util::Hash getFileNameHash(FileObject *fObj);
-}
+} // namespace Files

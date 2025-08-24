@@ -31,6 +31,8 @@ target_link_libraries(genv_common PUBLIC genv_services)
 target_include_directories(genv_common PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw
+	${LIBC_INCLUDE}
+
 )
 
 
@@ -40,10 +42,13 @@ add_library(genv_util STATIC
 	util/misc.cpp
 	util/text.cpp
 	util/tween.cpp
+	util/time.cpp
+	util/date.cpp
 )
 target_include_directories(genv_util PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw
+	${LIBC_INCLUDE}
 )
 
 add_library(genv_services STATIC
@@ -52,21 +57,24 @@ add_library(genv_services STATIC
 	services/adminkey.cpp
 	services/services.cpp
 	services/storage/storage.cpp
-	services/storage/nullstorage.cpp
+	services/storage/storeman.cpp
 	services/video/video.cpp
 	services/video/nullvideo.cpp
 	services/audio/nullaudio.cpp
-	services/io/nullinput.cpp
+	services/io/inputman.cpp
 	services/system/timer.cpp
 	services/system/system.cpp
+	services/system/rtc/soft_rtc.cpp
 	services/system/arcade/arcade.cpp
 	services/system/arcade/nvram.cpp
 	${CMAKE_SOURCE_DIR}/src/genv_hw/hardware.cpp
 )
-target_link_libraries(genv_services PUBLIC genv_hw_${GENV_PLATFORM} genv_logger)
+target_link_libraries(genv_services PUBLIC genv_hw_${GENV_PLATFORM} genv_logger genv_builtin_fonts)
 target_include_directories(genv_services PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw
+	${LIBC_INCLUDE}
+
 )
 
 add_library(genv_logger STATIC
@@ -75,4 +83,18 @@ add_library(genv_logger STATIC
 target_link_libraries(genv_logger PUBLIC genv_terminal)
 target_include_directories(genv_logger PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
+	${LIBC_INCLUDE}
+
+)
+
+string(TIMESTAMP BUILD_DATE "%d-%m-%Y")
+string(TIMESTAMP BUILD_TIME %H%M%S)
+string(TIMESTAMP BUILD_DAY %m%d)
+set(BUILD_NUM "${PROJECT_VERSION}.${BUILD_DAY}${BUILD_TIME}")
+
+target_compile_definitions(
+	genv_services PRIVATE
+	GENV_BUILD="${BUILD_NUM}"
+    GENV_BDATE="${BUILD_DATE}"
+    GENV_VERSION="${PROJECT_VERSION}"
 )

@@ -66,13 +66,13 @@ namespace Video
     };
 
     constexpr DPIScale dpi_table[] = {
-        {0, 109, DPI_96, 100},
-        {110, 130, DPI_120, 125},
-        {131, 150, DPI_144, 150},
-        {151, 180, DPI_168, 175},
-        {181, 210, DPI_192, 200},
-        {211, 240, DPI_216, 225},
-        {241, 10000, DPI_240, 250}};
+        {0, 109, DPI_96, 100},       // DPI: 96 pixels per inch
+        {110, 130, DPI_120, 125},    // DPI: 120 pixels per inch
+        {131, 150, DPI_144, 150},    // DPI: 144 pixels per inch (HiDPI)
+        {151, 180, DPI_168, 175},    // DPI: 168 pixels per inch (HiDPI)
+        {181, 210, DPI_192, 200},    // DPI: 192 pixels per inch (HiDPI)
+        {211, 240, DPI_216, 225},    // DPI: 216 pixels per inch (HiDPI)
+        {241, 10000, DPI_240, 250}}; // DPI: 240 pixels per inch (HiDPI)
 
     constexpr DPIScale getNearestScale(int real_dpi)
     {
@@ -81,7 +81,7 @@ namespace Video
             if (real_dpi >= entry.real_min && real_dpi <= entry.real_max)
                 return entry;
         }
-        return dpi_table[DPI_96]; // fallback to 96 DPI
+        return dpi_table[0]; // fallback to 96 DPI
     }
 
     struct Monitor
@@ -106,9 +106,9 @@ namespace Video
         TALIGN_RIGHT
     };
 
-    size_t msToFrames(size_t millis);
-    size_t frames();
-    uint16_t getHorizontalRes();
-    uint16_t getVerticalRes();
-    uint16_t getRefreshRate();
-}
+    size_t msToFrames(size_t millis); // Returns how many frames should elapse within a given time
+    size_t frames();                  // Returns the amount of frames that have been rendered
+    uint16_t getHorizontalRes();      // Returns the current horizontal screen resolution
+    uint16_t getVerticalRes();        // Returns the current vertical screen resolution
+    uint16_t getRefreshRate();        // Returns the current screen refresh rate
+} // namespace Video

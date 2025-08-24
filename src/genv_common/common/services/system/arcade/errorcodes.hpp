@@ -172,7 +172,6 @@ enum GENV_Error_Codes : ErrorCode {
 };
 
 #ifndef GENV_NO_ERROR_STRINGS
-#include <string_view>
 
 constexpr const char *GENV_ErrorCode_String(ErrorCode code) noexcept {
     switch (code) {

@@ -30,4 +30,5 @@ add_library(game_code STATIC
 
 target_include_directories(game_code PUBLIC
     ${CMAKE_SOURCE_DIR}/src/example
+	${LIBC_INCLUDE}
 )

@@ -85,16 +85,16 @@ constexpr const char GENV_NVRAM_HighscoreMagic[5] = "GPHS";
 constexpr const uint16_t GENV_NVRAM_HighscoreStart = (sizeof(PlayerHighscore::header));
 constexpr const uint16_t GENV_NVRAM_HighscoreLength = (sizeof(PlayerHighscore) - (sizeof(PlayerHighscore::header)));
 
-// GenV Arcade NVRAM Save data
+// GenV Arcade NVRAM Save data.
 // This struct should be used for storing settings and data on arcade games.
 struct NVRAM
 {
     // Header
     struct Header
     {
-        char magic[5] = {'\0'};                         // Game engine header magic
-        char gameID[9] = {'\0'};                        // Game ID code
-        uint16_t checksum = 0;                          // Checksum of this chunk
+        char magic[5] = {'\0'};   // Game engine header magic
+        char gameID[9] = {'\0'};  // Game ID code
+        uint16_t checksum = 0;    // Checksum of this chunk
         uint16_t blockLength = 0; // Length of this block
     } header;
 
@@ -127,7 +127,7 @@ struct NVRAM
     inline void setGameID(const char *gameID)
     {
         strncpy(this->header.gameID, gameID, 10);
-        this->header.gameID[9] = '\0';
+        this->header.gameID[8] = '\0';
     }
 
     // Checks to see if the NVRAM header is valid. Must be given the 8 character game ID.

@@ -23,17 +23,16 @@ namespace Apps
 {
     TMSS::TMSS() : LoadScreenApp()
     {
-        this->state = APP_STATE_INIT;
+        setAppState(APP_STATE_INIT);
         reload();
     }
 
     TMSS::TMSS(Application *appToLoad) : LoadScreenApp()
     {
         this->setAppToLoad(appToLoad);
-        this->state = APP_STATE_INIT;
+        setAppState(APP_STATE_INIT);
         reload();
     }
-
 
     int TMSS::init(IAppHost* host)
     {
@@ -41,7 +40,7 @@ namespace Apps
         fadeOut.setValue(Video::frames(), 255, 0, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
         reload();
         m_host = host;
-        state = APP_STATE_RUN;
+        setAppState(APP_STATE_RUN);
         return 0;
     }
 
@@ -94,7 +93,7 @@ namespace Apps
             break;
         case TMSS_Exit:
         default:
-            state = APP_STATE_QUIT;
+            setAppState(APP_STATE_QUIT);
         }
     }
 }

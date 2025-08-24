@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "arcade/iface_arcade.hpp"
 #include "../video/iface_video.hpp"
@@ -57,7 +58,8 @@ namespace System
         * Services::setInput(IInput *input);
     */
 
-    enum SysType : uint32_t {
+    enum SysType : uint32_t
+    {
         SYS_Unknown,
         SYS_Arcade,
         SYS_Console,
@@ -65,36 +67,62 @@ namespace System
         SYS_Handheld
     };
 
-    enum SysFlags : uint32_t {
+    constexpr const char *szSystemType_Console = "Console";
+    constexpr const char *szSystemType_Computer = "Computer";
+    constexpr const char *szSystemType_Arcade = "Arcade";
+    constexpr const char *szSystemType_Handheld = "Handheld";
+    constexpr const char *szSystemType_Unknown = "Unknown";
+
+    constexpr const char *getSystemTypeString(System::SysType type)
+    {
+        switch (type)
+        {
+        case System::SYS_Console:
+            return szSystemType_Console;
+        case System::SYS_Computer:
+            return szSystemType_Computer;
+        case System::SYS_Arcade:
+            return szSystemType_Arcade;
+        case System::SYS_Handheld:
+            return szSystemType_Handheld;
+        default:
+            return szSystemType_Unknown;
+        }
+    }
+
+    enum SysFlags : uint32_t
+    {
         SYS_No_Window_Mode = (1 << 0),
         SYS_No_Switch_Res = (1 << 1),
     };
 
-    struct SystemInfo {
-        uint32_t type = SysType::SYS_Unknown;
-        const char* make = nullptr;
-        const char* name = nullptr;
-        const char* osname = nullptr;
+    struct SystemInfo
+    {
+        SysType type = SysType::SYS_Unknown;
+        const char *make = nullptr;
+        const char *name = nullptr;
+        const char *osname = nullptr;
         uint32_t flags = 0;
     };
 
     size_t millis();
     size_t random(size_t min, size_t max);
+    bool getTime(tm &time);
     size_t getTime();
     IArcadeSystem *GetArcadeInterface();
-    
+
 }
 
 // TODO: Is this macro of any real benefit now? GetArcadeInterface does the important thing.
 // This macro is a short hand to mean that this code should only be run if the system
 // is an arcade system. Otherwise it is skipped. Use Genv_Arcade to access arcade
 // system specific functions. Uses static_cast to avoid RTTI
-#define ArcadeFunc(action)                                         \
-    do                                                             \
-    {                                                              \
+#define ArcadeFunc(action)                                                 \
+    do                                                                     \
+    {                                                                      \
         System::IArcadeSystem *Genv_Arcade = System::GetArcadeInterface(); \
-        if (Genv_Arcade)                                           \
-        {                                                          \
-            action                                                 \
-        }                                                          \
+        if (Genv_Arcade)                                                   \
+        {                                                                  \
+            action                                                         \
+        }                                                                  \
     } while (0)

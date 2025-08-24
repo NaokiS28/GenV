@@ -45,6 +45,9 @@ namespace System
         virtual uint8_t increaseCoinCounter(uint8_t counter);
 
     public:
+        IArcadeSystem() = default;
+        virtual ~IArcadeSystem() = default;
+        
         // Get the virtual NVRAM data for read/writing
         NVRAM &getNVRAM() { return _eeprom; }
         // Get the DIP switch at a given `bank`.
@@ -65,9 +68,23 @@ namespace System
         }
 
         // Reads in the NVRAM data from a physical device
-        virtual int readNVRAM() { return -1; }
+        virtual int readNVRAM(uint8_t *data, int offset, int count) { return 0; }
         // Writes the current NVRAM data to the physical device
-        virtual int writeNVRAM() { return -1; }
+        virtual int writeNVRAM(const uint8_t *data, int offset, int size) { return 0; }
+
+        template <typename T>
+        int readNVRAM_as(T *data, int offset)
+        {
+            int count = sizeof(T);
+            return readNVRAM(data, offset, count);
+        }
+
+        template <typename T>
+        int writeNVRAM_as(T *data, int offset)
+        {
+            int count = sizeof(T);
+            return writeNVRAM(data, offset, count);
+        }
 
         // Returns amount of coins are available to use for a player.
         // If player given is negative, will instead return the first player
@@ -93,7 +110,7 @@ namespace System
         //       Banks reflect physical ports. So bank 0 might be on the motherbord,
         //       bank 1 might be the first 8 bits on an IO board, bank 2 might be the
         //       second, e.t.c.
-        virtual uint8_t setOutputs(uint8_t bank, uint8_t data);
+        virtual uint8_t setOutputs(uint8_t bank, uint8_t data) = 0;
 
         // Sets an single output with given state.
         // Returns the output number if succesful, returns 0xFF if number is invalid.
@@ -101,22 +118,22 @@ namespace System
         //       to output banks. This means that if a bank has less than 8 outputs,
         //       the unused outputs will still have an output number, they just will not
         //       do anything if written to.
-        virtual uint8_t setSingleOutput(uint8_t outputNumber, bool state);
+        virtual uint8_t setSingleOutput(uint8_t outputNumber, bool state) = 0;
 
         // Writes an analogue value to an analogue output (DAC/PWM/RGB/RGBA).
         // Returns the output number if succesful, returns 0xFF if number is invalid.
         // Note: Unlike digital outputs, analogOutputs will always be assigned to an output.
-        virtual uint8_t writeAnalogueOut(uint8_t analogOutput, uint8_t state);
+        virtual uint8_t writeAnalogueOut(uint8_t analogOutput, uint8_t state) = 0;
 
         // Writes a 16-bit analogue value to an analogue output (DAC/PWM/RGB/RGBA).
         // Returns the output number if succesful, returns 0xFF if number is invalid.
         // Note: Unlike digital outputs, analogOutputs will always be assigned to an output.
-        virtual uint8_t writeAnalogueOut16(uint8_t analogOutput, uint16_t state);
+        virtual uint8_t writeAnalogueOut16(uint8_t analogOutput, uint16_t state) = 0;
 
         // Writes a 32-bit analogue value to an analogue output (DAC/PWM/RGB/RGBA).
         // Returns the output number if succesful, returns 0xFF if number is invalid.
         // Note: Unlike digital outputs, analogOutputs will always be assigned to an output.
-        virtual uint8_t writeAnalogueOut32(uint8_t analogOutput, uint32_t state);
+        virtual uint8_t writeAnalogueOut32(uint8_t analogOutput, uint32_t state) = 0;
     };
 
 } // namespace System

@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "timer.hpp"
 #include "system.hpp"
@@ -43,7 +44,7 @@ namespace System
         ISystem(ISystem &other) = delete;
         void operator=(const ISystem &) = delete;
 
-        virtual int init() = 0;     // Init system then load and init hardware services
+        virtual int init() = 0;      // Init system then load and init hardware services
         virtual int update() = 0;    // Update system manager
         virtual bool shutdown() = 0; // Prepare for app shutdow
 
@@ -51,12 +52,14 @@ namespace System
 
         virtual size_t millis() = 0; // Millis since system start
         virtual size_t random(size_t min, size_t max)
-        { // Gets a random number between given values
+        {                            // Gets a random number between given values
             return ((min + rand()) % max);
         }
-        virtual size_t getTime() = 0;
+        virtual bool getTime(tm &time) = 0;
+
+        virtual const char *getWorkingDirectory() = 0;
 
         virtual bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq) = 0;
         virtual bool unregisterTimerFunc(TFunc func, TChannel timer) = 0;
     };
-}
+} // namespace System

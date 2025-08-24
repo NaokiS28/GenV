@@ -25,7 +25,6 @@ namespace Textures
 {
     DefaultTexture::DefaultTexture() : TextureObject()
     {
-#ifndef GENV_PSX
         TextureObject::bitmap = stbi_load_from_memory(
             missingTextureImg,
             missingTextureSize,
@@ -33,7 +32,7 @@ namespace Textures
             &height,
             &bpp,
             0);
-#endif
+
         setObjectID("DefaultTexture");
     }
 
@@ -54,7 +53,7 @@ namespace Textures
     {
         if (file == nullptr)
             file = new Files::FileObject();
-#ifndef GENV_PSX
+
         if (file != nullptr)
         {
             int result = file->openFile(filePath, false);
@@ -65,7 +64,7 @@ namespace Textures
                     file->getRawDataObj()->getDataLen(),
                     &width,
                     &height,
-                    &n,
+                    &bpp,
                     4);
 
                 bitmapLength = ((sizeof(uint32_t) * width) * height);
@@ -75,7 +74,6 @@ namespace Textures
                     return Files::FO_OKAY;
             }
         }
-#endif
         return Files::FO_ERROR_BADOBJECT;
     }
 
@@ -99,11 +97,12 @@ namespace Textures
         {
             if (tObj->loadTextureFile(filePath) == Files::FO_OKAY)
                 return tObj;
-            else{
+            else
+            {
                 delete tObj;
                 tObj = nullptr;
             }
         }
         return tObj;
     }
-}
+} // namespace Textures

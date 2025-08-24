@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * system.cpp - Created on 09-08-2025
+ * time.hpp - Created on 16-08-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,21 +15,18 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "iface_system.hpp"
-#include "../services.hpp"
+#pragma once
 
-namespace System
+#include <stdint.h>
+#include <stddef.h>
+#include <time.h>
+
+namespace Time
 {
-    IArcadeSystem *GetArcadeInterface()
-    {
-        ISystem *Genv_Sys = Services::getSystem();
-        return (Genv_Sys && Genv_Sys->getSysInfo()->type == System::SYS_Arcade)
-                   ? reinterpret_cast<IArcadeSystem *>(Genv_Sys)
-                   : nullptr;
-    };
-
-    size_t millis(){ return Services::getSystem()->millis(); }
-    size_t random(size_t min, size_t max){ return Services::getSystem()->random(min, max); }
-    bool getTime(tm &time){ return Services::getSystem()->getTime(time); }
-    size_t getTime(){ return 0; }
+    bool timeValid(int hour, int min, int sec);
+    void addSecond(tm &time);
+    void addDay(tm &time);
+    int getTimeString(tm &time, char *str, bool seconds = true, bool amPm = false);
+    
+    inline bool timeValid(tm time){ return timeValid(time.tm_hour, time.tm_min, time.tm_sec); }
 }

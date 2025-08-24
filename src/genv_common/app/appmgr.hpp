@@ -107,7 +107,6 @@ namespace Apps
         LoadScreenFactory loadScreenFactory = nullptr;
         const AppInfo *loadScreenInfo = nullptr;
 
-
         bool m_hasPending = false;
         AppID m_pendingId = 0;
         uint32_t m_pendingFlags = 0;
@@ -117,6 +116,8 @@ namespace Apps
         void closeApp(Application *app);
         void quitApp(AppSelect app = APP_FOREGROUND);
         void swapApps();
+
+        void tickApp(Application *app);
 
         bool showErrorScreen(
             const char *title, const char *text,

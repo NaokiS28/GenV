@@ -18,9 +18,8 @@
 #ifndef GENV_TERMINAL_C
 #define GENV_TERMINAL_C
 
-#include "terminal.h"
 #include <stdbool.h>
-#include <string.h>
+#include "terminal.h"
 
 struct
 {

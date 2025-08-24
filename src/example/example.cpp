@@ -15,8 +15,12 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <time.h>
+
 #include "app/app.hpp"
 #include "app/iapp_host.hpp"
+#include "common/services/system/system.hpp"
+#include "common/logger/log.hpp"
 
 using namespace Apps;
 
@@ -24,27 +28,45 @@ class GenV_Demo : public Application
 {
 private:
     static constexpr AppInfo appInfo = makeAppInfo(
-        "GenV_Demo (NRC)",   // name
-        "NaokiS",            // maker
-        AppVersion(0,0,1)    // version
+        "GenV_Demo",        // name
+        "NaokisRC",         // maker
+        AppVersion(0, 0, 1) // version
     );
 
     Coord txtOrigin;
 
 public:
-    static Application* createApp() { return new GenV_Demo; }
-    static constexpr const AppInfo& infoStatic() { return appInfo; }
+    static Application *createApp()
+    {
+        return new GenV_Demo;
+    }
+    static constexpr const AppInfo &infoStatic()
+    {
+        return appInfo;
+    }
 
     GenV_Demo() : Application() {}
 
     int init(IAppHost *host) override
     {
         setHost(host);
-        state = APP_STATE_RUN;
+        setAppState(APP_STATE_RUN);
         reload();
         return 0;
     }
-    void update() override {}
+
+    void update() override
+    {
+        tm time;
+        System::getTime(time);
+        static int lastSeconds = 0;
+        if (time.tm_sec != lastSeconds)
+        {
+            LOG("clock", "tick");
+            lastSeconds = time.tm_sec;
+        }
+    }
+
     void render() override
     {
         gpu->fillScreen(Video::Colors::Black);
@@ -57,12 +79,15 @@ public:
     }
     void shutdown() override {}
 
-    const AppInfo& info() const override { return appInfo; }
+    const AppInfo &info() const override
+    {
+        return appInfo;
+    }
 };
 
 extern "C++" int genv_register_apps(Apps::IAppHost *host)
 {
-    if(!host)
+    if (!host)
         return -1;
     host->registerApplicationFactory(GenV_Demo::createApp, &GenV_Demo::infoStatic(), APP_SCREEN_TITLE);
     return 0;

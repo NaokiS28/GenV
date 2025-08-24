@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * adminkey.hpp - Created on 09-08-2025
+ * fontman.hpp - Created on 21-08-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,22 +15,21 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "common/objects/font.hpp"
 
-class GenvSystemClass;
-class Services;
-namespace System
+namespace Fonts
 {
-    class ISystem;
-}
+    class FontManager
+    {
+    private:
+        FontObject *fontList = nullptr;
+        int fontListLength = 0;
 
-// Allow access to administrative functions to specific classes.
-class AdminClass_Key
-{
-    friend class Services;
-    friend class GenvSystemClass;
-    friend class System::ISystem;
+    public:
+        FontManager();
 
-private:
-    AdminClass_Key();
-};
+        int loadFont(FontMetrics font);
+        int loadFontFromFile(const char *filePath);
+        int loadFontFromMemory();
+    };
+} // namespace Fonts

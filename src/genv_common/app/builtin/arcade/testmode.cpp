@@ -33,7 +33,7 @@ void GenVTestApp::update()
     }
     else
     {
-        state = APP_STATE_QUIT;
+        setAppState(APP_STATE_QUIT);
         // leave
     }
 }

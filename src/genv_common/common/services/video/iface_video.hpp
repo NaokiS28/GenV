@@ -44,7 +44,7 @@ namespace Video
         };
         virtual ~IVideo() = default;
 
-        inline size_t getFrameCount()
+        virtual inline size_t getFrameCount() 
         {
             return frameCount;
         }

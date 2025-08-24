@@ -17,8 +17,12 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <time.h>
+
 #include "log.hpp"
 #include "common/util/misc.hpp"
+#include "common/util/time.hpp"
+#include "common/services/system/system.hpp"
 
 namespace Logs
 {
@@ -72,6 +76,50 @@ namespace Logs
 		{
 			va_start(ap, format);
 			vprintf(format, ap);
+			va_end(ap);
+			puts("\r\n");
+		}
+	}
+
+	void Logger::logT(const char *type, const char *format, const char *func, const int linenum, ...)
+	{
+		// CriticalSection sec;
+
+		tm time;
+		char *str = new char[MAX_LOG_LINE_LENGTH];
+		if(!str)
+			return;
+		memset(str, 0, MAX_LOG_LINE_LENGTH);
+
+		char *t_str = new char[16];
+		if(!t_str)
+			return;
+		memset(t_str, 0, 16);
+
+		System::getTime(time);
+		Time::getTimeString(time, t_str);
+		va_list ap;
+
+		snprintf(str, MAX_LOG_LINE_LENGTH, "<%s> %s,%s(%d): %s", t_str, type, func, linenum, format);
+
+		if (_buffer)
+		{
+			auto line = _buffer->allocateLine();
+
+			va_start(ap, linenum);
+			vsnprintf(line, MAX_LOG_LINE_LENGTH, str, ap);
+			va_end(ap);
+
+			if (_enableSyslog)
+			{
+				puts(line);
+				puts("\r\n");
+			}
+		}
+		else if (_enableSyslog)
+		{
+			va_start(ap, linenum);
+			vprintf(str, ap);
 			va_end(ap);
 			puts("\r\n");
 		}

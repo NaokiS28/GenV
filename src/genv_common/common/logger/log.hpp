@@ -18,65 +18,70 @@
 
 #include <stddef.h>
 
-namespace Logs {
+namespace Logs
+{
 
-/* Logging framework */
+	/* Logging framework */
 
-static constexpr int MAX_LOG_LINE_LENGTH = 128;
-static constexpr int MAX_LOG_LINES       = 64;
+	static constexpr int MAX_LOG_LINE_LENGTH = 160;
+	static constexpr int MAX_LOG_LINES = 64;
 
-class LogBuffer {
-private:
-	char _lines[MAX_LOG_LINES][MAX_LOG_LINE_LENGTH];
-	int  _tail;
+	class LogBuffer
+	{
+	private:
+		char _lines[MAX_LOG_LINES][MAX_LOG_LINE_LENGTH];
+		int _tail;
 
-public:
-	inline LogBuffer(void)
-	: _tail(0) {
-		clear();
-	}
+	public:
+		inline LogBuffer(void)
+			: _tail(0)
+		{
+			clear();
+		}
 
-	// 0 = last line, 1 = second to last, etc.
-	inline const char *getLine(int line) const {
-		return _lines[size_t(_tail - (line + 1)) % MAX_LOG_LINES];
-	}
+		// 0 = last line, 1 = second to last, etc.
+		inline const char *getLine(int line) const
+		{
+			return _lines[size_t(_tail - (line + 1)) % MAX_LOG_LINES];
+		}
 
-	void clear(void);
-	char *allocateLine(void);
-};
+		void clear(void);
+		char *allocateLine(void);
+	};
 
-class Logger {
-private:
-	LogBuffer *_buffer;
-	bool      _enableSyslog;
+	class Logger
+	{
+	private:
+		LogBuffer *_buffer;
+		bool _enableSyslog;
 
-public:
-	inline Logger(void)
-	: _buffer(nullptr), _enableSyslog(true) {}
+	public:
+		inline Logger(void)
+			: _buffer(nullptr), _enableSyslog(true) {}
 
-	void setLogBuffer(LogBuffer *buffer);
-	void log(const char *format, ...);
-};
+		void setLogBuffer(LogBuffer *buffer);
+		void log(const char *format, ...);
+		void logT(const char *type, const char *format, const char *func, const int linenum, ...);
+	};
 
-extern Logger logger;
+	extern Logger logger;
 
 }
 
 /* Logging macros */
 
 #define LOG(type, fmt, ...) \
-	Logs::logger.log( \
-		type ",%s(%d): " fmt, __func__, __LINE__ __VA_OPT__(,) __VA_ARGS__ \
-	)
+	Logs::logger.logT(type, fmt, __func__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
+	//Logs::logger.log(type ",%s(%d): " fmt, __func__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
 
 #ifdef ENABLE_APP_LOGGING
-#define LOG_APP(fmt, ...) LOG("app", fmt __VA_OPT__(,) __VA_ARGS__)
+#define LOG_APP(fmt, ...) LOG("app", fmt __VA_OPT__(, ) __VA_ARGS__)
 #else
 #define LOG_APP(fmt, ...)
 #endif
 
 #ifdef ENABLE_FS_LOGGING
-#define LOG_FS(fmt, ...) LOG("fs", fmt __VA_OPT__(,) __VA_ARGS__)
+#define LOG_FS(fmt, ...) LOG("fs", fmt __VA_OPT__(, ) __VA_ARGS__)
 #else
 #define LOG_FS(fmt, ...)
 #endif

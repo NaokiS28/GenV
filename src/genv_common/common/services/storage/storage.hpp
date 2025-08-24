@@ -53,13 +53,37 @@ namespace Files
     constexpr uint16_t kibiByte = 1024;
     constexpr uint16_t kiloByte = 1000;
 
-    constexpr size_t KiB(size_t kb) { return (kibiByte * kb); }      // returns number of bytes in given KB (USE KB for 1000 bytes)
-    constexpr size_t MiB(size_t mb) { return (KiB(kibiByte) * mb); } // returns number of bytes in given MB (USE MB for 1000 bytes)
-    constexpr size_t GiB(size_t gb) { return (MiB(kibiByte) * gb); } // returns number of bytes in given GB (USE GB for 1000 bytes)
+    // returns number of bytes in given KB (USE KB for 1000 bytes)
+    constexpr size_t KiB(size_t kb)
+    {
+        return (kibiByte * kb);
+    }
+    // returns number of bytes in given MB (USE MB for 1000 bytes)
+    constexpr size_t MiB(size_t mb)
+    {
+        return (KiB(kibiByte) * mb);
+    }
+    // returns number of bytes in given GB (USE GB for 1000 bytes)
+    constexpr size_t GiB(size_t gb)
+    {
+        return (MiB(kibiByte) * gb);
+    }
 
-    constexpr size_t KB(size_t kb) { return (kiloByte * kb); }      // returns number of bytes in given KB (USE KiB for 1024 bytes)
-    constexpr size_t MB(size_t mb) { return (KiB(kiloByte) * mb); } // returns number of bytes in given MB (USE MiB for 1024 bytes)
-    constexpr size_t GB(size_t gb) { return (MiB(kiloByte) * gb); } // returns number of bytes in given GB (USE GiB for 1024 bytes)
+    // returns number of bytes in given KB (USE KiB for 1024 bytes)
+    constexpr size_t KB(size_t kb)
+    {
+        return (kiloByte * kb);
+    }
+    // returns number of bytes in given MB (USE MiB for 1024 bytes)
+    constexpr size_t MB(size_t mb)
+    {
+        return (KiB(kiloByte) * mb);
+    }
+    // returns number of bytes in given GB (USE GiB for 1024 bytes)
+    constexpr size_t GB(size_t gb)
+    {
+        return (MiB(kiloByte) * gb);
+    }
 
     enum class StorageType : uint8_t
     {
@@ -81,7 +105,8 @@ namespace Files
     {
         StorageType type; // Type of media
         size_t size;      // Max size of drive in bytes
-        StorageDevice(StorageType type, size_t size) : type(type), size(size) {}
+        StorageDevice(StorageType type, size_t size)
+            : type(type), size(size) {}
     };
 
     enum class OpticalType
@@ -109,7 +134,7 @@ namespace Files
         constexpr OpticalFormat BLURAY = {OpticalType::BLURAY, GiB(25)};
         constexpr OpticalFormat BLURAY_DL = {OpticalType::BLURAY, GiB(50)};
         constexpr OpticalFormat BLURAY_XL = {OpticalType::BLURAY, GiB(100)};
-    }
+    } // namespace Optical
 
     enum class HDDBus
     {
@@ -124,7 +149,7 @@ namespace Files
     {
         constexpr uint8_t PRIMARY = 0;
         constexpr uint8_t SECONDARY = 1;
-    }
+    } // namespace IDE
 
     struct HDDDevice
     {
@@ -140,11 +165,14 @@ namespace Files
         StorageDevice odd;
         uint8_t sessions; // DATA sessions
         uint8_t tracks;   // AUDIO tracks
-        OpticalMedia(size_t size,
-                     uint8_t sessions = 0,
-                     uint8_t tracks = 0) : odd(StorageType::ODD, size),
-                                           sessions(sessions),
-                                           tracks(tracks) {}
+
+        OpticalMedia(
+            size_t size,
+            uint8_t sessions = 0,
+            uint8_t tracks = 0)
+            : odd(StorageType::ODD, size),
+              sessions(sessions),
+              tracks(tracks) {}
     };
 
     constexpr const char *hddStr = "hdd";
@@ -172,11 +200,15 @@ namespace Files
 
     struct ProviderType
     {
-        const char *typeName;
+        const char *name = nullptr;
+        const char *make = nullptr;
         StorageType type;
-        ProviderType(const char *name,
-                     StorageType type) : typeName(name),
-                                         type(type)
+        ProviderType(
+            const char *_name,
+            const char *_make,
+            StorageType type) : name(_name),
+                                make(_make),
+                                type(type)
         {
         }
     };
@@ -191,9 +223,16 @@ namespace Files
     // Gets a storage provider index from path
     // Returns a default 0 if function fails to process the path.
     uint8_t getProviderIndex(const char *path, int len);
-    
+
     // Get the subdevice index number if it exists in path.
     // Returns a default 0 if function fails to process the path.
     uint8_t getProviderSubIndex(const char *path, int len);
 
-}
+    // Opens a file using either a Fully Qaulified file path or
+    // a relative path to the current working directory.
+    FileObject open(const char *filePath);
+
+    // Lists the contents of a folder, if it exists.
+    int list(const char *filePath, char *listing, uint16_t &entries);
+
+} // namespace Files

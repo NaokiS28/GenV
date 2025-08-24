@@ -27,42 +27,34 @@ GenvSystemClass genv;
 
 int main(int argc, char *argv[])
 {
-   genv.startup();
+    genv.startup();
 
-   System::ISystem *system = Services::getSystem();
-   Video::IVideo *video = Services::getVideo(); // It is assumed the System class will have init'd the I/O driver.
-   Apps::AppManager *apps = Apps::getAppManager();
-   if (!apps)
-      genv.halt();
+    Video::IVideo *video = Services::getVideo(); // It is assumed the System class will have init'd the I/O driver.
+    Apps::AppManager *apps = Apps::getAppManager();
+    if (!apps)
+        genv.halt();
 
-   uint8_t sm_state = System::SM_NORMAL;
+    uint8_t sm_state = System::SM_NORMAL;
+    while (sm_state != System::SM_QUIT)
+    {
+        System::PerfMon.loopStart();
+        sm_state = Services::update();                         // System, IO, Storage
 
-   while (sm_state != System::SM_QUIT)
-   {
-      System::PerfMon.loopStart();
+        if (sm_state == System::SM_RESIZE) { apps->reload(); } // For windowed/computer platforms and the window has changed size.
 
-      sm_state = system->update();
-      System::PerfMon.finishSystemExec();
+        apps->update();
+        System::PerfMon.finishAppExec();
 
-      if (sm_state == System::SM_RESIZE)
-      {
-         // For windowed/computer platforms and the window has changed size.
-         apps->reload();
-      }
+        if (video->beginRender())
+        {
+            apps->render();
+            System::PerfMon.finishRender();
+            video->endRender();
+        }
+    }
 
-      apps->update();
-      System::PerfMon.finishAppExec();
-
-      if (video->beginRender())
-      {
-         apps->render();
-         System::PerfMon.finishRender();
-         video->endRender();
-      }
-   }
-
-   apps->shutdown();
-   delete apps;
-   genv.shutdown(); // Shuts down the driver services and deletes them
-   return 0;
+    apps->shutdown();
+    delete apps;
+    genv.shutdown(); // Shuts down the driver services and deletes them
+    return 0;
 }

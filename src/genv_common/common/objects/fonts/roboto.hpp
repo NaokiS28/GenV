@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * nullinput.hpp - Created on 09-08-2025
+ * roboto.hpp - Created on 21-08-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,19 +15,12 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include <stdint.h>
+#include "common/objects/font.hpp"
 
-#include "iface_input.hpp"
-
-namespace Input
+namespace Fonts
 {
-    class NullInput : public IInput
-    {
-    public:
-        NullInput();
-        ~NullInput();
-        bool init() override;
-        bool reset() override;
-        void shutdown() override;
-    };
-}
+    extern FontMetrics roboto_16pt;
+    extern uint8_t *roboto_16pt_bmp;
+    extern size_t roboto_16pt_size;
+} // namespace Fonts

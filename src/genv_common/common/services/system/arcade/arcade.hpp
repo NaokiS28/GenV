@@ -49,5 +49,5 @@ namespace System
             uint8_t coinsIn = 0;
             uint8_t counterTicks = 0;
         };
-    }
-}
+    } // namespace ArcadeEnv
+} // namespace System

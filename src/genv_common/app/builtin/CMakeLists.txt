@@ -26,4 +26,5 @@ target_include_directories(genv_builtin_apps PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/app
     ${CMAKE_SOURCE_DIR}/src/app/builtin
+	${LIBC_INCLUDE}
 )

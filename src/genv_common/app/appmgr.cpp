@@ -40,7 +40,7 @@ namespace Apps
 
     // --- Local helpers ---------------------------------------------------------
 
-    static inline void tickApp(Application *app, AppManager *host)
+    void AppManager::tickApp(Application *app)
     {
         if (!app)
             return;
@@ -60,7 +60,7 @@ namespace Apps
         {
             const char *str = app->name();
             APPMGR_LOG("Init application: %s", str);
-            app->init(host);
+            app->init(this);
             break;
         }
 
@@ -214,7 +214,7 @@ namespace Apps
         {
             if (foregroundApp)
             {
-                tickApp(foregroundApp, this);
+                tickApp(foregroundApp);
             }
             else
             {
@@ -223,16 +223,16 @@ namespace Apps
             }
 
             if (backgroundApp)
-                tickApp(backgroundApp, this);
+                tickApp(backgroundApp);
         }
 
         // Error screen updates
         if (errorScreen)
-            tickApp(errorScreen, this);
+            tickApp(errorScreen);
 
         // Loading screen updates
         if (loadingScreen)
-            tickApp(loadingScreen, this);
+            tickApp(loadingScreen);
 
         // Late arcade test-mode transitions after graph changes
         if (asys && !foregroundApp && !backgroundApp)
@@ -264,7 +264,7 @@ namespace Apps
         if (loadingScreen && loadingScreen->isReady())
             loadingScreen->render(); // 2nd layer
         if (errorScreen && errorScreen->isReady())
-            errorScreen->render(); // top layer
+            errorScreen->render();   // top layer
         return 0;
     }
 
@@ -292,6 +292,7 @@ namespace Apps
     void AppManager::swapApps()
     {
         // Swap foreground <-> background (preserving focus state)
+        APPMGR_LOG("Swapping applications from %s to %s", foregroundApp->name(), backgroundApp->name());
         Application *fApp = nullptr;
 
         if (foregroundApp)
@@ -309,6 +310,7 @@ namespace Apps
 
     void AppManager::quitApp(AppSelect app)
     {
+        APPMGR_LOG("Closing app %s", foregroundApp->name());
         switch (app)
         {
         case APP_FOREGROUND:

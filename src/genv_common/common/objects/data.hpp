@@ -17,19 +17,20 @@
 
 #pragma once
 #include <string.h>
-//#include <stdexcept>
+// #include <stdexcept>
 #include <stddef.h>
 #include <stdint.h>
 
 #include "object.hpp"
-#include "common/services/storage/storage.hpp"
 
 class DataObject : public ObjectBase
 {
 public:
-    DataObject(size_t length) : ObjectBase() {
+    DataObject(size_t length) : ObjectBase()
+    {
         this->data = new uint8_t[length];
-        if(data != nullptr){
+        if (data != nullptr)
+        {
             memset(data, 0, length);
             this->length = length;
         }
@@ -39,28 +40,37 @@ public:
         delete[] data;
     }
 
-    template<typename T>
-    T* as() {
-        //if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
-        return reinterpret_cast<T*>(data);
+    template <typename T>
+    T *as()
+    {
+        // if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
+        return reinterpret_cast<T *>(data);
     }
 
-    template<typename T>
-    const T* as() const {
-        //if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
-        return reinterpret_cast<const T*>(data);
+    template <typename T>
+    const T *as() const
+    {
+        // if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
+        return reinterpret_cast<const T *>(data);
     }
 
-    template<typename T>
-    void set(const T& value) {
-        //if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
+    template <typename T>
+    void set(const T &value)
+    {
+        // if (sizeof(T) > length) throw std::runtime_error("Insufficient size for type.");
         memcpy(data, &value, sizeof(T));
     }
 
-    uint8_t* getRawData() { return data; }
-    size_t getDataLen() { return length; }
+    uint8_t *getRawData()
+    {
+        return data;
+    }
+    size_t getDataLen()
+    {
+        return length;
+    }
 
-    private:
+private:
     size_t length = 0;
     uint8_t *data = nullptr;
 };

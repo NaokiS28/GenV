@@ -22,13 +22,13 @@ namespace Apps
 {
     TextLoader::TextLoader()
     {
-        state = APP_STATE_RUN;
+        setAppState(APP_STATE_RUN);
         reload();
     }
 
     TextLoader::TextLoader(Application *appToLoad)
     {
-        state = APP_STATE_RUN;
+        setAppState(APP_STATE_RUN);
         this->setAppToLoad(appToLoad);
         reload();
     }

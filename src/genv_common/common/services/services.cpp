@@ -18,14 +18,79 @@
 #include "services.hpp"
 #include "common/logger/log.hpp"
 
+#include "common/services/adminkey.hpp"
+#include "common/services/io/inputman.hpp"
+#include "common/services/perfmon.hpp"
+#include "common/services/storage/storeman.hpp"
 #include "hardware.hpp"
 
 // Static member definitions
 Audio::IAudio *Services::s_audio = nullptr;
 Video::IVideo *Services::s_video = nullptr;
-Input::IInput *Services::s_input = nullptr;
-Files::IStorage *Services::s_storage = nullptr;
 System::ISystem *Services::s_system = nullptr;
+
+Input::InputManager *Services::s_input = nullptr;
+Files::StorageManager *Services::s_storage = nullptr;
+
+const char *szManagerFailed = "Failed to create %s manager!";
+
+int Services::init()
+{
+    s_storage = new Files::StorageManager(AdminClass_Key());
+    if (!s_storage)
+    {
+        LOG("services", szManagerFailed, "storage");
+        return -1;
+    }
+    s_input = new Input::InputManager(AdminClass_Key());
+    if (!s_input)
+    {
+        LOG("services", szManagerFailed, "input");
+        return -2;
+    }
+    return 0;
+}
+
+int Services::update()
+{
+    int r = System::SM_NORMAL;
+    r = s_system->update();
+    System::PerfMon.finishSystemExec();
+
+    // It's unlikely these would ever be null at this point
+    if (s_storage)
+    {
+        s_storage->update();
+        System::PerfMon.finishStorageUpdate();
+    }
+    if (s_input)
+    {
+        s_input->update();
+        System::PerfMon.finishInputUpdate();
+    }
+    return r;
+}
+
+void Services::shutdown()
+{
+    LOG("services", "Shutting down services.");
+    destroyAudio();
+    destroyVideo();
+    destroySystem();
+
+    if (s_input)
+    {
+        s_input->shutdown();
+        delete s_input;
+        s_input = nullptr;
+    }
+    if (s_storage)
+    {
+        s_storage->shutdown();
+        delete s_storage;
+        s_storage = nullptr;
+    }
+}
 
 void Services::setVideo(Video::IVideo *video)
 {
@@ -55,34 +120,6 @@ void Services::setAudio(Audio::IAudio *audio)
     s_audio = audio;
 }
 
-void Services::setInput(Input::IInput *input)
-{
-    if (!input)
-        return;
-
-    if (s_input)
-    {
-        s_input->shutdown();
-        delete s_input;
-    }
-
-    s_input = input;
-}
-
-void Services::setStorage(Files::IStorage *storage)
-{
-    if (!storage)
-        return;
-
-    if (s_storage)
-    {
-        s_storage->shutdown();
-        delete s_storage;
-    }
-
-    s_storage = storage;
-}
-
 void Services::destroySystem()
 {
     if (!s_system)
@@ -108,22 +145,4 @@ void Services::destroyAudio()
     s_audio->shutdown();
     delete s_audio;
     s_audio = nullptr;
-}
-
-void Services::destroyInput()
-{
-    if (!s_input)
-        return;
-    s_input->shutdown();
-    delete s_input;
-    s_input = nullptr;
-}
-
-void Services::destroyStorage()
-{
-    if (!s_storage)
-        return;
-    s_storage->shutdown();
-    delete s_storage;
-    s_storage = nullptr;
 }

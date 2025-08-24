@@ -24,9 +24,17 @@ namespace System
 
     PerformanceGraph &PerformanceMonitor::getPerformanceGraph(PerformanceGraphStyle style)
     {
+        size_t frame = Video::frames();
+        if (frame == lastFrame)
+        {
+            return lastGraph;
+        }
+
         lastGraph = nextGraph;
+        lastFrame = frame;
+
         uint8_t screenRate = Video::getRefreshRate();
-        size_t screenTime = (MS_1HZ / screenRate);
+        cycleTime = (MS_1HZ / screenRate);
 
         nextGraph.style = style;
         switch (style)
@@ -35,19 +43,25 @@ namespace System
             nextGraph.systemTime = systemExecTime;
             nextGraph.appTime = appExecTime;
             nextGraph.renderTime = renderTime;
-            nextGraph.idleTime = screenTime - (systemExecTime + appExecTime + renderTime);
+            nextGraph.storageTime = storageUpdateTime;
+            nextGraph.inputTime = inputUpdateTime;
+            nextGraph.idleTime = cycleTime - (systemExecTime + appExecTime + renderTime + storageUpdateTime + inputUpdateTime);
+            nextGraph.cycleTime = cycleTime;
             break;
         default:
         case PERFMON_GRAPH_PIE:
         case PERFMON_GRAPH_BAR:
-            nextGraph.systemTime = util::toPercent(systemExecTime, screenTime);
-            nextGraph.appTime = util::toPercent(appExecTime, screenTime);
-            nextGraph.renderTime = util::toPercent(renderTime, screenTime);
-            nextGraph.idleTime = util::toPercent(screenTime - (systemExecTime + appExecTime + renderTime), screenTime);
+            nextGraph.systemTime = util::toPercent(systemExecTime, cycleTime);
+            nextGraph.appTime = util::toPercent(appExecTime, cycleTime);
+            nextGraph.renderTime = util::toPercent(renderTime, cycleTime);
+            nextGraph.storageTime = util::toPercent(storageUpdateTime, cycleTime);
+            nextGraph.inputTime = util::toPercent(inputUpdateTime, cycleTime);
+            nextGraph.idleTime = util::toPercent(cycleTime - (systemExecTime + appExecTime + renderTime + storageUpdateTime + inputUpdateTime), cycleTime);
+            nextGraph.cycleTime = cycleTime;
             break;
         }
 
         return lastGraph;
     }
 
-}
+} // namespace System

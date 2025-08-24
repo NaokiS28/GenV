@@ -23,6 +23,7 @@
 #include "app_errorcodes.hpp"
 #include "common/util/hash.hpp"
 
+#include "common/logger/log.hpp"
 #include "common/services/system/iface_system.hpp"
 #include "common/services/system/arcade/iface_arcade.hpp"
 #include "common/services/video/video.hpp"
@@ -52,6 +53,31 @@ namespace Apps
         APP_STATE_SHUTDOWN,    // App has been requested to shutdown
         APP_STATE_QUIT         // App has finished and is ready to be deleted from memory
     };
+
+    constexpr const char *getAppStateString(AppExecState state)
+    {
+        switch (state)
+        {
+        case APP_STATE_LOAD:
+            return "App loading";
+        case APP_STATE_INIT:
+            return "App initialising";
+        case APP_STATE_RUN:
+            return "App running";
+        case APP_STATE_REGAINFOCUS:
+            return "App gain focus";
+        case APP_STATE_OUTOFFOCUS:
+            return "App lost focus";
+        case APP_STATE_ERROR:
+            return "App error occured";
+        case APP_STATE_SHUTDOWN:
+            return "App shutting down";
+        case APP_STATE_QUIT:
+            return "App quit";
+        default:
+            return "Unkown state";
+        }
+    }
 
     enum AppType : uint8_t
     {
@@ -102,13 +128,19 @@ namespace Apps
     {
         friend class AppManager;
 
+    private:
+        AppExecState state; // Current app working state
+
     protected:
         Video::IVideo *gpu; // Local pointer to GPU object to use
-        AppExecState state; // Current app working state
         AppType type;
-
         IAppHost *m_host = nullptr;
         void setHost(IAppHost *host) { m_host = host; }
+        void setAppState(AppExecState state)
+        {
+            LOG("app", "\"%s\" app state changed to: %s", name(), getAppStateString(state));
+            this->state = state;
+        }
 
     public:
         Application();
@@ -128,13 +160,12 @@ namespace Apps
 
         virtual int loadProgress(const char *&str); // State of initial loading progress in percent (str for custom loading text)
 
-        virtual int init(IAppHost *host) = 0;              // Initialize app
-        virtual void update() = 0;                         // Update the app's logic
-        virtual void render() = 0;                         // Request app to draw it's UI
-        virtual void loadApp() { state = APP_STATE_INIT; } // Call app to load next file/object (app handles any loading list)
-        virtual void shutdown() {}                         // Request app to begin unloading and finilization
-        virtual void reload() {}                           // Request app to restart from the begining (or reload assets)
-        virtual void setAppState(AppExecState state) { this->state = state; }
+        virtual int init(IAppHost *host) = 0;                        // Initialize app
+        virtual void update() = 0;                                   // Update the app's logic
+        virtual void render() = 0;                                   // Request app to draw it's UI
+        virtual void loadApp() { setAppState(APP_STATE_INIT); }      // Call app to load next file/object (app handles any loading list)
+        virtual void shutdown() { setAppState(APP_STATE_SHUTDOWN); } // Request app to begin unloading and finilization
+        virtual void reload() {}                                     // Request app to restart from the begining (or reload assets)
     };
 
     /*

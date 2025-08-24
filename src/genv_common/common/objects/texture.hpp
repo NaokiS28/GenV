@@ -42,10 +42,9 @@ namespace Textures
         Files::FileObject *file = nullptr;
 
     public:
-        BitsPerPixel bpp;
-
         int width = 0;
         int height = 0;
+        int bpp = 0;
 
         size_t bitmapLength = 0;
         const uint8_t *bitmap = nullptr;
@@ -73,7 +72,7 @@ namespace Textures
 
     TextureObject *createTexture();
     TextureObject *createTexture(const char *filePath);
-}
+} // namespace Textures
 
 // Is pow(bpp,2), really.
 static constexpr const size_t genv_bpp(uint8_t bpp)

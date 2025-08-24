@@ -18,7 +18,7 @@
 #pragma once
 #include <stdint.h>
 #include "texture.hpp"
-#include "util/ifloat.hpp"
+#include "common/util/ifloat.hpp"
 
 class ModelObject {
     private:

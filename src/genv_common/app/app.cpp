@@ -20,9 +20,9 @@
 
 namespace Apps
 {
-    Application::Application() : gpu(Services::getVideo()),
-                                 state(APP_STATE_LOAD)
+    Application::Application() : gpu(Services::getVideo())
     {
+        state = APP_STATE_LOAD;
         type = APP_TYPE_NORMAL_APP;
     }
 
@@ -76,9 +76,9 @@ namespace Apps
         this->len = len;
     }
 
-    Application::Application(Video::IVideo *_gpu) : gpu(_gpu),
-                                                    state(APP_STATE_LOAD)
+    Application::Application(Video::IVideo *_gpu) : gpu(_gpu)
     {
+        state = APP_STATE_LOAD;
     }
 
     int Application::loadProgress(const char *&str)
@@ -111,7 +111,6 @@ namespace Apps
 
     ErrorScreenApp::~ErrorScreenApp()
     {
-        state = APP_STATE_SHUTDOWN;
         if (msg && msg != &eMsgUnknownMsg)
             delete msg;
         if (errorSound != nullptr)

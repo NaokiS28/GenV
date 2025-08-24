@@ -26,45 +26,60 @@
 #include "storage/iface_storage.hpp"
 #include "system/iface_system.hpp"
 
+#include "common/services/io/inputman.hpp"
+#include "common/services/storage/storeman.hpp"
+
 class Services
 {
-public:
-    // Getters
-    static Audio::IAudio *getAudio(void) { return s_audio; }
-    static Video::IVideo *getVideo(void) { return s_video; }
-    static Input::IInput *getInput(void) { return s_input; }
-    static Files::IStorage *getStorage(void) { return s_storage; }
-    static System::ISystem *getSystem(void) { return s_system; }
+    friend class GenvSystemClass;
 
+public:
+    static inline Audio::IAudio *getAudio(void) { return s_audio; }
+    static inline Video::IVideo *getVideo(void) { return s_video; }
+    static inline System::ISystem *getSystem(void) { return s_system; }
     static inline void setSystem(AdminClass_Key key, System::ISystem *sys) { setSystem(sys); }
     static inline void setVideo(AdminClass_Key key, Video::IVideo *video) { setVideo(video); }
     static inline void setAudio(AdminClass_Key key, Audio::IAudio *audio) { setAudio(audio); }
-    static inline void setInput(AdminClass_Key key, Input::IInput *input) { setInput(input); }
-    static inline void setStorage(AdminClass_Key key, Files::IStorage *storage) { setStorage(storage); }
 
-    static inline void destroySystem(AdminClass_Key key) { destroySystem(); }
-    static inline void destroyVideo(AdminClass_Key key) { destroyVideo(); }
-    static inline void destroyAudio(AdminClass_Key key) { destroyAudio(); }
-    static inline void destroyInput(AdminClass_Key key) { destroyInput(); }
-    static inline void destroyStorage(AdminClass_Key key) { destroyStorage(); }
+    // static Input::IInput *getInput(void) { return s_input; }
+    static Files::IStorage *getStorage(void) { return s_storage; }
+    static inline bool addInputDevice(Input::IInput *dev)
+    {
+        if (!s_input || !dev) return false;
+        return s_input->attachDevice(dev); // implement attachDevice(...)
+    }
+    static inline bool removeInputDevice(Input::IInput *dev)
+    {
+        if (!s_input || !dev) return false;
+        return s_input->detachDevice(dev); // implement detachDevice(...)
+    }
+    static inline bool addStorageDevice(Files::IStorageDevice *dev)
+    {
+        if (!s_storage || !dev) return false;
+        return s_storage->attachDevice(dev); // implement attachDevice(...)
+    }
+    static inline bool removeStorageDevice(Files::IStorageDevice *dev)
+    {
+        if (!s_storage || !dev) return false;
+        return s_storage->detachDevice(dev); // implement detachDevice(...)
+    }
+    static int update();
 
 private:
-    static void setSystem(System::ISystem *sys) { s_system = sys; }
-    static void setVideo(Video::IVideo *video);
-    static void setAudio(Audio::IAudio *audio);
-    static void setInput(Input::IInput *input);
-    static void setStorage(Files::IStorage *storage);
-
-    static void destroySystem();
-    static void destroyVideo();
-    static void destroyAudio();
-    static void destroyInput();
-    static void destroyStorage();
+    static int init();
+    static void shutdown();
 
     // Static pointers to service implementations
     static Audio::IAudio *s_audio;
     static Video::IVideo *s_video;
-    static Input::IInput *s_input;
-    static Files::IStorage *s_storage;
     static System::ISystem *s_system;
+    static inline void setSystem(System::ISystem *sys) { s_system = sys; }
+    static void setVideo(Video::IVideo *video);
+    static void setAudio(Audio::IAudio *audio);
+    static void destroySystem();
+    static void destroyVideo();
+    static void destroyAudio();
+
+    static Input::InputManager *s_input;
+    static Files::StorageManager *s_storage;
 };

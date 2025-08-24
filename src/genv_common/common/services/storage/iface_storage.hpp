@@ -23,10 +23,7 @@ namespace Files
 {
     struct IStorageDevice
     {
-
     };
-
-    class FileObject;
 
     class IStorage
     {
@@ -34,22 +31,43 @@ namespace Files
         IStorage() = default;
         virtual ~IStorage() {}
 
-        virtual bool init() = 0;
+        virtual int init() = 0;
+        virtual void update() = 0;
         virtual bool reset() = 0;
         virtual void shutdown() = 0;
 
-        virtual int openFile(const char *filePath, bool lock, FileObject *fObj) { return 0; }
-        virtual int closeFile(FileObject *fObj) { return 0; }
-        virtual int writeFile(FileObject *fObj) { return 0; }
-        virtual int renameFile(const char *fileName, FileObject *fObj) { return 0; }
-        virtual int newFile(const char *filePath, const char *filename, FileObject *fObj) { return 0; }
-        virtual int deleteFile(FileObject *fObj) { return 0; }
-        virtual int readFile(size_t offset, size_t length) { return 0; }
+        virtual int openFile(const char *filePath, bool lock, FileObject *fObj)
+        {
+            return 0;
+        }
+        virtual int closeFile(FileObject *fObj)
+        {
+            return 0;
+        }
+        virtual int writeFile(FileObject *fObj)
+        {
+            return 0;
+        }
+        virtual int renameFile(const char *fileName, FileObject *fObj)
+        {
+            return 0;
+        }
+        virtual int newFile(const char *filePath, const char *filename, FileObject *fObj)
+        {
+            return 0;
+        }
+        virtual int deleteFile(FileObject *fObj)
+        {
+            return 0;
+        }
+        virtual int readFile(size_t offset, size_t length)
+        {
+            return 0;
+        }
 
         // Gets a list of drives present in the system and returns the total count.
-        virtual uint8_t getDriveList(IStorageDevice *list) = 0;
-        virtual const char *getWorkingDirectory() = 0;
+        virtual int getDriveList(IStorageDevice *list, uint8_t &count) = 0;
 
     private:
     };
-}
+} // namespace Files

@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "app/app.hpp"
 #include "app/iapp_host.hpp"
 
@@ -27,9 +26,9 @@ class GenVTestApp : public ArcadeTestApp
 {
 private:
     static constexpr AppInfo appInfo = makeAppInfo(
-        "Arcade Test Mode (NRC)", // name
-        "NaokiS",                 // maker
-        AppVersion(0, 0, 1)       // version
+        "Arcade Test Mode", // name
+        "NaokisRC",         // maker
+        AppVersion(0, 0, 1) // version
     );
 
 public:

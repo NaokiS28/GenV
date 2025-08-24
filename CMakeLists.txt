@@ -20,7 +20,7 @@ cmake_minimum_required(VERSION 3.29)
 project(
 	GenV
 	LANGUAGES    C CXX ASM
-	VERSION      1.0.0
+	VERSION      0.1.0
 	DESCRIPTION  ""
 	HOMEPAGE_URL "https://github.com/NaokiS28/GenV"
 )
@@ -58,25 +58,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_program(DOT_EXECUTABLE dot)
 
 # Automatically generate dependency graph when CMake runs
-if (false)
-    # Generate .dot file during configuration
-    message(STATUS "Generating dependancy graph")
+if (DOT_EXECUTABLE)
     execute_process(
-        COMMAND ${CMAKE_COMMAND} --graphviz=${CMAKE_BINARY_DIR}/build_graph.dot ${CMAKE_BINARY_DIR}
+        COMMAND ${DOT_EXECUTABLE} -Tpng ${CMAKE_BINARY_DIR}/graph/build_graph.dot -o ${CMAKE_BINARY_DIR}/build_graph.png
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        ERROR_QUIET
     )
-
-    # Also generate a PNG automatically
-    execute_process(
-        COMMAND ${DOT_EXECUTABLE} -Tpng ${CMAKE_BINARY_DIR}/build_graph.dot -o ${CMAKE_BINARY_DIR}/build_graph.png
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        ERROR_QUIET
-    )
-
     message(STATUS "Generated build_graph.dot and build_graph.png in ${CMAKE_BINARY_DIR}")
-else()
-   # message(WARNING "Graphviz 'dot' tool not found — dependency graph will not be generated")
 endif()
 
 
@@ -97,15 +84,18 @@ if(NOT COMMAND addGenVExecutable)
     endfunction()
 endif()
 
+add_subdirectory(src/genv_common/terminal)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Generic")
     # add global dependency on bare metal libc (must be done here)
     add_subdirectory(lib/libc)
     link_libraries(libc)
+    set(LIBC_INCLUDE ${CMAKE_SOURCE_DIR}/lib/libc)
 endif()
 
 add_subdirectory(src/genv_common/common)
 add_subdirectory(src/genv_common/app)
-add_subdirectory(src/genv_common/terminal)
+add_subdirectory(src/genv_common/common/objects/fonts)
 add_subdirectory(src/genv_hw/${GENV_PLATFORM})
 
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)

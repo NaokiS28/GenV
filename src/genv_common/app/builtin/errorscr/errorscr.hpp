@@ -36,9 +36,9 @@ class DefaultErrorScreen : public ErrorScreenApp
 {
 private:
     static constexpr AppInfo appInfo = makeAppInfo(
-        "Default Error Screen (NRC)", // name
-        "NaokiS",                     // maker
-        AppVersion(0, 0, 1)           // version
+        "Default Error Screen", // name
+        "NaokisRC",             // maker
+        AppVersion(0, 0, 1)     // version
     );
     Util::Tween<uint16_t, Util::LinearEasing> colorIntensity;
 

@@ -26,8 +26,8 @@ namespace Apps
     {
     private:
         static constexpr AppInfo appInfo = makeAppInfo(
-            "TextLoader (NRC)", // name
-            "NaokiS",           // maker
+            "TextLoader",       // name
+            "NaokisRC",         // maker
             AppVersion(0, 0, 1) // version
         );
 
