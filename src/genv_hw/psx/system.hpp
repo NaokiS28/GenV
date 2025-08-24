@@ -17,19 +17,34 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
+#include <atomic>
+
+#include "psx/registers.hpp"
+#include "video/video.hpp"
+#include "system/sys.h"
+#include "system/timer.h"
 
 #include "common/services/system/iface_system.hpp"
+#include "common/services/system/rtc/soft_rtc.hpp"
 #include "common/services/system/timer.hpp"
+
+#include "drivers/sio0/psx_joy.hpp"
+#include "drivers/sio0/psx_mc.hpp"
+#include "drivers/psx_cdrom.hpp"
+#include "drivers/psx_pcdrv.hpp"
 
 namespace System
 {
     namespace PSX
     {
-        constexpr const char *szPS1SystemName = "PlayStation";
-        constexpr const char *szPS1MakeName = "Sony";
+        constexpr const char *szPlaystation = "PlayStation";
+        constexpr const char *szSony = "Sony";
 
-        enum {
+        enum
+        {
             PSX_SYS_OK,
             PSX_SYS_VIDEO_INIT_FAIL,
             PSX_SYS_SOUND_INIT_FAIL,
@@ -53,46 +68,89 @@ namespace System
          */
         class PSXSystem : public ISystem
         {
-        private:
+        protected:
+            Time::IRTC *clock;
             uint8_t sm_state; // System Manager state for returning to main.cpp
 
-            virtual int initVideo();
-            virtual int initAudio();
-            virtual int initIO();
-            virtual int initFiles();
+            virtual int _initVideo();
+            virtual int _initAudio();
+            virtual int _initIO();
+            virtual int _initFiles();
+
+            void _interruptHandler();
+
+            void _isr_timer2();
+
+            // Millis/Seconds tracking
+            const size_t err_numerator = 307;
+            const size_t err_denominator = 512;
+            volatile size_t timer2_addcycle = 0;
+            volatile size_t timer2_count = 0;
+            volatile size_t timer2_erracc = 0; // Time sync Error accumulator
+            volatile size_t lastRTCTick = 0;
 
             SystemInfo siPS1 = {
                 .type = SYS_Console,
-                .make = szPS1MakeName,
-                .name = szPS1SystemName,
+                .make = szSony,
+                .name = szPlaystation,
                 .flags = SYS_No_Window_Mode};
+
+            GPU::PSXGPU *gpu = nullptr;
+
+            PSX_CDROM *cdDriver = nullptr;
+            PSX_Joypad *joyDriver = nullptr;
+            PSX_MemCard *mcDriver = nullptr;
+            PSX_PCDrive *pcDriver = nullptr;
 
         public:
             PSXSystem();
-            virtual ~PSXSystem() = default;
+            virtual ~PSXSystem();
 
-            virtual int init() override;             // Registers Windows app class and inits drivers
+            virtual int init() override;              // Registers Windows app class and inits drivers
             virtual int update() override;            // Process wWindows messages
             virtual bool shutdown() override;         // Prepare drivers and app for close
             virtual bool setResolution(int w, int h); // Sets window resolution (internal viewport)
-            bool setFullscreen(Video::FullscreenMode mode) { return false; }
-            bool toggleFullscreen() { return false; }
+            bool setFullscreen(Video::FullscreenMode mode)
+            {
+                return false;
+            }
+            bool toggleFullscreen()
+            {
+                return false;
+            }
 
             virtual const SystemInfo *getSysInfo() const override
             {
                 return &siPS1;
             }
 
-            size_t millis();
-            size_t getTime() { return 0; }
+            size_t millis() override
+            {
+                std::atomic_signal_fence(std::memory_order_acquire);
+                constexpr int tmult = 5;
+                constexpr int tdiv = 21168;
+                static_assert(((TIMER2_FREQ * tmult) / tdiv) == 1000);
 
-            inline bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq)
+                return (uint64_t(TIMER_VALUE(PSX_TIMER_2) | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
+            }
+
+            bool getTime(tm &time) override
+            {
+                if (clock)
+                    return clock->getTime(time);
+                else
+                    return false;
+            }
+
+            virtual const char *getWorkingDirectory() override;
+
+            inline bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq) override
             {
                 // if (timer == TChannel::TIMER1)
                 // return sysTimer.registerFunction(func, freq);
                 return false;
             }
-            inline bool unregisterTimerFunc(TFunc func, TChannel timer)
+            inline bool unregisterTimerFunc(TFunc func, TChannel timer) override
             {
                 // if (timer == TChannel::TIMER1)
                 // return sysTimer.unregisterFunction(func);
@@ -100,5 +158,5 @@ namespace System
             }
         };
 
-    }
-}
+    } // namespace PSX
+} // namespace System

@@ -18,7 +18,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "../registers.h"
+#include "../registers.hpp"
 
 namespace spu
 {

@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * rtc.cpp - Created on 01-08-2025
+ * 573_rtc.cpp - Created on 16-08-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,17 +15,110 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "sys573.hpp"
+#include "rtc.hpp"
+#include "registers573.hpp"
+#include "common/util/misc.hpp"
+#include "common/util/time.hpp"
+#include "common/util/date.hpp"
 
-namespace System
+using namespace System::PSX::KSYS573;
+
+RTC::RTC()
 {
-    int Sys573System::readNVRAM()
+    getClock(clock);
+    SYS573_RTC_DAY |= SYS573_RTC_DAY_BATTERY_MONITOR;
+    RTC_is_ok = !(SYS573_RTC_DAY & SYS573_RTC_DAY_LOW_BATTERY);
+}
+
+int RTC::setTime(int hour, int min, int sec, bool amPm)
+{
+    if (!Time::timeValid(hour, min, sec))
+        return 1;
+    SYS573_RTC_CTRL |= SYS573_RTC_CTRL_WRITE;
+    SYS573_RTC_HOUR = util::dec2bcd(hour);
+    SYS573_RTC_MINUTE = util::dec2bcd(min);
+    SYS573_RTC_SECOND = util::dec2bcd(sec) & (SYS573_RTC_SECOND_TENS_BITMASK | SYS573_RTC_SECOND_UNITS_BITMASK);
+    SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_WRITE);
+    return 0;
+}
+
+int RTC::setDate(int day, int month, int year)
+{
+    if (!Date::dateValid(day, month, year))
+        return 1;
+    SYS573_RTC_CTRL |= SYS573_RTC_CTRL_WRITE;
+
+    bool century = year > 1999;
+    SYS573_RTC_WEEKDAY = (Date::getDayOfWeek(year, month, day) & (century << 4));
+
+    SYS573_RTC_YEAR = util::dec2bcd(year);
+    SYS573_RTC_MONTH = util::dec2bcd(month);
+    SYS573_RTC_DAY = (util::dec2bcd(day) & (SYS573_RTC_DAY_TENS_BITMASK | SYS573_RTC_DAY_UNITS_BITMASK));
+    SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_WRITE);
+    return 0;
+}
+
+void RTC::tick()
+{
+    SoftRTC::tick();
+    if (RTC_is_ok && ticks > RTCSyncTime)
     {
-
-    }
-
-    int Sys573System::writeNVRAM()
-    {
-
+        // Sync with the physical RTC every so often
+        getTime(clock);
+        ticks = 0;
     }
 }
+
+bool RTC::getTime(tm &time)
+{
+    SYS573_RTC_CTRL |= SYS573_RTC_CTRL_READ;
+    time.tm_hour = util::bcd2dec(SYS573_RTC_HOUR);
+    time.tm_min = util::bcd2dec(SYS573_RTC_MINUTE);
+    time.tm_sec = util::bcd2dec(SYS573_RTC_SECOND & (SYS573_RTC_SECOND_TENS_BITMASK | SYS573_RTC_SECOND_UNITS_BITMASK));
+    SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_READ);
+    return batteryStatus();
+}
+
+int RTC::getDate(tm &time)
+{
+    SYS573_RTC_CTRL |= SYS573_RTC_CTRL_READ;
+    time.tm_mday = util::bcd2dec(SYS573_RTC_DAY & (SYS573_RTC_DAY_TENS_BITMASK | SYS573_RTC_DAY_UNITS_BITMASK));
+    time.tm_mon = util::bcd2dec(SYS573_RTC_MONTH);
+    time.tm_year = util::bcd2dec(SYS573_RTC_YEAR);
+    SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_READ);
+    return 0;
+}
+
+size_t RTC::getUnixTime()
+{
+    return 0;
+}
+
+int RTC::getLocalTime(tm *tmObj, time_t time)
+{
+    return 0;
+}
+
+int RTC::readNVRAM(uint8_t *data, int offset, int count)
+{
+    if (!data || count >= SYS573_RTC_SIZE)
+        return 0;
+
+    offset %= SYS573_RTC_SIZE; // Allow mirroring
+
+    for (int c = 0; c < count; c++)
+        data[c] = SYS573_RTC_SRAM[offset + c];
+
+    return count;
+}
+
+int RTC::writeNVRAM(const uint8_t *data, int offset, int count)
+{
+    if (!data || count >= SYS573_RTC_SIZE || offset >= SYS573_RTC_SIZE)
+        return 0;
+
+    for (int c = 0; c < count; c++)
+        SYS573_RTC_SRAM[offset + c] = data[c];
+
+    return count;
+};

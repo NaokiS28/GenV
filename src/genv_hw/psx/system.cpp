@@ -15,51 +15,60 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "system.hpp"
-#include "registers.h"
+#include <stdio.h>
+#include <assert.h>
 
-#include "video/video.hpp"
-#include "system/sys.h"
+#include "system.hpp"
+#include "psx/system/timer.h"
+#include "registers.hpp"
 
 #include "common/services/services.hpp"
 #include "common/logger/log.hpp"
 #include "common/util/misc.hpp"
+#include "common/util/templates.hpp"
 #include "system/serial.h"
 #include "terminal/terminal.h"
 
 namespace System::PSX
 {
+
     PSXSystem::PSXSystem() : sm_state(SM_NORMAL)
     {
+        psx_installExceptionHandler();
         GenV_ConsoleOps ops;
         ops.init = &sio1_init;
         ops.read = &sio1_read;
         ops.write = &sio1_write;
         ops.flush = &sio1_flush;
         genv_tty_register(&ops);
+
+        clock = new Time::SoftRTC;
+    }
+
+    PSXSystem::~PSXSystem()
+    {
+        psx_uninstallExceptionHandler();
+        if (clock)
+            delete clock;
     }
 
     int PSXSystem::init()
     {
-        IRQ_MASK = 0;
-        IRQ_STAT = 0;
-        DMA_DPCR = 0;
-        DMA_DICR = DMA_DICR_CH_STAT_BITMASK;
-        cop0_setSR(COP0_SR_Im2 | COP0_SR_CU0 | COP0_SR_CU2);
+        psx_setInterruptHandler(util::forcedCast<ArgFunction>(&PSXSystem::_interruptHandler), this);
 
-        if (initIO() != 0)
+        if (_initIO() != 0)
         {
             return PSX_SYS_IO_INIT_FAIL;
         }
-        if (initVideo() != 0)
+        if (_initVideo() != 0)
         {
             return PSX_SYS_VIDEO_INIT_FAIL;
         }
-        if (initFiles() != 0)
+        if (_initFiles() != 0)
         {
             return PSX_SYS_FILE_INIT_FAIL;
         }
-        if (initAudio() != 0)
+        if (_initAudio() != 0)
         {
             return PSX_SYS_SOUND_INIT_FAIL;
         }
@@ -78,33 +87,98 @@ namespace System::PSX
         // return video()->setResolution(w, h);
     }
 
-    int PSXSystem::initVideo()
+    int PSXSystem::_initVideo()
     {
-        Video::IVideo *vDriver = new GPU::PSXGPU;
-        if (!vDriver || vDriver->init())
+        gpu = new GPU::PSXGPU;
+        if (!gpu || gpu->init())
             return -1;
-        Services::setVideo(adminKey, vDriver);
-        IRQ_MASK = 1 << IRQ_VSYNC;
+        Services::setVideo(adminKey, gpu);
         return 0;
     }
 
-    int PSXSystem::initAudio()
+    int PSXSystem::_initAudio()
     {
-        // IAudio *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND, gpuWnd);
-        // if (!aDriver || !aDriver->init())
+        // IAudio *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND,
+        // gpuWnd); if (!aDriver || !aDriver->init())
         return 0;
     }
 
-    int PSXSystem::initFiles()
+    int PSXSystem::_initFiles()
     {
-        return 0;
+        int r = 0;
+        cdDriver = new PSX_CDROM();
+        if (!cdDriver)
+            r = -1;
+        mcDriver = new PSX_MemCard();
+        if (!mcDriver)
+            r = -2;
 
+#ifndef NDEBUG
+        pcDriver = new PSX_PCDrive();
+        if (!mcDriver)
+            r = -3;
+#endif
+        return r;
     }
 
-    int PSXSystem::initIO()
+    int PSXSystem::_initIO()
     {
         sio1_init(115200);
+        psx_timer_set_params(PSX_TIMER_0, PSX_TMR0_CLK_SRC_SYSTEM);
+        psx_timer_set_params(PSX_TIMER_1, PSX_TMR2_CLK_SRC_SYSTEM);
+        psx_timer_set_params(PSX_TIMER_2,
+                             0 | PSX_TMR2_CLK_SRC_SYS_DIV8 +
+                                     (PSX_TMR_RESET_ON_OVERFLOW | PSX_TMR_IRQ_ON_OVERFLOW |
+                                      PSX_TMR_IRQ_REPEAT | PSX_TMR_IRQ_PULSE_BIT_10));
+        psx_timer_enable_irq(PSX_TIMER_2);
+        psx_timer_reset(PSX_TIMER_0);
+        psx_timer_reset(PSX_TIMER_1);
+        psx_timer_reset(PSX_TIMER_2);
+
+        joyDriver = new PSX_Joypad();
+        if (joyDriver)
+            return -1;
+        Services::addInputDevice(joyDriver);
+
         return 0;
+    }
+
+    void PSXSystem::_interruptHandler(void)
+    {
+        std::atomic_signal_fence(std::memory_order_acquire);
+        if (psx_acknowledgeInterrupt(IRQ_VSYNC))
+        {
+            gpu->waitingForVsync = false;
+        }
+        else if (psx_acknowledgeInterrupt(IRQ_TIMER2))
+        {
+            _isr_timer2();
+        }
+        std::atomic_signal_fence(std::memory_order_release);
+    }
+
+    void PSXSystem::_isr_timer2()
+    {
+        psx_timer_ack_irq(PSX_TIMER_2);
+        // Timer 2 is used for millis/seconds but will drift out of sync
+        //  as the timer is not a perfect division of time for seconds.
+        //  This will account for this and add an extra every so often to
+        //  correct for this.
+        timer2_count += 1;
+        if ((timer2_count - lastRTCTick) >= (64 + timer2_addcycle))
+        {
+            timer2_erracc += err_numerator;
+            if (timer2_erracc >= err_denominator)
+            {
+                timer2_erracc -= err_denominator;
+                timer2_addcycle += 1;
+            }
+            else
+                timer2_addcycle = 0;
+            lastRTCTick = timer2_count;
+            if (clock)
+                clock->tick();
+        }
     }
 
     int PSXSystem::update()
@@ -119,8 +193,9 @@ namespace System::PSX
         return true;
     }
 
-    size_t PSXSystem::millis()
+    const char *PSXSystem::getWorkingDirectory()
     {
-        return 0;
+        return nullptr;
     }
-}
+
+} // namespace System::PSX

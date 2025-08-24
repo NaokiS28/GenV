@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #include "../cpu/cop0gte.h"
-#include "../registers.h"
+#include "../registers.hpp"
 
 typedef struct
 {
@@ -40,7 +40,7 @@ extern "C"
 
     /**
      * @brief Read-only pointer to the currently running thread.
-     */
+     */ 
     extern Thread *currentThread;
 
     /**

@@ -20,13 +20,15 @@
 #include <stdint.h>
 
 #include "common/services/video/iface_video.hpp"
-#include "common/logger/log.hpp"
 
 #include "texmgr.hpp"
 #include "gpudef.hpp"
 #include "psxtex.hpp"
 
-#define LOG_GPU(fmt, ...) LOG("PSXGPU", fmt __VA_OPT__(, ) __VA_ARGS__)
+namespace System::PSX
+{
+    class PSXSystem;
+}
 
 namespace System::PSX::GPU
 {
@@ -36,6 +38,8 @@ namespace System::PSX::GPU
 
     class PSXGPU : public IVideo
     {
+        friend class System::PSX::PSXSystem;
+
     protected:
         typedef struct
         {
@@ -54,31 +58,32 @@ namespace System::PSX::GPU
         int frameX = 0;
         int frameY = 0;
 
-        void waitForGP0Ready(void);
-        void waitForVSync(void);
-        void waitForDMADone(void);
+        void _waitForGP0Ready(void);
+        void _waitForVSync(void);
+        void _waitForDMADone(void);
+        volatile bool waitingForVsync = false;
 
-        void swapFrameBuffer();
-        void sendLinkedList(const void *data);
+        void _swapFrameBuffer();
+        void _sendLinkedList(const void *data);
 
         uint32_t *gpuListPtr = nullptr;
         DMAChain *chain = nullptr;
-        uint32_t *allocatePacket(DMAChain *chain, int numCommands);
+        uint32_t *_allocatePacket(DMAChain *chain, int numCommands);
 
-        void enableDMA(bool state);
+        void _enableDMA(bool state);
 
-        void directWrite(uint32_t cmd);
-        void addToDMAList(uint32_t cmd);
-        void (PSXGPU::*GPUCMD)(uint32_t) = &PSXGPU::directWrite;
+        void _directWrite(uint32_t cmd);
+        void _addToDMAList(uint32_t cmd);
+        void (PSXGPU::*_GPUCMD)(uint32_t) = &PSXGPU::_directWrite;
 
-        void sendVRAMData(
+        void _sendVRAMData(
             const void *data,
             int x,
             int y,
             int width,
             int height);
 
-        int uploadIndexedTexture(Textures::TextureObject *tObj);
+        int _uploadIndexedTexture(Textures::TextureObject *tObj);
 
     public:
         PSXGPU();
@@ -86,12 +91,18 @@ namespace System::PSX::GPU
         ~PSXGPU() override;
 
         bool init() override;
-        bool reset() override { return false; }
+        bool reset() override
+        {
+            return false;
+        }
         bool beginRender() override;
         bool endRender() override;
-        bool shutdown() override { return 0; }
+        bool shutdown() override
+        {
+            return 0;
+        }
 
-        const VideoModeList *getSupportedResolutions()
+        const VideoModeList *getSupportedResolutions() override
         {
             return &PSX_Video_Modes;
         }
@@ -111,18 +122,10 @@ namespace System::PSX::GPU
         {
         }
 
-        void drawRect(int x, int y, int w, int h, Color c) override
-        {
-        }
-        void drawGradientRectH(int x, int y, int w, int h, Color left, Color right) override
-        {
-        }
-        void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom) override
-        {
-        }
-        void drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom) override
-        {
-        }
+        void drawRect(int x, int y, int w, int h, Color c) override;
+        void drawGradientRectH(int x, int y, int w, int h, Color left, Color right) override;
+        void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom) override;
+        void drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom) override;
 
         void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m) override
         {
@@ -137,8 +140,8 @@ namespace System::PSX::GPU
         {
         }
 
-        Textures::TextureObject *createTexture();
-        Textures::TextureObject *createTexture(const char *filePath);
+        Textures::TextureObject *createTexture() override;
+        Textures::TextureObject *createTexture(const char *filePath) override;
         int uploadTexture(Textures::TextureObject *tObj) override;
         int releaseTexture(Textures::TextureObject *tObj) override;
 
@@ -167,4 +170,4 @@ namespace System::PSX::GPU
             return 0;
         }
     };
-}
+} // namespace System::PSX::GPU

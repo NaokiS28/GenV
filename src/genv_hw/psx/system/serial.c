@@ -18,7 +18,7 @@
 #define PSX_SIO_C
 #include <stddef.h>
 #include "serial.h"
-#include "../registers.h"
+#include "../registers.hpp"
 
 /* Serial port stdin/stdout */
 int sio1_init(int baud)
@@ -55,7 +55,7 @@ int sio1_read_byte(void)
 
 int sio1_read(char *data, size_t number)
 {
-	int bytes;
+	int bytes = 0;
 	for(; number > 0; number--){
 		*data = sio1_read_byte();
 		data++;
@@ -66,7 +66,7 @@ int sio1_read(char *data, size_t number)
 
 int sio1_write(const char *data, size_t number)
 {
-	int bytes;
+	int bytes = 0;
 	for(; number > 0; number--){
 		sio1_write_byte(*data);
 		data++;

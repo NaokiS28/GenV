@@ -16,11 +16,13 @@
  */
 
 #include <stdint.h>
-#include "sys573.hpp"
 
-#include "common/services/input.hpp"
+#include "registers573.hpp"
 
-namespace System
+#include "common/services/io/iface_input.hpp"
+#include "common/services/io/inputman.hpp"
+
+namespace System::PSX
 {
     enum JAMMAInput : uint32_t
     {
@@ -62,25 +64,15 @@ namespace System
         JAMMA_SERVICE = 1 << 28
     };
 
-    uint32_t Sys573System::getJAMMAInputs(void)
-    {
-        uint32_t inputs;
-
-        inputs = SYS573_JAMMA_MAIN;
-        inputs |= (SYS573_JAMMA_EXT1 & 0x0f00) << 8;
-        inputs |= (SYS573_JAMMA_EXT2 & 0x0f00) << 12;
-        inputs |= (SYS573_MISC_IN & 0x1f00) << 16;
-
-        return inputs ^ 0x1fffffff;
-    }
-
-    class Sys573Jamma : public Input::IInput
+    class Sys573Jamma : public ::Input::IInput
     {
     public:
         // The System 573 JAMMA interface is memory mapped.
         // There's really not much to do other that read in data.
-        bool init() { return true; }
+        int init() { return true; }
         bool reset() { return true; }
         void shutdown() {}
+
+        uint32_t getJAMMAInputs(void);
     };
-}
+} // namespace System::PSX

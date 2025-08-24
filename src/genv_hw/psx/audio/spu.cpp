@@ -19,7 +19,7 @@
 #include "spu.hpp"
 #include "common/util/hash.hpp"
 #include "common/util/templates.hpp"
-#include "../registers.h"
+#include "../registers.hpp"
 #include "../system/sys.h"
 
 

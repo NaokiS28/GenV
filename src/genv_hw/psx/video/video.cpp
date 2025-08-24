@@ -23,376 +23,475 @@
 #include "video.hpp"
 #include "gpucmd.h"
 
-#include "../registers.h"
+#include "../registers.hpp"
+#include "../system/sys.h"
+#include "common/logger/log.hpp"
 
 namespace System::PSX::GPU
 {
 
-#define GPUC (this->*GPUCMD)
-#define GP0RDY(cmdcount)                              \
-	if (!useDMA)                                      \
-	{                                                 \
-		waitForGP0Ready();                            \
-	}                                                 \
-	else                                              \
-	{                                                 \
-		gpuListPtr = allocatePacket(chain, cmdcount); \
-	}
+#define _GPUC (this->*_GPUCMD)
+#define _GP0RDY(cmdcount)                              \
+    if (!useDMA)                                      \
+    {                                                 \
+        _waitForGP0Ready();                            \
+    }                                                 \
+    else                                              \
+    {                                                 \
+        gpuListPtr = _allocatePacket(chain, cmdcount); \
+    }
 
-	PSXGPU::PSXGPU() : _texmgr(PSX::GPU::VRAM_1MIB)
-	{
-		defaultTexture = new PSXDefaultTexture;
-	}
+    PSXGPU::PSXGPU() : _texmgr(PSX::GPU::VRAM_1MIB)
+    {
+        defaultTexture = new PSXDefaultTexture;
+    }
 
-	PSXGPU::PSXGPU(uint8_t vram_size) : _texmgr(vram_size)
-	{
-		defaultTexture = new PSXDefaultTexture;
-	}
+    PSXGPU::PSXGPU(uint8_t vram_size) : _texmgr(vram_size)
+    {
+        defaultTexture = new PSXDefaultTexture;
+    }
 
-	PSXGPU::~PSXGPU(){
-	}
+    PSXGPU::~PSXGPU()
+    {
+    }
 
-	void PSXGPU::directWrite(uint32_t cmd)
-	{
-		GPU_GP0 = cmd;
-	}
+    void PSXGPU::_directWrite(uint32_t cmd)
+    {
+        GPU_GP0 = cmd;
+    }
 
-	void PSXGPU::addToDMAList(uint32_t cmd)
-	{
-		gpuListPtr[dmaPtrIdx++] = cmd;
-	}
+    void PSXGPU::_addToDMAList(uint32_t cmd)
+    {
+        gpuListPtr[dmaPtrIdx++] = cmd;
+    }
 
-	bool PSXGPU::init()
-	{
-		gpuMode = static_cast<GP1VideoMode>(GPU_GP1 & GP1_STAT_FB_MODE_BITMASK);
-		GPU_GP1 = gp1_resetGPU();
-		setResolution(320, 240);
+    bool PSXGPU::init()
+    {
+        gpuMode = static_cast<GP1VideoMode>(GPU_GP1 & GP1_STAT_FB_MODE_BITMASK);
+        GPU_GP1 = gp1_resetGPU();
+        GPU_GP1 = gp1_resetFIFO();
 
-		GP0RDY(4);
-		GPUC(gp0_texpage(0, true, false));
-		GPUC(gp0_fbOffset1(0, 0));
-		GPUC(gp0_fbOffset2(320 - 1, 240 - 1));
-		GPUC(gp0_fbOrigin(0, 0));
-		fillScreen(Colors::Blue);
-		swapFrameBuffer();
-		fillScreen(Colors::Blue);
-		swapFrameBuffer();
-		GPU_GP1 = gp1_fbOffset(0, 0);
-		GPU_GP1 = gp1_dispBlank(false);
-		// enableDMA(true);
-		return 0;
-	}
+        setResolution(320, 240);
 
-	int PSXGPU::setResolution(int w, int h, bool updateWindow)
-	{
-		// Set the origin of the displayed framebuffer. These "magic" values,
-		// derived from the GPU's internal clocks, will center the picture on most
-		// displays and upscalers.
-		int x = 0x760;
-		int y = (gpuMode == GP1_MODE_PAL) ? 0xa3 : 0x88;
+        _GP0RDY(4);
+        _GPUC(gp0_texpage(0, true, false));
+        _GPUC(gp0_fbOffset1(0, 0));
+        _GPUC(gp0_fbOffset2(320 - 1, 240 - 1));
+        _GPUC(gp0_fbOrigin(0, 0));
+        fillScreen(Colors::Blue);
+        _swapFrameBuffer();
+        fillScreen(Colors::Blue);
+        _swapFrameBuffer();
+        GPU_GP1 = gp1_fbOffset(0, 0);
+        GPU_GP1 = gp1_dispBlank(false);
+        // enableDMA(true);
+        IRQ_MASK |= 1 << IRQ_VSYNC;
+        return 0;
+    }
 
-		int result = 0;
-		if (w > 640 || h > 320)
-			result = V_RES_TOO_HIGH;
-		w = (w > 640 ? 640 : w);
-		h = (h > 480 ? 480 : h);
+    int PSXGPU::setResolution(int w, int h, bool updateWindow)
+    {
+        // Set the origin of the displayed framebuffer. These "magic" values,
+        // derived from the GPU's internal clocks, will center the picture on most
+        // displays and upscalers.
+        int x = 0x760;
+        int y = (gpuMode == GP1_MODE_PAL) ? 0xa3 : 0x88;
 
-		uint32_t mode = findNearestVideoMode(&PSX_Video_Modes, w, h);
-		if (mode < 0)
-		{
-			LOG_GPU("findNearestVideoMode(%u,%u,%u) failed with %u.", &PSX_Video_Modes, w, h, mode);
-			return mode;
-		}
+        int result = 0;
+        if (w > 640 || h > 320)
+            result = V_RES_TOO_HIGH;
+        w = (w > 640 ? 640 : w);
+        h = (h > 480 ? 480 : h);
 
-		Video::VideoResolution vidMode = PSX_Video_Modes.resList[(mode & 0x7F)];
-		if (mode & V_RES_MODIFIED)
-		{
-			LOG_GPU("requested %ux%u, but this is not a valid mode. Using %ux%u instead.", w, h, vidMode.width, vidMode.height);
-			if (!result)
-				result = V_RES_MODIFIED;
-		}
+        uint32_t mode = findNearestVideoMode(&PSX_Video_Modes, w, h);
+        if (mode < 0)
+        {
+            LOG("psxgpu", "findNearestVideoMode(%u,%u,%u) failed with %u.", &PSX_Video_Modes, w, h, mode);
+            return mode;
+        }
 
-		screen.res.width = vidMode.width;
-		screen.res.height = vidMode.height;
-		screen.refreshRate = (mode == GP1_MODE_NTSC ? 60 : 50); // Refresh rate is constant.
+        Video::VideoResolution vidMode = PSX_Video_Modes.resList[(mode & 0x7F)];
+        if (mode & V_RES_MODIFIED)
+        {
+            LOG("psxgpu", "requested %ux%u, but this is not a valid mode. Using %ux%u instead.", w, h, vidMode.width, vidMode.height);
+            if (!result)
+                result = V_RES_MODIFIED;
+        }
 
-		// Set the resolution. The GPU provides a number of fixed horizontal (256,
-		// 320, 368, 512, 640) and vertical (240-256, 480-512) resolutions to pick
-		// from, which affect how fast pixels are output and thus how "stretched"
-		// the framebuffer will appear.
-		GP1HorizontalRes horizontalRes = GP1HorizontalResList[mode % 5];
-		GP1VerticalRes verticalRes = GP1VerticalResList[((mode & 0x7F) >= 10)]; // Either 256 or 512, no inbetween
+        screen.res.width = vidMode.width;
+        screen.res.height = vidMode.height;
+        screen.refreshRate = (mode == GP1_MODE_NTSC ? 60 : 50); // Refresh rate is constant.
 
-		// Set the number of displayed rows and columns. These values are in GPU
-		// clock units rather than pixels, thus they are dependent on the selected
-		// resolution.
-		int offsetX = (w * gp1_clockMultiplierH(horizontalRes)) / 2;
-		int offsetY = (h / gp1_clockDividerV(verticalRes)) / 2;
+        // Set the resolution. The GPU provides a number of fixed horizontal (256,
+        // 320, 368, 512, 640) and vertical (240-256, 480-512) resolutions to pick
+        // from, which affect how fast pixels are output and thus how "stretched"
+        // the framebuffer will appear.
+        GP1HorizontalRes horizontalRes = GP1HorizontalResList[mode % 5];
+        GP1VerticalRes verticalRes = GP1VerticalResList[((mode & 0x7F) >= 10)]; // Either 256 or 512, no inbetween
 
-		bool interlace = false;
-		if (verticalRes != GP1_VRES_256)
-		{
-			useDoubleBuffer = false;
-			interlace = true;
-		}
+        // Set the number of displayed rows and columns. These values are in GPU
+        // clock units rather than pixels, thus they are dependent on the selected
+        // resolution.
+        int offsetX = (w * gp1_clockMultiplierH(horizontalRes)) / 2;
+        int offsetY = (h / gp1_clockDividerV(verticalRes)) / 2;
 
-		// Hand all parameters over to the GPU by sending GP1 commands.
-		GP0RDY(3);
-		GPU_GP1 = gp1_fbRangeH(x - offsetX, x + offsetX);
-		GPU_GP1 = gp1_fbRangeV(y - offsetY, y + offsetY);
-		GPU_GP1 = gp1_fbMode(
-			horizontalRes,
-			verticalRes,
-			gpuMode,
-			interlace,
-			GP1_COLOR_16BPP);
+        bool interlace = false;
+        if (verticalRes != GP1_VRES_256)
+        {
+            useDoubleBuffer = false;
+            interlace = true;
+        }
 
-		// Marks the screen buffer areas as unavailable for textures and CLUTs
-		if (useDoubleBuffer)
-		{
-			h *= 2;
-		}
-		_texmgr.markFrameBuffer(0, 0, w, h);
+        // Hand all parameters over to the GPU by sending GP1 commands.
+        _GP0RDY(3);
+        GPU_GP1 = gp1_fbRangeH(x - offsetX, x + offsetX);
+        GPU_GP1 = gp1_fbRangeV(y - offsetY, y + offsetY);
+        GPU_GP1 = gp1_fbMode(
+            horizontalRes,
+            verticalRes,
+            gpuMode,
+            interlace,
+            GP1_COLOR_16BPP);
 
-		return result;
-	}
+        // Marks the screen buffer areas as unavailable for textures and CLUTs
+        if (useDoubleBuffer)
+        {
+            h *= 2;
+        }
+        _texmgr.markFrameBuffer(0, 0, w, h);
 
-	void PSXGPU::waitForGP0Ready(void)
-	{
-		// Block until the GPU reports to be ready to accept commands through its
-		// status register (which has the same address as GP1 but is read-only).
-		while (!(GPU_GP1 & GP1_STAT_CMD_READY))
-			__asm__ volatile("");
-	}
+        return result;
+    }
 
-	void PSXGPU::waitForDMADone(void)
-	{
-		while (DMA_CHCR(DMA_GPU) & DMA_CHCR_ENABLE)
-			__asm__ volatile("");
-	}
+    void PSXGPU::_waitForGP0Ready(void)
+    {
+        // Block until the GPU reports to be ready to accept commands through its
+        // status register (which has the same address as GP1 but is read-only).
+        while (!(GPU_GP1 & GP1_STAT_CMD_READY))
+            __asm__ volatile("");
+    }
 
-	void PSXGPU::fillScreen(Color color)
-	{
-		GP0RDY(3);
-		GPUC(gp0_rgb(color.r, color.g, color.b) | gp0_vramFill());
-		GPUC(gp0_xy(frameX, frameY));
-		GPUC(gp0_xy(screen.res.width, screen.res.height));
-	}
+    void PSXGPU::_waitForDMADone(void)
+    {
+        while (DMA_CHCR(DMA_GPU) & DMA_CHCR_ENABLE)
+            __asm__ volatile("");
+    }
 
-	void PSXGPU::waitForVSync(void)
-	{
-		// The GPU won't tell us directly whenever it is done sending a frame to the
-		// display, but it will send a signal to another peripheral known as the
-		// interrupt controller (which will be covered in a future tutorial). We can
-		// thus wait until the interrupt controller's vertical blank flag gets set,
-		// then reset (acknowledge) it so that it can be set again by the GPU.
-		while (!(IRQ_STAT & (1 << IRQ_VSYNC)))
-			__asm__ volatile("");
+    void PSXGPU::fillScreen(Color color)
+    {
+        _GP0RDY(3);
+        _GPUC(gp0_rgb(color.r, color.g, color.b) | gp0_vramFill());
+        _GPUC(gp0_xy(frameX, frameY));
+        _GPUC(gp0_xy(screen.res.width, screen.res.height));
+    }
 
-		IRQ_STAT = ~(1 << IRQ_VSYNC);
-	}
+    void PSXGPU::_waitForVSync(void)
+    {
+        uint32_t timeout = 0x00FFFFFF;
+        waitingForVsync = true;
+        while (waitingForVsync)
+        {
+            if (timeout)
+            {
+                if (!waitingForVsync)
+                    break;
+                timeout -= 1;
+            }
+            else
+            {
+                LOG("psxgpu", "WARNING VSync interrupt timeout.");
+                timeout = 0x00FFFFFF;
+                IRQ_MASK |= IRQ_GPU;
+            }
+        }
+        frameCount++;
+    }
 
-	void PSXGPU::swapFrameBuffer()
-	{
-		if (useDMA)
-		{
-			chain = &dmaChains[screenBufferPage];
-			chain->nextPacket = chain->data;
-		}
+    void PSXGPU::_swapFrameBuffer()
+    {
+        if (useDMA)
+        {
+            chain = &dmaChains[screenBufferPage];
+            chain->nextPacket = chain->data;
+        }
 
-		if (useDoubleBuffer)
-			screenBufferPage = !screenBufferPage;
-		else
-			screenBufferPage = 0;
+        if (useDoubleBuffer)
+            screenBufferPage = !screenBufferPage;
+        else
+            screenBufferPage = 0;
 
-		frameX = 0;
-		frameY = (screenBufferPage ? screen.res.height : 0);
+        frameX = 0;
+        frameY = (screenBufferPage ? screen.res.height : 0);
 
-		GPU_GP1 = gp1_fbOffset(frameX, frameY);
+        _GP0RDY(4);
+        _GPUC(gp0_texpage(0, true, false));
+        _GPUC(gp0_fbOrigin(frameX, frameY));
+        _GPUC(gp0_fbOffset1(frameX, frameY));
+        _GPUC(gp0_fbOffset2(
+            frameX + screen.res.width - 1,
+            frameY + screen.res.height - 2));
+    }
 
-		GP0RDY(4);
-		GPUC(gp0_texpage(0, true, false));
-		GPUC(gp0_fbOffset1(frameX, frameY));
-		GPUC(gp0_fbOffset2(
-			frameX + screen.res.width - 1,
-			frameY + screen.res.height - 2));
-		GPUC(gp0_fbOrigin(frameX, frameY));
-	}
+    uint32_t *PSXGPU::_allocatePacket(DMAChain *chain, int numCommands)
+    {
+        // Grab the current pointer to the next packet then increment it to allocate
+        // a new packet. We have to allocate an extra word for the packet's header,
+        // which will contain the number of GP0 commands the packet is made up of as
+        // well as a pointer to the next packet (or a special "terminator" value to
+        // tell the DMA unit to stop).
+        uint32_t *ptr = chain->nextPacket;
+        chain->nextPacket += numCommands + 1;
 
-	uint32_t *PSXGPU::allocatePacket(DMAChain *chain, int numCommands)
-	{
-		// Grab the current pointer to the next packet then increment it to allocate
-		// a new packet. We have to allocate an extra word for the packet's header,
-		// which will contain the number of GP0 commands the packet is made up of as
-		// well as a pointer to the next packet (or a special "terminator" value to
-		// tell the DMA unit to stop).
-		uint32_t *ptr = chain->nextPacket;
-		chain->nextPacket += numCommands + 1;
+        // Write the header and set its pointer to point to the next packet that
+        // will be allocated in the buffer.
+        *ptr = gp0_tag(numCommands, chain->nextPacket);
 
-		// Write the header and set its pointer to point to the next packet that
-		// will be allocated in the buffer.
-		*ptr = gp0_tag(numCommands, chain->nextPacket);
+        // Make sure we haven't yet run out of space for future packets or a linked
+        // list terminator, then return a pointer to the packet's first GP0 command.
+        assert(chain->nextPacket < &(chain->data)[iPSXDMAListSize]);
+        dmaPtrIdx = 0;
+        return &ptr[1];
+    }
 
-		// Make sure we haven't yet run out of space for future packets or a linked
-		// list terminator, then return a pointer to the packet's first GP0 command.
-		assert(chain->nextPacket < &(chain->data)[iPSXDMAListSize]);
-		dmaPtrIdx = 0;
-		return &ptr[1];
-	}
+    void PSXGPU::_sendLinkedList(const void *data)
+    {
+        // Wait until the GPU's DMA unit has finished sending data and is ready.
+        while (DMA_CHCR(DMA_GPU) & DMA_CHCR_ENABLE)
+            __asm__ volatile("");
 
-	void PSXGPU::sendLinkedList(const void *data)
-	{
-		// Wait until the GPU's DMA unit has finished sending data and is ready.
-		while (DMA_CHCR(DMA_GPU) & DMA_CHCR_ENABLE)
-			__asm__ volatile("");
+        // Make sure the pointer is aligned to 32 bits (4 bytes). The DMA engine is
+        // not capable of reading unaligned data.
+        assert(!((uint32_t)data % 4));
 
-		// Make sure the pointer is aligned to 32 bits (4 bytes). The DMA engine is
-		// not capable of reading unaligned data.
-		assert(!((uint32_t)data % 4));
+        if (GPU_GP1 & GP1_STAT_FB_INTERLACE)
+        {
+            for (;;)
+            {
+                auto status = GPU_GP1;
+                auto drawField = (status / GP1_STAT_DRAW_FIELD_ODD) & 1;
+                auto dispField = (status / GP1_STAT_DISP_FIELD_ODD) & 1;
 
-		// Give DMA a pointer to the beginning of the data and tell it to send it in
-		// linked list mode. The DMA unit will start parsing a chain of "packets"
-		// from RAM, with each packet being made up of a 32-bit header followed by
-		// zero or more 32-bit commands to be sent to the GP0 register.
-		DMA_MADR(DMA_GPU) = (uint32_t)data;
-		DMA_CHCR(DMA_GPU) = 0 | DMA_CHCR_WRITE | DMA_CHCR_MODE_LIST | DMA_CHCR_ENABLE;
-	}
+                if (drawField == dispField)
+                    continue;
+                if (drawField == uint32_t(screenBufferPage))
+                    break;
+            }
+        }
 
-	bool PSXGPU::beginRender()
-	{
-		swapFrameBuffer();
-		return 1;
-	}
+        GPU_GP1 = gp1_fbOffset(frameX, frameY);
+        if (useDMA)
+            GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_GP0_WRITE);
 
-	bool PSXGPU::endRender()
-	{
-		if (useDMA)
-			*(chain->nextPacket) = gp0_endTag(0);
-		waitForGP0Ready();
-		waitForVSync();
-		if (useDMA)
-			sendLinkedList(chain->data);
-		return 1;
-	}
+        // Give DMA a pointer to the beginning of the data and tell it to send it in
+        // linked list mode. The DMA unit will start parsing a chain of "packets"
+        // from RAM, with each packet being made up of a 32-bit header followed by
+        // zero or more 32-bit commands to be sent to the GP0 register.
+        DMA_MADR(DMA_GPU) = (uint32_t)data;
+        DMA_CHCR(DMA_GPU) = 0 | DMA_CHCR_WRITE | DMA_CHCR_MODE_LIST | DMA_CHCR_ENABLE;
+    }
 
-	void PSXGPU::enableDMA(bool state)
-	{
-		if (state)
-		{
-			useDMA = true;
-			GPUCMD = &PSXGPU::addToDMAList;
-			DMA_DPCR |= DMA_DPCR_CH_ENABLE(DMA_GPU);
-			GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_GP0_WRITE);
-		}
-		else
-		{
-			useDMA = false;
-			GPUCMD = &PSXGPU::directWrite;
-			DMA_DPCR = (DMA_DPCR & ~DMA_DPCR_CH_ENABLE(DMA_GPU));
-			GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_NONE);
-		}
-	}
+    bool PSXGPU::beginRender()
+    {
+        _swapFrameBuffer();
+        return 1;
+    }
 
-	Textures::TextureObject *PSXGPU::createTexture()
-	{
-		PSXTextureObject *ptObj = new PSXTextureObject;
-		return (ptObj != nullptr ? ptObj : defaultTexture);
-	}
+    bool PSXGPU::endRender()
+    {
+        if (useDMA)
+            *(chain->nextPacket) = gp0_endTag(0);
+        _waitForGP0Ready();
+        _waitForDMADone();
+        _waitForVSync();
+        if (useDMA)
+            _sendLinkedList(chain->data);
+        return 1;
+    }
 
-	Textures::TextureObject *PSXGPU::createTexture(const char *filePath)
-	{
-		PSXTextureObject *ptObj = new PSXTextureObject;
-		if (ptObj != nullptr)
-		{
-			if (ptObj->loadTextureFile(filePath) == Files::FO_OKAY)
-				return ptObj;
-			else{
-				delete ptObj;
-				ptObj = nullptr;
-			}
-		}
-		return (ptObj != nullptr ? ptObj : defaultTexture);
-	}
+    void PSXGPU::_enableDMA(bool state)
+    {
+        if (state)
+        {
+            useDMA = true;
+            _GPUCMD = &PSXGPU::_addToDMAList;
+            DMA_DPCR |= DMA_DPCR_CH_ENABLE(DMA_GPU);
+            GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_GP0_WRITE);
+        }
+        else
+        {
+            useDMA = false;
+            _GPUCMD = &PSXGPU::_directWrite;
+            DMA_DPCR = (DMA_DPCR & ~DMA_DPCR_CH_ENABLE(DMA_GPU));
+            GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_NONE);
+        }
+    }
 
-	int PSXGPU::uploadTexture(Textures::TextureObject *tObj)
-	{
-		// Apps must always use PSTexture objects from Video::createTexture()
-		if (tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME)
-			return GENV_OBJ_INVALID;
+    Textures::TextureObject *PSXGPU::createTexture()
+    {
+        PSXTextureObject *ptObj = new PSXTextureObject;
+        return (ptObj != nullptr ? ptObj : defaultTexture);
+    }
 
-		PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
-		_texmgr.allocateTexture(ptObj);
+    Textures::TextureObject *PSXGPU::createTexture(const char *filePath)
+    {
+        PSXTextureObject *ptObj = new PSXTextureObject;
+        if (ptObj != nullptr)
+        {
+            if (ptObj->loadTextureFile(filePath) == Files::FO_OKAY)
+                return ptObj;
+            else
+            {
+                delete ptObj;
+                ptObj = nullptr;
+            }
+        }
+        return (ptObj != nullptr ? ptObj : defaultTexture);
+    }
 
-		waitForDMADone();
-		sendVRAMData(ptObj->bitmap, ptObj->vramX, ptObj->vramY, ptObj->width, ptObj->height);
-		if (ptObj->bpp == Textures::BPP_4BIT ||
-			ptObj->bpp == Textures::BPP_8BIT)
-		{
-			uploadIndexedTexture(tObj);
-		}
-		return 0;
-	}
+    int PSXGPU::uploadTexture(Textures::TextureObject *tObj)
+    {
+        // Apps must always use PSTexture objects from Video::createTexture()
+        if (tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME)
+            return GENV_OBJ_INVALID;
 
-	int PSXGPU::uploadIndexedTexture(Textures::TextureObject *tObj)
-	{
-		// Apps must always use PSTexture objects from Video::createTexture()
-		if (tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME)
-			return GENV_OBJ_INVALID;
+        PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
+        _texmgr.allocateTexture(ptObj);
 
-		PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
-		uint8_t clutWidth = PSX::GPU::bppPxWidth(ptObj->bpp);
-		_texmgr.allocateTexture(ptObj);
-		waitForDMADone();
-		sendVRAMData(ptObj->clut, ptObj->vramX, ptObj->vramY, ptObj->width, ptObj->height);
-		waitForDMADone();
-		sendVRAMData(ptObj->clut, ptObj->clutX, ptObj->clutY, clutWidth, 1);
-		return 0;
-	}
+        _waitForDMADone();
+        _sendVRAMData(ptObj->bitmap, ptObj->vramX, ptObj->vramY, ptObj->width, ptObj->height);
+        if (ptObj->bpp == Textures::BPP_4BIT ||
+            ptObj->bpp == Textures::BPP_8BIT)
+        {
+            _uploadIndexedTexture(tObj);
+        }
+        return 0;
+    }
 
-	int PSXGPU::releaseTexture(Textures::TextureObject *tObj)
-	{
-		PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
-		_texmgr.deallocateTexture(ptObj);
-		return 0;
-	}
+    int PSXGPU::_uploadIndexedTexture(Textures::TextureObject *tObj)
+    {
+        // Apps must always use PSTexture objects from Video::createTexture()
+        if (tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME)
+            return GENV_OBJ_INVALID;
 
-	void PSXGPU::sendVRAMData(
-		const void *data,
-		int x,
-		int y,
-		int width,
-		int height)
-	{
-		waitForDMADone();
-		assert(!((uint32_t)data % 4));
+        PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
+        uint8_t clutWidth = PSX::GPU::bppPxWidth(ptObj->bpp);
+        _texmgr.allocateTexture(ptObj);
+        _waitForDMADone();
+        _sendVRAMData(ptObj->clut, ptObj->vramX, ptObj->vramY, ptObj->width, ptObj->height);
+        _waitForDMADone();
+        _sendVRAMData(ptObj->clut, ptObj->clutX, ptObj->clutY, clutWidth, 1);
+        return 0;
+    }
 
-		size_t length = (width * height) / 2;
-		size_t chunkSize, numChunks;
+    int PSXGPU::releaseTexture(Textures::TextureObject *tObj)
+    {
+        PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
+        _texmgr.deallocateTexture(ptObj);
+        return 0;
+    }
 
-		if (length < bPSXDMAChunkSize)
-		{
-			chunkSize = length;
-			numChunks = 1;
-		}
-		else
-		{
-			chunkSize = bPSXDMAChunkSize;
-			numChunks = length / bPSXDMAChunkSize;
+    void PSXGPU::_sendVRAMData(
+        const void *data,
+        int x,
+        int y,
+        int width,
+        int height)
+    {
+        _waitForDMADone();
+        assert(!((uint32_t)data % 4));
 
-			assert(!(length % bPSXDMAChunkSize));
-		}
+        size_t length = (width * height) / 2;
+        size_t chunkSize, numChunks;
 
-		waitForGP0Ready();
-		GPU_GP0 = gp0_vramWrite();
-		GPU_GP0 = gp0_xy(x, y);
-		GPU_GP0 = gp0_xy(width, height);
+        if (length < bPSXDMAChunkSize)
+        {
+            chunkSize = length;
+            numChunks = 1;
+        }
+        else
+        {
+            chunkSize = bPSXDMAChunkSize;
+            numChunks = length / bPSXDMAChunkSize;
 
-		DMA_MADR(DMA_GPU) = (uint32_t)data;
-		DMA_BCR(DMA_GPU) = chunkSize | (numChunks << 16);
-		DMA_CHCR(DMA_GPU) = 0 | DMA_CHCR_WRITE | DMA_CHCR_MODE_SLICE | DMA_CHCR_ENABLE;
-	}
+            assert(!(length % bPSXDMAChunkSize));
+        }
 
-	uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t reqW, uint16_t reqH, uint16_t reqR)
+        _waitForGP0Ready();
+        GPU_GP0 = gp0_flushCache();
+        GPU_GP0 = gp0_vramWrite();
+        GPU_GP0 = gp0_xy(x, y);
+        GPU_GP0 = gp0_xy(width, height);
+
+        GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_GP0_WRITE);
+        while (!(GPU_GP1 & GP1_STAT_WRITE_READY))
+            __asm__ volatile("");
+
+        DMA_MADR(DMA_GPU) = (uint32_t)data;
+        DMA_BCR(DMA_GPU) = chunkSize | (numChunks << 16);
+        DMA_CHCR(DMA_GPU) = 0 | DMA_CHCR_WRITE | DMA_CHCR_MODE_SLICE | DMA_CHCR_ENABLE;
+    }
+
+    /*void PSXGPU::setBlendMode(BlendMode blendMode, bool dither)
+    {
+        uint16_t page = _lastTexpage & ~gp0_texpage(
+                                           gp0_page(0, 0, GP0_BLEND_BITMASK, GP0_COLOR_4BPP), true, true);
+        page |= gp0_page(0, 0, blendMode, GP0_COLOR_4BPP);
+
+        setTexturePage(page, dither);
+    }*/
+
+    void PSXGPU::drawRect(
+        int x, int y, int width, int height, Color color)
+    {
+        _GP0RDY(3);
+        _GPUC(color.toARGB() | gp0_rectangle(false, false, GP0_BLEND_SEMITRANS));
+        _GPUC(gp0_xy(x, y));
+        _GPUC(gp0_xy(width, height));
+    }
+
+    void PSXGPU::drawGradientRectH(
+        int x, int y, int width, int height, Color left, Color right)
+    {
+        _GP0RDY(8);
+        _GPUC(left.toARGB() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
+        _GPUC(gp0_xy(x, y));
+        _GPUC(right.toARGB());
+        _GPUC(gp0_xy(x + width, y));
+        _GPUC(left.toARGB());
+        _GPUC(gp0_xy(x, y + height));
+        _GPUC(right.toARGB());
+        _GPUC(gp0_xy(x + width, y + height));
+    }
+
+    void PSXGPU::drawGradientRectV(
+        int x, int y, int width, int height, Color top, Color bottom)
+    {
+        _GP0RDY(8);
+        _GPUC(top.toARGB() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
+        _GPUC(gp0_xy(x, y));
+        _GPUC(top.toARGB());
+        _GPUC(gp0_xy(x + width, y));
+        _GPUC(bottom.toARGB());
+        _GPUC(gp0_xy(x, y + height));
+        _GPUC(bottom.toARGB());
+        _GPUC(gp0_xy(x + width, y + height));
+    }
+
+    void PSXGPU::drawGradientRectD(
+        int x, int y, int width, int height, Color top, Color middle, Color bottom)
+    {
+        _GP0RDY(8);
+        _GPUC(top.toARGB() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
+        _GPUC(gp0_xy(x, y));
+        _GPUC(middle.toARGB());
+        _GPUC(gp0_xy(x + width, y));
+        _GPUC(middle.toARGB());
+        _GPUC(gp0_xy(x, y + height));
+        _GPUC(bottom.toARGB());
+        _GPUC(gp0_xy(x + width, y + height));
+    }
+
+    uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t reqW, uint16_t reqH, uint16_t reqR)
     {
         if (list == nullptr)
             return V_RES_LIST_INVALID;
@@ -484,5 +583,4 @@ namespace System::PSX::GPU
 
         return result;
     }
-
-}
+} // namespace System::PSX::GPU

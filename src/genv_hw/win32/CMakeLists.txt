@@ -52,6 +52,7 @@ target_include_directories(
 	genv_hw_win32 PUBLIC
 	${CMAKE_SOURCE_DIR}/src/genv_hw/win32
 	${CMAKE_SOURCE_DIR}/src/genv_common
+	${LIBC_INCLUDE}
 )
 	
 set(COMMON_LIBS winmm user32 genv_common)
