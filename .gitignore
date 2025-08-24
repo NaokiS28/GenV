@@ -12,6 +12,8 @@
 /*
 /*/
 
+!/.clangd
+!/.clang-format
 !/.gitignore
 !/CMakeLists.txt
 !/CMakePresets.json

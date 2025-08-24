@@ -1,8 +1,8 @@
 #!/bin/bash
 
 ROOT_DIR="$(pwd)"
-BINUTILS_VERSION="2.43"
-GCC_VERSION="14.2.0"
+BINUTILS_VERSION="2.45"
+GCC_VERSION="15.2.0"
 NUM_JOBS="4"
 
 if [ $# -eq 2 ]; then
@@ -57,9 +57,9 @@ cd binutils-build
 	--disable-nls \
 	--disable-werror \
 	|| exit 2
-make -j $NUM_JOBS \
+gmake -j $NUM_JOBS \
 	|| exit 2
-make install-strip \
+gmake install-strip \
 	|| exit 2
 
 cd ..
@@ -91,9 +91,9 @@ cd gcc-build
 	--with-gnu-as \
 	--with-gnu-ld \
 	|| exit 3
-make -j $NUM_JOBS \
+gmake -j $NUM_JOBS \
 	|| exit 3
-make install-strip \
+gmake install-strip \
 	|| exit 3
 
 cd ..

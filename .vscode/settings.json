@@ -122,10 +122,14 @@
         "variant": "cpp",
         "cstring": "cpp",
         "map": "cpp",
-        "registers.h": "c",
+        "registers.hpp": "c",
         "gte.h": "c",
         "stdint.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "ctype.h": "c",
+        "stddef.h": "c"
     },
-    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+    "C_Cpp.formatting": "clangFormat",
+    "C_Cpp.clang_format_fallbackStyle": "none",
+    "editor.formatOnSave": true
 }

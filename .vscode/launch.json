@@ -9,7 +9,7 @@
             "remote": true,
             "stopAtConnect": true,
             "executable": "./bin/psx/genv.elf",
-            "gdbpath": "/usr/bin/gdb-multiarch",
+            "gdbpath": "/opt/homebrew/bin/gdb",
             "windows": {
                 "gdbpath": "C:/gdb-multiarch/bin/gdb.exe",
             },
