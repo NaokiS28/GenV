@@ -44,6 +44,7 @@ add_library(genv_util STATIC
 	util/tween.cpp
 	util/time.cpp
 	util/date.cpp
+	vendor/genv_stb_image.c
 )
 target_include_directories(genv_util PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common

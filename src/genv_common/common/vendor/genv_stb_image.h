@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * vendor_conf.h - Created on 09-06-2025
+ * genv_stb_image.h - Created on 25-08-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,13 +15,13 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// genv_stb_image.h
+// Thin wrapper to use stb_image as a conventional .h/.c library.
+// This header exposes the API by including stb_image.h WITHOUT defining STB_IMAGE_IMPLEMENTATION.
+
 #pragma once
 
-// STB Image
-#define STBI_NO_STDIO
+// Forward-include the original single-header API (declarations only here).
 
-#ifdef GENV_PSX
-#define STBI_NO_LINEAR
-#define STBI_NO_HDR
-#define STBI_NO_THREAD_LOCALS
-#endif
+#include "vendor_conf.h"
+#include "stb_image.h"
