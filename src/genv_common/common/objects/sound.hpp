@@ -71,25 +71,22 @@ namespace Audio
     class SoundObject : public ObjectBase
     {
     public:
-        SoundObject(util::Hash objectID) : ObjectBase()
+        SoundObject(util::Hash objectID) : ObjectBase(objectID)
         {
-            file = new Files::FileObject();
-            setObjectID(objectID);
+            file = new Files::FileObject(objectID);
             setObjectType(GENV_SOUND_OBJ_TYPENAME);
         }
-        SoundObject(util::Hash objectID, const char *filePath) : ObjectBase()
+        SoundObject(util::Hash objectID, const char *filePath) : ObjectBase(objectID)
         {
-            file = new Files::FileObject();
+            file = new Files::FileObject(objectID);
             if (file != nullptr)
                 loadSoundFile(filePath);
-            setObjectID(objectID);
             setObjectType(GENV_SOUND_OBJ_TYPENAME);
         }
-        SoundObject(Files::FileObject *fObj) : ObjectBase()
+        SoundObject(Files::FileObject *fObj) : ObjectBase(fObj->getObjectID())
         {
             noDeleteFile = true;
             file = fObj;
-            setObjectID(fObj->getObjectID());
             setObjectType(GENV_SOUND_OBJ_TYPENAME);
         }
         virtual ~SoundObject()

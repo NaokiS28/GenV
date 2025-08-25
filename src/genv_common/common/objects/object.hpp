@@ -24,7 +24,8 @@ constexpr const uint8_t paramListSize = 10;
 constexpr const uint8_t paramNotFound = UINT8_MAX;
 constexpr const util::Hash paramEntryNull = UINT32_MAX;
 
-enum ObjectErrorCodes {
+enum ObjectErrorCodes
+{
     GENV_OBJ_OKAY,
     GENV_OBJ_INVALID,
     GENV_OBJ_WRONG_TYPE
@@ -71,7 +72,7 @@ protected:
     }
 
 public:
-    ObjectBase();
+    ObjectBase(util::Hash objectID);
     virtual ~ObjectBase() = default;
 
     bool setParam(util::Hash object, size_t param);  // Set a parameter value. Will add a new entry if list has none

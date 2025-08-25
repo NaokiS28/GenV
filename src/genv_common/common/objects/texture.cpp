@@ -31,15 +31,13 @@ namespace Textures
         delete[] bitmap;
     }
 
-    TextureObject::TextureObject(util::Hash objectID) : ObjectBase()
+    TextureObject::TextureObject(util::Hash objectID) : ObjectBase(objectID)
     {
-        setObjectID(objectID);
         setObjectType(GENV_TEXTURE_OBJ_TYPENAME);
     }
 
-    TextureObject::TextureObject(util::Hash objectID, const char *filePath) : ObjectBase()
+    TextureObject::TextureObject(util::Hash objectID, const char *filePath) : ObjectBase(objectID)
     {
-        setObjectID(objectID);
         loadTextureFile(filePath);
         setObjectType(GENV_TEXTURE_OBJ_TYPENAME);
     }
@@ -47,7 +45,7 @@ namespace Textures
     int TextureObject::loadTextureFile(const char *filePath)
     {
         if (file == nullptr)
-            file = new Files::FileObject();
+            file = new Files::FileObject(getObjectID());
 
         if (file != nullptr)
         {

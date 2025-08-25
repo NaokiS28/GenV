@@ -17,13 +17,14 @@
 
 #include "object.hpp"
 
-ObjectBase::ObjectBase()
+ObjectBase::ObjectBase(util::Hash objectID)
 {
     for (int i = 0; i < paramListSize; i++)
     {
         paramList[i].hash = paramEntryNull;
         paramList[i].param = 0;
     }
+    setObjectID(objectID);
 }
 
 bool ObjectBase::setParam(util::Hash object, size_t param)

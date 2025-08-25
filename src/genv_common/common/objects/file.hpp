@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "common/util/hash.hpp"
 #include "data.hpp"
 #include "object.hpp"
 
@@ -44,11 +45,11 @@ namespace Files
     {
 
     public:
-        FileObject() : ObjectBase()
+        FileObject(util::Hash objectID) : ObjectBase(objectID)
         {
             setObjectType(GENV_FILE_OBJ_TYPENAME);
         }
-        FileObject(const char *filePath, bool lock = false) : ObjectBase()
+        FileObject(util::Hash objectID, const char *filePath, bool lock = false) : ObjectBase(objectID)
         {
             openFile(filePath, lock);
             setObjectType(GENV_FILE_OBJ_TYPENAME);
