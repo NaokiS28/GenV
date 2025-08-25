@@ -4,12 +4,13 @@
         {
             "type": "gdb",
             "request": "attach",
-            "name": "(gdb) GenV-PSX",
+            "name": "GenV (PSX-gdb)",
             "target": "localhost:3333",
             "remote": true,
             "stopAtConnect": true,
             "executable": "./bin/psx/genv.elf",
             "gdbpath": "/opt/homebrew/bin/gdb",
+            "preLaunchTask": "CMake: build",
             "windows": {
                 "gdbpath": "C:/gdb-multiarch/bin/gdb.exe",
             },
@@ -22,6 +23,19 @@
                 "continue",
             ],
             "valuesFormatting": "parseText"
+        },
+        {
+            "name": "PyTerm (PSX)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/pyterm.py",
+            "args": [
+                "-url",
+                "localhost",
+                "-port",
+                "6699"
+            ],
+            "console": "integratedTerminal"
         },
         {
             "name": "Debug (cmake)",
@@ -48,6 +62,16 @@
                     "ignoreFailures": true
                 }
             ]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "GenV-PSX + PyTerm",
+            "configurations": [
+                "GenV (PSX-gdb)",
+                "PyTerm (PSX)"
+            ],
+            "stopAll": true
         }
     ]
 }
