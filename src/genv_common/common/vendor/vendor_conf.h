@@ -23,4 +23,5 @@
 #ifdef GENV_PSX
 #define STBI_NO_LINEAR
 #define STBI_NO_HDR
+#define STBI_NO_THREAD_LOCALS
 #endif
