@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "common/util/hash.hpp"
 #include "object.hpp"
 #include "file.hpp"
 #include "common/formats/riff.hpp"
@@ -58,7 +59,6 @@ namespace Audio
         uint8_t bitDepth = 0;       // The bitdepth of the sound, IE 8-Bits per sample
         uint32_t sampleRate = 0;    // The sample rate in Hz (eg 41,600)
         size_t sampleLength = 0;    // How many samples long the sound is
-        uint32_t id = 0;            // ID for the audio driver to use (set and used by audio driver)
     };
 
     // Returns the given sameple's play length in seconds.
@@ -71,22 +71,25 @@ namespace Audio
     class SoundObject : public ObjectBase
     {
     public:
-        SoundObject() : ObjectBase()
+        SoundObject(util::Hash objectID) : ObjectBase()
         {
             file = new Files::FileObject();
+            setObjectID(objectID);
             setObjectType(GENV_SOUND_OBJ_TYPENAME);
         }
-        SoundObject(const char *filePath) : ObjectBase()
+        SoundObject(util::Hash objectID, const char *filePath) : ObjectBase()
         {
             file = new Files::FileObject();
             if (file != nullptr)
                 loadSoundFile(filePath);
+            setObjectID(objectID);
             setObjectType(GENV_SOUND_OBJ_TYPENAME);
         }
         SoundObject(Files::FileObject *fObj) : ObjectBase()
         {
             noDeleteFile = true;
             file = fObj;
+            setObjectID(fObj->getObjectID());
             setObjectType(GENV_SOUND_OBJ_TYPENAME);
         }
         virtual ~SoundObject()
@@ -131,16 +134,6 @@ namespace Audio
             return meta;
         }
 
-        inline void setSampleID(uint32_t id)
-        {
-            meta.id = id;
-        }
-
-        inline uint32_t getSampleID()
-        {
-            return meta.id;
-        }
-
     private:
         bool noDeleteFile = false;
 
@@ -160,5 +153,5 @@ namespace Audio
         size_t endPoint = 0;
     };
 
-    SoundObject *createSample(const char *filePath);
-}
+    SoundObject *createSample(util::Hash objectID, const char *filePath);
+} // namespace Audio

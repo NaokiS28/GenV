@@ -17,25 +17,13 @@
 
 #include "texture.hpp"
 
+#include "texture/missingtex.h"
+
 #include "common/vendor/vendor.h"
 #include "common/services/services.hpp"
-#include "texture/missingtex.h"
 
 namespace Textures
 {
-    DefaultTexture::DefaultTexture() : TextureObject()
-    {
-        TextureObject::bitmap = stbi_load_from_memory(
-            missingTextureImg,
-            missingTextureSize,
-            &width,
-            &height,
-            &bpp,
-            0);
-
-        setObjectID("DefaultTexture");
-    }
-
     TextureObject::~TextureObject()
     {
         Services::getVideo()->releaseTexture(this);
@@ -43,8 +31,15 @@ namespace Textures
         delete[] bitmap;
     }
 
-    TextureObject::TextureObject(const char *filePath) : ObjectBase()
+    TextureObject::TextureObject(util::Hash objectID) : ObjectBase()
     {
+        setObjectID(objectID);
+        setObjectType(GENV_TEXTURE_OBJ_TYPENAME);
+    }
+
+    TextureObject::TextureObject(util::Hash objectID, const char *filePath) : ObjectBase()
+    {
+        setObjectID(objectID);
         loadTextureFile(filePath);
         setObjectType(GENV_TEXTURE_OBJ_TYPENAME);
     }
@@ -84,15 +79,31 @@ namespace Textures
         return Services::getVideo()->uploadTexture(this);
     }
 
-    TextureObject *createTexture()
+    TextureObject *createDefaultTexture()
     {
-        TextureObject *tObj = new TextureObject;
+        TextureObject *tObj = createTexture("DefaultTexture"_h);
+        if (!tObj)
+            return nullptr;
+
+        tObj->bitmap = stbi_load_from_memory(
+            missingTextureImg,
+            missingTextureSize,
+            &tObj->width,
+            &tObj->height,
+            &tObj->bpp,
+            0);
         return tObj;
     }
 
-    TextureObject *createTexture(const char *filePath)
+    TextureObject *createTexture(util::Hash objectID)
     {
-        TextureObject *tObj = new TextureObject;
+        TextureObject *tObj = Services::getVideo()->createTexture(objectID);
+        return tObj;
+    }
+
+    TextureObject *createTexture(util::Hash objectID, const char *filePath)
+    {
+        TextureObject *tObj = Services::getVideo()->createTexture(objectID);
         if (tObj != nullptr)
         {
             if (tObj->loadTextureFile(filePath) == Files::FO_OKAY)

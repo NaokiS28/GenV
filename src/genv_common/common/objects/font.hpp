@@ -75,9 +75,9 @@ protected:
     Textures::TextureObject *texture = nullptr;
 
 public:
-    FontObject();
-    FontObject(const char *filePath);
-    FontObject(Fonts::FontMetrics *_metrics, Textures::TextureObject *_texture);
+    FontObject(util::Hash objectID);
+    FontObject(util::Hash objectID, const char *filePath);
+    FontObject(util::Hash objectID, Fonts::FontMetrics *_metrics, Textures::TextureObject *_texture);
     ~FontObject();
 
     virtual int loadFontFromFile(const char *filePath);

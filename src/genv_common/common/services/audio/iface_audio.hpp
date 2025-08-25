@@ -23,15 +23,15 @@ namespace Audio
 {
     enum : uint8_t
     {
-        IA_OKAY,                // Success
-        IA_ERROR_OUTOFMEMORY,   // Couldn't allocate memory for sample
-        IA_ERROR_BADOBJECT,     // SoundObject is invalid
-        IA_ERROR_BADPARAM,      // A parameter provided did not meet the requirements
-        IA_ERROR_INCOMPATIBLE,  // Sample is incompatible with the target object
-        IA_ERROR_BADNAME,       // Sample name is invalid
-        IA_ERROR_NOLOCK,        // Could not get lock on audio memory
-        IA_ERROR_INVALIDFUNC,   // Function has not been provided on this file provider.
-        IA_ERROR_UNKNOWN        // Unknown or unexpected error occured
+        IA_OKAY,               // Success
+        IA_ERROR_OUTOFMEMORY,  // Couldn't allocate memory for sample
+        IA_ERROR_BADOBJECT,    // SoundObject is invalid
+        IA_ERROR_BADPARAM,     // A parameter provided did not meet the requirements
+        IA_ERROR_INCOMPATIBLE, // Sample is incompatible with the target object
+        IA_ERROR_BADNAME,      // Sample name is invalid
+        IA_ERROR_NOLOCK,       // Could not get lock on audio memory
+        IA_ERROR_INVALIDFUNC,  // Function has not been provided on this file provider.
+        IA_ERROR_UNKNOWN       // Unknown or unexpected error occured
     };
 
     class IAudio
@@ -48,9 +48,10 @@ namespace Audio
         virtual bool pause(Audio::SoundObject *sObj) = 0;
         virtual bool isPlaying(Audio::SoundObject *sObj) = 0;
 
-        virtual Audio::SoundObject *createSample(const char *filePath){
-            return Audio::createSample(filePath);
+        virtual Audio::SoundObject *createSample(util::Hash objectID, const char *filePath)
+        {
+            return Audio::createSample(objectID, filePath);
         }
         virtual int uploadSample(Audio::SoundObject *sObj) = 0;
     };
-}
+} // namespace Audio

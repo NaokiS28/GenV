@@ -18,6 +18,7 @@
 #pragma once
 #include <stdint.h>
 
+#include "common/util/hash.hpp"
 #include "video.hpp"
 #include "common/util/templates.hpp"
 #include "common/util/rect.h"
@@ -40,11 +41,11 @@ namespace Video
     public:
         IVideo()
         {
-            defaultTexture = new Textures::DefaultTexture;
+            defaultTexture = Textures::createDefaultTexture();
         };
         virtual ~IVideo() = default;
 
-        virtual inline size_t getFrameCount() 
+        virtual inline size_t getFrameCount()
         {
             return frameCount;
         }
@@ -152,16 +153,16 @@ namespace Video
 
         virtual void drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode = TALIGN_LEFT) = 0;
 
-        virtual Textures::TextureObject *createTexture()
+        virtual Textures::TextureObject *createTexture(util::Hash objectID)
         {
             // Override this function if the video system requires a different texture object.
-            Textures::TextureObject *tObj = Textures::createTexture();
+            Textures::TextureObject *tObj = Textures::createTexture(objectID);
             return (tObj != nullptr ? tObj : defaultTexture);
         }
-        virtual Textures::TextureObject *createTexture(const char *filePath)
+        virtual Textures::TextureObject *createTexture(util::Hash objectID, const char *filePath)
         {
             // Override this function if the video system requires a different texture object.
-            Textures::TextureObject *tObj = Textures::createTexture(filePath);
+            Textures::TextureObject *tObj = Textures::createTexture(objectID, filePath);
             return (tObj != nullptr ? tObj : defaultTexture);
         }
         virtual int uploadTexture(Textures::TextureObject *tObj) = 0;
@@ -221,4 +222,4 @@ namespace Video
         }
         virtual void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) = 0;
     };
-}
+} // namespace Video

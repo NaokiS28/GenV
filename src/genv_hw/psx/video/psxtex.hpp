@@ -26,7 +26,8 @@ namespace System::PSX::GPU
     class PSXTextureObject : public Textures::TextureObject
     {
     public:
-        PSXTextureObject();
+        PSXTextureObject(util::Hash objectID);
+        PSXTextureObject(util::Hash objectID, const char *filePath);
         ~PSXTextureObject() override;
 
         uint8_t texPage = 0; // Texture Page index
@@ -37,12 +38,4 @@ namespace System::PSX::GPU
         uint16_t clutX = 0; // CLUT index (x) in vram in px. Only used for 4bpp CLUTs
         uint16_t clutY = 0; // Line that CLUT lives in vram in px.
     };
-
-    // Failsafe texture if a texture object fails to load or otherwise cannot be used
-    class PSXDefaultTexture : public PSXTextureObject
-    {
-    public:
-        PSXDefaultTexture();
-        ~PSXDefaultTexture() override {} // If this isnt overiding the default texture destructor, program will seg fault when closing.
-    };
-}
+} // namespace System::PSX::GPU

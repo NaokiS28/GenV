@@ -17,19 +17,18 @@
 
 #include "psxtex.hpp"
 
+#include "common/util/hash.hpp"
+#include "common/vendor/vendor.h"
+#include "common/objects/texture/missingtex.h"
+
 namespace System::PSX::GPU
 {
-    PSXTextureObject::PSXTextureObject() : Textures::TextureObject()
+    PSXTextureObject::PSXTextureObject(util::Hash objectID) : Textures::TextureObject(objectID)
     {
         setObjectType(GENV_PSX_TEXTURE_TYPE_NAME);
     }
-    
+
     PSXTextureObject::~PSXTextureObject()
     {
     }
-
-    PSXDefaultTexture::PSXDefaultTexture() : PSXTextureObject()
-    {
-        setObjectID("DefaultTexture");
-    }
-}
+} // namespace System::PSX::GPU

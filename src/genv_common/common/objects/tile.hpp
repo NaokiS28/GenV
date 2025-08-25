@@ -104,8 +104,8 @@ namespace Sprites
         void _getTransformedSize(int &w, int &h);
 
     public:
-        TileObject();
-        TileObject(const char *filePath);
+        TileObject(util::Hash objectID);
+        TileObject(util::Hash objectID, const char *filePath);
         virtual ~TileObject() = default;
 
         // Returns the internal texture pointer
@@ -116,7 +116,7 @@ namespace Sprites
         {
             this->meta.w = w;
             this->meta.h = h;
-            this->meta.r = r; 
+            this->meta.r = r;
             this->meta.c = c;
             if (r > 1 || c > 1)
                 this->meta.multiTile = true;
@@ -144,7 +144,6 @@ namespace Sprites
             meta.randomTile = false;
             return _setTile(lut.r, lut.c);
         }
-
 
         // All of the following render functions use the tile metrics for W + H and which tile to use.
         //  If this is not set, it will render the entire texture instead.
@@ -205,4 +204,4 @@ namespace Sprites
         // Restores tile to original shape and size
         virtual void resetTransform();
     };
-}
+} // namespace Sprites

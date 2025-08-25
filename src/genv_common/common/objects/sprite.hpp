@@ -25,7 +25,7 @@
 
 namespace Sprites
 {
-    static constexpr const char* GENV_SPRITE_OBJ_TYPENAME = "GenVSpriteObject";
+    static constexpr const char *GENV_SPRITE_OBJ_TYPENAME = "GenVSpriteObject";
 
     struct SpritePosition
     {
@@ -43,8 +43,8 @@ namespace Sprites
         uint32_t color = 0; // diffuse color (ARGB)
 
     public:
-        SpriteObject();
-        SpriteObject(const char *filePath);
+        SpriteObject(util::Hash objectID);
+        SpriteObject(util::Hash objectID, const char *filePath);
         virtual ~SpriteObject() = default;
 
         inline Textures::TextureObject *getTexture()
@@ -69,8 +69,8 @@ namespace Sprites
 
         inline void drawScaled(uint8_t sW, uint8_t sH)
         {
-            if(sW > 100) sW = 100;
-            if(sH > 100) sH = 100;
+            if (sW > 100) sW = 100;
+            if (sH > 100) sH = 100;
             draw(
                 pos.x,
                 pos.y,
@@ -78,7 +78,8 @@ namespace Sprites
                 util::percentOf(sH, texture->height));
         }
 
-        inline void drawScaled(uint8_t sP){
+        inline void drawScaled(uint8_t sP)
+        {
             drawScaled(sP, sP);
         }
 
@@ -105,4 +106,4 @@ namespace Sprites
         virtual int loadTextureFile(const char *filePath);
         int uploadTexture();
     };
-}
+} // namespace Sprites

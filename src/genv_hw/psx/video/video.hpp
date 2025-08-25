@@ -140,8 +140,8 @@ namespace System::PSX::GPU
         {
         }
 
-        Textures::TextureObject *createTexture() override;
-        Textures::TextureObject *createTexture(const char *filePath) override;
+        Textures::TextureObject *createTexture(util::Hash objectID) override;
+        Textures::TextureObject *createTexture(util::Hash objectID, const char *filePath) override;
         int uploadTexture(Textures::TextureObject *tObj) override;
         int releaseTexture(Textures::TextureObject *tObj) override;
 

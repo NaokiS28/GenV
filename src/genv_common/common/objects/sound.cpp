@@ -17,17 +17,34 @@
 
 #include "sound.hpp"
 #include "common/services/services.hpp"
+#include "common/util/hash.hpp"
 
 namespace Audio
 {
-    bool SoundObject::play() { return Services::getAudio()->play(this); }
-    bool SoundObject::stop() { return Services::getAudio()->stop(this); }
-    bool SoundObject::pause() { return Services::getAudio()->pause(this); }
-    bool SoundObject::isPlaying() { return Services::getAudio()->isPlaying(this); }
-    int SoundObject::uploadSample() { return Services::getAudio()->uploadSample(this); }
+    bool SoundObject::play()
+    {
+        return Services::getAudio()->play(this);
+    }
+    bool SoundObject::stop()
+    {
+        return Services::getAudio()->stop(this);
+    }
+    bool SoundObject::pause()
+    {
+        return Services::getAudio()->pause(this);
+    }
+    bool SoundObject::isPlaying()
+    {
+        return Services::getAudio()->isPlaying(this);
+    }
+    int SoundObject::uploadSample()
+    {
+        return Services::getAudio()->uploadSample(this);
+    }
 
-    SoundObject *createSample(const char* filePath){
-        SoundObject *sObj = new SoundObject;
+    SoundObject *createSample(util::Hash objectID, const char *filePath)
+    {
+        SoundObject *sObj = new SoundObject(objectID);
         if (sObj != nullptr)
         {
             if (sObj->loadSoundFile(filePath) == Files::FO_OKAY)
@@ -37,4 +54,4 @@ namespace Audio
         }
         return nullptr;
     }
-}
+} // namespace Audio

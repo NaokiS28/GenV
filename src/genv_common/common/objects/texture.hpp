@@ -18,6 +18,7 @@
 #pragma once
 #include <stdint.h>
 
+#include "common/util/hash.hpp"
 #include "object.hpp"
 #include "file.hpp"
 
@@ -50,8 +51,8 @@ namespace Textures
         const uint8_t *bitmap = nullptr;
         const uint8_t *clut = nullptr;
 
-        TextureObject() : ObjectBase() {}
-        TextureObject(const char *filePath);
+        TextureObject(util::Hash objectID);
+        TextureObject(util::Hash objectID, const char *filePath);
         virtual ~TextureObject();
 
         virtual int loadTextureFile(const char *filePath);
@@ -63,15 +64,9 @@ namespace Textures
     };
 
     // Failsafe texture if a texture object fails to load or otherwise cannot be used
-    class DefaultTexture : public TextureObject
-    {
-    public:
-        DefaultTexture();
-        ~DefaultTexture() override {} // If this isnt overiding the default texture destructor, program will seg fault when closing.
-    };
-
-    TextureObject *createTexture();
-    TextureObject *createTexture(const char *filePath);
+    TextureObject *createDefaultTexture();
+    TextureObject *createTexture(util::Hash objectID);
+    TextureObject *createTexture(util::Hash objectID, const char *filePath);
 } // namespace Textures
 
 // Is pow(bpp,2), really.

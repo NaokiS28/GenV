@@ -20,6 +20,6 @@
 #pragma once
 
 #include "vendor_conf.h"
-#include "stb_image.h"
+#include "genv_stb_image.h"
 
 #endif

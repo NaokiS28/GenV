@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 #include "video.hpp"
+#include "common/util/hash.hpp"
 #include "gpucmd.h"
 
 #include "../registers.hpp"
@@ -32,23 +33,21 @@ namespace System::PSX::GPU
 
 #define _GPUC (this->*_GPUCMD)
 #define _GP0RDY(cmdcount)                              \
-    if (!useDMA)                                      \
-    {                                                 \
+    if (!useDMA)                                       \
+    {                                                  \
         _waitForGP0Ready();                            \
-    }                                                 \
-    else                                              \
-    {                                                 \
+    }                                                  \
+    else                                               \
+    {                                                  \
         gpuListPtr = _allocatePacket(chain, cmdcount); \
     }
 
     PSXGPU::PSXGPU() : _texmgr(PSX::GPU::VRAM_1MIB)
     {
-        defaultTexture = new PSXDefaultTexture;
     }
 
     PSXGPU::PSXGPU(uint8_t vram_size) : _texmgr(vram_size)
     {
-        defaultTexture = new PSXDefaultTexture;
     }
 
     PSXGPU::~PSXGPU()
@@ -86,6 +85,9 @@ namespace System::PSX::GPU
         GPU_GP1 = gp1_dispBlank(false);
         // enableDMA(true);
         IRQ_MASK |= 1 << IRQ_VSYNC;
+
+        uploadTexture(defaultTexture);
+
         return 0;
     }
 
@@ -326,15 +328,15 @@ namespace System::PSX::GPU
         }
     }
 
-    Textures::TextureObject *PSXGPU::createTexture()
+    Textures::TextureObject *PSXGPU::createTexture(util::Hash objectID)
     {
-        PSXTextureObject *ptObj = new PSXTextureObject;
+        PSXTextureObject *ptObj = new PSXTextureObject(objectID);
         return (ptObj != nullptr ? ptObj : defaultTexture);
     }
 
-    Textures::TextureObject *PSXGPU::createTexture(const char *filePath)
+    Textures::TextureObject *PSXGPU::createTexture(util::Hash objectID, const char *filePath)
     {
-        PSXTextureObject *ptObj = new PSXTextureObject;
+        PSXTextureObject *ptObj = new PSXTextureObject(objectID);
         if (ptObj != nullptr)
         {
             if (ptObj->loadTextureFile(filePath) == Files::FO_OKAY)
@@ -355,6 +357,9 @@ namespace System::PSX::GPU
             return GENV_OBJ_INVALID;
 
         PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
+        if (ptObj->vramX != 0 || ptObj->vramY != 0 || ptObj->texPage != 0)
+            return -2;
+
         _texmgr.allocateTexture(ptObj);
 
         _waitForDMADone();

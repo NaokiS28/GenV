@@ -21,15 +21,15 @@
 
 namespace Sprites
 {
-    TileObject::TileObject()
+    TileObject::TileObject(util::Hash objectID)
     {
         resetTransform();
-        texture = Services::getVideo()->createTexture();
+        texture = Services::getVideo()->createTexture(objectID);
     }
 
-    TileObject::TileObject(const char *filePath)
+    TileObject::TileObject(util::Hash objectID, const char *filePath)
     {
-        texture = Services::getVideo()->createTexture(filePath);
+        texture = Services::getVideo()->createTexture(objectID, filePath);
     }
 
     int TileObject::draw(int x, int y)
@@ -124,14 +124,13 @@ namespace Sprites
         if (meta.tileList.array != nullptr && meta.tileList.w > 0 && meta.tileList.h > 0)
         {
             _setTile(meta.tileList.array[meta.tileList.y][meta.tileList.x],
-                    meta.tileList.array[meta.tileList.y][meta.tileList.x]);
+                     meta.tileList.array[meta.tileList.y][meta.tileList.x]);
             if ((meta.tileList.x + 1) <= meta.tileList.w)
                 meta.tileList.x++;
+            else if ((meta.tileList.y + 1) <= meta.tileList.h)
+                meta.tileList.y++;
             else
-                if ((meta.tileList.y + 1) <= meta.tileList.h)
-                    meta.tileList.y++;
-                else
-                    meta.tileList.y = 0;
+                meta.tileList.y = 0;
         }
     }
 
@@ -305,9 +304,9 @@ namespace Sprites
 
     void TileObject::resetTransform()
     {
-        vertex[0] = Vertex();                                                         // Top left
-        vertex[1] = Vertex(meta.w, 0, 0, 1, intToiFloat(meta.w, texture->width), 0);  // Top right
-        vertex[2] = Vertex(0, meta.h, 0, 1, 0, intToiFloat(meta.h, texture->height)); // Bottom left
+        vertex[0] = Vertex();                                                                          // Top left
+        vertex[1] = Vertex(meta.w, 0, 0, 1, intToiFloat(meta.w, texture->width), 0);                   // Top right
+        vertex[2] = Vertex(0, meta.h, 0, 1, 0, intToiFloat(meta.h, texture->height));                  // Bottom left
         vertex[3] = Vertex(meta.w, meta.h, 0, 1,
                            intToiFloat(meta.w, texture->width), intToiFloat(meta.h, texture->height)); // Bottom right
         meta.cropped = false;
@@ -340,4 +339,4 @@ namespace Sprites
         h = maxY - minY;
     }
 
-}
+} // namespace Sprites

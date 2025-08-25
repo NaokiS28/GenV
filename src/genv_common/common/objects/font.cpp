@@ -17,11 +17,11 @@
 
 #include "font.hpp"
 
-FontObject::FontObject()
+FontObject::FontObject(util::Hash objectID)
 {
 }
 
-FontObject::FontObject(Fonts::FontMetrics *_metrics, Textures::TextureObject *_texture)
+FontObject::FontObject(util::Hash objectID, Fonts::FontMetrics *_metrics, Textures::TextureObject *_texture)
 {
     texture = _texture;
     metrics = _metrics;
@@ -35,7 +35,7 @@ FontObject::~FontObject()
         delete metrics;
 }
 
-FontObject::FontObject(const char *filePath) {}
+FontObject::FontObject(util::Hash objectID, const char *filePath) {}
 
 int FontObject::loadFontFromFile(const char *filePath)
 {
