@@ -136,7 +136,7 @@ namespace System::PSX
         psx_timer_reset(PSX_TIMER_2);
 
         joyDriver = new PSX_Joypad();
-        if (joyDriver)
+        if (!joyDriver)
             return -1;
         Services::addInputDevice(joyDriver);
 
