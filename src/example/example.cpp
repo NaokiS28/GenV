@@ -19,6 +19,7 @@
 
 #include "app/app.hpp"
 #include "app/iapp_host.hpp"
+#include "common/objects/texture.hpp"
 #include "common/services/system/system.hpp"
 #include "common/logger/log.hpp"
 
@@ -34,6 +35,9 @@ private:
     );
 
     Coord txtOrigin;
+
+    Textures::TextureObject *textTest[4] =
+        {nullptr, nullptr, nullptr, nullptr};
 
 public:
     static Application *createApp()
@@ -52,6 +56,14 @@ public:
         setHost(host);
         setAppState(APP_STATE_RUN);
         reload();
+        textTest[0] = Textures::createDefaultTexture();
+        textTest[1] = Textures::createDefaultTexture();
+        textTest[2] = Textures::createDefaultTexture();
+        textTest[3] = Textures::createDefaultTexture();
+        textTest[0]->uploadTexture();
+        textTest[1]->uploadTexture();
+        textTest[2]->uploadTexture();
+        textTest[3]->uploadTexture();
         return 0;
     }
 

@@ -111,4 +111,35 @@ namespace Video
     uint16_t getHorizontalRes();      // Returns the current horizontal screen resolution
     uint16_t getVerticalRes();        // Returns the current vertical screen resolution
     uint16_t getRefreshRate();        // Returns the current screen refresh rate
+
+    inline int getRGB565Length(uint16_t w, uint16_t h)
+    {
+        return ((sizeof(uint16_t) * w) * h);
+    }
+
+    inline int getRGB888Length(uint16_t w, uint16_t h)
+    {
+        return (((sizeof(uint32_t) - 1) * w) * h);
+    }
+
+    inline int getARGBLength(uint16_t w, uint16_t h)
+    {
+        return ((sizeof(uint32_t) * w) * h);
+    }
+
+    // Runtime-friendly (assumes tightly packed)
+    int toRGB565(void *dest, const void *src, size_t pixelCount);
+    int toRGB888(void *dest, const void *src, size_t pixelCount);
+
+    // Toolchain-friendly (handles stride/padding)
+    int toRGB565_stride(
+        void *dest, size_t destStride,
+        const void *src, size_t srcStride,
+        size_t width, size_t height);
+
+    int toRGB888_stride(
+        void *dest, size_t destStride,
+        const void *src, size_t srcStride,
+        size_t width, size_t height);
+
 } // namespace Video

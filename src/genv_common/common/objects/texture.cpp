@@ -42,6 +42,8 @@ namespace Textures
         setObjectType(GENV_TEXTURE_OBJ_TYPENAME);
     }
 
+    // Loads a texture file from a non-optimised file (ie PNG, GIF)
+    // Does not support loading a palletised image. (STB limitation)
     int TextureObject::loadTextureFile(const char *filePath)
     {
         if (file == nullptr)
@@ -60,6 +62,9 @@ namespace Textures
                     &bpp,
                     4);
 
+                if (bpp < 3)
+                    bpp = BPP_1BIT; // Greyscale
+
                 bitmapLength = ((sizeof(uint32_t) * width) * height);
                 setObjectID(Files::getFileNameHash(this->file));
 
@@ -67,7 +72,7 @@ namespace Textures
                     return Files::FO_OKAY;
             }
         }
-        return Files::FO_ERROR_BADOBJECT;
+        return Files::FO_ERROR_NOTLOADED;
     }
 
     int TextureObject::uploadTexture()
@@ -83,13 +88,11 @@ namespace Textures
         if (!tObj)
             return nullptr;
 
-        tObj->bitmap = stbi_load_from_memory(
-            missingTextureImg,
-            missingTextureSize,
-            &tObj->width,
-            &tObj->height,
-            &tObj->bpp,
-            0);
+        tObj->bitmap = missingTextureImg;
+        tObj->width = missingTextureMeta.w;
+        tObj->height = missingTextureMeta.h;
+        tObj->bpp = missingTextureMeta.bpp;
+        tObj->bitmapLength = missingTextureMeta.size;
         return tObj;
     }
 

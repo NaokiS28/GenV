@@ -39,10 +39,7 @@ namespace Video
         Textures::TextureObject *defaultTexture = nullptr;
 
     public:
-        IVideo()
-        {
-            defaultTexture = Textures::createDefaultTexture();
-        };
+        IVideo() = default;
         virtual ~IVideo() = default;
 
         virtual inline size_t getFrameCount()
@@ -156,13 +153,13 @@ namespace Video
         virtual Textures::TextureObject *createTexture(util::Hash objectID)
         {
             // Override this function if the video system requires a different texture object.
-            Textures::TextureObject *tObj = Textures::createTexture(objectID);
+            Textures::TextureObject *tObj = new Textures::TextureObject(objectID);
             return (tObj != nullptr ? tObj : defaultTexture);
         }
         virtual Textures::TextureObject *createTexture(util::Hash objectID, const char *filePath)
         {
             // Override this function if the video system requires a different texture object.
-            Textures::TextureObject *tObj = Textures::createTexture(objectID, filePath);
+            Textures::TextureObject *tObj = new Textures::TextureObject(objectID, filePath);
             return (tObj != nullptr ? tObj : defaultTexture);
         }
         virtual int uploadTexture(Textures::TextureObject *tObj) = 0;

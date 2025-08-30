@@ -21,12 +21,14 @@
 #include <stdio.h>
 
 #include "video.hpp"
+#include "common/objects/texture.hpp"
 #include "common/util/hash.hpp"
 #include "gpucmd.h"
 
 #include "../registers.hpp"
 #include "../system/sys.h"
 #include "common/logger/log.hpp"
+#include "psx/video/texmgr.hpp"
 
 namespace System::PSX::GPU
 {
@@ -83,9 +85,10 @@ namespace System::PSX::GPU
         _swapFrameBuffer();
         GPU_GP1 = gp1_fbOffset(0, 0);
         GPU_GP1 = gp1_dispBlank(false);
-        // enableDMA(true);
+        _enableDMA(true);
         IRQ_MASK |= 1 << IRQ_VSYNC;
 
+        defaultTexture = Textures::createDefaultTexture();
         uploadTexture(defaultTexture);
 
         return 0;
@@ -316,15 +319,15 @@ namespace System::PSX::GPU
         {
             useDMA = true;
             _GPUCMD = &PSXGPU::_addToDMAList;
-            DMA_DPCR |= DMA_DPCR_CH_ENABLE(DMA_GPU);
-            GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_GP0_WRITE);
+            // DMA_DPCR |= DMA_DPCR_CH_ENABLE(DMA_GPU);
+            // GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_GP0_WRITE);
         }
         else
         {
             useDMA = false;
             _GPUCMD = &PSXGPU::_directWrite;
-            DMA_DPCR = (DMA_DPCR & ~DMA_DPCR_CH_ENABLE(DMA_GPU));
-            GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_NONE);
+            // DMA_DPCR = (DMA_DPCR & ~DMA_DPCR_CH_ENABLE(DMA_GPU));
+            // GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_NONE);
         }
     }
 
@@ -360,15 +363,19 @@ namespace System::PSX::GPU
         if (ptObj->vramX != 0 || ptObj->vramY != 0 || ptObj->texPage != 0)
             return -2;
 
-        _texmgr.allocateTexture(ptObj);
-
-        _waitForDMADone();
-        _sendVRAMData(ptObj->bitmap, ptObj->vramX, ptObj->vramY, ptObj->width, ptObj->height);
         if (ptObj->bpp == Textures::BPP_4BIT ||
             ptObj->bpp == Textures::BPP_8BIT)
         {
-            _uploadIndexedTexture(tObj);
+            return _uploadIndexedTexture(tObj);
         }
+
+        _texmgr.allocateTexture(ptObj);
+
+        uint16_t _x = ptObj->vramX + (64 * (ptObj->texPage % 16));
+        uint16_t _y = ptObj->vramY + (64 * (ptObj->texPage / 16));
+
+        _waitForDMADone();
+        _sendVRAMData(&*ptObj->bitmap, _x, _y, ptObj->width, ptObj->height);
         return 0;
     }
 
@@ -379,7 +386,7 @@ namespace System::PSX::GPU
             return GENV_OBJ_INVALID;
 
         PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
-        uint8_t clutWidth = PSX::GPU::bppPxWidth(ptObj->bpp);
+        uint16_t clutWidth = TextureManager::clutWidth(ptObj->bpp);
         _texmgr.allocateTexture(ptObj);
         _waitForDMADone();
         _sendVRAMData(ptObj->clut, ptObj->vramX, ptObj->vramY, ptObj->width, ptObj->height);
@@ -420,6 +427,8 @@ namespace System::PSX::GPU
 
             assert(!(length % bPSXDMAChunkSize));
         }
+
+        GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_NONE);
 
         _waitForGP0Ready();
         GPU_GP0 = gp0_flushCache();
