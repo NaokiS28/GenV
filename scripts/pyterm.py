@@ -121,7 +121,7 @@ def main():
     except Exception as e:
         print(f"Failed to connect to {args.url}:{args.port} -> {e}")
         return
-    print(f"[connected to {args.url}:{args.port}]")
+    print(f"[connected to {args.url}:{args.port}]\r")
 
     # Start receiver
     t_recv = threading.Thread(target=recv_loop, args=(sock,), daemon=True)
