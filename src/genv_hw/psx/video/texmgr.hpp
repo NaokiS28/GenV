@@ -17,9 +17,11 @@
 
 #pragma once
 
+#include <string.h>
 #include <stdint.h>
 
 #include "common/util/rect.h"
+#include "common/logger/log.hpp"
 
 #include "gpucmd.h"
 #include "psxtex.hpp"
@@ -27,6 +29,90 @@
 
 namespace System::PSX::GPU
 {
+    /* TODO:
+     * The algo needs adjusting to use tpages properly. Currently it is assuming pixels are all the same in all bitdepths.
+     * This is not the case. Each TPage is 256 pixels wide, but at bitdepths higher than 4, the page will spill over to adjacent
+     * pages. IE a texture page in 4bpp is 256x256. But in 16bpp a texture page is equivilent to 1024x256 4bpp pixels.
+     * Another analogy is like this:
+     * union {
+     *    uint4_t 4bpp[4];
+     *    uint8_t 8bpp[2];
+     *    uint16_t 16bpp [1];
+     * } tpage;
+     * each 16 bit pixel will use 4 4bpp pixels. So 256 16-bit pixels takes up 4 4bpp pages.
+     *
+     * In practice this is just used as an addressing or bank switching scheme so that 8 bit X/Y coords can be used.
+     *
+     * It's a nuts system compared to just using 16-bit x and y for vram. That and the fact there's no model storage
+     * or geometry transformation hardward inside of it. You got to wonder whether or not folks at Toshiba
+     * faced a hardware limitation or they just got too drunk on Sake when designing the GPU.
+     *
+     */
+
+    // VRAM layout
+    static constexpr int VRAM_WIDTH = 1024;   // Total width of a VRAM row in px
+    static constexpr int MIN_TILE_SIZE = 8;   // 1 Tile: Minimum of 8×8 pixels in 4BPP (GENV), equates to 4px 8 BPP, 2px 16 BPP, 1px 24 BPP
+    static constexpr int PAGE_SIZE = 256;     // 256x256 texture page size for W/H
+    static constexpr int PAGE_GRID_COLS = 16; // Texture pages per row
+
+    // Derived
+    static constexpr int TILES_PER_ROW = PAGE_SIZE / MIN_TILE_SIZE; // How many tiles per page row
+    static constexpr int TILES_PER_COL = PAGE_SIZE / MIN_TILE_SIZE; // How many tiles per page column
+    static constexpr int MAX_CLUT_LINES_IN_TILES = 5;               // How many lines of CLUTs to use before considering there's too many. As this eats into tile space, this is in multiples of MIN_TILE_SIZE.
+    static constexpr int MAX_CLUT_LINES_PER_PAGE = MIN_TILE_SIZE * MAX_CLUT_LINES_IN_TILES;
+
+    // How many tiles per page column
+    static constexpr const int TILES_PER_PIXEL(const uint8_t bpp)
+    {
+        // Switch to enforce 4/8/16/24 bpp results
+        switch (bpp)
+        {
+        case 4: return 1;
+        case 8: return 1;
+        case 16: return 2;
+        case 24: return 4;
+        default: return 0;
+        }
+    }
+
+    static constexpr unsigned int MAX_COLORS_4BPP = (1 << 4);
+    static constexpr unsigned int MAX_COLORS_8BPP = (1 << 8);
+    static constexpr unsigned int MAX_COLORS_16BPP = (1 << 16);
+    static constexpr unsigned int MAX_COLORS_24BPP = (1 << 24);
+
+    /*
+    Texture pages in TextureManager
+
+    In TextureManager, the term pages is not strictly related to the PS1's texture pages. They are
+    similar but used in slightly different contexts.
+
+    In the PS1 GPU, a texture page is a window into the VRAM, where the texture page sets the offset
+    of the window from 0-31 (0-63 in 2MiB systems). Depending on the current colour bitwidth, this window
+    can either encompass 1 to 6 texture pages, which is 256 x 4BPP pixels or 128~byte divisions of VRAM.
+    The window will always be 256 pixels by 256px, but the interpretation of the bytes will change depending
+    on bitdepth, from 2 pixels per byte, to 1 pixel per 6 bytes.
+
+    In TextureManager, pages are based on a similar principle, but only offer an insight into a single
+    "128 byte" region. Each page has 32 32-bit bitmaps where each bit of a word represents 8 pixels (1 tile).
+    Each page also has 5 lines worth of 32-bit CLUT table bitmaps, where here each word also represents 1 tile.
+    CLUT bitmaps differ to Tile bitmaps as Tile bitmaps will assume a 8x8 pixel area is allocated to a texture,
+    where as a CLUT bitmap assumes a 16x1 pixel area is allocated. CLUTs are either 16px or 256px wide.
+
+    The frame buffer is treated as Tiles and are marked as in use, however to save on allocation time, the
+    frame buffer has it's texture page boundries marked out explicitly so that the TextureManager will not
+    attempt to search in those texture pages and decrement the page until having to move to the next line.
+
+    Tiles are assigned Top-Left to Bottom-Right, CLUTs are assigned Bottom-Left to Top-Right.
+    If there is no more room (collides with existing allocations), the page index will decrement and start over.
+    If the page index would encroch the frame buffer, then the index is set to the next texture page line and
+    move from right to left again. If no space is available for the texture, the allocation will fail with
+    TMGR_NO_FREE_SPACE.
+
+    When looking for an allocation of a texture, TextureManager will look at both the Tile bitmap and the CLUT
+    bitmap, and fail if either are marked as allocated for that tile/line.
+
+    */
+
     class TextureManager
     {
 
@@ -40,11 +126,12 @@ namespace System::PSX::GPU
         enum : int
         {
             TMGR_OKAY = 0,
-            TMGR_MALLOC_FAIL = -1,
-            TMGR_INVALID_OBJECT = -2,
-            TMGR_OUT_OF_BOUNDS = -3,
-            TMGR_COLLISION = -4,
-            TMGR_NO_FREE_SPACE = -5,
+            TMGR_MALLOC_FAIL,
+            TMGR_INVALID_OBJECT,
+            TMGR_INVALID_BPP,
+            TMGR_OUT_OF_BOUNDS,
+            TMGR_COLLISION,
+            TMGR_NO_FREE_SPACE,
         };
 
         struct TexPageEntry
@@ -66,90 +153,93 @@ namespace System::PSX::GPU
             uint32_t clutBitmap[MAX_CLUT_LINES_PER_PAGE];
         } *_pages;
 
-        uint8_t _vramSize = 0;
-        uint8_t _vramPageRows = 0;
-        RectWH _frameBufferBox; // In pages.
+        uint8_t _vramSize = 0;     // VRAM size in MiB
+        uint8_t _vramPageRows = 0; // How many VRAM page rows
+        RectWH _frameBufferBox;    // In pages (i.e. X/Y = Page 0, w5xh2 pages).
 
         // Finds a free space in the texture page where the requested block can go, or returns no space.
-        int findFreeBlock(TexPageEntry &v, uint8_t wTiles, uint8_t hTiles) const;
+        int findFreeBlock(TexPageEntry &v, uint8_t bpp, uint8_t wTiles, uint8_t hTiles) const;
 
         // Finds a free space in the texture page where the requested CLUT can go, or returns no space.
         // A CLUT can go anywhere within reason in the VRAM, but for the sake of simplicity, for now
         // findFreeCLUT will only return TMGR_OKAY if it can allocate space on the same texture page.
         // X and Y are PIXEL values, not tile values.
         // TODO: Allow CLUT to exist independantly of texture
-        int findFreeCLUT(uint8_t page, GP0ColorDepth bitdepth, uint8_t &clutLine, uint8_t &width) const;
+        int findFreeCLUT(uint8_t page, uint8_t bpp, uint8_t &clutLine, uint8_t &width) const;
 
-        int processLargeBlock(uint8_t state,                    // State to write (ignored on dry run)
-                              uint8_t pageStart,               // Starting texture page
-                              uint8_t xTile, uint8_t yTile,     // Origin of tile block
-                              uint16_t wTiles, uint16_t hTiles, // W/H of tile block
-                              bool dryRun);                     // Does not modify anything if true
+        int processLargeBlock(
+            uint8_t state,                    // State to write (ignored on dry run)
+            uint8_t pageStart,                // Starting texture page
+            uint8_t xTile, uint8_t yTile,     // Origin of tile block
+            uint16_t wTiles, uint16_t hTiles, // W/H of tile block
+            bool dryRun);                     // Does not modify anything if true
 
     public:
-        // vram_size in MiB
-        TextureManager(uint8_t vram_size)
+        TextureManager(uint8_t vram_size) // vram_size in MiB
         {
             _vramSize = vram_size;
             _vramPageRows = (2 * vram_size);
+            _pages = new PageAllocState[16 * _vramPageRows];
+            if (_pages)
+                memset(_pages, 0, (sizeof(PageAllocState) * (16 * _vramPageRows)));
+            else
+                LOG("TextureManager", "Unexpected error in allocating _pages bitmap. Dynamic allocation will likely crash!");
         }
 
         ~TextureManager()
         {
-            if (_pages)
+            if (_pages) // Should always be valid, but for safety.
                 delete[] _pages;
         }
 
-        // Takes in a VRAM coord and returns a TexPage entry
-        inline constexpr uint8_t pxToTile(uint16_t px) const
+        // Aligns a pixel to a tile index
+        static inline constexpr uint8_t pxToTile(uint16_t px)
         {
-            return (px % PAGE_PIXELS) / MIN_TILE_SIZE;
+            return ((px % PAGE_SIZE) / MIN_TILE_SIZE);
         }
-        inline constexpr uint8_t tileToPx(uint8_t tile) const
+        // Gets the starting pixel of a tile
+        static inline constexpr uint16_t tileToPx(uint8_t tile)
         {
-            return MIN_TILE_SIZE * tile;
-        }
-        inline constexpr uint8_t tileXToPx(uint8_t page, uint8_t tile) const
-        {
-            return tileToPx(tile) + (PAGE_PIXELS * (page % PAGE_GRID_COLS));
-        }
-        inline constexpr uint8_t tileYToPx(uint8_t page, uint8_t tile) const
-        {
-            return tileToPx(tile) + (PAGE_PIXELS * (page / PAGE_GRID_COLS));
+            return (MIN_TILE_SIZE * tile);
         }
 
-        inline constexpr TexPageEntry vramToTPage(VRAMEntry v) const { return vramToTPage(v.x, v.y); }
-        inline constexpr TexPageEntry vramToTPage(int width, int yPx) const
+        static inline constexpr TexPageEntry vramToTPage(VRAMEntry v) { return vramToTPage(v.x, v.y); }
+        static inline constexpr TexPageEntry vramToTPage(uint16_t xPx, uint16_t yPx)
         {
             TexPageEntry t;
-            t.page = (PAGE_GRID_COLS * (yPx / PAGE_PIXELS)) +
-                     (width / PAGE_PIXELS);
-            t.tileX = (width % PAGE_PIXELS);
-            t.tileY = (yPx % PAGE_PIXELS);
+            t.page = (PAGE_GRID_COLS * (yPx / PAGE_SIZE)) +
+                     (xPx / TILES_PER_COL);
+            t.tileX = (xPx % TILES_PER_COL);
+            t.tileY = (yPx % TILES_PER_COL);
             return t;
         }
 
-        inline constexpr VRAMEntry tpageToVRAM(TexPageEntry t) const { return tpageToVRAM(t.page, t.tileX, t.tileY); }
-        inline constexpr VRAMEntry tpageToVRAM(uint8_t page, uint8_t tileX, uint8_t tileY) const
+        static inline constexpr VRAMEntry tpageToVRAM(TexPageEntry t) { return tpageToVRAM(t.page, t.tileX, t.tileY); }
+        static inline constexpr VRAMEntry tpageToVRAM(uint8_t page, uint8_t tileX, uint8_t tileY)
         {
             VRAMEntry v;
-            v.x = tileXToPx(page, tileX);
-            v.y = tileYToPx(page, tileY);
+            v.y = (PAGE_SIZE * (page / PAGE_GRID_COLS));
+            v.x = (TILES_PER_COL * (page % PAGE_GRID_COLS)) + tileToPx(tileX);
             return v;
         }
 
         // Returns VRAM coords for CLUT in a page.
         // Clamps width to align to 16, 32, 48 etc
         // Also clamps yPx to maximum CLUT lines per page.
-        inline constexpr VRAMEntry clutToVRAM(uint8_t p, uint8_t width, uint8_t clutLine) const
+        static inline constexpr VRAMEntry clutToVRAM(uint8_t page, uint8_t bpp, uint8_t clutLine)
         {
             VRAMEntry v;
-            v.x = (COLORS_4BPP * (width / COLORS_4BPP)) + (PAGE_PIXELS * (p % PAGE_GRID_COLS));
-            v.y = (255 - (clutLine % MAX_CLUT_LINES_PER_PAGE)) + (PAGE_PIXELS * (p / PAGE_GRID_COLS));
+            v.x = (MAX_COLORS_4BPP * (bpp / MAX_COLORS_4BPP)) + (PAGE_SIZE * (page % PAGE_GRID_COLS));
+            v.y = ((PAGE_SIZE - 1) - (clutLine % MAX_CLUT_LINES_PER_PAGE)) + (PAGE_SIZE * (page / PAGE_GRID_COLS));
             return v;
         }
 
-        // Allocates and clears the allocation maps.
+        static inline constexpr uint16_t clutWidth(uint8_t bpp)
+        {
+            return (bpp == Textures::BPP_8BIT ? MAX_COLORS_8BPP : MAX_COLORS_4BPP);
+        }
+
+        // Creates and clears the allocation maps.
         int init();
 
         // Checks if vram area in XY of page is in use. Checks per tile row for tiles.
@@ -158,11 +248,11 @@ namespace System::PSX::GPU
 
         // Checks if vram area in XY of page is in use. Checks per line for CLUTs
         // false if it's free, true if in used
-        inline bool testCLUT(const uint8_t page, const uint8_t clutLine, const uint8_t width) const
+        inline bool testCLUT(const uint8_t page, const uint8_t clutLine, const uint8_t bpp) const
         {
-            uint8_t line = (PAGE_PIXELS - 1) - clutLine;
-            return (((_pages[page].tileBitmap[pxToTile(line)] & (1 << pxToTile(width))) != 0) ||
-                   (_pages[page].clutBitmap[clutLine] & (1 << (width / 2))) != 0);
+            uint8_t line = (PAGE_SIZE - 1) - clutLine;
+            return (((_pages[page].tileBitmap[pxToTile(line)] & (1 << pxToTile(bpp))) != 0) ||
+                    (_pages[page].clutBitmap[clutLine] & (1 << (bpp / 2))) != 0);
         }
 
         void writeTile(const bool state, const uint8_t page, const uint8_t tileX, const uint8_t tileY);
@@ -177,13 +267,13 @@ namespace System::PSX::GPU
         {
             _pages[page].tileBitmap[tileY] &= ~(1 << tileX);
         }
-        inline void setCLUT(const uint8_t page, const uint8_t clutLine, const uint8_t width)
+        inline void setCLUT(const uint8_t page, const uint8_t clutLine, const uint8_t bpp)
         {
-            _pages[page].clutBitmap[clutLine] |= (1 << (width / 16));
+            _pages[page].clutBitmap[clutLine] |= (1 << (bpp / 16));
         }
-        inline void clearCLUT(const uint8_t page, const uint8_t clutLine, const uint8_t width)
+        inline void clearCLUT(const uint8_t page, const uint8_t clutLine, const uint8_t bpp)
         {
-            _pages[page].clutBitmap[clutLine] &= ~(1 << (width / 16));
+            _pages[page].clutBitmap[clutLine] &= ~(1 << (bpp / 16));
         }
 
         // Marks bits within a page as `state`. Constrains to within the page.
@@ -193,9 +283,10 @@ namespace System::PSX::GPU
             uint8_t xTiles, uint8_t yTiles,
             const uint8_t wTiles = 1, const uint8_t hTiles = 1)
         {
-            if ((0xFF - xTiles) - wTiles || (0xFF - yTiles) - hTiles || xTiles > TILES_PER_COL || yTiles > TILES_PER_COL)
+            if (tileToPx(xTiles + wTiles) >= PAGE_SIZE ||
+                tileToPx(yTiles + hTiles) >= PAGE_SIZE)
             {
-                // Block extends beyond page limits
+                // Block extends beyond page + x/y limits, as x/y are 8-bit during render
                 return -1;
             }
             return markLargeBlock(state, page, xTiles, yTiles, wTiles, hTiles);
@@ -203,13 +294,15 @@ namespace System::PSX::GPU
 
         inline void markCLUT(
             const bool state,
+            const uint8_t bpp,
             const uint8_t page,
             const uint8_t clutLine,
-            uint8_t xPx,
-            const uint8_t width
-        ){
-            for (; xPx < width; xPx += COLORS_4BPP){
-                if(state)
+            uint8_t xPx)
+        {
+            uint16_t depthWidth = (bpp == Textures::BPP_8BIT ? MAX_COLORS_8BPP : MAX_COLORS_4BPP);
+            for (; xPx < depthWidth; xPx += MAX_COLORS_4BPP)
+            {
+                if (state)
                     setCLUT(page, clutLine, xPx);
                 else
                     clearCLUT(page, clutLine, xPx);
@@ -223,7 +316,8 @@ namespace System::PSX::GPU
             uint16_t wTiles, uint16_t hTiles);
 
         // Marks parts of the VRAM as in use for the framebuffer so it won't be wastefully checked during allocation.
-        int markFrameBuffer(const uint8_t width, const uint8_t yPx, const uint16_t wPx, const uint16_t hPx);
+        // Only supports 16bpp framebuffers
+        int markFrameBuffer(const uint8_t xPx, const uint8_t yPx, const uint16_t wPx, const uint16_t hPx);
 
         // Allocate space in the texture page for a CLUT
         int allocateCLUT(PSXTextureObject *ptObj);
@@ -240,4 +334,4 @@ namespace System::PSX::GPU
             memset(_pages, 0, sizeof(PageAllocState) * (PAGE_GRID_COLS * _vramPageRows));
         }
     };
-}
+} // namespace System::PSX::GPU

@@ -15,8 +15,10 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <stdint.h>
 #include <string.h>
 #include "texmgr.hpp"
+#include "psx/video/gpudef.hpp"
 
 namespace System::PSX::GPU
 {
@@ -24,8 +26,8 @@ namespace System::PSX::GPU
     {
         if (_pages)
             delete[] _pages;
-        _pages = new PageAllocState[(PSX::GPU::PAGE_GRID_COLS * _vramPageRows)];
-        memset(_pages, 0, sizeof(PageAllocState) * (PSX::GPU::PAGE_GRID_COLS * _vramPageRows));
+        _pages = new PageAllocState[(PAGE_GRID_COLS * _vramPageRows)];
+        memset(_pages, 0, sizeof(PageAllocState) * (PAGE_GRID_COLS * _vramPageRows));
 
         return TMGR_OKAY;
     }
@@ -44,17 +46,17 @@ namespace System::PSX::GPU
 
         while (rowsLeft > 0)
         {
-            uint16_t availRows = PSX::GPU::TILES_PER_ROW - yOffset;
+            uint16_t availRows = TILES_PER_ROW - yOffset;
             uint16_t doRows = (rowsLeft < availRows ? rowsLeft : availRows);
 
             uint16_t yEnd = yOffset + doRows;
-            uint16_t xEnd = xTile + wTiles;
+            uint16_t xEnd = xTile + wTiles; // m
 
             for (uint16_t yy = yOffset; yy < yEnd; ++yy)
             {
                 for (uint16_t xx = xTile; xx < xEnd; ++xx)
                 {
-                    if (!dryRun)
+                    if (dryRun)
                     {
                         // collision-check pass
                         if (testTile(page, xx, yy))
@@ -95,28 +97,28 @@ namespace System::PSX::GPU
         const uint16_t wPx, const uint16_t hPx)
     {
         int r = 0;
-        _frameBufferBox.x = (xPx / PSX::GPU::PAGE_PIXELS);
-        _frameBufferBox.y = (yPx / PSX::GPU::PAGE_PIXELS);
-        _frameBufferBox.w = ((xPx + wPx) / PSX::GPU::PAGE_PIXELS);
-        _frameBufferBox.h = ((yPx + hPx) / PSX::GPU::PAGE_PIXELS);
+        _frameBufferBox.x = (xPx / TILES_PER_COL);
+        _frameBufferBox.y = (yPx / TILES_PER_COL);
+        _frameBufferBox.w = (((uint16_t)xPx + wPx) / TILES_PER_COL);
+        _frameBufferBox.h = (((uint16_t)yPx + hPx) / TILES_PER_COL);
         r = markLargeBlock(
             TMGR_INUSE,
-            _frameBufferBox.x + (PSX::GPU::PAGE_GRID_COLS * _frameBufferBox.y),
-            _frameBufferBox.x / PSX::GPU::MIN_TILE_SIZE,
-            _frameBufferBox.y / PSX::GPU::MIN_TILE_SIZE,
-            _frameBufferBox.w / PSX::GPU::MIN_TILE_SIZE,
-            _frameBufferBox.h / PSX::GPU::MIN_TILE_SIZE);
+            _frameBufferBox.x + (PAGE_GRID_COLS * _frameBufferBox.y),
+            _frameBufferBox.x / MIN_TILE_SIZE,
+            _frameBufferBox.y / MIN_TILE_SIZE,
+            TILES_PER_ROW * (_frameBufferBox.w + 1),
+            TILES_PER_COL * (_frameBufferBox.h + 1));
         return r;
     }
 
     bool TextureManager::testTile(const uint8_t page, const uint8_t tileX, const uint8_t tileY) const
     {
         // Only read CLUT bitmap if we are in the CLUT region
-        if (tileY >= (255 - (PSX::GPU::MAX_CLUT_LINES_PER_PAGE / PSX::GPU::MIN_TILE_SIZE)))
+        if (tileY >= ((PAGE_SIZE - 1) - MAX_CLUT_LINES_PER_PAGE))
         {
             // Check the entire block
-            uint8_t startLine = ((PSX::GPU::MIN_TILE_SIZE - 1) - tileY);
-            for (int cY = startLine; cY < (startLine + (PSX::GPU::MIN_TILE_SIZE - 1)); cY++)
+            uint8_t startLine = ((MIN_TILE_SIZE - 1) - tileY);
+            for (int cY = startLine; cY < (startLine + (MIN_TILE_SIZE - 1)); cY++)
             {
                 if (testCLUT(page, cY, tileToPx(tileX)))
                     return true;
@@ -127,19 +129,19 @@ namespace System::PSX::GPU
 
     void TextureManager::writeTile(const bool state, const uint8_t page, const uint8_t tileX, const uint8_t tileY)
     {
-        if(state)
+        if (state)
             setTile(page, tileX, tileY);
         else
             clearTile(page, tileX, tileY);
 
         // Only write to CLUT bitmap if we are in the CLUT region
-        if (tileY >= (255 - (PSX::GPU::MAX_CLUT_LINES_PER_PAGE / PSX::GPU::MIN_TILE_SIZE)))
+        if (tileY >= ((PAGE_SIZE - 1) - MAX_CLUT_LINES_PER_PAGE))
         {
             // Clear the entire block
-            uint8_t startLine = ((PSX::GPU::MIN_TILE_SIZE - 1) - tileY);
-            for (int cY = startLine; cY < (startLine + (PSX::GPU::MIN_TILE_SIZE - 1)); cY++)
+            uint8_t startLine = ((MIN_TILE_SIZE - 1) - tileY);
+            for (int cY = startLine; cY < (startLine + (MIN_TILE_SIZE - 1)); cY++)
             {
-                if(state)
+                if (state)
                     setCLUT(page, cY, tileToPx(tileX));
                 else
                     clearCLUT(page, cY, tileToPx(tileX));
@@ -149,23 +151,22 @@ namespace System::PSX::GPU
 
     int TextureManager::findFreeBlock(
         TexPageEntry &t,
+        uint8_t bpp,
         uint8_t wTiles, uint8_t hTiles) const
     {
-        for (; t.tileY < PSX::GPU::TILES_PER_ROW; t.tileY++)
+        for (; t.tileY < TILES_PER_ROW; t.tileY++)
         {
             // Always move to the left-most position when starting a new row
             t.tileX = 0;
-            if (((uint16_t)t.tileY + (uint16_t)hTiles) >= PSX::GPU::TILES_PER_COL)
+            if (((uint16_t)t.tileY + (uint16_t)hTiles) >= TILES_PER_COL)
             {
                 return TMGR_NO_FREE_SPACE;
             }
 
-            for (; t.tileX < PSX::GPU::TILES_PER_COL; t.tileX++)
+            for (; t.tileX < TILES_PER_COL; t.tileX++)
             {
-                if (((uint16_t)t.tileX + (uint16_t)wTiles) >= PSX::GPU::TILES_PER_COL)
+                if (((uint16_t)t.tileX + (uint16_t)wTiles) >= TILES_PER_COL)
                 {
-                    // Would exceed texture page
-                    // TODO: Allow?
                     break;
                 }
 
@@ -217,22 +218,22 @@ namespace System::PSX::GPU
     }
 
     // X and Y is in px
-    int TextureManager::findFreeCLUT(uint8_t page, GP0ColorDepth bitdepth, uint8_t &clutLine, uint8_t &xPx) const
+    int TextureManager::findFreeCLUT(uint8_t page, uint8_t bpp, uint8_t &clutLine, uint8_t &xPx) const
     {
         // CLUTs must be aligned to x = (16 * idx)
         // 8bpp takes up the entire row.
-        uint8_t depthWidth = bppPxWidth(bitdepth);
+        uint16_t depthWidth = clutWidth(bpp);
 
-        for (; clutLine > (PSX::GPU::PAGE_PIXELS - PSX::GPU::MAX_CLUT_LINES_PER_PAGE); clutLine--)
+        for (; clutLine > (PAGE_SIZE - MAX_CLUT_LINES_PER_PAGE); clutLine--)
         {
             // Always move to the left-most position when starting a new row
             xPx = 0;
-            for (; (uint16_t)xPx < (PSX::GPU::PAGE_PIXELS - 1);)
+            for (; (uint16_t)xPx < (PAGE_SIZE - 1);)
             {
                 // Check the strip
                 bool stripInUse = false;
                 // Check 8 in tiles
-                for (int xx = xPx; xx < (PSX::GPU::PAGE_PIXELS - 1); xx += depthWidth)
+                for (int xx = xPx; xx < (PAGE_SIZE - 1); xx += depthWidth)
                 {
                     if (testCLUT(page, clutLine, xx))
                     {
@@ -259,9 +260,8 @@ namespace System::PSX::GPU
 
         int r = 0;
         uint8_t x = 0, clutLine = 255; // Try to put CLUTs at the bottom of the table so that there's more space for textures.
-        GP0ColorDepth depthWidth = (ptObj->bpp == Textures::BPP_8BIT ? GP0_COLOR_8BPP : GP0_COLOR_4BPP);
 
-        r = findFreeCLUT(ptObj->texPage, depthWidth, clutLine, x);
+        r = findFreeCLUT(ptObj->texPage, ptObj->bpp, clutLine, x);
         if (r != TMGR_OKAY)
             return r;
 
@@ -269,7 +269,7 @@ namespace System::PSX::GPU
         ptObj->clutX = v.x;
         ptObj->clutY = v.y;
 
-        markCLUT(TMGR_INUSE, ptObj->texPage, clutLine, v.x, depthWidth);
+        markCLUT(TMGR_INUSE, ptObj->bpp, ptObj->texPage, ptObj->clutY, ptObj->clutX);
         return r;
     }
 
@@ -278,22 +278,29 @@ namespace System::PSX::GPU
         if (!ptObj)
             return TMGR_INVALID_OBJECT;
 
+        TexPageEntry t;
         int r = 0;
         bool stopSearch = false;
-        uint8_t TMGR_row = 0;
-        TexPageEntry t;
-        t.page = (PSX::GPU::PAGE_GRID_COLS - 1); // Top right of VRAM
+
+        uint8_t TMGR_row = 0;                                           // Current texture page grid row, usually 0 or 1
+        uint8_t wTiles = (TILES_PER_PIXEL(ptObj->bpp) * ptObj->width);  // width in tiles
+        uint8_t hTiles = (TILES_PER_PIXEL(ptObj->bpp) * ptObj->height); // hieght in tiles
+        t.page = (PAGE_GRID_COLS - 1) + (wTiles / TILES_PER_COL);       // Top right of VRAM
+
+        if (hTiles >= TILES_PER_ROW ||
+            wTiles >= (TILES_PER_COL * TILES_PER_PIXEL(ptObj->bpp)))
+            return TMGR_OUT_OF_BOUNDS;
 
         do
         {
-            r = findFreeBlock(t, pxToTile(ptObj->width), pxToTile(ptObj->height));
+            r = findFreeBlock(t, ptObj->bpp, wTiles, hTiles);
             if (r == TMGR_OKAY)
             {
                 // Try to mark the block
                 if (markLargeBlock(
                         TMGR_INUSE,
                         t.page, t.tileX, t.tileY,
-                        pxToTile(ptObj->width), pxToTile(ptObj->height)) == TMGR_OKAY)
+                        wTiles, hTiles) == TMGR_OKAY)
                 {
                     stopSearch = true;
                 }
@@ -310,7 +317,7 @@ namespace System::PSX::GPU
                     {
                         return TMGR_NO_FREE_SPACE;
                     }
-                    t.page = (PSX::GPU::PAGE_GRID_COLS * TMGR_row);
+                    t.page = (PAGE_GRID_COLS * TMGR_row);
                 }
             }
         } while (!stopSearch);
@@ -335,17 +342,23 @@ namespace System::PSX::GPU
 
         int r = 0;
         TexPageEntry t = vramToTPage(ptObj->vramX, ptObj->vramY);
-        r = markLargeBlock(TMGR_FREE,
-                           t.page, t.tileX, t.tileY,
-                           pxToTile(ptObj->width),
-                           pxToTile(ptObj->height));
+
+        // higher bitdepths use more tiles.
+        uint8_t wTiles = (TILES_PER_PIXEL(ptObj->bpp) * ptObj->width);  // width in tiles
+        uint8_t hTiles = (TILES_PER_PIXEL(ptObj->bpp) * ptObj->height); // hieght in tiles
+
+        r = markLargeBlock(
+            TMGR_FREE,
+            t.page,
+            t.tileX, t.tileY,
+            wTiles,
+            hTiles);
 
         if (ptObj->bpp == Textures::BPP_4BIT || ptObj->bpp == Textures::BPP_8BIT)
         {
-            uint8_t depthWidth = bppPxWidth(ptObj->bpp);
-            markCLUT(TMGR_FREE, ptObj->texPage, ptObj->clutY, ptObj->clutX, depthWidth);
+            markCLUT(TMGR_FREE, ptObj->bpp, ptObj->texPage, ptObj->clutY, ptObj->clutX);
         }
 
         return r;
     }
-}
+} // namespace System::PSX::GPU
