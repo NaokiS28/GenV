@@ -19,10 +19,10 @@
 #include <string.h>
 #include "wav.hpp"
 
-
 namespace Audio
 {
-    enum class ecAudioFormat {
+    enum class ecAudioFormat
+    {
         AF_WAVE,
         AF_END
     };
@@ -35,29 +35,31 @@ namespace Audio
 
     constexpr const AudioFileFormat afWaveFile = {".wav", ecAudioFormat::AF_WAVE};
     constexpr const AudioFileFormat AudioFormatList[] = {
-        afWaveFile
-    };
+        afWaveFile};
 
-    Audio::SoundObject *openAudioFile(const char *filePath, size_t pathLen)
+    Audio::SoundObject *openAudioFile(util::Hash objectID, const char *filePath, size_t pathLen)
     {
-        if(filePath == nullptr || pathLen == 0)
+        if (filePath == nullptr || pathLen == 0)
             return nullptr;
 
         Audio::SoundObject *sObj = nullptr;
-        
-        for(auto &af : AudioFormatList){
+
+        for (auto &af : AudioFormatList)
+        {
             const char *pos = strstr(filePath, af.ext);
-            if(pos != nullptr){
-                switch (af.format){
-                    case ecAudioFormat::AF_WAVE:
-                        sObj = new WaveFile(filePath);
-                        break;
-                    default:
-                        break;
+            if (pos != nullptr)
+            {
+                switch (af.format)
+                {
+                case ecAudioFormat::AF_WAVE:
+                    sObj = new WaveFile(filePath);
+                    break;
+                default:
+                    break;
                 }
             }
         }
 
         return sObj;
     }
-}
+} // namespace Audio

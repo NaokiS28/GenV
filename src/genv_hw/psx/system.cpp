@@ -90,9 +90,9 @@ namespace System::PSX
     int PSXSystem::_initVideo()
     {
         gpu = new GPU::PSXGPU;
+        Services::setVideo(adminKey, gpu);
         if (!gpu || gpu->init())
             return -1;
-        Services::setVideo(adminKey, gpu);
         return 0;
     }
 
@@ -127,9 +127,9 @@ namespace System::PSX
         psx_timer_set_params(PSX_TIMER_0, PSX_TMR0_CLK_SRC_SYSTEM);
         psx_timer_set_params(PSX_TIMER_1, PSX_TMR2_CLK_SRC_SYSTEM);
         psx_timer_set_params(PSX_TIMER_2,
-                             0 | PSX_TMR2_CLK_SRC_SYS_DIV8 +
-                                     (PSX_TMR_RESET_ON_OVERFLOW | PSX_TMR_IRQ_ON_OVERFLOW |
-                                      PSX_TMR_IRQ_REPEAT | PSX_TMR_IRQ_PULSE_BIT_10));
+                             (0 | PSX_TMR2_CLK_SRC_SYS_DIV8) +
+                                 (PSX_TMR_RESET_ON_OVERFLOW | PSX_TMR_IRQ_ON_OVERFLOW |
+                                  PSX_TMR_IRQ_REPEAT | PSX_TMR_IRQ_PULSE_BIT_10));
         psx_timer_enable_irq(PSX_TIMER_2);
         psx_timer_reset(PSX_TIMER_0);
         psx_timer_reset(PSX_TIMER_1);

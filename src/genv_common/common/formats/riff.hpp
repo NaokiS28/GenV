@@ -18,6 +18,7 @@
 #pragma once
 #include <stdint.h>
 #include "common/objects/file.hpp"
+#include "common/util/hash.hpp"
 
 using FourCC = const char;
 using FourCCInt = uint32_t;
@@ -30,8 +31,9 @@ constexpr FourCC fourccDPDS[] = "dpds";
 
 constexpr const uint32_t fourccNULL = UINT32_MAX;
 
-static constexpr inline uint32_t fccToUInt(FourCC* str, int len){
-    if(len >= 4)
+static constexpr inline uint32_t fccToUInt(FourCC *str, int len)
+{
+    if (len >= 4)
         return (str[0] | str[1] << 8 | str[2] << 16 | str[3] << 24);
     else
         return 0;
@@ -46,26 +48,29 @@ struct RIFFHeader
     uint32_t format = 0;
 };
 
+class RIFFObject : public Files::FileObject
+{
+public:
+    RIFFObject() : Files::FileObject("RIFF_Test"_h) {}
+    virtual int openFile(const char *filePath, bool lock = false);
 
-class RIFFObject : public Files::FileObject {
-    public:
-        virtual int openFile(const char *filePath, bool lock = false);
-
-        // Validates RIFF header
-        static bool isRIFF(Files::FileObject *fObj, uint32_t fcc);
-        static bool isRIFF(const char *filePath, uint32_t fcc){
-            Files::FileObject file;
-            if(file.openFile(filePath) == Files::FO_OKAY){
-                bool r = isRIFF(&file, fcc);
-                file.closeFile();
-                return r;
-            }
+    // Validates RIFF header
+    static bool isRIFF(Files::FileObject *fObj, uint32_t fcc);
+    static bool isRIFF(const char *filePath, uint32_t fcc)
+    {
+        Files::FileObject file("RIFF_Test"_h);
+        if (file.openFile(filePath) == Files::FO_OKAY)
+        {
+            bool r = isRIFF(&file, fcc);
             file.closeFile();
-            return false;
+            return r;
         }
+        file.closeFile();
+        return false;
+    }
 
-        bool skipToChunk(uint32_t fcc);
-    
-    protected:
-        RIFFHeader header = { 0 };
+    bool skipToChunk(uint32_t fcc);
+
+protected:
+    RIFFHeader header = {0};
 };

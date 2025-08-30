@@ -21,5 +21,5 @@
 
 namespace Audio
 {
-    Audio::SoundObject *openAudioFile(const char *filePath, size_t pathLen);
+    Audio::SoundObject *openAudioFile(util::Hash objectID, const char *filePath, size_t pathLen);
 }

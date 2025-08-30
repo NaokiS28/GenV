@@ -31,6 +31,7 @@ namespace Files
         FO_ERROR_BADPERMISSION, // Permissions on file denied this action
         FO_ERROR_BADPATH,       // File path was invalid, badly formatted or has invalid characters
         FO_ERROR_FILENOTFOUND,  // File was not found
+        FO_ERROR_NOTLOADED,     // File was found but could not be loading into memory
         FO_ERROR_BADOBJECT,     // DataObject is bad
         FO_ERROR_BADPARAM,      // A parameter provided did not meet the requirements
         FO_ERROR_INCOMPATIBLE,  // File type is incompatible with the target object

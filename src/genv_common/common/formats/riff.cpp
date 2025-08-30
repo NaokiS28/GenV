@@ -17,7 +17,7 @@
 
 #include "riff.hpp"
 
-constexpr const util::Hash riffCCHash = "RIFF_CurrentChunkPos"_h;
+// constexpr const util::Hash riffCCHash = "RIFF_CurrentChunkPos"_h;
 
 // Validates RIFF header
 bool RIFFObject::isRIFF(Files::FileObject *fObj, uint32_t fcc)

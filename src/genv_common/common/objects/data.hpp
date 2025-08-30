@@ -26,7 +26,7 @@
 class DataObject : public ObjectBase
 {
 public:
-    DataObject(size_t length) : ObjectBase()
+    DataObject(util::Hash objectID, size_t length) : ObjectBase(objectID)
     {
         this->data = new uint8_t[length];
         if (data != nullptr)

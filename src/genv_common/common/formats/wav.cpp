@@ -16,6 +16,7 @@
  */
 
 #include "wav.hpp"
+#include "common/formats/riff.hpp"
 #include "common/objects/file.hpp"
 
 WaveFile::WaveFile() : Audio::SoundObject(&file)
@@ -47,7 +48,7 @@ int WaveFile::loadSoundFile(const char *filePath)
         SoundObject::meta.channels = waveFormat.numChannels;
         SoundObject::meta.sampleRate = waveFormat.sampleRate;
         SoundObject::meta.sampleLength = waveData.dataSize;
-        SoundObject::sampleData = (file.getRawDataObj()->getRawData() + waveData.data);  // TODO: Change from being hardcoded
+        SoundObject::sampleData = (file.getRawDataObj()->getRawData() + waveData.data); // TODO: Change from being hardcoded
 
         return Audio::SO_OKAY;
     }
