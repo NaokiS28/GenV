@@ -45,6 +45,8 @@ add_library(genv_util STATIC
 	util/time.cpp
 	util/date.cpp
 	vendor/genv_stb_image.c
+	vendor/lodepng.c
+	vendor/bmp/bmp.c
 )
 target_include_directories(genv_util PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common

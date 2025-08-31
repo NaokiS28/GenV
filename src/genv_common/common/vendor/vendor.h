@@ -20,6 +20,9 @@
 #pragma once
 
 #include "vendor_conf.h"
+
 #include "genv_stb_image.h"
+#include "lodepng.h"
+#include "bmp/bmp.h"
 
 #endif
