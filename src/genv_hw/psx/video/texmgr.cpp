@@ -97,17 +97,17 @@ namespace System::PSX::GPU
         const uint16_t wPx, const uint16_t hPx)
     {
         int r = 0;
-        _frameBufferBox.x = (xPx / TILES_PER_COL);
-        _frameBufferBox.y = (yPx / TILES_PER_COL);
-        _frameBufferBox.w = (((uint16_t)xPx + wPx) / TILES_PER_COL);
-        _frameBufferBox.h = (((uint16_t)yPx + hPx) / TILES_PER_COL);
+        _frameBufferBox.x = (xPx / PIXELS_PER_TILE(16));
+        _frameBufferBox.y = (yPx / PIXELS_PER_TILE(16));
+        _frameBufferBox.w = (((uint16_t)xPx + wPx) / PIXELS_PER_TILE(16));
+        _frameBufferBox.h = (((uint16_t)yPx + hPx) / PIXELS_PER_TILE(16));
         r = markLargeBlock(
             TMGR_INUSE,
             _frameBufferBox.x + (PAGE_GRID_COLS * _frameBufferBox.y),
             _frameBufferBox.x / MIN_TILE_SIZE,
             _frameBufferBox.y / MIN_TILE_SIZE,
-            TILES_PER_ROW * (_frameBufferBox.w + 1),
-            TILES_PER_COL * (_frameBufferBox.h + 1));
+            _frameBufferBox.w,
+            _frameBufferBox.h);
         return r;
     }
 
@@ -158,28 +158,23 @@ namespace System::PSX::GPU
         {
             // Always move to the left-most position when starting a new row
             t.tileX = 0;
-            if (((uint16_t)t.tileY + (uint16_t)hTiles) >= TILES_PER_COL)
+            if (((uint16_t)t.tileY + ((uint16_t)hTiles - 1)) >= TILES_PER_ROW)
             {
                 return TMGR_NO_FREE_SPACE;
             }
 
             for (; t.tileX < TILES_PER_COL; t.tileX++)
             {
-                if (((uint16_t)t.tileX + (uint16_t)wTiles) >= TILES_PER_COL)
-                {
-                    break;
-                }
-
                 // Test left side first, as we can move to the right
                 // to avoid left-most tiles
                 if (testTile(t.page, t.tileX, t.tileY) ||
-                    testTile(t.page, t.tileX, t.tileY + hTiles))
+                    testTile(t.page, t.tileX, t.tileY + (hTiles - 1)))
                     continue;
 
                 // If there is a texture to the right, break the x loop
                 // as there is no point trying to shift right.
-                if (testTile(t.page, t.tileX + wTiles, t.tileY) ||
-                    testTile(t.page, t.tileX + wTiles, t.tileY + hTiles))
+                if (testTile(t.page, t.tileX + (wTiles - 1), t.tileY) ||
+                    testTile(t.page, t.tileX + (wTiles - 1), t.tileY + (hTiles - 1)))
                     break;
 
                 // Four corners are free, check the block
@@ -282,13 +277,16 @@ namespace System::PSX::GPU
         int r = 0;
         bool stopSearch = false;
 
-        uint8_t TMGR_row = 0;                                           // Current texture page grid row, usually 0 or 1
-        uint8_t wTiles = (TILES_PER_PIXEL(ptObj->bpp) * ptObj->width);  // width in tiles
-        uint8_t hTiles = (TILES_PER_PIXEL(ptObj->bpp) * ptObj->height); // hieght in tiles
-        t.page = (PAGE_GRID_COLS - 1) + (wTiles / TILES_PER_COL);       // Top right of VRAM
+        uint8_t TMGR_row = 0;                                          // Current texture page grid row, usually 0 or 1
+        uint8_t wTiles = (ptObj->width / PIXELS_PER_TILE(ptObj->bpp)); // width in tiles (bpp affects width)
+        uint8_t hTiles = (ptObj->height / MIN_TILE_SIZE);              // hieght in tiles (bpp does not affect hieght)
+        t.page = (PAGE_GRID_COLS - 1) - (wTiles / TILES_PER_COL);      // Top right of VRAM
+
+        if (wTiles == 0) wTiles = 1;
+        if (hTiles == 0) hTiles = 1;
 
         if (hTiles >= TILES_PER_ROW ||
-            wTiles >= (TILES_PER_COL * TILES_PER_PIXEL(ptObj->bpp)))
+            wTiles >= (TILES_PER_COL * (ptObj->bpp / 4)))
             return TMGR_OUT_OF_BOUNDS;
 
         do
@@ -322,10 +320,9 @@ namespace System::PSX::GPU
             }
         } while (!stopSearch);
 
-        VRAMEntry v = tpageToVRAM(t);
         ptObj->texPage = t.page;
-        ptObj->vramX = v.x;
-        ptObj->vramY = v.y;
+        ptObj->vramX = (tileToPx(t.tileX) / (ptObj->bpp / 4)); // bpp affects width
+        ptObj->vramY = tileToPx(t.tileY);
 
         if (ptObj->bpp == Textures::BPP_4BIT || ptObj->bpp == Textures::BPP_8BIT)
         {
@@ -344,8 +341,11 @@ namespace System::PSX::GPU
         TexPageEntry t = vramToTPage(ptObj->vramX, ptObj->vramY);
 
         // higher bitdepths use more tiles.
-        uint8_t wTiles = (TILES_PER_PIXEL(ptObj->bpp) * ptObj->width);  // width in tiles
-        uint8_t hTiles = (TILES_PER_PIXEL(ptObj->bpp) * ptObj->height); // hieght in tiles
+        uint8_t wTiles = (ptObj->width / PIXELS_PER_TILE(ptObj->bpp)); // width in tiles (bpp affects width)
+        uint8_t hTiles = (ptObj->height / MIN_TILE_SIZE);              // hieght in tiles (bpp does not affect height)
+
+        if (wTiles == 0) wTiles = 1;
+        if (hTiles == 0) hTiles = 1;
 
         r = markLargeBlock(
             TMGR_FREE,

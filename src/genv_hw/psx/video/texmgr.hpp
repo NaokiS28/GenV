@@ -29,26 +29,6 @@
 
 namespace System::PSX::GPU
 {
-    /* TODO:
-     * The algo needs adjusting to use tpages properly. Currently it is assuming pixels are all the same in all bitdepths.
-     * This is not the case. Each TPage is 256 pixels wide, but at bitdepths higher than 4, the page will spill over to adjacent
-     * pages. IE a texture page in 4bpp is 256x256. But in 16bpp a texture page is equivilent to 1024x256 4bpp pixels.
-     * Another analogy is like this:
-     * union {
-     *    uint4_t 4bpp[4];
-     *    uint8_t 8bpp[2];
-     *    uint16_t 16bpp [1];
-     * } tpage;
-     * each 16 bit pixel will use 4 4bpp pixels. So 256 16-bit pixels takes up 4 4bpp pages.
-     *
-     * In practice this is just used as an addressing or bank switching scheme so that 8 bit X/Y coords can be used.
-     *
-     * It's a nuts system compared to just using 16-bit x and y for vram. That and the fact there's no model storage
-     * or geometry transformation hardward inside of it. You got to wonder whether or not folks at Toshiba
-     * faced a hardware limitation or they just got too drunk on Sake when designing the GPU.
-     *
-     */
-
     // VRAM layout
     static constexpr int VRAM_WIDTH = 1024;   // Total width of a VRAM row in px
     static constexpr int MIN_TILE_SIZE = 8;   // 1 Tile: Minimum of 8×8 pixels in 4BPP (GENV), equates to 4px 8 BPP, 2px 16 BPP, 1px 24 BPP
@@ -62,15 +42,15 @@ namespace System::PSX::GPU
     static constexpr int MAX_CLUT_LINES_PER_PAGE = MIN_TILE_SIZE * MAX_CLUT_LINES_IN_TILES;
 
     // How many tiles per page column
-    static constexpr const int TILES_PER_PIXEL(const uint8_t bpp)
+    static constexpr const int PIXELS_PER_TILE(const uint8_t bpp)
     {
         // Switch to enforce 4/8/16/24 bpp results
         switch (bpp)
         {
-        case 4: return 1;
-        case 8: return 1;
+        case 4: return 8;
+        case 8: return 4;
         case 16: return 2;
-        case 24: return 4;
+        case 24: return 1;
         default: return 0;
         }
     }
@@ -91,6 +71,10 @@ namespace System::PSX::GPU
     can either encompass 1 to 6 texture pages, which is 256 x 4BPP pixels or 128~byte divisions of VRAM.
     The window will always be 256 pixels by 256px, but the interpretation of the bytes will change depending
     on bitdepth, from 2 pixels per byte, to 1 pixel per 6 bytes.
+
+    It's a nuts system compared to just using 16-bit x and y for vram. That and the fact there's no model storage
+    or geometry transformation hardward inside of it. You got to wonder whether or not folks at Toshiba
+    faced a hardware limitation or they just got too drunk on Sake when designing the GPU.
 
     In TextureManager, pages are based on a similar principle, but only offer an insight into a single
     "128 byte" region. Each page has 32 32-bit bitmaps where each bit of a word represents 8 pixels (1 tile).
@@ -141,7 +125,7 @@ namespace System::PSX::GPU
 
         struct VRAMEntry
         {
-            uint8_t x = 0, y = 0;
+            uint16_t x = 0, y = 0;
         };
 
     private:
@@ -218,8 +202,8 @@ namespace System::PSX::GPU
         static inline constexpr VRAMEntry tpageToVRAM(uint8_t page, uint8_t tileX, uint8_t tileY)
         {
             VRAMEntry v;
-            v.y = (PAGE_SIZE * (page / PAGE_GRID_COLS));
-            v.x = (TILES_PER_COL * (page % PAGE_GRID_COLS)) + tileToPx(tileX);
+            v.y = (PAGE_SIZE * (page / PAGE_GRID_COLS)) + tileToPx(tileY);
+            v.x = (MIN_TILE_SIZE * (TILES_PER_COL * (page % PAGE_GRID_COLS))) + tileToPx(tileX);
             return v;
         }
 

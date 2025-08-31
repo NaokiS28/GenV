@@ -371,8 +371,8 @@ namespace System::PSX::GPU
 
         _texmgr.allocateTexture(ptObj);
 
-        uint16_t _x = ptObj->vramX + (64 * (ptObj->texPage % 16));
-        uint16_t _y = ptObj->vramY + (64 * (ptObj->texPage / 16));
+        uint16_t _x = ptObj->vramX + ((256 / (ptObj->bpp / 4)) * (ptObj->texPage % 16));
+        uint16_t _y = ptObj->vramY + ((256 / (ptObj->bpp / 4)) * (ptObj->texPage / 16));
 
         _waitForDMADone();
         _sendVRAMData(&*ptObj->bitmap, _x, _y, ptObj->width, ptObj->height);
