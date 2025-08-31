@@ -16,12 +16,7 @@
  */
 
 #include <time.h>
-
-#include "app/app.hpp"
-#include "app/iapp_host.hpp"
-#include "common/objects/texture.hpp"
-#include "common/services/system/system.hpp"
-#include "common/logger/log.hpp"
+#include <genv.h>
 
 using namespace Apps;
 
