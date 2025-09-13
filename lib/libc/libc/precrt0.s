@@ -20,7 +20,22 @@
 .global _startWrapper
 .type _startWrapper, @function
 
+.include "hwregs.inc"
+
 _startWrapper:
     lui   $sp, %hi(STACK_TOP)
+
+# PCSX-Redux specific checks
+    lw    $t2, SBUS_DEV8_CTRL
+    lui   $t0, 8
+    lui   $t1, 1
+_check_dev8:
+    bge   $t2, $t0, _store_dev8
+    nop
+    b     _check_dev8
+    add   $t2, $t1
+_store_dev8:
+    sw    $t2, SBUS_DEV8_CTRL
+
     j     _start
     addiu $sp, %lo(STACK_TOP)

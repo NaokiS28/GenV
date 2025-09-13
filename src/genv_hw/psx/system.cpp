@@ -19,6 +19,7 @@
 #include <assert.h>
 
 #include "system.hpp"
+#include "psx/system/pcsxhw.h"
 #include "psx/system/timer.h"
 #include "registers.hpp"
 
@@ -54,7 +55,11 @@ namespace System::PSX
 
     int PSXSystem::init()
     {
-        psx_setInterruptHandler(util::forcedCast<ArgFunction>(&PSXSystem::_interruptHandler), this);
+        if (pcsx_present())
+        {
+            LOG("System", "Detected host as PCSX-Redux.");
+        }
+        _setupInterruptHandler();
 
         if (_initIO() != 0)
         {
@@ -141,6 +146,18 @@ namespace System::PSX
         Services::addInputDevice(joyDriver);
 
         return 0;
+    }
+
+    void PSXSystem::_setupInterruptHandler(void)
+    {
+        psx_setInterruptHandler(
+            [](void *arg)
+            {
+                auto app = reinterpret_cast<PSXSystem *>(arg);
+
+                app->_interruptHandler(); // etc.
+            },
+            this);
     }
 
     void PSXSystem::_interruptHandler(void)

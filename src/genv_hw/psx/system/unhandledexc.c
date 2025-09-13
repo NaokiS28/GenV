@@ -53,16 +53,18 @@ static void _printHexValue(uint32_t value) {
 
 void _unhandledException(int cause, uint32_t badv) {
 #ifndef NDEBUG
+	puts("EXCEPTION: ");
 	puts(_causeNames[cause - 4]);
+	puts("\r\n");
 
 	if (cause <= 5) {
 		putchar('@');
 		putchar(' ');
 		_printHexValue(badv);
-		putchar('\n');
+		puts("\r\n");
 	}
 
-	puts("Register dump:");
+	puts("Register dump:\r\n");
 
 	const char *name = _registerNames;
 	uint32_t   *reg  = (uint32_t *) &(currentThread->pc);
@@ -76,10 +78,12 @@ void _unhandledException(int cause, uint32_t badv) {
 		_printHexValue(*(reg++));
 
 		if (!(i % 4))
-			putchar('\n');
+		{
+			puts("\r\n");
+		}
 	}
 
-	puts("Stack dump:");
+	puts("Stack dump:\r\n");
 
 	uint32_t *addr = ((uint32_t *) currentThread->sp) - 7;
 	uint32_t *end  = ((uint32_t *) currentThread->sp) + 7;
@@ -95,7 +99,7 @@ void _unhandledException(int cause, uint32_t badv) {
 		putchar(':');
 		putchar(' ');
 		_printHexValue(*addr);
-		putchar('\n');
+		puts("\r\n");
 	}
 #endif
 

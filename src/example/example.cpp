@@ -31,9 +31,6 @@ private:
 
     Coord txtOrigin;
 
-    Textures::TextureObject *textTest[4] =
-        {nullptr, nullptr, nullptr, nullptr};
-
 public:
     static Application *createApp()
     {
@@ -51,14 +48,12 @@ public:
         setHost(host);
         setAppState(APP_STATE_RUN);
         reload();
-        textTest[0] = Textures::createDefaultTexture();
-        textTest[1] = Textures::createDefaultTexture();
-        textTest[2] = Textures::createDefaultTexture();
-        textTest[3] = Textures::createDefaultTexture();
-        textTest[0]->uploadTexture();
-        textTest[1]->uploadTexture();
-        textTest[2]->uploadTexture();
-        textTest[3]->uploadTexture();
+        Textures::TextureObject *textTest[256];
+        for (int i = 0; i < 256; i++)
+        {
+            textTest[i] = Textures::createDefaultTexture();
+            textTest[i]->uploadTexture();
+        }
         return 0;
     }
 

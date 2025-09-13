@@ -26,6 +26,7 @@
 #include "storage/iface_storage.hpp"
 #include "system/iface_system.hpp"
 
+#include "common/services/video/fontman.hpp"
 #include "common/services/io/inputman.hpp"
 #include "common/services/storage/storeman.hpp"
 
@@ -73,7 +74,7 @@ private:
     static Audio::IAudio *s_audio;
     static Video::IVideo *s_video;
     static System::ISystem *s_system;
-    static inline void setSystem(System::ISystem *sys) { s_system = sys; }
+    static void setSystem(System::ISystem *sys);
     static void setVideo(Video::IVideo *video);
     static void setAudio(Audio::IAudio *audio);
     static void destroySystem();
@@ -81,5 +82,6 @@ private:
     static void destroyAudio();
 
     static Input::InputManager *s_input;
+    static Fonts::FontManager *s_fonts;
     static Files::StorageManager *s_storage;
 };

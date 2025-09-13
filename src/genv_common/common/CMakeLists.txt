@@ -23,11 +23,15 @@ add_library(genv_common STATIC
 	objects/sprite.cpp
 	objects/texture.cpp
 	objects/texture/missingtex.c
+	objects/font.cpp
+	objects/fonts/spice.cpp
+	objects/fonts/roboto.cpp
 	formats/soundfile.cpp
+	formats/image_file.cpp
 	formats/riff.cpp
 	formats/wav.cpp
 )
-target_link_libraries(genv_common PUBLIC genv_services)
+target_link_libraries(genv_common PUBLIC genv_services genv_util)
 target_include_directories(genv_common PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw
@@ -45,8 +49,9 @@ add_library(genv_util STATIC
 	util/time.cpp
 	util/date.cpp
 	vendor/genv_stb_image.c
-	vendor/lodepng.c
-	vendor/bmp/bmp.c
+	vendor/lodepng.cpp
+	vendor/gifn/gifn.cpp
+	#vendor/bmp/bmp.c
 )
 target_include_directories(genv_util PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
@@ -61,6 +66,7 @@ add_library(genv_services STATIC
 	services/services.cpp
 	services/storage/storage.cpp
 	services/storage/storeman.cpp
+	services/video/fontman.cpp
 	services/video/video.cpp
 	services/video/nullvideo.cpp
 	services/audio/nullaudio.cpp

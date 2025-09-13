@@ -77,6 +77,7 @@ namespace System
             virtual int _initIO();
             virtual int _initFiles();
 
+            void _setupInterruptHandler(void);
             void _interruptHandler();
 
             void _isr_timer2();

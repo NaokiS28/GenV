@@ -44,7 +44,6 @@ void GenvSystemClass::startup()
     Audio::IAudio *audio = new Audio::NullAudio();
     Video::IVideo *video = new Video::NullVideo();
 
-    int service = Services::init();
     Services::setAudio(adminKey, audio);
     Services::setVideo(adminKey, video);
     Services::setSystem(adminKey, system);
@@ -59,14 +58,16 @@ void GenvSystemClass::startup()
         GENV_LOG("OS Version: %s", system->getSysInfo()->osname);
     }
 
-    if (service != 0)
-    {
-        GENV_LOG("Core managers failed to init.");
-        halt();
-    }
     if (system == nullptr || system->init() != 0)
     {
         GENV_LOG("System manager failed to init.");
+        halt();
+    }
+
+    int service = Services::init();
+    if (service != 0)
+    {
+        GENV_LOG("Core managers failed to init.");
         halt();
     }
 }

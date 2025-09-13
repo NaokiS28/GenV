@@ -65,7 +65,7 @@ public:
     {
         return data;
     }
-    size_t getDataLen()
+    const size_t getDataLen()
     {
         return length;
     }
