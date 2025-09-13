@@ -124,7 +124,7 @@ namespace Sprites
             return *this;
         }
 
-        virtual int loadTextureFile(const char *filePath);
+        virtual int loadTextureFromFile(const char *filePath);
         int uploadTexture();
 
         // Selects a specific tile in the texture to draw. (Disables random tiling if set)

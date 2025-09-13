@@ -18,6 +18,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "common/util/hash.hpp"
 #include "texture.hpp"
 #include "common/util/ifloat.hpp"
 #include "common/util/rect.h"
@@ -103,7 +104,9 @@ namespace Sprites
         inline void setY(int y) { pos.y = y; }
         inline void setZ(int z) { pos.z = z; }
 
-        virtual int loadTextureFile(const char *filePath);
+        virtual int loadTextureFromFile(const char *filePath);
         int uploadTexture();
     };
+
+    SpriteObject *createSprite(util::Hash objectID);
 } // namespace Sprites

@@ -18,233 +18,313 @@
 #include <stdint.h>
 #include <string.h>
 #include "texmgr.hpp"
+#include "common/util/rect.h"
 #include "psx/video/gpudef.hpp"
 
 namespace System::PSX::GPU
 {
-    int TextureManager::init()
+    int TextureManager::VRAM_Bitmap_POD::init(uint8_t _vram)
     {
-        if (_pages)
-            delete[] _pages;
-        _pages = new PageAllocState[(PAGE_GRID_COLS * _vramPageRows)];
-        memset(_pages, 0, sizeof(PageAllocState) * (PAGE_GRID_COLS * _vramPageRows));
+        // Using 8bpp width here as we're dealing with bytes, hieght is 4bpp since each line is a pixel
+        _tile_bitmap_size = ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * (VRAM_HEIGHT / (PIXELS_PER_TILE(4))));
+        _clut_bitmap_size = ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * (MAX_CLUT_LINES_PER_PAGE * (PAGE_MIN_ROWS * _vram)));
+        _tile_bitmap = new uint32_t[_tile_bitmap_size];
+        _clut_bitmap = new uint32_t[_clut_bitmap_size];
 
+        if (!_tile_bitmap || !_clut_bitmap)
+        {
+            LOG("TextureManager", "Unexpected error in allocating bitmap(s). Dynamic allocation is not possible!");
+            return TMGR_MALLOC_FAIL;
+        }
+        // UINT32_MAX allows TMGR_FREE to be true for bool functions
+        memset(_tile_bitmap, (UINT32_MAX * TMGR_FREE), sizeof(uint32_t) * _tile_bitmap_size);
+        memset(_clut_bitmap, (UINT32_MAX * TMGR_FREE), sizeof(uint32_t) * _clut_bitmap_size);
         return TMGR_OKAY;
     }
 
-    int TextureManager::processLargeBlock(
-        uint8_t state,
-        uint8_t pageStart,
-        uint8_t xTile, uint8_t yTile,
-        uint16_t wTiles, uint16_t hTiles,
-        bool dryRun)
+    bool TextureManager::VRAM_Bitmap_POD::tile_available(int x, int y) const
     {
-        uint16_t rowsLeft = hTiles;
-        uint8_t page = pageStart;
-        // NOTE: yOffset never resets, so each page starts at the same tile-row
-        uint16_t yOffset = yTile;
+        if (!_tile_bitmap) return TMGR_INUSE;
+        uint32_t bitmask = (1 << (x % 32));
+        size_t tile_idx = ((x / 32) + ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * y));
+        return ((_tile_bitmap[tile_idx] & bitmask) != TMGR_INUSE);
+    }
 
-        while (rowsLeft > 0)
+    bool TextureManager::VRAM_Bitmap_POD::clut_available(int x, int y, int w) const
+    {
+        uint8_t row = clut_y_row(y);
+
+        if (!_clut_bitmap) return TMGR_INUSE;
+        if ((x % 2) != 0 ||                                 // X can only be in multiples of 16
+            !clut_y_valid(y) ||                             // Y can only be in the last N lines of a page
+            (row >= MAX_CLUT_LINES_PER_PAGE) ||             // Lines must be within the allowed limit
+            (w != MAX_COLORS_4BPP && w != MAX_COLORS_8BPP)) // Bitdepth width must be 4bpp or 8bpp
+            return TMGR_INUSE;
+
+        uint32_t bitmask = (1 << (x % 32));
+        size_t clut_idx = ((x / 32) + ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * row) + (y % MAX_CLUT_LINES_PER_PAGE));
+        for (int i = 0; i < w; i += MAX_COLORS_4BPP)
         {
-            uint16_t availRows = TILES_PER_ROW - yOffset;
-            uint16_t doRows = (rowsLeft < availRows ? rowsLeft : availRows);
+            if ((_clut_bitmap[clut_idx] & bitmask) != TMGR_FREE)
+                return TMGR_INUSE;
+        }
+        return TMGR_FREE;
+    }
 
-            uint16_t yEnd = yOffset + doRows;
-            uint16_t xEnd = xTile + wTiles; // m
-
-            for (uint16_t yy = yOffset; yy < yEnd; ++yy)
+    bool TextureManager::VRAM_Bitmap_POD::test_block(int x, int y, int w, int h) const
+    {
+        bool block = TMGR_FREE;
+        for (uint16_t yy = y; yy < (y + h); yy++)
+        {
+            for (uint16_t xx = x; xx < (x + w); xx++)
             {
-                for (uint16_t xx = xTile; xx < xEnd; ++xx)
+                if (!tile_available(xx, yy))
                 {
-                    if (dryRun)
-                    {
-                        // collision-check pass
-                        if (testTile(page, xx, yy))
-                            return TMGR_COLLISION;
-                    }
-                    else
-                    {
-                        // marking pass
-                        writeTile(state, page, xx, yy);
-                    }
+                    block = TMGR_INUSE;
+                    break;
                 }
             }
-
-            rowsLeft -= doRows;
-            ++page; // move to next page, keep yOffset the same
+            if (block == TMGR_INUSE) break;
         }
-
-        return TMGR_OKAY;
+        return block;
     }
 
-    int TextureManager::markLargeBlock(
-        const bool state,
-        uint8_t pageStart,
-        uint8_t xTile, uint8_t yTile,
-        const uint16_t wTiles, const uint16_t hTiles)
+    void TextureManager::VRAM_Bitmap_POD::mark_tile(int x, int y, bool state)
     {
-        // Check for collisions with existing tiles
-        int r = processLargeBlock(state, pageStart, xTile, yTile, wTiles, hTiles, true);
-        if (r < 0)
-            return r;
-
-        // Phase 2: actually set or clear the bits
-        return processLargeBlock(state, pageStart, xTile, yTile, wTiles, hTiles, false);
-    }
-
-    int TextureManager::markFrameBuffer(
-        const uint8_t xPx, const uint8_t yPx,
-        const uint16_t wPx, const uint16_t hPx)
-    {
-        int r = 0;
-        _frameBufferBox.x = (xPx / PIXELS_PER_TILE(16));
-        _frameBufferBox.y = (yPx / PIXELS_PER_TILE(16));
-        _frameBufferBox.w = (((uint16_t)xPx + wPx) / PIXELS_PER_TILE(16));
-        _frameBufferBox.h = (((uint16_t)yPx + hPx) / PIXELS_PER_TILE(16));
-        r = markLargeBlock(
-            TMGR_INUSE,
-            _frameBufferBox.x + (PAGE_GRID_COLS * _frameBufferBox.y),
-            _frameBufferBox.x / MIN_TILE_SIZE,
-            _frameBufferBox.y / MIN_TILE_SIZE,
-            _frameBufferBox.w,
-            _frameBufferBox.h);
-        return r;
-    }
-
-    bool TextureManager::testTile(const uint8_t page, const uint8_t tileX, const uint8_t tileY) const
-    {
-        // Only read CLUT bitmap if we are in the CLUT region
-        if (tileY >= ((PAGE_SIZE - 1) - MAX_CLUT_LINES_PER_PAGE))
-        {
-            // Check the entire block
-            uint8_t startLine = ((MIN_TILE_SIZE - 1) - tileY);
-            for (int cY = startLine; cY < (startLine + (MIN_TILE_SIZE - 1)); cY++)
-            {
-                if (testCLUT(page, cY, tileToPx(tileX)))
-                    return true;
-            }
-        }
-        return ((_pages[page].tileBitmap[tileY] & (1 << tileX)) != 0);
-    }
-
-    void TextureManager::writeTile(const bool state, const uint8_t page, const uint8_t tileX, const uint8_t tileY)
-    {
+        if (!_tile_bitmap) return;
+        uint32_t bitmask = (1 << (x % 32));
+        size_t tile_idx = ((x / 32) + ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * y));
         if (state)
-            setTile(page, tileX, tileY);
+            _tile_bitmap[tile_idx] |= bitmask;
         else
-            clearTile(page, tileX, tileY);
-
-        // Only write to CLUT bitmap if we are in the CLUT region
-        if (tileY >= ((PAGE_SIZE - 1) - MAX_CLUT_LINES_PER_PAGE))
-        {
-            // Clear the entire block
-            uint8_t startLine = ((MIN_TILE_SIZE - 1) - tileY);
-            for (int cY = startLine; cY < (startLine + (MIN_TILE_SIZE - 1)); cY++)
-            {
-                if (state)
-                    setCLUT(page, cY, tileToPx(tileX));
-                else
-                    clearCLUT(page, cY, tileToPx(tileX));
-            }
-        }
+            _tile_bitmap[tile_idx] &= ~(bitmask);
     }
 
-    int TextureManager::findFreeBlock(
-        TexPageEntry &t,
-        uint8_t bpp,
-        uint8_t wTiles, uint8_t hTiles) const
+    void TextureManager::VRAM_Bitmap_POD::mark_clut(int x, int y, int w, bool state)
     {
-        for (; t.tileY < TILES_PER_ROW; t.tileY++)
+        uint8_t row = clut_y_row(y);
+
+        if (!_clut_bitmap) return;
+        if ((x % 2) != 0 ||                                             // X can only be in multiples of 16
+            !clut_y_valid(y) ||                                         // Y can only be in the last N lines of a page
+            (row >= MAX_CLUT_LINES_PER_PAGE) ||                         // Lines must be within the allowed limit
+            (w != (MAX_COLORS_4BPP - 1) && w != (MAX_COLORS_8BPP - 1))) // Bitdepth width must be 4bpp or 8bpp
+            return;
+
+        uint32_t bitmask = (1 << (x % 32));
+        size_t clut_idx = ((x / 32) + (((VRAM_WIDTH * 2) / (PIXELS_PER_TILE(8) * 32)) * row) + (y % MAX_CLUT_LINES_PER_PAGE));
+        if (state)
+            _clut_bitmap[clut_idx] |= bitmask;
+        else
+            _clut_bitmap[clut_idx] &= ~(bitmask);
+    }
+
+    bool TextureManager::VRAM_Bitmap_POD::process_block(int x, int y, int w, int h, bool state, bool dry_run)
+    {
+        uint16_t xEnd = x + w;
+        uint16_t yEnd = y + h;
+        // Rows
+        for (uint16_t yy = y; yy < yEnd; ++yy)
         {
-            // Always move to the left-most position when starting a new row
-            t.tileX = 0;
-            if (((uint16_t)t.tileY + ((uint16_t)hTiles - 1)) >= TILES_PER_ROW)
+            // Cols
+            for (uint16_t xx = x; xx < xEnd; ++xx)
             {
-                return TMGR_NO_FREE_SPACE;
-            }
-
-            for (; t.tileX < TILES_PER_COL; t.tileX++)
-            {
-                // Test left side first, as we can move to the right
-                // to avoid left-most tiles
-                if (testTile(t.page, t.tileX, t.tileY) ||
-                    testTile(t.page, t.tileX, t.tileY + (hTiles - 1)))
-                    continue;
-
-                // If there is a texture to the right, break the x loop
-                // as there is no point trying to shift right.
-                if (testTile(t.page, t.tileX + (wTiles - 1), t.tileY) ||
-                    testTile(t.page, t.tileX + (wTiles - 1), t.tileY + (hTiles - 1)))
-                    break;
-
-                // Four corners are free, check the block
-                bool blockInUse = false;
-                for (int yy = t.tileY; yy < hTiles; yy++)
+                if (dry_run)
                 {
-                    for (int xx = t.tileX; xx < wTiles; xx++)
+                    // collision-check pass
+                    int r = 0;
+                    for (int cy = yy; clut_y_valid(cy) && cy < yy + 8; cy++)
                     {
-                        if (testTile(t.page, xx, yy))
+                        if (clut_available(xx, yy + cy, MAX_COLORS_4BPP))
                         {
-                            blockInUse = true;
+                            r = TMGR_INUSE;
                             break;
                         }
                     }
-                    if (blockInUse)
-                    {
-                        break;
-                    }
-                }
-
-                if (!blockInUse)
-                {
-                    // Bock is free
-                    return TMGR_OKAY;
+                    if (r || !tile_available(xx, yy))
+                        return TMGR_INUSE;
                 }
                 else
                 {
-                    // Somewhere there are tiles in use,
-                    // assume the entire block is in use
-                    t.tileY += hTiles;
-                    break;
+                    mark_tile(xx, yy, state);
+                    if (clut_y_valid(yy))
+                        for (int cy = yy; clut_y_valid(cy) && cy < yy + 8; cy++)
+                        {
+                            mark_clut(xx, yy + cy, MAX_COLORS_4BPP, state);
+                        }
                 }
             }
         }
-        return TMGR_NO_FREE_SPACE;
+        return TMGR_FREE;
     }
 
-    // X and Y is in px
-    int TextureManager::findFreeCLUT(uint8_t page, uint8_t bpp, uint8_t &clutLine, uint8_t &xPx) const
+    bool TextureManager::VRAM_Bitmap_POD::mark_block(int x, int y, int w, int h, bool state)
     {
-        // CLUTs must be aligned to x = (16 * idx)
-        // 8bpp takes up the entire row.
-        uint16_t depthWidth = clutWidth(bpp);
+        int r = process_block(x, y, w, h, state, true);
+        if (r < 0)
+            return r;
+        return process_block(x, y, w, h, state, false);
+    }
 
-        for (; clutLine > (PAGE_SIZE - MAX_CLUT_LINES_PER_PAGE); clutLine--)
+    int TextureManager::markFrameBuffer(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h)
+    {
+        int r = 0;
+        if (_frameBufferBox.w && _frameBufferBox.h)
         {
-            // Always move to the left-most position when starting a new row
-            xPx = 0;
-            for (; (uint16_t)xPx < (PAGE_SIZE - 1);)
+            r = _vramBitmap.mark_block(
+                _frameBufferBox.x,
+                _frameBufferBox.y,
+                _frameBufferBox.w,
+                _frameBufferBox.h,
+                VRAM_Bitmap_POD::TMGR_FREE);
+        }
+
+        _frameBufferBox = {
+            pxToTile(x),
+            pxToTile(y),
+            (w / PIXELS_PER_TILE(16)),
+            (h / MIN_TILE_SIZE)};
+        r = _vramBitmap.mark_block(
+            _frameBufferBox.x,
+            _frameBufferBox.y,
+            _frameBufferBox.w,
+            _frameBufferBox.h,
+            VRAM_Bitmap_POD::TMGR_INUSE);
+        return r;
+    }
+
+    int TextureManager::findFreeBlock(uint16_t &x, uint16_t &y, uint8_t w, uint8_t h, uint8_t bpp) const
+    {
+        // Always start at top left corner and try to align to left edge of nearest page.
+        // Push to farthest right page start
+        int pageW = (VRAM_WIDTH_IN_PX(bpp) / bpp); // in pixels
+        int pageX = (PAGE_GRID_COLS - (1 + (w / pageW)));
+        int pageY = 0;
+        int startX = ((PAGE_SIZE / MIN_TILE_SIZE) * pageX);
+        int startY = 0;
+        int maxH = PAGE_SIZE / MIN_TILE_SIZE;
+        int maxW = (VRAM_WIDTH_IN_PX(bpp) / MIN_TILE_SIZE);
+
+        RectWH t = {startX, startY, w, h};
+
+        for (;;)
+        {
+            // Page alignment
+            for (; (t.y + (t.h - 1)) < maxH + (32 * pageY); t.y++)
             {
-                // Check the strip
-                bool stripInUse = false;
-                // Check 8 in tiles
-                for (int xx = xPx; xx < (PAGE_SIZE - 1); xx += depthWidth)
+                for (; (t.x + (t.w - 1)) < (maxW * 4); t.x++)
                 {
-                    if (testCLUT(page, clutLine, xx))
+                    // If we're in the framebuffer box, try to snap to the outer edge of it, or move to the next page
+                    if (t.x >= _frameBufferBox.x && t.x < (_frameBufferBox.x + _frameBufferBox.w))
                     {
-                        stripInUse = true;
-                        break;
+                        if ((((_frameBufferBox.x + _frameBufferBox.w)) + (t.w - 1)) > (maxW * 4))
+                            break;
+                        t.x = (_frameBufferBox.x + _frameBufferBox.w);
+                        continue;
+                    }
+
+                    // If fine movement to right isn't going to help, skip next block
+                    if (!_vramBitmap.tile_available(t.x + (t.w - 1), t.y) &&
+                        !_vramBitmap.tile_available(t.x + (t.w - 1), t.y + (t.h - 1)))
+                    {
+                        t.x += (t.w - 1); // -1 to account for loop ++
+                        continue;
+                    }
+
+                    // Check starting corner
+                    if (!_vramBitmap.tile_available(t.x, t.y))
+                        continue;
+
+                    // Full block probe
+                    bool blockFree = _vramBitmap.test_block(t.x, t.y, t.w, t.h);
+                    if (blockFree)
+                    {
+                        // Found a free block at (t.x, t.y)
+                        x = t.x;
+                        y = t.y;
+                        return TMGR_OKAY;
                     }
                 }
 
-                if (!stripInUse)
+                // Always start a new row from the left
+                t.x = ((PAGE_SIZE / MIN_TILE_SIZE) * pageX);
+
+                // If moving down by one line won't help, skip next block.
+                if (!_vramBitmap.tile_available(t.x, t.y + (t.h - 1)) &&
+                    !_vramBitmap.tile_available(t.x + (t.w - 1), t.y + (t.h - 1)))
                 {
-                    // Strip is free
-                    return TMGR_OKAY;
+                    t.y += (t.h - 1); // -1 to account for loop ++
+                    continue;
                 }
-                xPx += depthWidth;
+            }
+
+            // Failed to find space in this page. Move left 1 page or to new line and rightmost page
+            if (pageX)
+            {
+                pageX--;
+                t.x = ((PAGE_SIZE / MIN_TILE_SIZE) * pageX);
+                t.y = (32 * pageY);
+            }
+            else if (pageY < _vramSize)
+            {
+                pageX = (PAGE_GRID_COLS - 1);
+                pageY++;
+                t.x = ((PAGE_SIZE / MIN_TILE_SIZE) * pageX);
+                t.y = (32 * pageY);
+            }
+            else
+            {
+                return TMGR_NO_FREE_SPACE;
             }
         }
+    }
+
+    // X and Y is in px
+    int TextureManager::findFreeCLUT(uint16_t &x, uint16_t &y, uint8_t bpp) const
+    {
+        uint8_t pageX = 0;
+        uint8_t pageY = ((2 * _vramSize) - 1); // Bottom line of VRAM
+        uint16_t minH = (PAGE_SIZE - MAX_CLUT_LINES_PER_PAGE);
+        uint16_t startY = (PAGE_SIZE * (pageY + 1)) - 1;
+
+        // CLUT strips are aligned by their pixel width for the given bpp.
+        // For 4bpp a strip is 16 pixels wide; for 8bpp it's 256 (i.e., whole row).
+        const uint16_t width = clutWidth(bpp); // returns strip width in pixels
+
+        // Search bottom-up within the CLUT band (inclusive).
+        x = 0;
+        y = startY;
+        for (;;)
+        {
+            // Page alignment
+            for (; y > (minH + (PAGE_SIZE * (pageY))); --y)
+            {
+                bool clutFree = false;
+                for (; x < PAGE_SIZE; x += width)
+                {
+                    if (_vramBitmap.clut_available(x, y, width))
+                    {
+                        clutFree = true;
+                        break;
+                    }
+                }
+                if (clutFree) return TMGR_OKAY;
+            }
+
+            // Failed to find space in this page. Move right 1 page or to previous line and left most page
+            if ((pageX + 1) < (PAGE_GRID_COLS - 1))
+                pageX++;
+            else if (pageY)
+            {
+                pageX = (PAGE_GRID_COLS - 1);
+                pageY--;
+            }
+            else
+            {
+                return TMGR_NO_FREE_SPACE;
+            }
+        }
+
         return TMGR_NO_FREE_SPACE;
     }
 
@@ -254,75 +334,41 @@ namespace System::PSX::GPU
             return TMGR_INVALID_OBJECT;
 
         int r = 0;
-        uint8_t x = 0, clutLine = 255; // Try to put CLUTs at the bottom of the table so that there's more space for textures.
-
-        r = findFreeCLUT(ptObj->texPage, ptObj->bpp, clutLine, x);
+        r = findFreeCLUT(ptObj->clutX, ptObj->clutY, ptObj->bpp);
         if (r != TMGR_OKAY)
             return r;
 
-        VRAMEntry v = clutToVRAM(ptObj->texPage, x, clutLine);
-        ptObj->clutX = v.x;
-        ptObj->clutY = v.y;
-
-        markCLUT(TMGR_INUSE, ptObj->bpp, ptObj->texPage, ptObj->clutY, ptObj->clutX);
+        _vramBitmap.mark_clut(ptObj->clutX, ptObj->clutY, ptObj->bpp, VRAM_Bitmap_POD::TMGR_INUSE);
         return r;
     }
 
     int TextureManager::allocateTexture(PSXTextureObject *ptObj)
     {
-        if (!ptObj)
+        if (!ptObj || !ptObj->width || !ptObj->height)
             return TMGR_INVALID_OBJECT;
 
-        TexPageEntry t;
-        int r = 0;
-        bool stopSearch = false;
-
-        uint8_t TMGR_row = 0;                                          // Current texture page grid row, usually 0 or 1
-        uint8_t wTiles = (ptObj->width / PIXELS_PER_TILE(ptObj->bpp)); // width in tiles (bpp affects width)
-        uint8_t hTiles = (ptObj->height / MIN_TILE_SIZE);              // hieght in tiles (bpp does not affect hieght)
-        t.page = (PAGE_GRID_COLS - 1) - (wTiles / TILES_PER_COL);      // Top right of VRAM
-
-        if (wTiles == 0) wTiles = 1;
-        if (hTiles == 0) hTiles = 1;
-
-        if (hTiles >= TILES_PER_ROW ||
-            wTiles >= (TILES_PER_COL * (ptObj->bpp / 4)))
+        if (ptObj->width >= PAGE_SIZE || ptObj->width >= PAGE_SIZE)
             return TMGR_OUT_OF_BOUNDS;
 
-        do
-        {
-            r = findFreeBlock(t, ptObj->bpp, wTiles, hTiles);
-            if (r == TMGR_OKAY)
-            {
-                // Try to mark the block
-                if (markLargeBlock(
-                        TMGR_INUSE,
-                        t.page, t.tileX, t.tileY,
-                        wTiles, hTiles) == TMGR_OKAY)
-                {
-                    stopSearch = true;
-                }
-            }
-            else
-            {
-                // Top-right to Top-left, then try second row
-                t.page--;
-                // This test tries to avoid testing the framebuffer region
-                if (t.page <= _frameBufferBox.w && TMGR_row <= _frameBufferBox.h)
-                {
-                    TMGR_row++;
-                    if (TMGR_row >= _vramPageRows)
-                    {
-                        return TMGR_NO_FREE_SPACE;
-                    }
-                    t.page = (PAGE_GRID_COLS * TMGR_row);
-                }
-            }
-        } while (!stopSearch);
+        int r = 0;
 
-        ptObj->texPage = t.page;
-        ptObj->vramX = (tileToPx(t.tileX) / (ptObj->bpp / 4)); // bpp affects width
-        ptObj->vramY = tileToPx(t.tileY);
+        uint16_t x = 0, y = 0;
+        uint8_t w = (ptObj->width / PIXELS_PER_TILE(ptObj->bpp)); // width in tiles (bpp affects width)
+        uint8_t h = (ptObj->height / MIN_TILE_SIZE);              // hieght in tiles (bpp does not affect hieght)
+
+        if (w == 0) w = 1;
+        if (h == 0) h = 1;
+
+        r = findFreeBlock(x, y, w, h, ptObj->bpp);
+        if (r != TMGR_OKAY)
+            return r;
+
+        r = _vramBitmap.mark_block(x, y, w, h, VRAM_Bitmap_POD::TMGR_INUSE) == TMGR_OKAY;
+        if (r != TMGR_OKAY)
+            return r;
+
+        ptObj->vramX = (tileToPx(x) / 4); // bpp affects width
+        ptObj->vramY = tileToPx(y);
 
         if (ptObj->bpp == Textures::BPP_4BIT || ptObj->bpp == Textures::BPP_8BIT)
         {
@@ -338,25 +384,20 @@ namespace System::PSX::GPU
             return TMGR_INVALID_OBJECT;
 
         int r = 0;
-        TexPageEntry t = vramToTPage(ptObj->vramX, ptObj->vramY);
-
         // higher bitdepths use more tiles.
-        uint8_t wTiles = (ptObj->width / PIXELS_PER_TILE(ptObj->bpp)); // width in tiles (bpp affects width)
-        uint8_t hTiles = (ptObj->height / MIN_TILE_SIZE);              // hieght in tiles (bpp does not affect height)
+        uint16_t x = pxToTile(ptObj->vramX);
+        uint16_t y = pxToTile(ptObj->vramY);
+        uint8_t w = (ptObj->width / PIXELS_PER_TILE(ptObj->bpp)); // width in tiles (bpp affects width)
+        uint8_t h = (ptObj->height / MIN_TILE_SIZE);              // hieght in tiles (bpp does not affect height)
 
-        if (wTiles == 0) wTiles = 1;
-        if (hTiles == 0) hTiles = 1;
+        if (w == 0) w = 1;
+        if (h == 0) h = 1;
 
-        r = markLargeBlock(
-            TMGR_FREE,
-            t.page,
-            t.tileX, t.tileY,
-            wTiles,
-            hTiles);
+        r = _vramBitmap.mark_block(x, y, w, h, VRAM_Bitmap_POD::TMGR_FREE);
 
         if (ptObj->bpp == Textures::BPP_4BIT || ptObj->bpp == Textures::BPP_8BIT)
         {
-            markCLUT(TMGR_FREE, ptObj->bpp, ptObj->texPage, ptObj->clutY, ptObj->clutX);
+            _vramBitmap.mark_clut(x, y, ptObj->bpp, VRAM_Bitmap_POD::TMGR_FREE);
         }
 
         return r;

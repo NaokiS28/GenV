@@ -22,6 +22,8 @@
 #include "object.hpp"
 #include "file.hpp"
 
+#include "common/services/video/color.hpp"
+
 namespace Textures
 {
     static constexpr const char *GENV_TEXTURE_OBJ_TYPENAME = "GenVTextureObject";
@@ -43,19 +45,29 @@ namespace Textures
         Files::FileObject *file = nullptr;
 
     public:
-        int width = 0;
-        int height = 0;
-        int bpp = 0;
+        unsigned int width = 0;
+        unsigned int height = 0;
+        unsigned int bpp = 0;
 
-        size_t bitmapLength = 0;
         const uint8_t *bitmap = nullptr;
-        const uint8_t *clut = nullptr;
+        size_t bitmapLength = 0;
+
+        // For indexed textures
+        const Video::Color *palette = nullptr;
+        size_t paletteLength = 0;
 
         TextureObject(util::Hash objectID);
         TextureObject(util::Hash objectID, const char *filePath);
         virtual ~TextureObject();
 
-        virtual int loadTextureFile(const char *filePath);
+        virtual int loadTextureFromFile(const char *filePath);
+
+        // Takes a raw bitmap
+        virtual int loadTextureFromMem(
+            const uint8_t *data, const size_t length,
+            const Video::Color *palette = nullptr, const size_t paletteLength = 0);
+
+        // Upload this texture to VRAM
         virtual int uploadTexture();
         virtual size_t getTextureSize()
         {
@@ -66,7 +78,11 @@ namespace Textures
     // Failsafe texture if a texture object fails to load or otherwise cannot be used
     TextureObject *createDefaultTexture();
     TextureObject *createTexture(util::Hash objectID);
-    TextureObject *createTexture(util::Hash objectID, const char *filePath);
+    TextureObject *createTextureFromFile(util::Hash objectID, const char *filePath);
+    TextureObject *createTextureFromMem(
+        util::Hash objectID,
+        const uint8_t *data, const size_t length,
+        const Video::Color *palette = nullptr, const size_t paletteLength = 0);
 } // namespace Textures
 
 // Is pow(bpp,2), really.

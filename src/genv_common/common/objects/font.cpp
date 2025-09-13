@@ -16,33 +16,75 @@
  */
 
 #include "font.hpp"
+#include "common/objects/texture.hpp"
 
-FontObject::FontObject(util::Hash objectID)
+namespace Fonts
 {
-}
+    FontObject::FontObject(util::Hash objectID)
+    {
+    }
 
-FontObject::FontObject(util::Hash objectID, Fonts::FontMetrics *_metrics, Textures::TextureObject *_texture)
-{
-    texture = _texture;
-    metrics = _metrics;
-}
+    FontObject::FontObject(util::Hash objectID, const Fonts::FontMetrics *_metrics, Textures::TextureObject *_texture)
+    {
+        texture = _texture;
+        metrics = _metrics;
+    }
 
-FontObject::~FontObject()
-{
-    if (texture)
-        delete texture;
-    if (metrics)
-        delete metrics;
-}
+    FontObject::~FontObject()
+    {
+        if (texture)
+            delete texture;
+        if (metrics)
+            delete metrics;
+    }
 
-FontObject::FontObject(util::Hash objectID, const char *filePath) {}
+    int FontObject::loadFontFromFile(const char *filePath)
+    {
+        return 0;
+    }
 
-int FontObject::loadFontFromFile(const char *filePath)
-{
-    return 0;
-}
+    int FontObject::loadFontFromMem(const void *data, const size_t length)
+    {
+        return 0;
+    }
 
-int FontObject::loadFontFromMem()
-{
-    return 0;
-}
+    FontObject *createFontFromFile(const char *filePath)
+    {
+        FontObject *fObj = nullptr;
+        return fObj;
+    }
+
+    FontObject *createFontFromFile(const char *filePath, const FontMetrics *metrics)
+    {
+        if (filePath == nullptr || metrics == nullptr)
+            return nullptr;
+
+        Textures::TextureObject *tObj = Textures::createTextureFromFile(metrics->id, filePath);
+        if (!tObj) return nullptr;
+        return createFontFromMem(tObj, metrics);
+    }
+
+    FontObject *createFontFromMem(const uint8_t *data, const size_t length, const FontMetrics *metrics)
+    {
+        if (data == nullptr || length == 0 || metrics == nullptr)
+            return nullptr;
+
+        Textures::TextureObject *tObj = Textures::createTextureFromMem(metrics->id, data, length);
+        if (!tObj) return nullptr;
+        return createFontFromMem(tObj, metrics);
+    }
+
+    FontObject *createFontFromMem(Textures::TextureObject *tObj, const FontMetrics *metrics)
+    {
+        if (tObj == nullptr || metrics == nullptr)
+            return nullptr;
+
+        FontObject *fObj = nullptr;
+        if (tObj != nullptr)
+        {
+            fObj = new FontObject(metrics->id, metrics, tObj);
+        }
+        return fObj;
+    }
+
+} // namespace Fonts

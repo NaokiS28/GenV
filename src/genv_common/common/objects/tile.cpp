@@ -134,9 +134,9 @@ namespace Sprites
         }
     }
 
-    int TileObject::loadTextureFile(const char *filePath)
+    int TileObject::loadTextureFromFile(const char *filePath)
     {
-        int r = texture->loadTextureFile(filePath);
+        int r = texture->loadTextureFromFile(filePath);
         this->meta.w = texture->width;
         this->meta.h = texture->height;
         resetTransform();
@@ -304,9 +304,9 @@ namespace Sprites
 
     void TileObject::resetTransform()
     {
-        vertex[0] = Vertex();                                                                          // Top left
-        vertex[1] = Vertex(meta.w, 0, 0, 1, intToiFloat(meta.w, texture->width), 0);                   // Top right
-        vertex[2] = Vertex(0, meta.h, 0, 1, 0, intToiFloat(meta.h, texture->height));                  // Bottom left
+        vertex[0] = Vertex();                                                         // Top left
+        vertex[1] = Vertex(meta.w, 0, 0, 1, intToiFloat(meta.w, texture->width), 0);  // Top right
+        vertex[2] = Vertex(0, meta.h, 0, 1, 0, intToiFloat(meta.h, texture->height)); // Bottom left
         vertex[3] = Vertex(meta.w, meta.h, 0, 1,
                            intToiFloat(meta.w, texture->width), intToiFloat(meta.h, texture->height)); // Bottom right
         meta.cropped = false;

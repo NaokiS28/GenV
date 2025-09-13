@@ -83,7 +83,7 @@ namespace System::PSX::GPU
             int width,
             int height);
 
-        int _uploadIndexedTexture(Textures::TextureObject *tObj);
+        int _uploadPalette(PSXTextureObject *ptObj);
 
     public:
         PSXGPU();

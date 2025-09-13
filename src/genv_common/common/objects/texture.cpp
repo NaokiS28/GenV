@@ -17,6 +17,7 @@
 
 #include "texture.hpp"
 
+#include "common/services/video/color.hpp"
 #include "texture/missingtex.h"
 
 #include "common/vendor/vendor.h"
@@ -27,7 +28,7 @@ namespace Textures
     TextureObject::~TextureObject()
     {
         Services::getVideo()->releaseTexture(this);
-        delete[] clut;
+        delete[] palette;
         delete[] bitmap;
     }
 
@@ -38,13 +39,13 @@ namespace Textures
 
     TextureObject::TextureObject(util::Hash objectID, const char *filePath) : ObjectBase(objectID)
     {
-        loadTextureFile(filePath);
+        loadTextureFromFile(filePath);
         setObjectType(GENV_TEXTURE_OBJ_TYPENAME);
     }
 
     // Loads a texture file from a non-optimised file (ie PNG, GIF)
     // Does not support loading a palletised image. (STB limitation)
-    int TextureObject::loadTextureFile(const char *filePath)
+    int TextureObject::loadTextureFromFile(const char *filePath)
     {
         if (file == nullptr)
             file = new Files::FileObject(getObjectID());
@@ -54,13 +55,13 @@ namespace Textures
             int result = file->openFile(filePath, false);
             if (result == Files::FO_OKAY)
             {
-                bitmap = stbi_load_from_memory(
-                    file->getRawDataObj()->getRawData(),
-                    file->getRawDataObj()->getDataLen(),
-                    &width,
-                    &height,
-                    &bpp,
-                    4);
+                // bitmap = stbi_load_from_memory(
+                //    file->getRawDataObj()->getRawData(),
+                //    file->getRawDataObj()->getDataLen(),
+                //    &width,
+                //    &height,
+                //    &bpp,
+                //    4);
 
                 if (bpp < 3)
                     bpp = BPP_1BIT; // Greyscale
@@ -73,6 +74,24 @@ namespace Textures
             }
         }
         return Files::FO_ERROR_NOTLOADED;
+    }
+
+    int TextureObject::loadTextureFromMem(
+        const uint8_t *data, const size_t length,
+        const Video::Color *palette, const size_t paletteLength)
+    {
+        if (data != nullptr && length != 0)
+        {
+            this->bitmap = data;
+            this->bitmapLength = length;
+            if (palette != nullptr && paletteLength != 0)
+            {
+                this->palette = palette;
+                this->paletteLength = paletteLength;
+            }
+            return 0;
+        }
+        return 1;
     }
 
     int TextureObject::uploadTexture()
@@ -107,7 +126,26 @@ namespace Textures
         TextureObject *tObj = Services::getVideo()->createTexture(objectID);
         if (tObj != nullptr)
         {
-            if (tObj->loadTextureFile(filePath) == Files::FO_OKAY)
+            if (tObj->loadTextureFromFile(filePath) == Files::FO_OKAY)
+                return tObj;
+            else
+            {
+                delete tObj;
+                tObj = nullptr;
+            }
+        }
+        return tObj;
+    }
+
+    TextureObject *createTextureFromMem(
+        util::Hash objectID,
+        const uint8_t *data, const size_t length,
+        const Video::Color *palette, const size_t paletteLength)
+    {
+        TextureObject *tObj = Services::getVideo()->createTexture(objectID);
+        if (tObj != nullptr)
+        {
+            if (tObj->loadTextureFromMem(data, length, palette, paletteLength) == 0)
                 return tObj;
             else
             {

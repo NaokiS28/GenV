@@ -66,20 +66,26 @@ namespace Fonts
             table, tsize,
             size, _spacing, _kerning};
     }
+
+    class FontObject
+    {
+    protected:
+        const Fonts::FontMetrics *metrics = nullptr;
+        Textures::TextureObject *texture = nullptr;
+
+    public:
+        FontObject(util::Hash objectID);
+        FontObject(util::Hash objectID, const Fonts::FontMetrics *_metrics, Textures::TextureObject *_texture);
+        virtual ~FontObject();
+
+        virtual int loadFontFromFile(const char *filePath);
+        virtual int loadFontFromMem(const void *data, const size_t length);
+        inline const FontMetrics *getMetrics() { return metrics; }
+        virtual int uploadTexture() { return texture->uploadTexture(); }
+    };
+
+    FontObject *createFontFromFile(const char *filePath);
+    FontObject *createFontFromFile(const char *filePath, const FontMetrics *metrics);
+    FontObject *createFontFromMem(Textures::TextureObject *tObj, const FontMetrics *metrics);
+    FontObject *createFontFromMem(const uint8_t *data, const size_t length, const FontMetrics *metrics);
 } // namespace Fonts
-
-class FontObject
-{
-protected:
-    Fonts::FontMetrics *metrics = nullptr;
-    Textures::TextureObject *texture = nullptr;
-
-public:
-    FontObject(util::Hash objectID);
-    FontObject(util::Hash objectID, const char *filePath);
-    FontObject(util::Hash objectID, Fonts::FontMetrics *_metrics, Textures::TextureObject *_texture);
-    ~FontObject();
-
-    virtual int loadFontFromFile(const char *filePath);
-    virtual int loadFontFromMem();
-};

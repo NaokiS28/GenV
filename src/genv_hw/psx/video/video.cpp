@@ -22,12 +22,14 @@
 
 #include "video.hpp"
 #include "common/objects/texture.hpp"
+#include "common/services/video/color.hpp"
 #include "common/util/hash.hpp"
 #include "gpucmd.h"
 
 #include "../registers.hpp"
 #include "../system/sys.h"
 #include "common/logger/log.hpp"
+#include "psx/video/psxtex.hpp"
 #include "psx/video/texmgr.hpp"
 
 namespace System::PSX::GPU
@@ -71,6 +73,8 @@ namespace System::PSX::GPU
         gpuMode = static_cast<GP1VideoMode>(GPU_GP1 & GP1_STAT_FB_MODE_BITMASK);
         GPU_GP1 = gp1_resetGPU();
         GPU_GP1 = gp1_resetFIFO();
+
+        _texmgr.init();
 
         setResolution(320, 240);
 
@@ -342,7 +346,7 @@ namespace System::PSX::GPU
         PSXTextureObject *ptObj = new PSXTextureObject(objectID);
         if (ptObj != nullptr)
         {
-            if (ptObj->loadTextureFile(filePath) == Files::FO_OKAY)
+            if (ptObj->loadTextureFromFile(filePath) == Files::FO_OKAY)
                 return ptObj;
             else
             {
@@ -356,42 +360,39 @@ namespace System::PSX::GPU
     int PSXGPU::uploadTexture(Textures::TextureObject *tObj)
     {
         // Apps must always use PSTexture objects from Video::createTexture()
-        if (tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME)
+        if (!tObj ||
+            tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME ||
+            tObj->bpp == 0 ||
+            (tObj->height == 0 || tObj->width == 0))
             return GENV_OBJ_INVALID;
 
         PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
         if (ptObj->vramX != 0 || ptObj->vramY != 0 || ptObj->texPage != 0)
             return -2;
 
+        _texmgr.allocateTexture(ptObj);
+
+        _waitForDMADone();
+        _sendVRAMData(&*ptObj->bitmap, ptObj->vramX, ptObj->vramY, ptObj->width, ptObj->height);
+
         if (ptObj->bpp == Textures::BPP_4BIT ||
             ptObj->bpp == Textures::BPP_8BIT)
         {
-            return _uploadIndexedTexture(tObj);
+            return _uploadPalette(ptObj);
         }
-
-        _texmgr.allocateTexture(ptObj);
-
-        uint16_t _x = ptObj->vramX + ((256 / (ptObj->bpp / 4)) * (ptObj->texPage % 16));
-        uint16_t _y = ptObj->vramY + ((256 / (ptObj->bpp / 4)) * (ptObj->texPage / 16));
-
-        _waitForDMADone();
-        _sendVRAMData(&*ptObj->bitmap, _x, _y, ptObj->width, ptObj->height);
         return 0;
     }
 
-    int PSXGPU::_uploadIndexedTexture(Textures::TextureObject *tObj)
+    int PSXGPU::_uploadPalette(PSXTextureObject *ptObj)
     {
-        // Apps must always use PSTexture objects from Video::createTexture()
-        if (tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME)
-            return GENV_OBJ_INVALID;
-
-        PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
         uint16_t clutWidth = TextureManager::clutWidth(ptObj->bpp);
-        _texmgr.allocateTexture(ptObj);
+
+        uint16_t *pA = nullptr;
+        array_from_colors<uint16_t>(pA, clutWidth, ptObj->palette, ptObj->paletteLength, CT_BGR555);
+        if (!pA) return 1;
         _waitForDMADone();
-        _sendVRAMData(ptObj->clut, ptObj->vramX, ptObj->vramY, ptObj->width, ptObj->height);
-        _waitForDMADone();
-        _sendVRAMData(ptObj->clut, ptObj->clutX, ptObj->clutY, clutWidth, 1);
+        _sendVRAMData(pA, ptObj->clutX, ptObj->clutY, clutWidth, 1);
+        delete[] pA;
         return 0;
     }
 
@@ -458,7 +459,7 @@ namespace System::PSX::GPU
         int x, int y, int width, int height, Color color)
     {
         _GP0RDY(3);
-        _GPUC(color.toARGB() | gp0_rectangle(false, false, GP0_BLEND_SEMITRANS));
+        _GPUC(color.toRGB888() | gp0_rectangle(false, false, GP0_BLEND_SEMITRANS));
         _GPUC(gp0_xy(x, y));
         _GPUC(gp0_xy(width, height));
     }
@@ -467,13 +468,13 @@ namespace System::PSX::GPU
         int x, int y, int width, int height, Color left, Color right)
     {
         _GP0RDY(8);
-        _GPUC(left.toARGB() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
+        _GPUC(left.toRGB888() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
         _GPUC(gp0_xy(x, y));
-        _GPUC(right.toARGB());
+        _GPUC(right.toRGB888());
         _GPUC(gp0_xy(x + width, y));
-        _GPUC(left.toARGB());
+        _GPUC(left.toRGB888());
         _GPUC(gp0_xy(x, y + height));
-        _GPUC(right.toARGB());
+        _GPUC(right.toRGB888());
         _GPUC(gp0_xy(x + width, y + height));
     }
 
@@ -481,13 +482,13 @@ namespace System::PSX::GPU
         int x, int y, int width, int height, Color top, Color bottom)
     {
         _GP0RDY(8);
-        _GPUC(top.toARGB() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
+        _GPUC(top.toRGB888() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
         _GPUC(gp0_xy(x, y));
-        _GPUC(top.toARGB());
+        _GPUC(top.toRGB888());
         _GPUC(gp0_xy(x + width, y));
-        _GPUC(bottom.toARGB());
+        _GPUC(bottom.toRGB888());
         _GPUC(gp0_xy(x, y + height));
-        _GPUC(bottom.toARGB());
+        _GPUC(bottom.toRGB888());
         _GPUC(gp0_xy(x + width, y + height));
     }
 
@@ -495,13 +496,13 @@ namespace System::PSX::GPU
         int x, int y, int width, int height, Color top, Color middle, Color bottom)
     {
         _GP0RDY(8);
-        _GPUC(top.toARGB() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
+        _GPUC(top.toRGB888() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
         _GPUC(gp0_xy(x, y));
-        _GPUC(middle.toARGB());
+        _GPUC(middle.toRGB888());
         _GPUC(gp0_xy(x + width, y));
-        _GPUC(middle.toARGB());
+        _GPUC(middle.toRGB888());
         _GPUC(gp0_xy(x, y + height));
-        _GPUC(bottom.toARGB());
+        _GPUC(bottom.toRGB888());
         _GPUC(gp0_xy(x + width, y + height));
     }
 

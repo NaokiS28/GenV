@@ -37,9 +37,9 @@ namespace Sprites
         return Services::getVideo()->drawSpriteObject(this, x, y, w, h);
     }
 
-    int SpriteObject::loadTextureFile(const char *filePath)
+    int SpriteObject::loadTextureFromFile(const char *filePath)
     {
-        return texture->loadTextureFile(filePath);
+        return texture->loadTextureFromFile(filePath);
     }
 
     int SpriteObject::uploadTexture()
