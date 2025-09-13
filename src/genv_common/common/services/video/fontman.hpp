@@ -16,20 +16,44 @@
  */
 
 #include "common/objects/font.hpp"
+#include "common/objects/texture.hpp"
+#include "common/services/adminkey.hpp"
+#include "common/util/hash.hpp"
 
 namespace Fonts
 {
+    enum : uint8_t
+    {
+        FM_OKAY,
+        FM_NOT_FOUND,
+        FM_LIST_EMPTY,
+        FM_CREATE_OBJECT_FAILED,
+        FM_PARAMETER_ERROR,
+        FM_OUT_OF_MEMORY,
+    };
+
     class FontManager
     {
     private:
-        FontObject *fontList = nullptr;
+        FontObject **fontList = nullptr;
         int fontListLength = 0;
 
-    public:
-        FontManager();
+        int _expandList(int count);
+        int _shrinkList(int count);
 
-        int loadFont(FontMetrics font);
+        int _loadFont(FontObject *fObj);
+
+    public:
+        FontManager(AdminClass_Key key);
+
+        int init();
+        void shutdown();
+
         int loadFontFromFile(const char *filePath);
-        int loadFontFromMemory();
+        int loadFontFromMemory(Textures::TextureObject *tObj, const FontMetrics *metrics);
+        int loadFontFromMemory(const uint8_t *data, const size_t length, const FontMetrics *metrics);
+
+        int unloadFontAt(const uint8_t idx);
+        int unloadFont(util::Hash id);
     };
 } // namespace Fonts

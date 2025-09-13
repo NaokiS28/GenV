@@ -17,6 +17,8 @@
 
 #pragma once
 #include <stdint.h>
+#include <stddef.h>
+#include <string.h>
 
 namespace Video
 {
@@ -39,16 +41,31 @@ namespace Video
               b(argb & 0xFF),
               a((argb >> 24) & 0xFF) {}
 
-        constexpr uint32_t toARGB() const
+        // 32-Bit 8888 ARGB format
+        constexpr uint32_t toRGB888() const
+        {
+            return 0 | (uint32_t(r) << 16) | (uint32_t(g) << 8) | uint32_t(b);
+        }
+
+        // 32-Bit 8888 ABGR format
+        constexpr uint32_t toBGR888() const
+        {
+            return 0 | (uint32_t(b) << 16) | (uint32_t(g) << 8) | uint32_t(r);
+        }
+
+        // 32-Bit 8888 ARGB format
+        constexpr uint32_t toARGB8888() const
         {
             return (uint32_t(a) << 24) | (uint32_t(r) << 16) | (uint32_t(g) << 8) | uint32_t(b);
         }
 
-        constexpr uint32_t toABGR() const
+        // 32-Bit 8888 ABGR format
+        constexpr uint32_t toABGR8888() const
         {
             return (uint32_t(a) << 24) | (uint32_t(b) << 16) | (uint32_t(g) << 8) | uint32_t(r);
         }
 
+        // For systems which need a RRRRRGGGGGGBBBBB format
         constexpr uint16_t toRGB565() const
         {
             return uint16_t(
@@ -56,46 +73,119 @@ namespace Video
                 ((g >> 2) << 5) |
                 (b >> 3));
         }
+
+        // For systems which need a BBBBBGGGGGRRRRR format
+        constexpr uint16_t toBGR565() const
+        {
+            return uint16_t(
+                ((b >> 3) << 11) |
+                ((g >> 2) << 5) |
+                (r >> 3));
+        }
+
+        // For systems which need a xBBBBBGGGGGRRRRR format
+        constexpr uint16_t toBGR555() const
+        {
+            return ((uint16_t(b >> 3) & 0x1F) << 10 |
+                    (uint16_t(g >> 3) & 0x1F) << 5 |
+                    (uint16_t(r >> 3) & 0x1F));
+        }
+
+        // For systems which need a xBBBBBGGGGGRRRRR format
+        constexpr uint16_t toRGB555() const
+        {
+            return ((uint16_t(r >> 3) & 0x1F) << 10 |
+                    (uint16_t(g >> 3) & 0x1F) << 5 |
+                    (uint16_t(b >> 3) & 0x1F));
+        }
     };
 
-    namespace Colors {
-        constexpr Color Transparent = Color(0, 0, 0, 0);
-        constexpr Color Black       = Color(0, 0, 0);
-        constexpr Color White       = Color(255, 255, 255);
-        constexpr Color Red         = Color(255, 0, 0);
-        constexpr Color Green       = Color(0, 255, 0);
-        constexpr Color Blue        = Color(0, 0, 255);
-        constexpr Color LightBlue   = Color(128, 128, 255);
-        constexpr Color Yellow      = Color(255, 255, 0);
-        constexpr Color Amber       = Color(255, 191, 0);
-        constexpr Color Cyan        = Color(0, 255, 255);
-        constexpr Color Magenta     = Color(255, 0, 255);
-        constexpr Color Gray        = Color(128, 128, 128);
-        constexpr Color DarkGray    = Color(64, 64, 64);
-        constexpr Color LightGray   = Color(192, 192, 192);
-        constexpr Color Orange      = Color(255, 165, 0);
-        constexpr Color Brown       = Color(165, 42, 42);
-        constexpr Color Purple      = Color(128, 0, 128);
-        constexpr Color Pink        = Color(255, 192, 203);
-        constexpr Color Lime        = Color(0, 255, 0);
-        constexpr Color Navy        = Color(0, 0, 128);
-        constexpr Color Teal        = Color(0, 128, 128);
-        constexpr Color Olive       = Color(128, 128, 0);
-        constexpr Color Maroon      = Color(128, 0, 0);
-        constexpr Color Silver      = Color(192, 192, 192);
-        constexpr Color Gold        = Color(255, 215, 0);
-        constexpr Color Indigo      = Color(75, 0, 130);
-        constexpr Color Violet      = Color(238, 130, 238);
-        constexpr Color SkyBlue     = Color(135, 206, 235);
-        constexpr Color Coral       = Color(255, 127, 80);
-        constexpr Color Salmon      = Color(250, 128, 114);
-        constexpr Color Khaki       = Color(240, 230, 140);
-        constexpr Color Mint        = Color(189, 252, 201);
+    enum ColorTypes : uint8_t
+    {
+        CT_RGB555,
+        CT_BGR555,
+        CT_RGB565,
+        CT_BGR565,
+        CT_RGB888,
+        CT_BGR888,
+        CT_ARGB8888,
+        CT_ABGR8888
+    };
 
-        constexpr Color Alpha(const Color& c, uint8_t a) {
-            return Color(c.r, c.g, c.b, a);
-        }        
+    template <typename T>
+    bool array_from_colors(T *&arr, size_t arrSize, const Color *c, const size_t length, const ColorTypes convertTo)
+    {
+        if (!c || !length || (arr && arrSize < length)) return false;
+
+        T *t = nullptr;
+        if (!*arr && arrSize)
+        {
+            t = new T[arrSize]();
+        }
+        else if (!*arr && !arrSize)
+        {
+            t = new T[length]();
+        }
+
+        for (size_t i = 0; i < length; i++)
+        {
+            switch (convertTo)
+            {
+            case CT_RGB555: t[i] = c[i].toRGB555(); break;
+            case CT_BGR555: t[i] = c[i].toBGR555(); break;
+            case CT_RGB565: t[i] = c[i].toRGB565(); break;
+            case CT_BGR565: t[i] = c[i].toBGR565(); break;
+            case CT_RGB888: t[i] = c[i].toRGB888(); break;
+            case CT_BGR888: t[i] = c[i].toBGR888(); break;
+            case CT_ARGB8888: t[i] = c[i].toARGB8888(); break;
+            case CT_ABGR8888: t[i] = c[i].toABGR8888(); break;
+            default: delete[] t; return false;
+            }
+        }
+        arr = t;
+        return true;
     }
+
+    namespace Colors
+    {
+        constexpr Color Transparent = Color(0, 0, 0, 0);
+        constexpr Color Black = Color(0, 0, 0);
+        constexpr Color White = Color(255, 255, 255);
+        constexpr Color Red = Color(255, 0, 0);
+        constexpr Color Green = Color(0, 255, 0);
+        constexpr Color Blue = Color(0, 0, 255);
+        constexpr Color LightBlue = Color(128, 128, 255);
+        constexpr Color Yellow = Color(255, 255, 0);
+        constexpr Color Amber = Color(255, 191, 0);
+        constexpr Color Cyan = Color(0, 255, 255);
+        constexpr Color Magenta = Color(255, 0, 255);
+        constexpr Color Gray = Color(128, 128, 128);
+        constexpr Color DarkGray = Color(64, 64, 64);
+        constexpr Color LightGray = Color(192, 192, 192);
+        constexpr Color Orange = Color(255, 165, 0);
+        constexpr Color Brown = Color(165, 42, 42);
+        constexpr Color Purple = Color(128, 0, 128);
+        constexpr Color Pink = Color(255, 192, 203);
+        constexpr Color Lime = Color(0, 255, 0);
+        constexpr Color Navy = Color(0, 0, 128);
+        constexpr Color Teal = Color(0, 128, 128);
+        constexpr Color Olive = Color(128, 128, 0);
+        constexpr Color Maroon = Color(128, 0, 0);
+        constexpr Color Silver = Color(192, 192, 192);
+        constexpr Color Gold = Color(255, 215, 0);
+        constexpr Color Indigo = Color(75, 0, 130);
+        constexpr Color Violet = Color(238, 130, 238);
+        constexpr Color SkyBlue = Color(135, 206, 235);
+        constexpr Color Coral = Color(255, 127, 80);
+        constexpr Color Salmon = Color(250, 128, 114);
+        constexpr Color Khaki = Color(240, 230, 140);
+        constexpr Color Mint = Color(189, 252, 201);
+
+        constexpr Color Alpha(const Color &c, uint8_t a)
+        {
+            return Color(c.r, c.g, c.b, a);
+        }
+    } // namespace Colors
 
     // Blend two colors (alpha blend)
     inline Color blend(const Color &src, const Color &dst)
@@ -126,4 +216,4 @@ namespace Video
         c.b = (uint8_t)((c.b * c.a) / 255);
         c.a = 255;
     }
-}
+} // namespace Video
