@@ -153,7 +153,10 @@ namespace Textures
             if (bits < 4)
             {
                 // Upconvert to 4bpp
-                uint8_t *expanded = new uint8_t[numPix / 2];
+                size_t nPx = (numPix / 2);
+                size_t padding = (16 - ((nPx / 4) % 16));
+                nPx += padding * 4;
+                uint8_t *expanded = new uint8_t[nPx];
                 if (!expanded)
                 {
                     delete[] vcPalette;
@@ -163,7 +166,7 @@ namespace Textures
                     return nullptr;
                 }
 
-                memset(expanded, 0, numPix / 2);
+                memset(expanded, 0, nPx);
                 bool hp = false; // upper pixel nibble
                 int b = 0;
                 for (int i = 0; i < numPix; i++)
@@ -172,7 +175,7 @@ namespace Textures
                     hp = !hp;
                     if (!hp) b++;
                 }
-                numPix /= 2;
+                numPix = nPx;
                 gif.frames[0].indices = expanded;
                 bits = 4;
             }
