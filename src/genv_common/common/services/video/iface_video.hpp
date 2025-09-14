@@ -138,6 +138,7 @@ namespace Video
         // void newLayer(int x, int y, int drawWidth, int drawHeight);
 
         virtual void drawLine(int x1, int y1, int x2, int y2, int width, Color color) = 0;
+        virtual void drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2) = 0;
 
         virtual void drawRect(int x, int y, int width, int height, Color color) = 0;
         virtual void drawGradientRectH(int x, int y, int w, int h, Color left, Color right) = 0;

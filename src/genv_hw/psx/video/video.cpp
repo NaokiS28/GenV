@@ -23,7 +23,9 @@
 #include "video.hpp"
 #include "common/objects/texture.hpp"
 #include "common/services/video/color.hpp"
+#include "common/services/video/video.hpp"
 #include "common/util/hash.hpp"
+#include "common/util/rect.h"
 #include "gpucmd.h"
 
 #include "../registers.hpp"
@@ -74,27 +76,35 @@ namespace System::PSX::GPU
         GPU_GP1 = gp1_resetGPU();
         GPU_GP1 = gp1_resetFIFO();
 
+        clearVRAM(); // Since it's not uncommon to think something is working because the last action worked.
+
         _texmgr.init();
 
         setResolution(320, 240);
-
         _GP0RDY(4);
         _GPUC(gp0_texpage(0, true, false));
         _GPUC(gp0_fbOffset1(0, 0));
         _GPUC(gp0_fbOffset2(320 - 1, 240 - 1));
         _GPUC(gp0_fbOrigin(0, 0));
-        fillScreen(Colors::Blue);
-        _swapFrameBuffer();
-        fillScreen(Colors::Blue);
-        _swapFrameBuffer();
+
         GPU_GP1 = gp1_fbOffset(0, 0);
         GPU_GP1 = gp1_dispBlank(false);
-        _enableDMA(true);
-        IRQ_MASK |= 1 << IRQ_VSYNC;
 
         defaultTexture = Textures::createDefaultTexture();
         uploadTexture(defaultTexture);
 
+#if !NDEBUG
+        // Fill the screen with blue so we know the init pass of the GPU ran.
+        // Might not be visible but if something fails between now and app render
+        //  we know the GPU at least got to this point.
+        fillScreen(Colors::Blue);
+        _swapFrameBuffer();
+        fillScreen(Colors::Blue);
+        _swapFrameBuffer();
+#endif
+
+        _enableDMA(true);
+        IRQ_MASK |= 1 << IRQ_VSYNC;
         return 0;
     }
 
@@ -167,7 +177,11 @@ namespace System::PSX::GPU
         {
             h *= 2;
         }
-        _texmgr.markFrameBuffer(0, 0, w, h);
+        // The raw framebuffer is larger than the resolution, so the bounding box
+        // to mark as in use uses the raw resolution.
+        const uint16_t rw = GPURawHorizontalResolution[mode % 5];
+        const uint16_t rh = GPURawVerticalResolution[((mode & 0x7F) >= 10)];
+        _texmgr.markFrameBuffer(0, 0, rw, rh);
 
         return result;
     }
@@ -192,6 +206,14 @@ namespace System::PSX::GPU
         _GPUC(gp0_rgb(color.r, color.g, color.b) | gp0_vramFill());
         _GPUC(gp0_xy(frameX, frameY));
         _GPUC(gp0_xy(screen.res.width, screen.res.height));
+    }
+
+    void PSXGPU::clearVRAM()
+    {
+        _GP0RDY(3);
+        _GPUC(gp0_rgb(0, 0, 0) | gp0_vramFill());
+        _GPUC(gp0_xy(0, 0));
+        _GPUC(gp0_xy(VRAM_WIDTH / 2, VRAM_HEIGHT));
     }
 
     void PSXGPU::_waitForVSync(void)
@@ -372,8 +394,19 @@ namespace System::PSX::GPU
 
         _texmgr.allocateTexture(ptObj);
 
+        int w = 0;
+        switch (ptObj->bpp)
+        {
+        case Textures::BPP_4BIT: w = ptObj->width / 4; break;
+        case Textures::BPP_8BIT: w = ptObj->width / 2; break;
+        case Textures::BPP_16BIT: w = ptObj->width; break;
+        case Textures::BPP_24BIT: break;
+        default: return 1;
+        }
+
         _waitForDMADone();
-        _sendVRAMData(&*ptObj->bitmap, ptObj->vramX, ptObj->vramY, ptObj->width, ptObj->height);
+        _sendVRAMData(&*ptObj->bitmap, ptObj->bitmapLength,
+                      {ptObj->vramX, ptObj->vramY, w, (int)ptObj->height});
 
         if (ptObj->bpp == Textures::BPP_4BIT ||
             ptObj->bpp == Textures::BPP_8BIT)
@@ -388,10 +421,12 @@ namespace System::PSX::GPU
         uint16_t clutWidth = TextureManager::clutWidth(ptObj->bpp);
 
         uint16_t *pA = nullptr;
-        array_from_colors<uint16_t>(pA, clutWidth, ptObj->palette, ptObj->paletteLength, CT_BGR555);
+        array_from_colors<uint16_t>(
+            pA, clutWidth, ptObj->palette,
+            ptObj->paletteLength, CT_BGR555);
         if (!pA) return 1;
         _waitForDMADone();
-        _sendVRAMData(pA, ptObj->clutX, ptObj->clutY, clutWidth, 1);
+        _sendVRAMData(pA, 1, {ptObj->clutX, ptObj->clutY, clutWidth, 1});
         delete[] pA;
         return 0;
     }
@@ -403,30 +438,25 @@ namespace System::PSX::GPU
         return 0;
     }
 
-    void PSXGPU::_sendVRAMData(
-        const void *data,
-        int x,
-        int y,
-        int width,
-        int height)
+    void PSXGPU::_sendVRAMData(const void *data, int length, RectWH r)
     {
         _waitForDMADone();
-        assert(!((uint32_t)data % 4));
+        assert(!((uint32_t)data % 4) || !(length / 4));
 
-        size_t length = (width * height) / 2;
         size_t chunkSize, numChunks;
+        uint32_t len32 = length / 4; // To adjust for DMA packets, must be in multiples of 32-bit words
 
-        if (length < bPSXDMAChunkSize)
+        if (len32 < bPSXDMAChunkSize)
         {
-            chunkSize = length;
+            chunkSize = len32;
             numChunks = 1;
         }
         else
         {
             chunkSize = bPSXDMAChunkSize;
-            numChunks = length / bPSXDMAChunkSize;
+            numChunks = len32 / bPSXDMAChunkSize;
 
-            assert(!(length % bPSXDMAChunkSize));
+            assert(!(len32 % bPSXDMAChunkSize));
         }
 
         GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_NONE);
@@ -434,8 +464,8 @@ namespace System::PSX::GPU
         _waitForGP0Ready();
         GPU_GP0 = gp0_flushCache();
         GPU_GP0 = gp0_vramWrite();
-        GPU_GP0 = gp0_xy(x, y);
-        GPU_GP0 = gp0_xy(width, height);
+        GPU_GP0 = gp0_xy(r.x, r.y);
+        GPU_GP0 = gp0_xy(r.w, r.h);
 
         GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_GP0_WRITE);
         while (!(GPU_GP1 & GP1_STAT_WRITE_READY))
@@ -597,5 +627,92 @@ namespace System::PSX::GPU
         }
 
         return result;
+    }
+
+    void PSXGPU::drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint)
+    {
+        _GP0RDY((8 * 3));
+        // Left square
+        _GPUC(left.toBGR888() | gp0_shadedQuad(true, false, false));
+        _GPUC(gp0_xy(x, y));
+        _GPUC(left.toBGR888());
+        _GPUC(gp0_xy(x + startPoint, y));
+        _GPUC(left.toBGR888());
+        _GPUC(gp0_xy(x, y + h));
+        _GPUC(left.toBGR888());
+        _GPUC(gp0_xy(x + startPoint, y + h));
+
+        // Gradient square
+        _GPUC(left.toBGR888());
+        _GPUC(gp0_xy(x + startPoint + 1, y));
+        _GPUC(right.toBGR888());
+        _GPUC(gp0_xy(x + endPoint - 1, y));
+        _GPUC(left.toBGR888());
+        _GPUC(gp0_xy(x + startPoint + 1, y + h));
+        _GPUC(right.toBGR888());
+        _GPUC(gp0_xy(x + endPoint - 1, y + h));
+
+        // Right square
+        _GPUC(right.toBGR888() | gp0_shadedQuad(true, false, false));
+        _GPUC(gp0_xy(x + endPoint, y));
+        _GPUC(right.toBGR888());
+        _GPUC(gp0_xy(x + w, y));
+        _GPUC(right.toBGR888());
+        _GPUC(gp0_xy(x + endPoint, y + h));
+        _GPUC(right.toBGR888());
+        _GPUC(gp0_xy(x + w, y + h));
+    }
+
+    void PSXGPU::drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint)
+    {
+        _GP0RDY((8 * 3));
+        // Top square
+        _GPUC(top.toBGR888() | gp0_shadedQuad(true, false, false));
+        _GPUC(gp0_xy(x, y));
+        _GPUC(top.toBGR888());
+        _GPUC(gp0_xy(x + w, y));
+        _GPUC(top.toBGR888());
+        _GPUC(gp0_xy(x, y + startPoint));
+        _GPUC(top.toBGR888());
+        _GPUC(gp0_xy(x + w, y + startPoint));
+
+        // Gradient square
+        _GPUC(top.toBGR888());
+        _GPUC(gp0_xy(x, y + startPoint + 1));
+        _GPUC(bottom.toBGR888());
+        _GPUC(gp0_xy(x + w, y + startPoint + 1));
+        _GPUC(top.toBGR888());
+        _GPUC(gp0_xy(x, y + endPoint - 1));
+        _GPUC(bottom.toBGR888());
+        _GPUC(gp0_xy(x + w, y + endPoint - 1));
+
+        // bottom square
+        _GPUC(bottom.toBGR888() | gp0_shadedQuad(true, false, false));
+        _GPUC(gp0_xy(x, y + endPoint));
+        _GPUC(bottom.toBGR888());
+        _GPUC(gp0_xy(x + w, y + endPoint));
+        _GPUC(bottom.toBGR888());
+        _GPUC(gp0_xy(x, y + h));
+        _GPUC(bottom.toBGR888());
+        _GPUC(gp0_xy(x + w, y + h));
+    }
+
+    void PSXGPU::drawLine(int x1, int y1, int x2, int y2, int width, Color color)
+    {
+        assert(!width);
+        _GP0RDY(3);
+        _GPUC(color.toBGR888() | gp0_polyLine(false, false));
+        _GPUC(gp0_xy(x1, y1));
+        _GPUC(gp0_xy(x2, y2));
+    }
+
+    void PSXGPU::drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2)
+    {
+        assert(!width);
+        _GP0RDY(4);
+        _GPUC(c1.toBGR888() | gp0_polyLine(true, false));
+        _GPUC(gp0_xy(x1, y1));
+        _GPUC(c2.toBGR888());
+        _GPUC(gp0_xy(x2, y2));
     }
 } // namespace System::PSX::GPU

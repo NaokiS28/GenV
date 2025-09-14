@@ -18,6 +18,7 @@
 #pragma once
 #include <stdint.h>
 
+#include "common/services/video/color.hpp"
 #include "iface_video.hpp"
 #include "common/util/templates.hpp"
 #include "common/util/rect.h"
@@ -49,6 +50,7 @@ namespace Video
         // void newLayer(int x, int y, int drawWidth, int drawHeight);
 
         void drawLine(int x1, int y1, int x2, int y2, int width, Color color);
+        void drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2);
 
         void drawRect(int x, int y, int width, int height, Color color);
         void drawGradientRectH(int x, int y, int w, int h, Color left, Color right);
@@ -78,4 +80,4 @@ namespace Video
             int x, int y,
             Vertex v[]);
     };
-}
+} // namespace Video

@@ -21,6 +21,7 @@
 
 #include "common/services/video/iface_video.hpp"
 
+#include "common/util/rect.h"
 #include "texmgr.hpp"
 #include "gpudef.hpp"
 #include "psxtex.hpp"
@@ -76,13 +77,7 @@ namespace System::PSX::GPU
         void _addToDMAList(uint32_t cmd);
         void (PSXGPU::*_GPUCMD)(uint32_t) = &PSXGPU::_directWrite;
 
-        void _sendVRAMData(
-            const void *data,
-            int x,
-            int y,
-            int width,
-            int height);
-
+        void _sendVRAMData(const void *data, int length, RectWH);
         int _uploadPalette(PSXTextureObject *ptObj);
 
     public:
@@ -110,7 +105,7 @@ namespace System::PSX::GPU
         int setResolution(int w, int h, bool updateWindow = true) override;
         bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0) override
         {
-            return true;
+            return false;
         }
 
         void fillScreen(Color color) override;
@@ -118,24 +113,18 @@ namespace System::PSX::GPU
         void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const override {
         };
 
-        void drawLine(int x1, int y1, int x2, int y2, int width, Color color) override
-        {
-        }
+        void drawLine(int x1, int y1, int x2, int y2, int width, Color color) override;
+        void drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2) override;
 
         void drawRect(int x, int y, int w, int h, Color c) override;
         void drawGradientRectH(int x, int y, int w, int h, Color left, Color right) override;
         void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom) override;
         void drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom) override;
 
-        void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m) override
-        {
-        }
-        void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) override
-        {
-        }
-        void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) override
-        {
-        }
+        void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m) override {};
+        void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) override;
+        void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) override;
+
         void drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode) override
         {
         }
@@ -169,5 +158,7 @@ namespace System::PSX::GPU
         {
             return 0;
         }
+
+        void clearVRAM();
     };
 } // namespace System::PSX::GPU

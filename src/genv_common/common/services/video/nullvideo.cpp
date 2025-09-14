@@ -16,6 +16,7 @@
  */
 
 #include "nullvideo.hpp"
+#include "common/services/video/color.hpp"
 namespace Video
 {
 
@@ -23,11 +24,26 @@ namespace Video
     {
     }
 
-    bool NullVideo::init() { return true; }
-    bool NullVideo::reset() { return true; }
-    bool NullVideo::beginRender() { return true; }
-    bool NullVideo::endRender() { return true; }
-    bool NullVideo::shutdown() { return true; }
+    bool NullVideo::init()
+    {
+        return true;
+    }
+    bool NullVideo::reset()
+    {
+        return true;
+    }
+    bool NullVideo::beginRender()
+    {
+        return true;
+    }
+    bool NullVideo::endRender()
+    {
+        return true;
+    }
+    bool NullVideo::shutdown()
+    {
+        return true;
+    }
 
     // Returns a nulled list.
     const VideoModeList *NullVideo::getSupportedResolutions()
@@ -41,6 +57,7 @@ namespace Video
     }
 
     void NullVideo::drawLine(int x1, int y1, int x2, int y2, int width, Color color) {}
+    void NullVideo::drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2) {}
     void NullVideo::drawRect(int x, int y, int width, int height, Color color) {}
     void NullVideo::drawGradientRectH(int x, int y, int w, int h, Color left, Color right) {}
     void NullVideo::drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom) {}
@@ -52,8 +69,14 @@ namespace Video
 
     void NullVideo::drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode) {}
 
-    int NullVideo::uploadTexture(Textures::TextureObject *tObj) { return 0; }
-    int NullVideo::releaseTexture(Textures::TextureObject *tObj) { return 0; }
+    int NullVideo::uploadTexture(Textures::TextureObject *tObj)
+    {
+        return 0;
+    }
+    int NullVideo::releaseTexture(Textures::TextureObject *tObj)
+    {
+        return 0;
+    }
 
     void NullVideo::drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) {}
     void NullVideo::drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) {}
@@ -62,11 +85,17 @@ namespace Video
         Textures::TextureObject *tObj,
         int x, int y, int w, int h,
         ifloat u1, ifloat v1,
-        ifloat u2, ifloat v2) { return 0; };
+        ifloat u2, ifloat v2)
+    {
+        return 0;
+    };
 
     int NullVideo::drawTextureObject(
         Textures::TextureObject *tObj,
         int x, int y,
-        Vertex v[]) { return 0; };
+        Vertex v[])
+    {
+        return 0;
+    };
 
-}
+} // namespace Video
