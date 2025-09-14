@@ -16,13 +16,15 @@
  */
 
 #include "fontman.hpp"
+
+#include <string.h>
+
 #include "common/formats/image_file.hpp"
 #include "common/objects/font.hpp"
 #include "common/objects/fonts/spice.hpp"
 #include "common/objects/texture.hpp"
 #include "common/services/adminkey.hpp"
 #include "common/logger/log.hpp"
-#include <string.h>
 
 #define LOG_FONT(fmt, ...) LOG("fontmgr", fmt __VA_OPT__(, ) __VA_ARGS__)
 

@@ -15,6 +15,8 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "common/objects/font.hpp"
 #include "common/objects/texture.hpp"
 #include "common/services/adminkey.hpp"
