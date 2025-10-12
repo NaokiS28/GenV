@@ -30,9 +30,16 @@ namespace System::PSX::GPU
         PSXTextureObject(util::Hash objectID, const char *filePath);
         ~PSXTextureObject() override;
 
-        uint8_t texPage = 0; // Texture Page index
-        uint16_t vramX = 0;  // Texture x location in px in vram tpage
-        uint16_t vramY = 0;  // Texture y location in px in vram tpage
+        struct
+        {
+            uint8_t x = 0;
+            uint8_t y = 0;
+            uint8_t offsetX = 0;
+            uint8_t offsetY = 0;
+        } tpage;
+
+        uint16_t vramX = 0; // Texture x location in px in vram
+        uint16_t vramY = 0; // Texture y location in px in vram
 
         // TODO: Allow CLUT to exist independantly of texture
         uint16_t clutX = 0; // CLUT index (x) in vram in px. Only used for 4bpp CLUTs

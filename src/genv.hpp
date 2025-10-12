@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * genv.h - Created on 31-08-2025
+ * genv.hpp - Created on 04-10-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -17,8 +17,11 @@
 
 #pragma once
 
+// namespace GenV
+//{
 #include "app/app.hpp"
 #include "app/iapp_host.hpp"
 #include "common/objects/texture.hpp"
 #include "common/services/system/system.hpp"
 #include "common/logger/log.hpp"
+//} // namespace GenV

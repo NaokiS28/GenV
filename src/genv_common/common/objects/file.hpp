@@ -16,6 +16,8 @@
  */
 
 #pragma once
+
+#include "common/return_codes.hpp"
 #include "common/util/hash.hpp"
 #include "data.hpp"
 #include "object.hpp"
@@ -23,24 +25,6 @@
 namespace Files
 {
     static constexpr const char *GENV_FILE_OBJ_TYPENAME = "GenVFileObject";
-
-    enum : uint8_t
-    {
-        FO_OKAY,                // Success
-        FO_ERROR_OUTOFMEMORY,   // Couldn't allocate memory for file
-        FO_ERROR_BADPERMISSION, // Permissions on file denied this action
-        FO_ERROR_BADPATH,       // File path was invalid, badly formatted or has invalid characters
-        FO_ERROR_FILENOTFOUND,  // File was not found
-        FO_ERROR_NOTLOADED,     // File was found but could not be loading into memory
-        FO_ERROR_BADOBJECT,     // DataObject is bad
-        FO_ERROR_BADPARAM,      // A parameter provided did not meet the requirements
-        FO_ERROR_INCOMPATIBLE,  // File type is incompatible with the target object
-        FO_ERROR_BADNAME,       // Filename is invalid
-        FO_ERROR_FILEINUSE,     // File is already open and locked for writing
-        FO_ERROR_NOLOCK,        // File is not locked or lock could not be set
-        FO_ERROR_INVALIDFUNC,   // Function has not been provided on this file provider.
-        FO_ERROR_UNKNOWN        // Unknown or unexpected error occured
-    };
 
     class FileObject : public ObjectBase
     {

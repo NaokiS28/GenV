@@ -16,35 +16,36 @@
  */
 
 #include "audio.hpp"
+#include "common/return_codes.hpp"
 
 bool SPUSound::play(Audio::SoundObject *sObj)
 {
-    
+
     return false;
 }
 
 bool SPUSound::stop(Audio::SoundObject *sObj)
 {
-    
+
     return false;
 }
 
 bool SPUSound::pause(Audio::SoundObject *sObj)
 {
-    
+
     return false;
 }
 
 bool SPUSound::isPlaying(Audio::SoundObject *sObj)
 {
-    
+
     return false;
 }
 
 int SPUSound::uploadSample(Audio::SoundObject *sObj)
 {
-    
-    return Audio::IA_OKAY;
+
+    return GV_OK;
 }
 
 SPUSound::SPUSound()
@@ -68,5 +69,4 @@ bool SPUSound::reset()
 
 void SPUSound::shutdown()
 {
-    
 }

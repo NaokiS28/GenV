@@ -19,12 +19,15 @@
 
 #include <stdint.h>
 
+#include "common/objects/font.hpp"
 #include "common/services/video/iface_video.hpp"
 
 #include "common/util/rect.h"
 #include "texmgr.hpp"
 #include "gpudef.hpp"
 #include "psxtex.hpp"
+
+#include "common/services/services.hpp"
 
 namespace System::PSX
 {
@@ -125,9 +128,12 @@ namespace System::PSX::GPU
         void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) override;
         void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) override;
 
-        void drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode) override
+        inline int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override
         {
+            const Fonts::FontObject *fObj = Services::fontManager()->getCurrentFont();
+            return drawText(fObj, str, x, y, w, h, color, mode);
         }
+        int drawText(const Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override;
 
         Textures::TextureObject *createTexture(util::Hash objectID) override;
         Textures::TextureObject *createTexture(util::Hash objectID, const char *filePath) override;
@@ -143,16 +149,13 @@ namespace System::PSX::GPU
         }
 
         int drawTextureObject(
-            Textures::TextureObject *tObj,
+            const Textures::TextureObject *tObj,
             int x, int y, int w, int h,
             ifloat u1, ifloat v1,
-            ifloat u2, ifloat v2) override
-        {
-            return 0;
-        }
+            ifloat u2, ifloat v2) override;
 
         int drawTextureObject(
-            Textures::TextureObject *tObj,
+            const Textures::TextureObject *tObj,
             int x, int y,
             Vertex v[]) override
         {

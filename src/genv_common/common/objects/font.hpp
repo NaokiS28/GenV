@@ -15,77 +15,135 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+    General manager for Bitmap fonts. Does not support vector fonts.
+*/
+
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 
+#include "common/objects/object.hpp"
 #include "texture.hpp"
 #include "common/util/hash.hpp"
+#include "common/util/templates.hpp"
+#include "common/util/string.hpp"
 #include "common/services/video/color.hpp"
+#include "common/logger/log.hpp"
+#include "common/return_codes.hpp"
+
+#define LOG_FOBJ(fmt, ...) LOG("fontobj", fmt __VA_OPT__(, ) __VA_ARGS__)
+#define FO_ERROR(code) GV_ERROR(GV_SERVICE_VIDEO, GV_CATEGORY_GENERIC, code)
 
 namespace Fonts
 {
-    constexpr const Video::Color font_shadow(0, 0, 0, 128);
+    static constexpr const Video::Color font_shadow(0, 0, 0, 128);
+    static constexpr const util::Hash GENV_FONT_OBJ_TYPENAME = "GenVFontObject"_h;
+    static constexpr const uint32_t GENV_BITMAP_FONTSET_MAGIC = "GVBF"_c;
+    static constexpr const uint32_t GENV_BITMAP_FONT_MAGIC = "GVFO"_c;
 
-    struct GlyphMetrics
+    static constexpr size_t METRICS_CODE_POINT_BITS = 21;
+    static constexpr util::UTF8CodePoint FONT_INVALID_CHAR = 0xfffd;
+    using CharacterSize = uint32_t;
+
+    class Glyph
     {
-        uint16_t c = '\0', x = 0, y = 0, width = 0;
+    public:
+        uint32_t c; // Unicode codepoint
+        int x, y;
+        int w, h;
+
+        inline util::Hash getHash(void) const
+        {
+            return c & ((1 << METRICS_CODE_POINT_BITS) - 1);
+        }
+        inline uint32_t getChained(void) const
+        {
+            return c >> METRICS_CODE_POINT_BITS;
+        }
     };
 
     enum FontFlags : uint8_t
     {
         FONT_NONE,
-        FONT_ITALIC,
-        FONT_BOLD,
+        FONT_ITALIC = (1 << 0),
+        FONT_BOLD = (1 << 1),
+        FONT_INDEXED = (1 << 2), // Uses indexed colours which can support changing the font color
     };
 
-    struct FontMetrics
+    class FontHeader
     {
+    public:
+        uint32_t magic;
         const char *name = nullptr;
         const char *designer = nullptr;
-        const util::Hash id = 0;
-        const uint8_t flags = 0;
+        util::Hash id = 0;
+        uint8_t flags = 0;
 
-        const GlyphMetrics *charTable = nullptr;
-        const int tableSize = 0;
+        int fontSize = 0;
+        int lineSpacing = 0;    // Adds/removes spacing between lines if called to do so.
+        int kerning = 0;        // Kerning is only used for certain letters if the context calls for it.
+        uint8_t spaceWidth = 0; // Pixel width to use when entering spaces
+        uint8_t tabWidth = 0;   // Pixel width to use when entering tab breaks
 
-        const int height = 0;      // Font height
-        const int lineSpacing = 0; // Adds/removes spacing between lines if called to do so.
-        const int kerning = 0;     // Kerning is only used for certain letters if the context calls for it.
+        uint32_t bitmapType;     // Bitmap file format (if not raw bitmap)
+        uint8_t bpp;             // Bitdepth of the bitmap image
+        uint8_t foregroundIndex; // Pallete index that is used for the foreground color (if used)
+        uint8_t shadowIndex;     // Pallete index that is used for the shadow color (if used)
+
+        size_t bitmapLength;
+        uint8_t *bitmap;
+
+        size_t tableLength;
+        Glyph *table = nullptr;
+
+        inline bool validateMagic(void) const
+        {
+            return (magic == GENV_BITMAP_FONT_MAGIC);
+        }
     };
 
-    constexpr FontMetrics makeFontInfo(
-        const char *name, const char *maker, int size,
-        const GlyphMetrics *table, const int tsize,
-        const uint8_t _flags = 0, const int _spacing = 0, const int _kerning = 0)
-    {
-        return FontMetrics{
-            name, maker,
-            (util::hash(name, -1, 0) + util::hash(maker, -1, 0)),
-            _flags,
-            table, tsize,
-            size, _spacing, _kerning};
-    }
-
-    class FontObject
+    class FontObject : public ObjectBase
     {
     protected:
-        const Fonts::FontMetrics *metrics = nullptr;
+        FontHeader header;
         Textures::TextureObject *texture = nullptr;
 
     public:
         FontObject(util::Hash objectID);
-        FontObject(util::Hash objectID, const Fonts::FontMetrics *_metrics, Textures::TextureObject *_texture);
+        FontObject(util::Hash objectID, FontHeader _header);
+        FontObject(util::Hash objectID, FontHeader _header, Textures::TextureObject *_texture);
         virtual ~FontObject();
 
-        virtual int loadFontFromFile(const char *filePath);
-        virtual int loadFontFromMem(const void *data, const size_t length);
-        inline const FontMetrics *getMetrics() { return metrics; }
-        virtual int uploadTexture() { return texture->uploadTexture(); }
+        int print(const char *str) const;
+        int printf(const char *format, ...) const;
+
+        const Glyph get(util::UTF8CodePoint id) const;
+
+        inline const FontHeader &getHeader() const { return header; }
+        virtual int uploadTexture() const { return texture->uploadTexture(); }
+        const Textures::TextureObject *getTexture() const { return texture; }
     };
 
-    FontObject *createFontFromFile(const char *filePath);
-    FontObject *createFontFromFile(const char *filePath, const FontMetrics *metrics);
-    FontObject *createFontFromMem(Textures::TextureObject *tObj, const FontMetrics *metrics);
-    FontObject *createFontFromMem(const uint8_t *data, const size_t length, const FontMetrics *metrics);
+    class GenvFontset
+    {
+    public:
+        const uint32_t magic;
+        const char *familyName;
+        const uint8_t fontCount;
+        const uint8_t *fontSizes;
+
+        FontObject *fontList;
+
+        inline bool validateMagic(void) const
+        {
+            return (magic == GENV_BITMAP_FONTSET_MAGIC);
+        }
+    };
+
+    int loadFontFromFile(FontObject **fObj, const char *filePath);
+    int loadFontFromMem(FontObject **fObj, const uint8_t *data, const size_t length);
+    int loadFontFromMem(FontObject **fObj, Textures::TextureObject *tObj, FontHeader _header);
+
 } // namespace Fonts

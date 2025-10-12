@@ -16,7 +16,7 @@
  */
 
 #include <time.h>
-#include <genv.h>
+#include <genv.hpp>
 
 using namespace Apps;
 
@@ -48,12 +48,12 @@ public:
         setHost(host);
         setAppState(APP_STATE_RUN);
         reload();
-        Textures::TextureObject *textTest[256];
-        for (int i = 0; i < 256; i++)
-        {
-            textTest[i] = Textures::createDefaultTexture();
-            textTest[i]->uploadTexture();
-        }
+        // Textures::TextureObject *textTest[256];
+        // for (int i = 0; i < 256; i++)
+        //{
+        //    textTest[i] = Textures::createDefaultTexture();
+        //    textTest[i]->uploadTexture();
+        //}
         return 0;
     }
 
@@ -72,11 +72,12 @@ public:
     void render() override
     {
         gpu->fillScreen(Video::Colors::Black);
-        gpu->drawText("This is an example string.", 27, txtOrigin.x, txtOrigin.y, 500, 100, Video::Colors::White, Video::TALIGN_CENTER);
+        gpu->drawText("This is an example string.", txtOrigin.x, txtOrigin.y, 500, 100, Video::Colors::White, Video::TALIGN_CENTER);
     }
+
     void reload() override
     {
-        txtOrigin = Coord((gpu->getHorizontalRes() / 2) - 250,
+        txtOrigin = Coord((gpu->getHorizontalRes() / 2),
                           (gpu->getVerticalRes() / 2) - 50);
     }
     void shutdown() override {}

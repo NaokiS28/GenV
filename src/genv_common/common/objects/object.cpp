@@ -53,7 +53,7 @@ bool ObjectBase::setParam(util::Hash object, size_t param)
 }
 
 // Get metadata - Used for file handling
-bool ObjectBase::getParam(util::Hash object, size_t &param)
+bool ObjectBase::getParam(util::Hash object, size_t &param) const
 {
     uint8_t pos = getParamPos(object);
     if (pos == paramNotFound)
@@ -65,7 +65,7 @@ bool ObjectBase::getParam(util::Hash object, size_t &param)
     return true;
 }
 
-uint8_t ObjectBase::getParamPos(util::Hash object)
+uint8_t ObjectBase::getParamPos(util::Hash object) const
 {
     for (int i = 0; i < paramListSize; i++)
     {

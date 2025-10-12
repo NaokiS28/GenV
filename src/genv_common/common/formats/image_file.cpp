@@ -19,6 +19,7 @@
 
 #include "image_file.hpp"
 
+#include "common/formats/typenames.hpp"
 #include "common/objects/file.hpp"
 #include "common/objects/sprite.hpp"
 #include "common/objects/texture.hpp"
@@ -140,7 +141,7 @@ namespace Textures
 
             // Expand decoded indices to match engine’s minimum bpp (4 bits)
             // choose correct palette
-            const GIF_Color *active_ct = gif.frames[0].lct ? gif.frames[0].lct : gif.header.gct;
+            // const GIF_Color *active_ct = gif.frames[0].lct ? gif.frames[0].lct : gif.header.gct;
             int ctSize = gif.frames[0].lctSize ? gif.frames[0].lctSize : gif.header.gctSize;
 
             // use actual frame size, not full logical screen
@@ -193,9 +194,6 @@ namespace Textures
                 vcPalette,
                 gif.header.gctSize);
 
-            tObj->palette = vcPalette;
-            tObj->paletteLength = gif.header.gctSize;
-
             // free temporary palette_u32 (caller owns this one)
             delete[] palette_u32;
         }
@@ -220,12 +218,18 @@ namespace Textures
                 switch (af.format)
                 {
                 case ecImageFormat::IF_PNG:
-                    return loadPNG_memory(objectID, fObj->getRawDataObj()->getRawData(), fObj->getRawDataObj()->getDataLen());
+                    return loadPNG_memory(
+                        objectID,
+                        fObj->getRawDataObj()->getRawData(),
+                        fObj->getRawDataObj()->getDataLen());
                     break;
                 case ecImageFormat::IF_BMP:
                     break;
                 case ecImageFormat::IF_GIF:
-                    return loadGIF_memory(objectID, fObj->getRawDataObj()->getRawData(), fObj->getRawDataObj()->getDataLen());
+                    return loadGIF_memory(
+                        objectID,
+                        fObj->getRawDataObj()->getRawData(),
+                        fObj->getRawDataObj()->getDataLen());
                     break;
                 default:
                     return nullptr;
@@ -234,5 +238,19 @@ namespace Textures
             }
         }
         return nullptr;
+    }
+
+    Textures::TextureObject *openImageMemory(
+        util::Hash objectID, uint32_t type, const uint8_t *data, const size_t length)
+    {
+        if (data == nullptr || !length)
+            return nullptr;
+
+        switch (type)
+        {
+        case Genv_PNG_type: return loadPNG_memory(objectID, data, length);
+        case Genv_GIF_type: return loadGIF_memory(objectID, data, length);
+        default: return nullptr;
+        }
     }
 } // namespace Textures

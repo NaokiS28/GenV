@@ -44,10 +44,10 @@ add_library(genv_util STATIC
 	util/hash.cpp
 	util/ifloat.cpp
 	util/misc.cpp
-	util/text.cpp
 	util/tween.cpp
 	util/time.cpp
 	util/date.cpp
+	util/string.cpp
 	vendor/genv_stb_image.c
 	vendor/lodepng.cpp
 	vendor/gifn/gifn.cpp

@@ -67,7 +67,10 @@ namespace Video
     void NullVideo::drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) {}
     void NullVideo::drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) {}
 
-    void NullVideo::drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode) {}
+    int NullVideo::drawText(const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
+    {
+        return 0;
+    }
 
     int NullVideo::uploadTexture(Textures::TextureObject *tObj)
     {
@@ -82,7 +85,7 @@ namespace Video
     void NullVideo::drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) {}
 
     int NullVideo::drawTextureObject(
-        Textures::TextureObject *tObj,
+        const Textures::TextureObject *tObj,
         int x, int y, int w, int h,
         ifloat u1, ifloat v1,
         ifloat u2, ifloat v2)
@@ -91,7 +94,7 @@ namespace Video
     };
 
     int NullVideo::drawTextureObject(
-        Textures::TextureObject *tObj,
+        const Textures::TextureObject *tObj,
         int x, int y,
         Vertex v[])
     {

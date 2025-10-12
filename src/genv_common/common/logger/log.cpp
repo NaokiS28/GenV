@@ -27,102 +27,101 @@
 namespace Logs
 {
 
-	/* Logging framework */
+    /* Logging framework */
+    Logger logger;
 
-	Logger logger;
+    void LogBuffer::clear(void)
+    {
+        for (auto line : _lines)
+            line[0] = 0;
+    }
 
-	void LogBuffer::clear(void)
-	{
-		for (auto line : _lines)
-			line[0] = 0;
-	}
+    char *LogBuffer::allocateLine(void)
+    {
+        size_t tail = _tail;
+        _tail = (tail + 1) % MAX_LOG_LINES;
 
-	char *LogBuffer::allocateLine(void)
-	{
-		size_t tail = _tail;
-		_tail = (tail + 1) % MAX_LOG_LINES;
+        return _lines[tail];
+    }
 
-		return _lines[tail];
-	}
+    void Logger::setLogBuffer(LogBuffer *buffer)
+    {
+        // CriticalSection sec;
 
-	void Logger::setLogBuffer(LogBuffer *buffer)
-	{
-		// CriticalSection sec;
+        _buffer = buffer;
+    }
 
-		_buffer = buffer;
-	}
+    void Logger::log(const char *format, ...)
+    {
+        // CriticalSection sec;
 
-	void Logger::log(const char *format, ...)
-	{
-		// CriticalSection sec;
+        va_list ap;
 
-		va_list ap;
+        if (_buffer)
+        {
+            auto line = _buffer->allocateLine();
 
-		if (_buffer)
-		{
-			auto line = _buffer->allocateLine();
+            va_start(ap, format);
+            vsnprintf(line, MAX_LOG_LINE_LENGTH, format, ap);
+            va_end(ap);
 
-			va_start(ap, format);
-			vsnprintf(line, MAX_LOG_LINE_LENGTH, format, ap);
-			va_end(ap);
+            if (_enableSyslog)
+            {
+                puts(line);
+                puts("\r\n");
+            }
+        }
+        else if (_enableSyslog)
+        {
+            va_start(ap, format);
+            vprintf(format, ap);
+            va_end(ap);
+            puts("\r\n");
+        }
+    }
 
-			if (_enableSyslog)
-			{
-				puts(line);
-				puts("\r\n");
-			}
-		}
-		else if (_enableSyslog)
-		{
-			va_start(ap, format);
-			vprintf(format, ap);
-			va_end(ap);
-			puts("\r\n");
-		}
-	}
+    void Logger::logT(const char *type, const char *format, const char *func, const int linenum, ...)
+    {
+        // CriticalSection sec;
 
-	void Logger::logT(const char *type, const char *format, const char *func, const int linenum, ...)
-	{
-		// CriticalSection sec;
+        tm time;
+        char *str = new char[MAX_LOG_LINE_LENGTH];
+        if (!str)
+            return;
+        memset(str, 0, MAX_LOG_LINE_LENGTH);
 
-		tm time;
-		char *str = new char[MAX_LOG_LINE_LENGTH];
-		if(!str)
-			return;
-		memset(str, 0, MAX_LOG_LINE_LENGTH);
+        char *t_str = new char[16];
+        if (!t_str)
+            return;
+        memset(t_str, 0, 16);
 
-		char *t_str = new char[16];
-		if(!t_str)
-			return;
-		memset(t_str, 0, 16);
+        System::getTime(time);
+        Time::getTimeString(time, t_str);
+        va_list ap;
 
-		System::getTime(time);
-		Time::getTimeString(time, t_str);
-		va_list ap;
+        snprintf(str, MAX_LOG_LINE_LENGTH, "<%s> %s,%s(%d): %s", t_str, type, func, linenum, format);
 
-		snprintf(str, MAX_LOG_LINE_LENGTH, "<%s> %s,%s(%d): %s", t_str, type, func, linenum, format);
+        if (_buffer)
+        {
+            auto line = _buffer->allocateLine();
 
-		if (_buffer)
-		{
-			auto line = _buffer->allocateLine();
+            va_start(ap, linenum);
+            vsnprintf(line, MAX_LOG_LINE_LENGTH, str, ap);
+            va_end(ap);
 
-			va_start(ap, linenum);
-			vsnprintf(line, MAX_LOG_LINE_LENGTH, str, ap);
-			va_end(ap);
+            if (_enableSyslog)
+            {
+                puts(line);
+                puts("\r\n");
+            }
+        }
+        else if (_enableSyslog)
+        {
+            va_start(ap, linenum);
+            vprintf(str, ap);
+            va_end(ap);
+            puts("\r\n");
+        }
+    }
 
-			if (_enableSyslog)
-			{
-				puts(line);
-				puts("\r\n");
-			}
-		}
-		else if (_enableSyslog)
-		{
-			va_start(ap, linenum);
-			vprintf(str, ap);
-			va_end(ap);
-			puts("\r\n");
-		}
-	}
-
-}
+} // namespace Logs

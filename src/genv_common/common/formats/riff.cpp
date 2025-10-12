@@ -16,6 +16,7 @@
  */
 
 #include "riff.hpp"
+#include "common/return_codes.hpp"
 
 // constexpr const util::Hash riffCCHash = "RIFF_CurrentChunkPos"_h;
 
@@ -43,16 +44,16 @@ bool RIFFObject::isRIFF(Files::FileObject *fObj, uint32_t fcc)
 int RIFFObject::openFile(const char *filePath, bool lock)
 {
     int result = FileObject::openFile(filePath, lock);
-    if (result == Files::FO_OKAY)
+    if (result == GV_OK)
     {
         if (!isRIFF(this, fourccNULL))
         {
             FileObject::closeFile();
-            return Files::FO_ERROR_INCOMPATIBLE;
+            return GV_ERR_INCOMPATIBLE_TYPE;
         }
         FileObject::rewind();
         header = FileObject::readAs<RIFFHeader>();
-        return Files::FO_OKAY;
+        return GV_OK;
     }
     return result;
 }

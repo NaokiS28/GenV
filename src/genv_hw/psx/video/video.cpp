@@ -19,10 +19,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "video.hpp"
 #include "common/objects/texture.hpp"
+#include "common/objects/font.hpp"
+#include "common/return_codes.hpp"
 #include "common/services/video/color.hpp"
+#include "common/services/video/fontman.hpp"
+#include "common/services/video/iface_video.hpp"
 #include "common/services/video/video.hpp"
 #include "common/util/hash.hpp"
 #include "common/util/rect.h"
@@ -36,6 +41,45 @@
 
 namespace System::PSX::GPU
 {
+
+    static constexpr util::Hash PSXFONT_PALETTE_PTR = "PSXFONT_PALETTE_PTR"_h;
+
+    struct FontPaletteEntry
+    {
+        uint16_t color = Colors::White.toBGR555();
+        int vramX = 0;
+        int vramY = 0;
+    };
+
+    class FontColorTable
+    {
+    private:
+        FontPaletteEntry palette[8];
+        uint8_t tail = 0;
+
+    public:
+        void add(int x, int y, uint16_t c)
+        {
+            palette[tail].color = c;
+            palette[tail].vramX = x;
+            palette[tail].vramY = y;
+            tail++;
+            if (tail >= 8) tail = 0;
+        }
+
+        bool find(uint16_t c, FontPaletteEntry **entry)
+        {
+            for (uint8_t i = 0; i < tail; i++)
+            {
+                if (palette[i].color == c)
+                {
+                    *entry = &palette[i];
+                    return true;
+                };
+            }
+            return false;
+        }
+    };
 
 #define _GPUC (this->*_GPUCMD)
 #define _GP0RDY(cmdcount)                              \
@@ -93,7 +137,7 @@ namespace System::PSX::GPU
         defaultTexture = Textures::createDefaultTexture();
         uploadTexture(defaultTexture);
 
-#if !NDEBUG
+#ifndef NDEBUG
         // Fill the screen with blue so we know the init pass of the GPU ran.
         // Might not be visible but if something fails between now and app render
         //  we know the GPU at least got to this point.
@@ -324,7 +368,7 @@ namespace System::PSX::GPU
     bool PSXGPU::beginRender()
     {
         _swapFrameBuffer();
-        return 1;
+        return true;
     }
 
     bool PSXGPU::endRender()
@@ -336,7 +380,7 @@ namespace System::PSX::GPU
         _waitForVSync();
         if (useDMA)
             _sendLinkedList(chain->data);
-        return 1;
+        return true;
     }
 
     void PSXGPU::_enableDMA(bool state)
@@ -368,7 +412,7 @@ namespace System::PSX::GPU
         PSXTextureObject *ptObj = new PSXTextureObject(objectID);
         if (ptObj != nullptr)
         {
-            if (ptObj->loadTextureFromFile(filePath) == Files::FO_OKAY)
+            if (ptObj->loadTextureFromFile(filePath) == GV_OK)
                 return ptObj;
             else
             {
@@ -386,11 +430,11 @@ namespace System::PSX::GPU
             tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME ||
             tObj->bpp == 0 ||
             (tObj->height == 0 || tObj->width == 0))
-            return GENV_OBJ_INVALID;
+            return V_ERROR(GV_ERR_INVALID_PARAM);
 
         PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
-        if (ptObj->vramX != 0 || ptObj->vramY != 0 || ptObj->texPage != 0)
-            return -2;
+        if (ptObj->vramX != 0 || ptObj->vramY != 0)
+            return V_ERROR(GV_ERR_BAD_OBJECT);
 
         _texmgr.allocateTexture(ptObj);
 
@@ -401,7 +445,7 @@ namespace System::PSX::GPU
         case Textures::BPP_8BIT: w = ptObj->width / 2; break;
         case Textures::BPP_16BIT: w = ptObj->width; break;
         case Textures::BPP_24BIT: break;
-        default: return 1;
+        default: return V_ERROR(GV_ERR_INVALID_PARAM);
         }
 
         _waitForDMADone();
@@ -413,7 +457,7 @@ namespace System::PSX::GPU
         {
             return _uploadPalette(ptObj);
         }
-        return 0;
+        return GV_OK;
     }
 
     int PSXGPU::_uploadPalette(PSXTextureObject *ptObj)
@@ -424,18 +468,19 @@ namespace System::PSX::GPU
         array_from_colors<uint16_t>(
             pA, clutWidth, ptObj->palette,
             ptObj->paletteLength, CT_BGR555);
-        if (!pA) return 1;
+        if (!pA) return V_ERROR(GV_ERR_OUT_OF_MEMORY);
         _waitForDMADone();
-        _sendVRAMData(pA, 1, {ptObj->clutX, ptObj->clutY, clutWidth, 1});
+        _sendVRAMData(pA, clutWidth, {ptObj->clutX, ptObj->clutY, clutWidth, 1});
+        _waitForDMADone();
         delete[] pA;
-        return 0;
+        return GV_OK;
     }
 
     int PSXGPU::releaseTexture(Textures::TextureObject *tObj)
     {
         PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
         _texmgr.deallocateTexture(ptObj);
-        return 0;
+        return GV_OK;
     }
 
     void PSXGPU::_sendVRAMData(const void *data, int length, RectWH r)
@@ -475,15 +520,6 @@ namespace System::PSX::GPU
         DMA_BCR(DMA_GPU) = chunkSize | (numChunks << 16);
         DMA_CHCR(DMA_GPU) = 0 | DMA_CHCR_WRITE | DMA_CHCR_MODE_SLICE | DMA_CHCR_ENABLE;
     }
-
-    /*void PSXGPU::setBlendMode(BlendMode blendMode, bool dither)
-    {
-        uint16_t page = _lastTexpage & ~gp0_texpage(
-                                           gp0_page(0, 0, GP0_BLEND_BITMASK, GP0_COLOR_4BPP), true, true);
-        page |= gp0_page(0, 0, blendMode, GP0_COLOR_4BPP);
-
-        setTexturePage(page, dither);
-    }*/
 
     void PSXGPU::drawRect(
         int x, int y, int width, int height, Color color)
@@ -539,9 +575,9 @@ namespace System::PSX::GPU
     uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t reqW, uint16_t reqH, uint16_t reqR)
     {
         if (list == nullptr)
-            return V_RES_LIST_INVALID;
+            return V_ERROR(V_RES_LIST_INVALID);
         if (list->resLength == 0 || list->resList == nullptr || list->refreshLength == 0 || list->refreshList == nullptr)
-            return V_RES_LIST_INVALID;
+            return V_ERROR(V_RES_LIST_INVALID);
 
         int bestIndex = -1;
         uint32_t bestScore = 0xFFFFFFFF; // lower score = better fit
@@ -616,7 +652,7 @@ namespace System::PSX::GPU
         }
         else
         {
-            return V_RES_UNSUPPORTED;
+            return V_ERROR(V_RES_UNSUPPORTED);
         }
 
         if (bestRefreshIndex >= 0)
@@ -715,4 +751,68 @@ namespace System::PSX::GPU
         _GPUC(c2.toBGR888());
         _GPUC(gp0_xy(x2, y2));
     }
+
+    int PSXGPU::drawText(const Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
+    {
+        if (fObj->getObjectType() != Fonts::GENV_FONT_OBJ_TYPENAME)
+            return V_ERROR(GV_ERR_INVALID_PARAM);
+
+        size_t len = util::getUTF8StringLength(str);
+        size_t temp;
+        uint16_t c = color.toBGR555();
+
+        // If the color isnt the font default of white, then try to pick the colour.
+        // Defaults to white if for whatever reason it cannot setup the right colour
+        if (c != Colors::White.toBGR555() && fObj->getParam(PSXFONT_PALETTE_PTR, temp) && false)
+        {
+            FontColorTable *fctPtr = (FontColorTable *)temp;
+            FontPaletteEntry *fpePtr = nullptr;
+            if (fctPtr->find(c, &fpePtr))
+            {
+                // Print in color
+            }
+            else
+            {
+                uint16_t x = 0, y = 0;
+                if (_texmgr.allocateCLUT(Textures::BPP_4BIT, x, y))
+                {
+                    fctPtr->add(x, y, c);
+                    uint16_t clut[16] = {0};
+                    clut[1] = c;
+                    clut[2] = Fonts::font_shadow.toBGR555();
+                    _waitForDMADone();
+                    _sendVRAMData(clut, 16, {x, y, 16, 1});
+                    // Print in color
+                }
+            }
+        }
+        else
+        {
+            // Print in white
+            drawTextureObject(fObj->getTexture(), x, y, 6, 9, 84, 18, 0, 0);
+            drawTextureObject(fObj->getTexture(), x + (7 * 1), y, 6, 9, 6, 18, 0, 0);
+            drawTextureObject(fObj->getTexture(), x + (7 * 2), y, 6, 9, 90, 18, 0, 0);
+            drawTextureObject(fObj->getTexture(), x + (7 * 3), y, 6, 9, 66, 18, 0, 0);
+            return drawTextureObject(fObj->getTexture(), x + (7 * 4), y, 6, 9, 54, 18, 0, 0);
+        }
+        return GV_OK;
+    }
+
+    int PSXGPU::drawTextureObject(
+        const Textures::TextureObject *tObj,
+        int x, int y, int w, int h,
+        ifloat u1, ifloat v1,
+        ifloat u2, ifloat v2)
+    {
+        if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
+        const PSXTextureObject *ptObj = reinterpret_cast<const PSXTextureObject *>(tObj);
+        _GP0RDY(5);
+        _GPUC(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), true, false));
+        _GPUC(gp0_rgb(255, 255, 255) | gp0_rectangle(true, true, false));
+        _GPUC(gp0_xy(x, y));
+        _GPUC(gp0_uv(ptObj->tpage.offsetX + u1, ptObj->tpage.offsetY + v1, gp0_clut(ptObj->clutX, ptObj->clutY)));
+        _GPUC(gp0_xy(w, h));
+        return GV_OK;
+    }
+
 } // namespace System::PSX::GPU

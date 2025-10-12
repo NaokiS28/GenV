@@ -34,7 +34,7 @@ namespace Apps
         reload();
     }
 
-    int TMSS::init(IAppHost* host)
+    int TMSS::init(IAppHost *host)
     {
         fadeIn.setValue(Video::frames(), 0, 255, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
         fadeOut.setValue(Video::frames(), 255, 0, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
@@ -48,15 +48,15 @@ namespace Apps
     {
         Video::Color c = Video::Colors::White;
         c.a = alpha;
-        premultiply(c);
+        // premultiply(c);
         gpu->fillScreen(Video::Colors::Black);
-        gpu->drawText(tmssText, 56, textPos.x, textPos.y, textPos.w, textPos.h, c, Video::TALIGN_CENTER);
+        gpu->drawText(tmssText, textPos.x, textPos.y, textPos.w, textPos.h, c, Video::TALIGN_CENTER);
     }
 
     void TMSS::reload()
     {
         textPos = {
-            gpu->getHorizontalRes() / 2 - 250,
+            gpu->getHorizontalRes() / 2,
             gpu->getVerticalRes() / 2 - 30,
             500,
             60};
@@ -67,7 +67,7 @@ namespace Apps
         switch (tmssAnimStep)
         {
         case TMSS_FadeIn:
-            if(!fadeIn.isDone(Video::frames()) && !fadeIn.isRunning())
+            if (!fadeIn.isDone(Video::frames()) && !fadeIn.isRunning())
                 fadeIn.go();
             alpha = fadeIn.getValue(Video::frames());
             if (fadeIn.isDone(Video::frames()))
@@ -77,7 +77,7 @@ namespace Apps
             }
             break;
         case TMSS_FadeOut:
-            if(!fadeOut.isDone(Video::frames()) && !fadeOut.isRunning())
+            if (!fadeOut.isDone(Video::frames()) && !fadeOut.isRunning())
                 fadeOut.go();
             alpha = fadeOut.getValue(Video::frames());
             if (fadeOut.isDone(Video::frames()))
@@ -96,4 +96,4 @@ namespace Apps
             setAppState(APP_STATE_QUIT);
         }
     }
-}
+} // namespace Apps

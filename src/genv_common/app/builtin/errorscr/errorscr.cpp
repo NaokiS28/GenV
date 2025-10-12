@@ -54,7 +54,7 @@ int DefaultErrorScreen::init(IAppHost *host)
     playSound = true;
     animState = INTRO_RUN;
     errorSound = new WaveFile(eMsgSoundFile);
-    if (Services::getAudio()->uploadSample(errorSound) == Audio::SO_OKAY)
+    if (Services::getAudio()->uploadSample(errorSound) == GV_OK)
     {
         // close sound file?
     }
@@ -62,7 +62,7 @@ int DefaultErrorScreen::init(IAppHost *host)
     ArcadeFunc(
         if (msg->style == EM_STYLE_CRITICAL_ERROR)
             Genv_Arcade->getNVRAM()
-                .addErrorCode(GENV_ERR_CRITICAL_APP_ERROR, System::getTime(), msg->errorCode););
+                .addErrorCode(GENV_ARC_ERR_CRITICAL_APP_ERROR, System::getTime(), msg->errorCode););
 
     return 0;
 }
@@ -178,13 +178,13 @@ void DefaultErrorScreen::render()
         Video::Colors::Black);
 
     // Contents
-    gpu->drawText(msg->title.str, msg->title.len, area.x + 20, yOffset + 20, area.w - 20, 50, Video::Colors::White);
+    gpu->drawText(msg->title.str, area.x + 20, yOffset + 20, area.w - 20, 50, Video::Colors::White);
     gpu->drawLine(area.x + 20, yOffset + 60, (area.x + area.w) - 20, yOffset + 60, 2, c2);
-    gpu->drawText(eMsgStrList[msg->style].str, eMsgStrList[msg->style].len, area.x + 20, yOffset + 70, area.w - 20, 100, c2);
-    gpu->drawText(msg->message.str, msg->message.len, area.x + 20, yOffset + 95, area.w - 20, 100, Video::Colors::White);
+    gpu->drawText(eMsgStrList[msg->style].str, area.x + 20, yOffset + 70, area.w - 20, 100, c2);
+    gpu->drawText(msg->message.str, area.x + 20, yOffset + 95, area.w - 20, 100, Video::Colors::White);
 
     // Options
-    gpu->drawText(eMsgOptionList[msg->action].str, eMsgOptionList[msg->action].len, area.x + 20, (yOffset + area.h) - 60, area.w - 20, 100, Video::Colors::White);
+    gpu->drawText(eMsgOptionList[msg->action].str, area.x + 20, (yOffset + area.h) - 60, area.w - 20, 100, Video::Colors::White);
 }
 
 void DefaultErrorScreen::shutdown()

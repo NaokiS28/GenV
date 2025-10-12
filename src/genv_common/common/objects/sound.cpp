@@ -47,7 +47,7 @@ namespace Audio
         SoundObject *sObj = new SoundObject(objectID);
         if (sObj != nullptr)
         {
-            if (sObj->loadSoundFile(filePath) == Files::FO_OKAY)
+            if (sObj->loadSoundFile(filePath) == GV_OK)
                 return sObj;
             else
                 delete sObj;

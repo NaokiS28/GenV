@@ -33,11 +33,10 @@ namespace Apps
         reload();
     }
 
-
     void TextLoader::render()
     {
         gpu->fillScreen(Video::Colors::Black);
-        gpu->drawText(loadingText, 15, textPos.x, textPos.y, textPos.w, textPos.h, Video::Colors::White, Video::TALIGN_CENTER);
+        gpu->drawText(loadingText, textPos.x, textPos.y, textPos.w, textPos.h, Video::Colors::White, Video::TALIGN_CENTER);
     }
 
     void TextLoader::reload()
@@ -48,4 +47,4 @@ namespace Apps
             500,
             20};
     }
-}
+} // namespace Apps

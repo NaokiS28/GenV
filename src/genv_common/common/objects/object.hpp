@@ -75,17 +75,17 @@ public:
     ObjectBase(util::Hash objectID);
     virtual ~ObjectBase() = default;
 
-    bool setParam(util::Hash object, size_t param);  // Set a parameter value. Will add a new entry if list has none
-    bool getParam(util::Hash object, size_t &param); // Get a parameter value
-    uint8_t getParamPos(util::Hash object);          // Find a parameter position in list
-    bool deleteParam(util::Hash object);             // Deletes a parameter in the list. Returns false is param was not found
+    bool setParam(util::Hash object, size_t param);        // Set a parameter value. Will add a new entry if list has none
+    bool getParam(util::Hash object, size_t &param) const; // Get a parameter value
+    uint8_t getParamPos(util::Hash object) const;          // Find a parameter position in list
+    bool deleteParam(util::Hash object);                   // Deletes a parameter in the list. Returns false is param was not found
 
-    inline util::Hash getObjectID()
+    inline util::Hash getObjectID() const
     {
         return objectID;
     }
 
-    inline util::Hash getObjectType()
+    inline util::Hash getObjectType() const
     {
         return objectType;
     }

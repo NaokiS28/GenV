@@ -96,7 +96,11 @@ endif()
 add_subdirectory(src/genv_common/common)
 add_subdirectory(src/genv_common/app)
 add_subdirectory(src/genv_common/common/objects/fonts)
-add_subdirectory(src/genv_hw/${GENV_PLATFORM})
+
+# System dispatcher
+include(cmake/dispatcher.cmake)
+resolve_platform(${GENV_PLATFORM} PLATFORM_PATH)
+add_subdirectory(${PLATFORM_PATH})
 
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     message(STATUS "Building default GenV test app")
@@ -110,10 +114,6 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 	target_compile_definitions(
 		genv PRIVATE
 		VERSION="${PROJECT_VERSION}"
-		EXTERNAL_DATA_DIR="hdd:/${PROJECT_NAME}"
-		ENABLE_APP_LOGGING=1
-		ENABLE_FS_LOGGING=1
-		ENABLE_LOG_BUFFER=1
 	)
 
 endif()

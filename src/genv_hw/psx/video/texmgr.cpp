@@ -20,6 +20,7 @@
 #include "texmgr.hpp"
 #include "common/util/rect.h"
 #include "psx/video/gpudef.hpp"
+#include "common/return_codes.hpp"
 
 namespace System::PSX::GPU
 {
@@ -34,12 +35,12 @@ namespace System::PSX::GPU
         if (!_tile_bitmap || !_clut_bitmap)
         {
             LOG("TextureManager", "Unexpected error in allocating bitmap(s). Dynamic allocation is not possible!");
-            return TMGR_MALLOC_FAIL;
+            return TM_ERROR(GV_ERR_OUT_OF_MEMORY);
         }
         // UINT32_MAX allows TMGR_FREE to be true for bool functions
         memset(_tile_bitmap, (UINT32_MAX * TMGR_FREE), sizeof(uint32_t) * _tile_bitmap_size);
         memset(_clut_bitmap, (UINT32_MAX * TMGR_FREE), sizeof(uint32_t) * _clut_bitmap_size);
-        return TMGR_OKAY;
+        return GV_OK;
     }
 
     bool TextureManager::VRAM_Bitmap_POD::tile_available(int x, int y) const
@@ -242,7 +243,7 @@ namespace System::PSX::GPU
                         // Found a free block at (t.x, t.y)
                         x = t.x;
                         y = t.y;
-                        return TMGR_OKAY;
+                        return GV_OK;
                     }
                 }
 
@@ -274,7 +275,7 @@ namespace System::PSX::GPU
             }
             else
             {
-                return TMGR_NO_FREE_SPACE;
+                return TM_ERROR(GV_ERR_OUT_OF_SPACE);
             }
         }
     }
@@ -308,7 +309,7 @@ namespace System::PSX::GPU
                         break;
                     }
                 }
-                if (clutFree) return TMGR_OKAY;
+                if (clutFree) return GV_OK;
             }
 
             // Failed to find space in this page. Move right 1 page or to previous line and left most page
@@ -321,34 +322,31 @@ namespace System::PSX::GPU
             }
             else
             {
-                return TMGR_NO_FREE_SPACE;
+                return TM_ERROR(GV_ERR_OUT_OF_SPACE);
             }
         }
 
-        return TMGR_NO_FREE_SPACE;
+        return TM_ERROR(GV_ERR_OUT_OF_SPACE);
     }
 
-    int TextureManager::allocateCLUT(PSXTextureObject *ptObj)
+    int TextureManager::allocateCLUT(uint8_t bpp, uint16_t &x, uint16_t &y)
     {
-        if (!ptObj || (ptObj->bpp != Textures::BPP_4BIT && ptObj->bpp != Textures::BPP_8BIT))
-            return TMGR_INVALID_OBJECT;
-
         int r = 0;
-        r = findFreeCLUT(ptObj->clutX, ptObj->clutY, ptObj->bpp);
-        if (r != TMGR_OKAY)
+        r = findFreeCLUT(x, y, bpp);
+        if (r != GV_OK)
             return r;
 
-        _vramBitmap.mark_clut(ptObj->clutX, ptObj->clutY, ptObj->bpp, VRAM_Bitmap_POD::TMGR_INUSE);
+        _vramBitmap.mark_clut(x, y, bpp, VRAM_Bitmap_POD::TMGR_INUSE);
         return r;
     }
 
     int TextureManager::allocateTexture(PSXTextureObject *ptObj)
     {
         if (!ptObj || !ptObj->width || !ptObj->height)
-            return TMGR_INVALID_OBJECT;
+            return TM_ERROR(GV_ERR_INVALID_PARAM);
 
         if (ptObj->width >= PAGE_SIZE || ptObj->width >= PAGE_SIZE)
-            return TMGR_OUT_OF_BOUNDS;
+            return TM_ERROR(GV_ERR_INCOMPATIBLE_TYPE);
 
         int r = 0;
 
@@ -360,28 +358,34 @@ namespace System::PSX::GPU
         if (h == 0) h = 1;
 
         r = findFreeBlock(x, y, w, h, ptObj->bpp);
-        if (r != TMGR_OKAY)
+        if (r != GV_OK)
             return r;
 
-        r = _vramBitmap.mark_block(x, y, w, h, VRAM_Bitmap_POD::TMGR_INUSE) == TMGR_OKAY;
-        if (r != TMGR_OKAY)
+        r = _vramBitmap.mark_block(x, y, w, h, VRAM_Bitmap_POD::TMGR_INUSE) == GV_OK;
+        if (r != GV_OK)
             return r;
 
-        ptObj->vramX = (tileToPx(x) / 4); // bpp affects width
+        ptObj->vramX = (tileToPx(x) / 4);
         ptObj->vramY = tileToPx(y);
+        // TODO: UGLY. UGLY hack.
+        ptObj->tpage.offsetX = ((ptObj->vramX % 64) * (ptObj->bpp == 4 ? 4 : ptObj->bpp == 8 ? 2
+                                                                                             : 1));
+        ptObj->tpage.offsetY = (ptObj->vramY % 256);
+        ptObj->tpage.x = (ptObj->vramX / 64);
+        ptObj->tpage.y = (16 * (ptObj->vramY / 256));
 
         if (ptObj->bpp == Textures::BPP_4BIT || ptObj->bpp == Textures::BPP_8BIT)
         {
             return allocateCLUT(ptObj);
         }
 
-        return TMGR_OKAY;
+        return GV_OK;
     }
 
     int TextureManager::deallocateTexture(PSXTextureObject *ptObj)
     {
         if (!ptObj)
-            return TMGR_INVALID_OBJECT;
+            return TM_ERROR(GV_ERR_INVALID_PARAM);
 
         int r = 0;
         // higher bitdepths use more tiles.

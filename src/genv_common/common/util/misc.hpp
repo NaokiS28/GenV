@@ -22,30 +22,36 @@
 
 namespace util
 {
-	inline uint8_t dec2bcd(uint8_t n) { return (n / 10 * 16) + (n % 10); }
-	inline uint8_t bcd2dec(uint8_t n) { return (n / 16 * 10) + (n % 16); }
+    inline uint8_t dec2bcd(uint8_t n)
+    {
+        return (n / 10 * 16) + (n % 10);
+    }
+    inline uint8_t bcd2dec(uint8_t n)
+    {
+        return (n / 16 * 10) + (n % 16);
+    }
 
-	/* Critical section helper */
+    /* Critical section helper */
 
-	class CriticalSection
-	{
-	public:
-		inline CriticalSection(void)
-		{
-			// TODO: implement
-		}
-		inline ~CriticalSection(void)
-		{
-			// TODO: implement
-		}
-	};
+    class CriticalSection
+    {
+    public:
+        inline CriticalSection(void)
+        {
+            // TODO: implement
+        }
+        inline ~CriticalSection(void)
+        {
+            // TODO: implement
+        }
+    };
 
-	template <typename T>
-	void ClearMemory(T *dest, size_t len)
-	{
-		memset(dest, 0, len);
-	}
+    template <typename T>
+    void ClearMemory(T *dest, size_t len)
+    {
+        memset(dest, 0, len);
+    }
 
-	// Sum a simple 16-bit checksum.
-	uint16_t checksum(const void *data, size_t length);
-}
+    // Sum a simple 16-bit checksum.
+    uint16_t checksum(const void *data, size_t length);
+} // namespace util

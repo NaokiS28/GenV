@@ -17,6 +17,7 @@
 
 #include "file.hpp"
 #include "common/services/services.hpp"
+#include "common/return_codes.hpp"
 
 namespace Files
 {
@@ -46,7 +47,7 @@ namespace Files
             this->fileName = fileName;
             return Services::getStorage()->renameFile(fileName, this);
         }
-        return Files::FO_ERROR_BADPARAM;
+        return GV_ERROR(GV_SERVICE_FILESYSTEM, GV_CATEGORY_GENERIC, GV_ERR_INVALID_PARAM);
     }
     int FileObject::closeFile()
     {
@@ -67,7 +68,7 @@ namespace Files
 
     uint8_t FileObject::read()
     {
-        //if (!this->data->getRawData())
+        // if (!this->data->getRawData())
         //    throw std::runtime_error("No data loaded");
 
         uint8_t d = data->getRawData()[filePos++];
@@ -162,4 +163,4 @@ namespace Files
         }
         return 0;
     }
-}
+} // namespace Files

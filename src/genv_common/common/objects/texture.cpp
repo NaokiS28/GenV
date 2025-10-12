@@ -17,6 +17,7 @@
 
 #include "texture.hpp"
 
+#include "common/return_codes.hpp"
 #include "common/services/video/color.hpp"
 #include "texture/missingtex.h"
 
@@ -53,7 +54,7 @@ namespace Textures
         if (file != nullptr)
         {
             int result = file->openFile(filePath, false);
-            if (result == Files::FO_OKAY)
+            if (result == GV_OK)
             {
                 // bitmap = stbi_load_from_memory(
                 //    file->getRawDataObj()->getRawData(),
@@ -70,10 +71,10 @@ namespace Textures
                 setObjectID(Files::getFileNameHash(this->file));
 
                 if (bitmap != nullptr)
-                    return Files::FO_OKAY;
+                    return GV_OK;
             }
         }
-        return Files::FO_ERROR_NOTLOADED;
+        return GV_ERR_INVALID_PARAM;
     }
 
     int TextureObject::loadTextureFromMem(
@@ -126,7 +127,7 @@ namespace Textures
         TextureObject *tObj = Services::getVideo()->createTexture(objectID);
         if (tObj != nullptr)
         {
-            if (tObj->loadTextureFromFile(filePath) == Files::FO_OKAY)
+            if (tObj->loadTextureFromFile(filePath) == GV_OK)
                 return tObj;
             else
             {

@@ -27,6 +27,8 @@
 #include "psxtex.hpp"
 #include "gpudef.hpp"
 
+#define TM_ERROR(code) GV_ERROR(GV_SERVICE_VIDEO, GV_CATEGORY_GENERIC, code)
+
 namespace System::PSX::GPU
 {
 
@@ -123,17 +125,6 @@ namespace System::PSX::GPU
     {
 
     public:
-        enum : int
-        {
-            TMGR_OKAY = 0,
-            TMGR_MALLOC_FAIL,
-            TMGR_INVALID_OBJECT,
-            TMGR_INVALID_BPP,
-            TMGR_OUT_OF_BOUNDS,
-            TMGR_COLLISION,
-            TMGR_NO_FREE_SPACE,
-        };
-
         struct TexPageCoord
         {
             uint8_t page = 0, tileX = 0, tileY = 0;
@@ -159,15 +150,6 @@ namespace System::PSX::GPU
             {
                 TMGR_INUSE,
                 TMGR_FREE,
-            };
-
-            enum
-            {
-                TMGR_BITMAP_OKAY,
-                TMGR_BITMAP_ERR_MALLOC_FAIL,
-                TMGR_BITMAP_ERR_COLLISION,
-                TMGR_BITMAP_ERR_OUT_OF_BOUNDS,
-                TMGR_BITMAP_ERR_NO_FREE_SPACE
             };
 
             int init(uint8_t _vram);
@@ -275,7 +257,11 @@ namespace System::PSX::GPU
         int markFrameBuffer(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h);
 
         // Allocate space in the texture page for a CLUT
-        int allocateCLUT(PSXTextureObject *ptObj);
+        inline int allocateCLUT(PSXTextureObject *ptObj)
+        {
+            return allocateCLUT(ptObj->bpp, ptObj->clutX, ptObj->clutY);
+        };
+        int allocateCLUT(uint8_t bpp, uint16_t &x, uint16_t &y);
 
         // Allocate space in the texture page for a texture
         int allocateTexture(PSXTextureObject *ptObj);

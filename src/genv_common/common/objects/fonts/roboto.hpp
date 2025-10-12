@@ -20,7 +20,5 @@
 
 namespace Fonts
 {
-    extern FontMetrics roboto_16pt;
-    extern uint8_t *roboto_16pt_bmp;
-    extern size_t roboto_16pt_size;
+    extern GenvFontset roboto;
 } // namespace Fonts

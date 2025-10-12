@@ -21,91 +21,110 @@
 
 namespace util
 {
-	// To fix "error" squiggles.
-	using size_t = decltype(sizeof(0));
+    // To fix "error" squiggles.
+    using size_t = decltype(sizeof(0));
 
-	/* String hashing (http://www.cse.yorku.ca/~oz/hash.html) */
+    /* String hashing (http://www.cse.yorku.ca/~oz/hash.html) */
 
-	using Hash = uint32_t;
+    using Hash = uint32_t;
 
-	template <typename T>
-	static constexpr inline Hash hash(
-		const T *const data, size_t length = -1, Hash value = 0)
-	{
-		if (*data && length)
-			return hash(
-				&data[1], length - 1,
-				Hash(*data) + (value << 6) + (value << 16) - value);
+    template <typename T>
+    static constexpr inline Hash hash(
+        const T *const data, size_t length = -1, Hash value = 0)
+    {
+        if (*data && length)
+            return hash(
+                &data[1], length - 1,
+                Hash(*data) + (value << 6) + (value << 16) - value);
 
-		return value;
-	}
+        return value;
+    }
 
-	Hash hash(const char *str, char terminator = 0);
-	Hash hash(const uint8_t *data, size_t length);
+    Hash hash(const char *str, char terminator = 0);
+    Hash hash(const uint8_t *data, size_t length);
 
-	/* CRC calculation */
+    template <typename T>
+    static inline const T *getHashTableEntry(
+        const T *table,
+        size_t numBuckets,
+        Hash id)
+    {
+        auto index = id & (numBuckets - 1);
+        do
+        {
+            auto entry = &table[index];
+            index = entry->getChained();
 
-	uint8_t dsCRC8(const uint8_t *data, size_t length);
-	uint16_t zsCRC16(const uint8_t *data, size_t length);
-	uint32_t zipCRC32(const uint8_t *data, size_t length, uint32_t crc = 0);
-	void initZipCRC32(void);
+            if (entry->getHash() == id)
+                return entry;
+        } while (index);
 
-	/* MD5 hash */
+        return nullptr;
+    }
 
-	class MD5
-	{
-	private:
-		uint32_t _state[4];
-		uint8_t _blockBuffer[64];
-		size_t _blockCount, _bufferLength;
+    /* CRC calculation */
 
-		static inline int _indexF(int index)
-		{
-			return index;
-		}
-		static inline uint32_t _addF(uint32_t x, uint32_t y, uint32_t z)
-		{
-			return z ^ (x & (y ^ z)); // (x & y) | ((~x) & z)
-		}
-		static inline int _indexG(int index)
-		{
-			return ((index * 5) + 1) % 16;
-		}
-		static inline uint32_t _addG(uint32_t x, uint32_t y, uint32_t z)
-		{
-			return y ^ (z & (x ^ y)); // (x & z) | (y & (~z))
-		}
-		static inline int _indexH(int index)
-		{
-			return ((index * 3) + 5) % 16;
-		}
-		static inline uint32_t _addH(uint32_t x, uint32_t y, uint32_t z)
-		{
-			return x ^ y ^ z;
-		}
-		static inline int _indexI(int index)
-		{
-			return (index * 7) % 16;
-		}
-		static inline uint32_t _addI(uint32_t x, uint32_t y, uint32_t z)
-		{
-			return (y ^ (x | (~z)));
-		}
+    uint8_t dsCRC8(const uint8_t *data, size_t length);
+    uint16_t zsCRC16(const uint8_t *data, size_t length);
+    uint32_t zipCRC32(const uint8_t *data, size_t length, uint32_t crc = 0);
+    void initZipCRC32(void);
 
-		void _flushBlock(const void *data);
+    /* MD5 hash */
 
-	public:
-		MD5(void);
-		void update(const uint8_t *data, size_t length);
-		void digest(uint8_t *output);
-	};
+    class MD5
+    {
+    private:
+        uint32_t _state[4];
+        uint8_t _blockBuffer[64];
+        size_t _blockCount, _bufferLength;
 
-}
+        static inline int _indexF(int index)
+        {
+            return index;
+        }
+        static inline uint32_t _addF(uint32_t x, uint32_t y, uint32_t z)
+        {
+            return z ^ (x & (y ^ z)); // (x & y) | ((~x) & z)
+        }
+        static inline int _indexG(int index)
+        {
+            return ((index * 5) + 1) % 16;
+        }
+        static inline uint32_t _addG(uint32_t x, uint32_t y, uint32_t z)
+        {
+            return y ^ (z & (x ^ y)); // (x & z) | (y & (~z))
+        }
+        static inline int _indexH(int index)
+        {
+            return ((index * 3) + 5) % 16;
+        }
+        static inline uint32_t _addH(uint32_t x, uint32_t y, uint32_t z)
+        {
+            return x ^ y ^ z;
+        }
+        static inline int _indexI(int index)
+        {
+            return (index * 7) % 16;
+        }
+        static inline uint32_t _addI(uint32_t x, uint32_t y, uint32_t z)
+        {
+            return (y ^ (x | (~z)));
+        }
+
+        void _flushBlock(const void *data);
+
+    public:
+        MD5(void);
+        void update(const uint8_t *data, size_t length);
+        void digest(uint8_t *output);
+    };
+
+} // namespace util
 
 /* String hashing operator */
 
 static constexpr inline util::Hash operator""_h(
-	const char *const literal, util::size_t length)
+    const char *const literal, util::size_t length)
 {
-	return util::hash(literal, length);
+    return util::hash(literal, length);
 }

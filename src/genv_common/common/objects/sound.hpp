@@ -21,27 +21,11 @@
 #include "object.hpp"
 #include "file.hpp"
 #include "common/formats/riff.hpp"
+#include "common/return_codes.hpp"
 
 namespace Audio
 {
-    static constexpr const char *GENV_SOUND_OBJ_TYPENAME = "GenVSoundObject";
-
-    enum : uint8_t
-    {
-        SO_OKAY,                // Success
-        SO_ERROR_OUTOFMEMORY,   // Couldn't allocate memory for file
-        SO_ERROR_BADPERMISSION, // Permissions on file denied this action
-        SO_ERROR_BADPATH,       // File path was invalid, badly formatted or has invalid characters
-        SO_ERROR_FILENOTFOUND,  // File was not found
-        SO_ERROR_BADOBJECT,     // DataObject is bad
-        SO_ERROR_BADPARAM,      // A parameter provided did not meet the requirements
-        SO_ERROR_INCOMPATIBLE,  // File type is incompatible with the target object
-        SO_ERROR_BADNAME,       // Filename is invalid
-        SO_ERROR_FILEINUSE,     // File is already open and locked for writing
-        SO_ERROR_NOLOCK,        // File is not locked or lock could not be set
-        SO_ERROR_INVALIDFUNC,   // Function has not been provided on this file provider.
-        SO_ERROR_UNKNOWN        // Unknown or unexpected error occured
-    };
+    static constexpr util::Hash GENV_SOUND_OBJ_TYPENAME = "GenVSoundObject"_h;
 
     enum
     {

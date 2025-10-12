@@ -38,6 +38,8 @@ public:
     static inline Audio::IAudio *getAudio(void) { return s_audio; }
     static inline Video::IVideo *getVideo(void) { return s_video; }
     static inline System::ISystem *getSystem(void) { return s_system; }
+    static inline Fonts::FontManager *fontManager(void) { return s_fonts; }
+
     static inline void setSystem(AdminClass_Key key, System::ISystem *sys) { setSystem(sys); }
     static inline void setVideo(AdminClass_Key key, Video::IVideo *video) { setVideo(video); }
     static inline void setAudio(AdminClass_Key key, Audio::IAudio *audio) { setAudio(audio); }

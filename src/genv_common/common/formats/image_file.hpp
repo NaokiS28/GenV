@@ -24,5 +24,6 @@ namespace Textures
     Textures::TextureObject *loadPNG_memory(util::Hash objectID, const uint8_t *data, const size_t length);
     Textures::TextureObject *loadGIF_memory(util::Hash objectID, const uint8_t *data, const size_t length);
     Textures::TextureObject *openImageFile(util::Hash objectID, const char *filePath, const size_t pathLen);
+    Textures::TextureObject *openImageMemory(util::Hash objectID, uint32_t type, const uint8_t *data, const size_t length);
     // Textures::TextureObject *openImageMemory(util::Hash objectID, const uint8_t *data, const size_t size);
 } // namespace Textures

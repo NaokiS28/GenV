@@ -18,6 +18,8 @@
 #pragma once
 #include <stdint.h>
 
+#include "common/objects/font.hpp"
+#include "common/services/video/color.hpp"
 #include "common/util/hash.hpp"
 #include "video.hpp"
 #include "common/util/templates.hpp"
@@ -26,6 +28,8 @@
 #include "common/objects/sprite.hpp"
 #include "common/objects/tile.hpp"
 #include "common/logger/log.hpp"
+
+#define V_ERROR(code) GV_ERROR(GV_SERVICE_VIDEO, GV_CATEGORY_GENERIC, code)
 
 namespace Video
 {
@@ -149,7 +153,8 @@ namespace Video
         virtual void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) = 0;
         virtual void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) = 0;
 
-        virtual void drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode = TALIGN_LEFT) = 0;
+        virtual int drawText(const Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) = 0;
+        virtual int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) = 0;
 
         virtual Textures::TextureObject *createTexture(util::Hash objectID)
         {
@@ -190,13 +195,13 @@ namespace Video
                 area.u1, area.v1, area.u2, area.v2);
         }
         virtual int drawTextureObject(
-            Textures::TextureObject *tObj,
+            const Textures::TextureObject *tObj,
             int x, int y, int w, int h,
             ifloat u1, ifloat v1,
             ifloat u2, ifloat v2) = 0;
 
         virtual int drawTextureObject(
-            Textures::TextureObject *tObj,
+            const Textures::TextureObject *tObj,
             int x, int y,
             Vertex v[]) = 0;
 

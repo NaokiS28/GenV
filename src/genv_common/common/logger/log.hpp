@@ -18,61 +18,68 @@
 
 #include <stddef.h>
 
+#include "error_strings.hpp"
+
 namespace Logs
 {
 
-	/* Logging framework */
+    /* Logging framework */
+    constexpr const char GenvStdErrorFormat[] = "%s: %s %s: %s (%08X)";
+    constexpr const char GenvWarningString[] = "Warning";
+    constexpr const char GenvErrorString[] = "Error";
 
-	static constexpr int MAX_LOG_LINE_LENGTH = 160;
-	static constexpr int MAX_LOG_LINES = 64;
+    static constexpr int MAX_LOG_LINE_LENGTH = 160;
+    static constexpr int MAX_LOG_LINES = 64;
 
-	class LogBuffer
-	{
-	private:
-		char _lines[MAX_LOG_LINES][MAX_LOG_LINE_LENGTH];
-		int _tail;
+    class LogBuffer
+    {
+    private:
+        char _lines[MAX_LOG_LINES][MAX_LOG_LINE_LENGTH];
+        int _tail;
 
-	public:
-		inline LogBuffer(void)
-			: _tail(0)
-		{
-			clear();
-		}
+    public:
+        inline LogBuffer(void)
+            : _tail(0)
+        {
+            clear();
+        }
 
-		// 0 = last line, 1 = second to last, etc.
-		inline const char *getLine(int line) const
-		{
-			return _lines[size_t(_tail - (line + 1)) % MAX_LOG_LINES];
-		}
+        // 0 = last line, 1 = second to last, etc.
+        inline const char *getLine(int line) const
+        {
+            return _lines[size_t(_tail - (line + 1)) % MAX_LOG_LINES];
+        }
 
-		void clear(void);
-		char *allocateLine(void);
-	};
+        void clear(void);
+        char *allocateLine(void);
+    };
 
-	class Logger
-	{
-	private:
-		LogBuffer *_buffer;
-		bool _enableSyslog;
+    class Logger
+    {
+    private:
+        LogBuffer *_buffer;
+        bool _enableSyslog;
 
-	public:
-		inline Logger(void)
-			: _buffer(nullptr), _enableSyslog(true) {}
+    public:
+        inline Logger(void)
+            : _buffer(nullptr), _enableSyslog(true) {}
 
-		void setLogBuffer(LogBuffer *buffer);
-		void log(const char *format, ...);
-		void logT(const char *type, const char *format, const char *func, const int linenum, ...);
-	};
+        void setLogBuffer(LogBuffer *buffer);
+        void log(const char *format, ...);
+        void logT(const char *type, const char *format, const char *func, const int linenum, ...);
+        void logError(const char *type, const char *func, const int linenum, const char *error, const char *reason, const int code, ...);
+        void logWarn(const char *type, const char *func, const int linenum, const char *warning, const char *reason, const int code, ...);
+    };
 
-	extern Logger logger;
+    extern Logger logger;
 
-}
+} // namespace Logs
 
 /* Logging macros */
 
 #define LOG(type, fmt, ...) \
-	Logs::logger.logT(type, fmt, __func__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
-	//Logs::logger.log(type ",%s(%d): " fmt, __func__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
+    Logs::logger.logT(type, fmt, __func__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
+// Logs::logger.log(type ",%s(%d): " fmt, __func__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
 
 #ifdef ENABLE_APP_LOGGING
 #define LOG_APP(fmt, ...) LOG("app", fmt __VA_OPT__(, ) __VA_ARGS__)

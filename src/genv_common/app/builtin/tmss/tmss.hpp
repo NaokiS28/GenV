@@ -60,12 +60,12 @@ namespace Apps
         TMSS();
         TMSS(Application *appToLoad);
 
-        int init(IAppHost *host);
-        void update();
-        void render();
-        void reload();
-        void shutdown() {}
+        int init(IAppHost *host) override;
+        void update() override;
+        void render() override;
+        void reload() override;
+        void shutdown() override {}
 
         const AppInfo &info() const override { return appInfo; }
     };
-}
+} // namespace Apps

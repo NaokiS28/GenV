@@ -18,6 +18,7 @@
 #include "wav.hpp"
 #include "common/formats/riff.hpp"
 #include "common/objects/file.hpp"
+#include "common/return_codes.hpp"
 
 WaveFile::WaveFile() : Audio::SoundObject(&file)
 {
@@ -30,7 +31,7 @@ WaveFile::WaveFile(const char *filepath) : Audio::SoundObject(&file)
 
 int WaveFile::loadSoundFile(const char *filePath)
 {
-    SoundObject::valid = ((file.openFile(filePath) == Files::FO_OKAY) &&
+    SoundObject::valid = ((file.openFile(filePath) == GV_OK) &&
                           WaveFile::isWave(&file));
 
     if (valid)
@@ -50,8 +51,8 @@ int WaveFile::loadSoundFile(const char *filePath)
         SoundObject::meta.sampleLength = waveData.dataSize;
         SoundObject::sampleData = (file.getRawDataObj()->getRawData() + waveData.data); // TODO: Change from being hardcoded
 
-        return Audio::SO_OKAY;
+        return GV_OK;
     }
 
-    return Audio::SO_ERROR_INCOMPATIBLE;
+    return GV_ERR_INCOMPATIBLE_TYPE;
 }

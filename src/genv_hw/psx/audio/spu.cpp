@@ -22,7 +22,6 @@
 #include "../registers.hpp"
 #include "../system/sys.h"
 
-
 namespace spu
 {
 
@@ -151,7 +150,7 @@ namespace spu
     {
         length /= 4;
 
-        //util::assertAligned<uint32_t>(data);
+        // util::assertAligned<uint32_t>(data);
         // assert(!(length % _DMA_CHUNK_SIZE));
         length = (length + _DMA_CHUNK_SIZE - 1) / _DMA_CHUNK_SIZE;
 
@@ -182,7 +181,7 @@ namespace spu
 
     bool Sound::initFromVAGHeader(const VAGHeader *header, uint32_t ramOffset)
     {
-        if (header->magic != util::concatenate('V', 'A', 'G', 'p'))
+        if (header->magic != util::concat4('V', 'A', 'G', 'p'))
             return false;
 
         offset = ramOffset / 8;
@@ -214,4 +213,4 @@ namespace spu
         return ch;
     }
 
-}
+} // namespace spu

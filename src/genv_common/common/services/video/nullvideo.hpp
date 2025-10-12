@@ -18,6 +18,7 @@
 #pragma once
 #include <stdint.h>
 
+#include "common/objects/font.hpp"
 #include "common/services/video/color.hpp"
 #include "iface_video.hpp"
 #include "common/util/templates.hpp"
@@ -61,7 +62,11 @@ namespace Video
         void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint);
         void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint);
 
-        void drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode = TALIGN_LEFT);
+        int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT);
+        int drawText(const Fonts::FontObject *Obj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)
+        {
+            return drawText(str, x, y, w, h, color, mode);
+        }
 
         int uploadTexture(Textures::TextureObject *tObj);
         int releaseTexture(Textures::TextureObject *tObj);
@@ -70,13 +75,13 @@ namespace Video
         void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h);
 
         virtual int drawTextureObject(
-            Textures::TextureObject *tObj,
+            const Textures::TextureObject *tObj,
             int x, int y, int w, int h,
             ifloat u1, ifloat v1,
             ifloat u2, ifloat v2);
 
         virtual int drawTextureObject(
-            Textures::TextureObject *tObj,
+            const Textures::TextureObject *tObj,
             int x, int y,
             Vertex v[]);
     };

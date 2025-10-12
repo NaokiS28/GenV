@@ -20,7 +20,5 @@
 
 namespace Fonts
 {
-    extern const FontMetrics spice_10pt;
-    extern const uint8_t spice_10pt_gif[];
-    extern const size_t spice_10pt_size;
+    extern GenvFontset spice;
 } // namespace Fonts

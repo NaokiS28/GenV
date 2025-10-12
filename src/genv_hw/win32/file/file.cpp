@@ -21,7 +21,6 @@
 
 constexpr const util::Hash Win32_FileHandle = "WIN32_FileHandle"_h;
 
-
 bool WinStorage::registerDevNotification(GUID devGuid, HDEVNOTIFY &hDev)
 {
     DEV_BROADCAST_DEVICEINTERFACE NotificationFilter;
@@ -195,78 +194,88 @@ void WinStorage::hardwareChanged(WPARAM wParam, LPARAM lParam)
     }
 }
 
-int WinStorage::openFile(const char *filePath, bool lock, Files::FileObject *fObj) {
-    if(!fObj || !filePath)
-        return Files::FO_ERROR_BADPARAM;
+int WinStorage::openFile(const char *filePath, bool lock, Files::FileObject *fObj)
+{
+    if (!fObj || !filePath)
+        return Files::GV_ERROR_BADPARAM;
 
     HANDLE file = CreateFileA(
-        filePath, 
-        (GENERIC_READ | (lock ? GENERIC_WRITE : 0)),    // If lock, expect process wants to write to file
-        (lock ? 0 : FILE_SHARE_READ),                   // If lock, set file sharing to "none"
+        filePath,
+        (GENERIC_READ | (lock ? GENERIC_WRITE : 0)), // If lock, expect process wants to write to file
+        (lock ? 0 : FILE_SHARE_READ),                // If lock, set file sharing to "none"
         NULL,
-        OPEN_EXISTING,                                  // Only open an existing file, do not create a new one   
+        OPEN_EXISTING, // Only open an existing file, do not create a new one
         FILE_ATTRIBUTE_NORMAL,
-        NULL
-    );
+        NULL);
 
-    if(GetLastError())
-        return Files::FO_ERROR_UNKNOWN; // expand this later
-    
+    if (GetLastError())
+        return Files::GV_ERROR_UNKNOWN; // expand this later
+
     DWORD size = GetFileSize(file, NULL);
-    if(size == INVALID_FILE_SIZE || GetLastError())
-        return Files::FO_ERROR_UNKNOWN;
-    
+    if (size == INVALID_FILE_SIZE || GetLastError())
+        return Files::GV_ERROR_UNKNOWN;
+
     // In future this wants to be a streaming object if a file is too large to load into RAM
     DataObject *dObj = new DataObject(size);
-    if(dObj == nullptr || !dObj->getDataLen()){
+    if (dObj == nullptr || !dObj->getDataLen())
+    {
         delete dObj;
-        return Files::FO_ERROR_BADOBJECT;
+        return Files::GV_ERROR_BADOBJECT;
     }
-    
+
     // Need to actually pay attention to the error value here in future
     ReadFile(file, dObj->getRawData(), size, 0, NULL);
     fObj->setDataObj(dObj);
     fObj->setParam(Win32_FileHandle, (size_t)file);
-    return Files::FO_OKAY; 
+    return GV_OK;
 }
 
-int WinStorage::closeFile(Files::FileObject *fObj) { 
-    if(fObj){
+int WinStorage::closeFile(Files::FileObject *fObj)
+{
+    if (fObj)
+    {
         HANDLE file;
         size_t r;
-        if(fObj->getParam(Win32_FileHandle, r)){
+        if (fObj->getParam(Win32_FileHandle, r))
+        {
             file = (HANDLE)r;
             CloseHandle(file);
         }
         else
             return -1;
     }
-    return 0; 
+    return 0;
 }
 
-int WinStorage::writeFile(Files::FileObject *fObj) { 
-    return 0; 
+int WinStorage::writeFile(Files::FileObject *fObj)
+{
+    return 0;
 }
 
-int WinStorage::newFile(const char *filePath, const char *filename, Files::FileObject *fObj) { 
-    return 0; 
+int WinStorage::newFile(const char *filePath, const char *filename, Files::FileObject *fObj)
+{
+    return 0;
 }
 
-int WinStorage::deleteFile(Files::FileObject *fObj) { 
-    return 0; 
+int WinStorage::deleteFile(Files::FileObject *fObj)
+{
+    return 0;
 }
 
-int WinStorage::readFile(size_t offset, size_t length) { 
-    return 0; 
+int WinStorage::readFile(size_t offset, size_t length)
+{
+    return 0;
 }
 
-int WinStorage::renameFile(const char *filename, Files::FileObject *fObj) { 
-    return 0; 
+int WinStorage::renameFile(const char *filename, Files::FileObject *fObj)
+{
+    return 0;
 }
 
-const char *WinStorage::getWorkingDirectory(){
+const char *WinStorage::getWorkingDirectory()
+{
     // In future, Convert C:/E: etc to hdd0/rdd0:// etc
-    char* path = new char[255];
+    char *path = new char[255];
     GetCurrentDirectoryA(255, path);
     return path;
 }

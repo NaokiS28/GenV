@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include "common/objects/file.hpp"
 #include "common/util/hash.hpp"
+#include "common/return_codes.hpp"
 
 using FourCC = const char;
 using FourCCInt = uint32_t;
@@ -59,7 +60,7 @@ public:
     static bool isRIFF(const char *filePath, uint32_t fcc)
     {
         Files::FileObject file("RIFF_Test"_h);
-        if (file.openFile(filePath) == Files::FO_OKAY)
+        if (file.openFile(filePath) == GV_OK)
         {
             bool r = isRIFF(&file, fcc);
             file.closeFile();

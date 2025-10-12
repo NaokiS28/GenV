@@ -17,26 +17,19 @@
 
 #include "fontman.hpp"
 
+#include <stdint.h>
 #include <string.h>
 
 #include "common/formats/image_file.hpp"
+#include "common/logger/error_strings.hpp"
 #include "common/objects/font.hpp"
 #include "common/objects/fonts/spice.hpp"
 #include "common/objects/texture.hpp"
+#include "common/return_codes.hpp"
 #include "common/services/adminkey.hpp"
 #include "common/logger/log.hpp"
 
 #define LOG_FONT(fmt, ...) LOG("fontmgr", fmt __VA_OPT__(, ) __VA_ARGS__)
-
-constexpr const char *szLoadedFont = "Loaded new font: %s (%s)";
-constexpr const char *szRemovedFont = "Removed font: %s";
-constexpr const char *szFontLoadFailed = "Could not load font %s: %s";
-constexpr const char *szRemoveFontFailed = "Could not remove font: %s";
-constexpr const char *szBadFontObject = "FontObject is invalid.";
-constexpr const char *szParameterError = "Parameter error.";
-constexpr const char *szFontNotFound = "Font not found.";
-constexpr const char *szOutOfMemory = "Out of memory.";
-constexpr const char *szListIsEmpty = "Font list is empty.";
 
 namespace Fonts
 {
@@ -44,202 +37,266 @@ namespace Fonts
     {
     }
 
-    int FontManager::_expandList(int count)
-    {
-        FontObject **fList = new FontObject *[fontListLength + count];
-        if (!fList)
-        {
-            LOG_FONT(szFontLoadFailed, szOutOfMemory);
-            return FM_OUT_OF_MEMORY;
-        }
-        fontListLength += count;
-        memmove(fList, fontList, (sizeof(FontObject *) * fontListLength));
-        delete[] fontList;
-        fontList = fList;
-        LOG_FONT("Expanded list by %i place(s).", fontListLength);
-        return FM_OKAY;
-    }
-
-    int FontManager::_shrinkList(int count)
-    {
-        if (count > fontListLength) return FM_PARAMETER_ERROR;
-
-        FontObject **fList = new FontObject *[fontListLength - count];
-        if (!fList)
-        {
-            LOG_FONT(szFontLoadFailed, szOutOfMemory);
-            return FM_OUT_OF_MEMORY;
-        }
-        fontListLength -= count;
-        memmove(fList, fontList, (sizeof(FontObject *) * fontListLength));
-        delete[] fontList;
-        fontList = fList;
-        LOG_FONT("Shrank list by %i place(s).", fontListLength);
-        return FM_OKAY;
-    }
-
     int FontManager::init()
     {
         LOG_FONT("Init FontManager.");
-        Textures::TextureObject *tObj = Textures::loadGIF_memory(
-            spice_10pt.id, spice_10pt_gif, spice_10pt_size);
-        loadFontFromMemory(tObj, &spice_10pt);
-        return 0;
+        loadFontFromMemory(spice.fontList[0]); // TODO: Configure by header rather than hardcoded here
+        return GV_OK;
     }
 
     void FontManager::shutdown()
     {
-        delete[] fontList;
     }
 
     int FontManager::_loadFont(FontObject *fObj)
     {
         if (!fObj)
         {
-            LOG_FONT(szFontLoadFailed, fObj->getMetrics()->name, szBadFontObject);
-            return FM_PARAMETER_ERROR;
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject, fObj->getHeader().name,
+                     LogReasonStrings::GenvParameterError);
+            return FM_ERROR(GV_ERR_INVALID_PARAM);
         }
 
-        fontList[fontListLength - 1] = fObj;
-        LOG_FONT(szLoadedFont, fObj->getMetrics()->name, fObj->getMetrics()->designer);
-        return FM_OKAY;
+        fontList[fontListLength] = fObj;
+        fontListLength += 1;
+
+        LOG_FONT(LogErrorStrings::GenvLoadedItem,
+                 ObjectStrings::FontObject,
+                 fObj->getHeader().name, fObj->getHeader().designer);
+        return GV_OK;
     }
 
     int FontManager::loadFontFromFile(const char *filePath)
     {
         if (!filePath)
         {
-            LOG_FONT(szFontLoadFailed, filePath, szParameterError);
-            return FM_PARAMETER_ERROR;
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject, filePath,
+                     LogReasonStrings::GenvParameterError);
+            return FM_ERROR(GV_ERR_INVALID_PARAM);
         }
 
-        if (_expandList(1) == FM_OKAY)
+        FontObject *fObj = nullptr;
+        int r = Fonts::loadFontFromFile(&fObj, filePath);
+        if (r)
         {
-            FontObject *fObj = createFontFromFile(filePath);
-            if (!fObj)
-            {
-                LOG_FONT(szFontLoadFailed, szBadFontObject);
-                return FM_CREATE_OBJECT_FAILED;
-            }
-            if (fObj->uploadTexture() == 0)
-            {
-                return _loadFont(fObj);
-            }
-            else
-            {
-                LOG_FONT(szFontLoadFailed, szBadFontObject);
-                return FM_CREATE_OBJECT_FAILED;
-            }
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject,
+                     LogReasonStrings::GenvBadObject);
+            return r;
         }
-        return FM_OUT_OF_MEMORY;
+        if (fObj->uploadTexture() == 0)
+        {
+            return _loadFont(fObj);
+        }
+        else
+        {
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject,
+                     LogReasonStrings::GenvBadObject);
+            return FM_ERROR(GV_ERR_UPLOAD_FAILED);
+        }
+
+        return FM_ERROR(GV_ERR_OUT_OF_MEMORY);
     }
 
-    int FontManager::loadFontFromMemory(const uint8_t *data, const size_t length, const FontMetrics *metrics)
+    int FontManager::loadFontFromMemory(const uint8_t *data, const size_t length, const FontHeader header)
     {
-        if (!data || !length || !metrics)
+        if (auto p = testParams(data != nullptr, length, header.validateMagic()))
         {
-            LOG_FONT(szFontLoadFailed, metrics->name, szParameterError);
-            return FM_PARAMETER_ERROR;
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject, header.name,
+                     LogReasonStrings::GenvParameterError, p);
+            return FM_ERROR(GV_ERR_INVALID_PARAM);
         }
 
-        if (_expandList(1) == FM_OKAY)
+        FontObject *fObj = nullptr;
+        int r = Fonts::loadFontFromMem(&fObj, data, length);
+        if (r)
         {
-            FontObject *fObj = createFontFromMem(data, length, metrics);
-            if (!fObj)
-            {
-                LOG_FONT(szFontLoadFailed, szBadFontObject);
-                return FM_CREATE_OBJECT_FAILED;
-            }
-
-            if (fObj->uploadTexture() == 0)
-            {
-                return _loadFont(fObj);
-            }
-            else
-            {
-                LOG_FONT(szFontLoadFailed, szBadFontObject);
-                return FM_CREATE_OBJECT_FAILED;
-            }
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject,
+                     LogReasonStrings::GenvBadObject);
+            return r;
         }
-        return FM_OUT_OF_MEMORY;
+
+        if (fObj->uploadTexture() == 0)
+        {
+            return _loadFont(fObj);
+        }
+        else
+        {
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject,
+                     LogReasonStrings::GenvUploadFailed);
+            return FM_ERROR(GV_ERR_UPLOAD_FAILED);
+        }
+        return FM_ERROR(GV_ERR_OUT_OF_MEMORY);
     }
 
-    int FontManager::loadFontFromMemory(Textures::TextureObject *tObj, const FontMetrics *metrics)
+    int FontManager::loadFontFromMemory(const FontObject &font)
     {
-        if (!tObj || !metrics)
+        const FontHeader header = font.getHeader();
+        if (auto p = testParams((
+                header.bitmapLength != 0 &&
+                header.bitmap != nullptr)))
         {
-            LOG_FONT(szFontLoadFailed, szParameterError);
-            return FM_PARAMETER_ERROR;
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject, header.name,
+                     LogReasonStrings::GenvParameterError, p);
+            return FM_ERROR(GV_ERR_INVALID_PARAM);
         }
 
-        if (_expandList(1) == FM_OKAY)
-        {
-            FontObject *fObj = createFontFromMem(tObj, metrics);
-            if (!fObj)
-            {
-                LOG_FONT(szFontLoadFailed, szBadFontObject);
-                return FM_CREATE_OBJECT_FAILED;
-            }
+        Textures::TextureObject *tObj = Textures::openImageMemory(
+            header.id, header.bitmapType,
+            header.bitmap, header.bitmapLength);
 
+        if (tObj)
+        {
+            FontObject *fObj = new FontObject(header.id, header, tObj);
             if (fObj->uploadTexture() == 0)
             {
                 return _loadFont(fObj);
             }
             else
             {
-                LOG_FONT(szFontLoadFailed, szBadFontObject, metrics->name);
-                return FM_CREATE_OBJECT_FAILED;
+                delete tObj;
+                LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                         ObjectStrings::FontObject,
+                         LogReasonStrings::GenvBadObject);
+                return FM_ERROR(GV_ERR_UPLOAD_FAILED);
             }
         }
-        return FM_OUT_OF_MEMORY;
+        else
+        {
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject,
+                     LogReasonStrings::GenvTypeIncompatible);
+            return FM_ERROR(GV_ERR_INCOMPATIBLE_TYPE);
+        }
+        return FM_ERROR(GV_ERR_OUT_OF_MEMORY);
+    }
+
+    FontObject *FontManager::getFont(uint8_t idx)
+    {
+        if (!fontListLength)
+        {
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed, LogReasonStrings::GenvListIsEmpty);
+            return nullptr;
+        }
+
+        if (idx < fontListLength)
+        {
+            return fontList[idx];
+        }
+
+        LOG_FONT(LogErrorStrings::GenvRemoveItemFailed,
+                 ObjectStrings::FontObject,
+                 LogReasonStrings::GenvItemNotFound);
+        return nullptr;
+    }
+
+    FontObject *FontManager::getFont(util::Hash idx)
+    {
+        if (!fontListLength)
+        {
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed, LogReasonStrings::GenvListIsEmpty);
+            return nullptr;
+        }
+
+        for (int i = 0; i < fontListLength; i++)
+        {
+            if (fontList[i]->getObjectID() == idx)
+                return fontList[i];
+        }
+
+        LOG_FONT(LogErrorStrings::GenvRemoveItemFailed,
+                 ObjectStrings::FontObject,
+                 LogReasonStrings::GenvItemNotFound);
+        return nullptr;
+    }
+
+    int FontManager::setFont(uint8_t idx)
+    {
+        if (getFont(idx) != nullptr)
+        {
+            currentFontIdx = idx;
+        }
+        else
+        {
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject,
+                     LogReasonStrings::GenvItemNotFound,
+                     idx = '0');
+            return FM_ERROR(GV_ERR_ITEM_NOT_FOUND);
+        }
+        return GV_ERR_UNSUPPORTED;
+    }
+
+    int FontManager::setFont(util::Hash fontId)
+    {
+        if (getFont(fontId) != nullptr)
+        {
+        }
+        else
+        {
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
+                     ObjectStrings::FontObject,
+                     LogReasonStrings::GenvItemNotFound,
+                     fontId + '0');
+            return FM_ERROR(GV_ERR_ITEM_NOT_FOUND);
+        }
+        return GV_ERR_UNSUPPORTED;
     }
 
     int FontManager::unloadFontAt(const uint8_t idx)
     {
         if (!fontListLength)
         {
-            LOG_FONT(szRemoveFontFailed, szListIsEmpty);
-            return FM_LIST_EMPTY;
+            LOG_FONT(LogErrorStrings::GenvLoadItemFailed, LogReasonStrings::GenvListIsEmpty);
+            return FM_ERROR(GV_ERR_ITEM_NOT_FOUND);
         }
 
         if (idx < fontListLength)
         {
             char temp[32];
-            strncpy(temp, fontList[idx]->getMetrics()->name, 32);
+            strncpy(temp, fontList[idx]->getHeader().name, 32);
             delete fontList[idx];
             memmove(&fontList[idx], &fontList[idx + 1], fontListLength - idx);
-            if (_shrinkList(1) == FM_OKAY)
-            {
-                LOG_FONT(szRemovedFont, temp);
-                return FM_OKAY;
-            }
-            return FM_OUT_OF_MEMORY;
+            return FM_ERROR(GV_ERR_OUT_OF_MEMORY);
         }
 
-        LOG_FONT(szRemoveFontFailed, szFontNotFound);
-        return FM_NOT_FOUND;
+        LOG_FONT(LogErrorStrings::GenvRemoveItemFailed,
+                 ObjectStrings::FontObject,
+                 LogReasonStrings::GenvItemNotFound);
+        return FM_ERROR(GV_ERR_ITEM_NOT_FOUND);
     }
 
     int FontManager::unloadFont(util::Hash id)
     {
         if (!fontListLength)
         {
-            LOG_FONT(szRemoveFontFailed, szListIsEmpty);
-            return FM_LIST_EMPTY;
+            LOG_FONT(LogErrorStrings::GenvRemoveItemFailed,
+                     ObjectStrings::FontObject,
+                     LogReasonStrings::GenvListIsEmpty);
+            return FM_ERROR(GV_ERR_LIST_EMPTY);
         }
 
         int idx = 0;
         bool fontFound = false;
         do
         {
-            if (fontList[idx]->getMetrics()->id == id) fontFound = true;
+            if (fontList[idx]->getHeader().id == id) fontFound = true;
             idx++;
         } while (idx < fontListLength && !fontFound);
 
         if (!fontFound)
         {
-            LOG_FONT(szRemoveFontFailed, szFontNotFound);
-            return FM_NOT_FOUND;
+            LOG_FONT(LogErrorStrings::GenvRemoveItemFailed,
+                     ObjectStrings::FontObject,
+                     LogReasonStrings::GenvItemNotFound);
+            return FM_ERROR(GV_ERR_ITEM_NOT_FOUND);
         }
 
         return unloadFontAt(idx);

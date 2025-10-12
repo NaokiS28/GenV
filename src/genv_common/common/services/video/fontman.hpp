@@ -21,27 +21,21 @@
 #include "common/objects/texture.hpp"
 #include "common/services/adminkey.hpp"
 #include "common/util/hash.hpp"
+#include "vendor/printf.h"
+#include "common/return_codes.hpp"
+
+#define MAX_FONTS 8
+
+#define FM_ERROR(code) GV_ERROR(GV_SERVICE_VIDEO, "FontManager"_h, code)
 
 namespace Fonts
 {
-    enum : uint8_t
-    {
-        FM_OKAY,
-        FM_NOT_FOUND,
-        FM_LIST_EMPTY,
-        FM_CREATE_OBJECT_FAILED,
-        FM_PARAMETER_ERROR,
-        FM_OUT_OF_MEMORY,
-    };
-
     class FontManager
     {
     private:
-        FontObject **fontList = nullptr;
+        int currentFontIdx = 0;
         int fontListLength = 0;
-
-        int _expandList(int count);
-        int _shrinkList(int count);
+        FontObject *fontList[MAX_FONTS] = {nullptr};
 
         int _loadFont(FontObject *fObj);
 
@@ -51,11 +45,21 @@ namespace Fonts
         int init();
         void shutdown();
 
-        int loadFontFromFile(const char *filePath);
-        int loadFontFromMemory(Textures::TextureObject *tObj, const FontMetrics *metrics);
-        int loadFontFromMemory(const uint8_t *data, const size_t length, const FontMetrics *metrics);
+        inline const FontObject *getCurrentFont()
+        {
+            return fontList[currentFontIdx];
+        }
+        FontObject *getFont(uint8_t idx);
+        FontObject *getFont(util::Hash idx);
 
-        int unloadFontAt(const uint8_t idx);
+        int loadFontFromFile(const char *filePath);
+        int loadFontFromMemory(const uint8_t *data, const size_t length, const FontHeader header);
+        int loadFontFromMemory(const FontObject &font);
+
+        int setFont(uint8_t idx);
+        int setFont(util::Hash fontId);
+
+        int unloadFontAt(uint8_t idx);
         int unloadFont(util::Hash id);
     };
 } // namespace Fonts
