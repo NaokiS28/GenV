@@ -75,28 +75,28 @@ namespace Fonts
     class FontHeader
     {
     public:
-        uint32_t magic;
-        const char *name = nullptr;
-        const char *designer = nullptr;
-        util::Hash id = 0;
-        uint8_t flags = 0;
+        uint32_t magic;             // Font header magic number
+        const char *name = nullptr; // Font specific name
+        util::Hash id = 0;          // Hashed ID of font
+        uint8_t flags = 0;          // Flags for this font, i.e. is Italic or Bold
 
-        int fontSize = 0;
-        int lineSpacing = 0;    // Adds/removes spacing between lines if called to do so.
-        int kerning = 0;        // Kerning is only used for certain letters if the context calls for it.
+        int fontSize = 0;       // Pixel size of this font
         uint8_t spaceWidth = 0; // Pixel width to use when entering spaces
         uint8_t tabWidth = 0;   // Pixel width to use when entering tab breaks
+        int lineSpacing = 0;    // Adds/removes spacing between lines if called to do so.
+        int kerning = 0;        // Kerning is only used for certain letters if the context calls for it.
 
-        uint32_t bitmapType;     // Bitmap file format (if not raw bitmap)
-        uint8_t bpp;             // Bitdepth of the bitmap image
-        uint8_t foregroundIndex; // Pallete index that is used for the foreground color (if used)
-        uint8_t shadowIndex;     // Pallete index that is used for the shadow color (if used)
+        size_t numBuckets;      // Number of buckets in hashtable
+        size_t numEntries;      // Number of glyphs in font
+        Glyph *table = nullptr; // Hashtable of glyph structs
 
-        size_t bitmapLength;
-        uint8_t *bitmap;
+        uint32_t bitmapType = 0;   // Bitmap file format (if not raw bitmap)
+        uint8_t bpp = 0;           // Bitdepth of the bitmap image
+        size_t bitmapLength = 0;   // Length of the bitmap
+        uint8_t *bitmap = nullptr; // Location of the bitmap entry
 
-        size_t tableLength;
-        Glyph *table = nullptr;
+        uint8_t foregroundIndex = 0; // Pallete index that is used for the foreground color (if used)
+        uint8_t shadowIndex = 0;     // Pallete index that is used for the shadow color (if used)
 
         inline bool validateMagic(void) const
         {
@@ -126,15 +126,14 @@ namespace Fonts
         const Textures::TextureObject *getTexture() const { return texture; }
     };
 
-    class GenvFontset
+    class FontsetObject
     {
     public:
-        const uint32_t magic;
-        const char *familyName;
-        const uint8_t fontCount;
-        const uint8_t *fontSizes;
-
-        FontObject *fontList;
+        const uint32_t magic;       // Fontset header magic number
+        const char *familyName;     // Fontset family name
+        const char *familyDesigner; // Fontset's designer(s)
+        const uint8_t fontCount;    // Fonts in array
+        FontObject *fontList;       // Font array
 
         inline bool validateMagic(void) const
         {

@@ -1,0 +1,12 @@
+{
+	"$schema": "../../../schema/fontset.json",
+	"familyName": "Spice",
+	"familyDesigner": "spicyjpeg",
+	"fonts": [
+		{
+			"size": 10,
+			"texture": "spice-10.gif",
+			"metrics": "spice-10.json"
+		}
+	]
+}

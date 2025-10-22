@@ -1,0 +1,62 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "schema/fontset.json",
+	"title": "Fontset metadata",
+	"type": "object",
+	"required": [
+		"familyName",
+		"familyDesigner",
+		"fonts"
+	],
+	"properties": {
+		"familyName": {
+			"title": "Family name",
+			"description": "The name of the font.",
+			"type": "string",
+			"minimum": 0,
+			"maximum": 64
+		},
+		"familyDesigner": {
+			"title": "Font designer",
+			"description": "The designer or designers of the font.",
+			"type": "string",
+			"minimum": 0,
+			"maximum": 64
+		},
+		"fonts": {
+			"title": "Font list",
+			"description": "List of all the fonts and sizes within the fontset.",
+			"type": "array",
+			"additionalProperties": false,
+			"items": {
+				"title": "Font entry",
+				"description": "A font entry within the font list.",
+				"type": "object",
+				"required": [
+					"size",
+					"texture",
+					"metrics"
+				],
+				"properties": {
+					"size": {
+						"title": "Font size",
+						"description": "The size of this font entry",
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 72
+					},
+					"texture": {
+						"title": "Font texture",
+						"description": "A path to a file of either .png or .gif which has the bitmap texture",
+						"type": "string"
+					},
+					"metrics": {
+						"title": "Font metrics",
+						"description": "A path to a JSON file which has the font metrics data.",
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}

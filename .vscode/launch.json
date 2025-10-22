@@ -44,6 +44,16 @@
             "program": "${command:cmake.launchTargetPath}",
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Python Debugger: Current File with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+			"justMyCode": true,
+            "args": ["-o spice.gvf", "/Volumes/Nextcloud/Programming/Project-Vigfell/lib/GenV/assets/fonts/spice/spice.json"],
+			"purpose": ["debug-in-terminal"]
         }
     ],
     "compounds": [

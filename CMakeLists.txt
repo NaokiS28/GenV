@@ -41,6 +41,7 @@ endif()
 message(STATUS "Building for: ${GENV_PLATFORM}")
 include(cmake/${GENV_PLATFORM}/setup.cmake)
 include(cmake/${GENV_PLATFORM}/tools.cmake)
+include(cmake/util.cmake)
 
 
 ## Main executable
