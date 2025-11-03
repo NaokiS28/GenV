@@ -18,6 +18,8 @@
 #pragma once
 #include "app/app.hpp"
 #include "app/iapp_host.hpp"
+#include "common/objects/sprite.hpp"
+#include "common/objects/texture.hpp"
 #include "common/util/rect.h"
 #include "common/util/tween.hpp"
 
@@ -48,6 +50,8 @@ namespace Apps
         Util::Tween<uint16_t, Util::QuadInEasing> fadeIn;
         Util::Tween<uint16_t, Util::QuadOutEasing> fadeOut;
 
+        Sprites::SpriteObject *logo = nullptr;
+
         const char *tmssText = "CREATED WITH\nOR RUNNING UNDER\nGEN-V MULTIPLATFORM ENGINE.";
 
         RectWH textPos;
@@ -64,7 +68,6 @@ namespace Apps
         void update() override;
         void render() override;
         void reload() override;
-        void shutdown() override {}
 
         const AppInfo &info() const override { return appInfo; }
     };

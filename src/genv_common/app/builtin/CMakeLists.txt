@@ -18,7 +18,8 @@ cmake_minimum_required(VERSION 3.25)
 add_library(genv_builtin_apps STATIC
 	errorscr/errorscr.cpp
 	textload/textload.cpp	
-	tmss/tmss.cpp	
+	gvss/gvss.cpp	
+	gvss/genvlogo.cpp
 	arcade/testmode.cpp	
 )
 target_link_libraries(genv_builtin_apps PUBLIC genv_app_core genv_common genv_services genv_logger)

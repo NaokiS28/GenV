@@ -28,7 +28,9 @@ namespace Apps
     {
         APP_DEFAULT = 0,
         APP_FOREGROUND,
-        APP_BACKGROUND
+        APP_BACKGROUND,
+        APP_ERRORSCREEN,
+        APP_LOADSCREEN
     };
 
     static constexpr const char *appmgrName = "Application Manager";
@@ -113,11 +115,11 @@ namespace Apps
 
         void applyPending();
         Application *createApp(AppID id);
-        void closeApp(Application *app);
+        void closeApp(AppSelect type);
         void quitApp(AppSelect app = APP_FOREGROUND);
         void swapApps();
 
-        void tickApp(Application *app);
+        void tickApp(AppSelect type = APP_DEFAULT);
 
         bool showErrorScreen(
             const char *title, const char *text,
@@ -125,6 +127,9 @@ namespace Apps
             ErrorMessageStyle style = EM_STYLE_DEFAULT,
             ErrorMessageIcon icon = EM_ICON_DEFAULT);
         bool showErrorScreen(ErrorScreenMessage *msg);
+
+        Application *getApp(AppSelect type);
+        void deleteApp(AppSelect type);
 
     public:
         AppManager();

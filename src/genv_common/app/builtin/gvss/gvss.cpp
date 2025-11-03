@@ -15,7 +15,14 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "tmss.hpp"
+#include "gvss.hpp"
+#include "genvlogo.hpp"
+
+#include "app/app.hpp"
+#include "common/formats/image_file.hpp"
+#include "common/formats/typenames.hpp"
+#include "common/objects/sprite.hpp"
+#include "common/objects/texture.hpp"
 #include "common/services/services.hpp"
 #include "common/util/tween.hpp"
 
@@ -36,6 +43,12 @@ namespace Apps
 
     int TMSS::init(IAppHost *host)
     {
+        Textures::TextureObject *tObj = Textures::openImageMemory("GenVLogo"_h, Genv_GIF_type, genv_logo_data, genv_logo_length);
+        if (tObj)
+        {
+            logo = Sprites::createSprite("GenVLogo"_h, tObj);
+            logo->uploadTexture();
+        }
         fadeIn.setValue(Video::frames(), 0, 255, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
         fadeOut.setValue(Video::frames(), 255, 0, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
         reload();
@@ -50,6 +63,7 @@ namespace Apps
         c.a = alpha;
         // premultiply(c);
         gpu->fillScreen(Video::Colors::Black);
+        logo->draw(16, 50, 128, 128);
         gpu->drawText(tmssText, textPos.x, textPos.y, textPos.w, textPos.h, c, Video::TALIGN_CENTER);
     }
 
@@ -94,6 +108,7 @@ namespace Apps
         case TMSS_Exit:
         default:
             setAppState(APP_STATE_QUIT);
+            break;
         }
     }
 } // namespace Apps

@@ -22,12 +22,15 @@
 #include "common/services/services.hpp"
 #include "common/logger/log.hpp"
 
-#include "builtin/tmss/tmss.hpp"
+#include "builtin/gvss/gvss.hpp"
 #include "builtin/errorscr/errorscr.hpp"
 
 #define APPMGR_LOG(fmt, ...) LOG("appmgr", fmt __VA_OPT__(, ) __VA_ARGS__)
 
 extern "C++" int genv_register_apps(IAppHost *host);
+
+// TODO: Rewrite app life cycle management
+// TODO: Better defined API for app management (app should request to close itself and report when it can be quit)
 
 namespace Apps
 {
@@ -40,8 +43,47 @@ namespace Apps
 
     // --- Local helpers ---------------------------------------------------------
 
-    void AppManager::tickApp(Application *app)
+    Application *AppManager::getApp(AppSelect type)
     {
+        Application *app = nullptr;
+        switch (type)
+        {
+        case APP_FOREGROUND: app = foregroundApp; break;
+        case APP_BACKGROUND: app = backgroundApp; break;
+        case APP_LOADSCREEN: app = loadingScreen; break;
+        case APP_ERRORSCREEN: app = errorScreen; break;
+        default: break;
+        }
+        return app;
+    }
+
+    void AppManager::deleteApp(AppSelect type)
+    {
+        switch (type)
+        {
+        case APP_FOREGROUND:
+            delete foregroundApp;
+            foregroundApp = nullptr;
+            break;
+        case APP_BACKGROUND:
+            delete backgroundApp;
+            backgroundApp = nullptr;
+            break;
+        case APP_LOADSCREEN:
+            delete loadingScreen;
+            loadingScreen = nullptr;
+            break;
+        case APP_ERRORSCREEN:
+            delete errorScreen;
+            errorScreen = nullptr;
+            break;
+        default: break;
+        }
+    }
+
+    void AppManager::tickApp(AppSelect type)
+    {
+        Application *app = getApp(type);
         if (!app)
             return;
 
@@ -68,13 +110,16 @@ namespace Apps
             app->loadApp();
             break;
 
+        case APP_STATE_SHUTDOWN:
+            app->update();
+            break;
+
         case APP_STATE_ERROR:
-            // Let the manager decide how to bring something else forward.
-            // Do not delete here; manager will swap.
             break;
 
         case APP_STATE_QUIT:
-            // Deletion is performed by manager in appropriate places.
+            if (type != APP_DEFAULT)
+                deleteApp(type);
             break;
 
         default:
@@ -102,10 +147,10 @@ namespace Apps
 
     bool AppManager::shutdown()
     {
-        closeApp(foregroundApp);
-        closeApp(backgroundApp);
-        closeApp(loadingScreen);
-        closeApp(errorScreen);
+        closeApp(APP_FOREGROUND);
+        closeApp(APP_BACKGROUND);
+        closeApp(APP_LOADSCREEN);
+        closeApp(APP_ERRORSCREEN);
         return true;
     }
 
@@ -212,27 +257,12 @@ namespace Apps
         }
         else
         {
-            if (foregroundApp)
-            {
-                tickApp(foregroundApp);
-            }
-            else
-            {
-                // No foreground? Try to promote background.
-                swapApps();
-            }
-
-            if (backgroundApp)
-                tickApp(backgroundApp);
+            tickApp(APP_FOREGROUND);
+            tickApp(APP_BACKGROUND);
         }
 
-        // Error screen updates
-        if (errorScreen)
-            tickApp(errorScreen);
-
-        // Loading screen updates
-        if (loadingScreen)
-            tickApp(loadingScreen);
+        tickApp(APP_ERRORSCREEN);
+        tickApp(APP_LOADSCREEN);
 
         // Late arcade test-mode transitions after graph changes
         if (asys && !foregroundApp && !backgroundApp)
@@ -264,7 +294,7 @@ namespace Apps
         if (loadingScreen && loadingScreen->isReady())
             loadingScreen->render(); // 2nd layer
         if (errorScreen && errorScreen->isReady())
-            errorScreen->render();   // top layer
+            errorScreen->render(); // top layer
         return 0;
     }
 
@@ -279,14 +309,8 @@ namespace Apps
         return factory();
     }
 
-    void AppManager::closeApp(Application *app)
+    void AppManager::closeApp(AppSelect type)
     {
-        if (app)
-        {
-            app->shutdown();
-            delete app;
-            app = nullptr;
-        }
     }
 
     void AppManager::swapApps()
@@ -490,17 +514,17 @@ namespace Apps
 
         if (m_pendingFlags & APPACT_CLEANBG)
         {
-            closeApp(backgroundApp);
+            closeApp(APP_BACKGROUND);
         }
 
         if (m_pendingFlags & APPACT_REPLACE)
         {
-            closeApp(foregroundApp);
+            closeApp(APP_FOREGROUND);
         }
         else if (m_pendingFlags & APPACT_BACKGROUND)
         {
             if (backgroundApp)
-                closeApp(backgroundApp);
+                closeApp(APP_BACKGROUND);
             if (foregroundApp)
             {
                 foregroundApp->setAppState(APP_STATE_OUTOFFOCUS);

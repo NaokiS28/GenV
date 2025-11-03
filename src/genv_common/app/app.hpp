@@ -343,4 +343,4 @@ namespace Apps
     };
 
     ArcadeTestApp *getArcadeTestApp(Application *app);
-}
+} // namespace Apps
