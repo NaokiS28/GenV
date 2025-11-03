@@ -46,16 +46,8 @@ from common.util import normalizeFileName, hashData, HashTableBuilder
 # ---------- Structs ----------
 LE = {
 	"metrics_entry": "< 2I",
-	"fontset_header": "< 4s B B {family_len}s B {designer_len}s H I",
-	"font_header"   : "< 4s B B {name_len}s I B B B B b b b H H I 4s B I I B B"
-	#							^  ^ ^^^ ^ 	^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^^ ^ ^ ^ ^ ^ 
-	#							|  | |   |    | | | | | | | | | | |  | | | | | 
-	# 	magic, ver, name, id -------------    | | | | | | | | | | |  | | | | |
-	# 	flags, fontSize, space, tab --------------    | | | | | | |  | | | | |
-	# 	line, base, kerning ------------------------------/ | | | |  | | | | |
-	# 	buckets, entries, table_offset -------------------------/ |  | | | | |
-	# 	bitmapType, bpp, bitmapLen, -------------------------------------/ | |
-	# 	fg,sh 					----------------------------------------------
+	"fontset_header": "< 4s I 4B 2H I {family_len}s {designer_len}s",
+	"font_header"   : "< 4s I 5B 3b 2H 4s 4B 2I"
 }
 
 _FONTSET_MAGIC: bytes = b"GVBF"
@@ -161,13 +153,11 @@ def _make_font_blob(
 	header: bytearray = bytearray()
 	fHeader = Struct(LE["font_header"].format(name_len = len(name) + 1))
 	header = fHeader.pack(
-		_FONTOBJ_MAGIC, 
-		_FONTOBJ_VERSION,
-		np.uint8(len(name)), 
-		name.encode("utf-8"), 
-		hashData(name.encode("utf-8")),
-		flag_bits, 
-		font_size, 
+		_FONTOBJ_MAGIC, 					# GVFO
+		hashData(name.encode("utf-8")),		# hash'd "{name} {size}px" string
+		_FONTOBJ_VERSION,					# 1
+		font_size, 							
+		flag_bits, 							
 		space, 
 		tab,
 		line_h, 
@@ -175,12 +165,12 @@ def _make_font_blob(
 		kerning,
 		numBuckets,
 		len(hashTable.entries),
-		fHeader.size, # Offset of table
 		bitmapType, 
 		bpp, 
+		0, 0,  								# fgIndex, shIndex
+		0,
 		len(bitmap),
-		len(metrics) + 2, # Relative offset of bitmap
-		0, 0  # fgIndex, shIndex
+		len(metrics), 					# Relative offset of bitmap
 	)
 
 	# Add the font bitmap (TODO: encode to standard format?)
@@ -226,14 +216,17 @@ def build_gvf(
 	# Build fontset header
 	header: bytearray = bytearray()
 	header = hStruct.pack(
-		_FONTOBJ_MAGIC,
+		_FONTSET_MAGIC,						# 
+		hashData(family.encode("utf-8")),
 		_FONTSET_VERSION,
-		np.uint8(len(family)),
-		family.encode("utf-8"),
-		np.uint8(len(designer)),
-		designer.encode("utf-8"),
+		np.uint8(len(family) + 1),
+		np.uint8(len(designer) + 1),
+		0,
 		len(blobs),
-		blobOffset
+		0,
+		blobOffset,
+		family.encode("utf-8"),
+		designer.encode("utf-8"),
 	)
 
 	out = bytearray(header)

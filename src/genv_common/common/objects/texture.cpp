@@ -56,14 +56,6 @@ namespace Textures
             int result = file->openFile(filePath, false);
             if (result == GV_OK)
             {
-                // bitmap = stbi_load_from_memory(
-                //    file->getRawDataObj()->getRawData(),
-                //    file->getRawDataObj()->getDataLen(),
-                //    &width,
-                //    &height,
-                //    &bpp,
-                //    4);
-
                 if (bpp < 3)
                     bpp = BPP_1BIT; // Greyscale
 
@@ -97,8 +89,6 @@ namespace Textures
 
     int TextureObject::uploadTexture()
     {
-        if (!getObjectID())
-            setObjectID(Files::getFileNameHash(this->file));
         return Services::getVideo()->uploadTexture(this);
     }
 

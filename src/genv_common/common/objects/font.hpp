@@ -51,8 +51,8 @@ namespace Fonts
     {
     public:
         uint32_t c; // Unicode codepoint
-        int x, y;
-        int w, h;
+        uint8_t x, y;
+        uint8_t w, h;
 
         inline util::Hash getHash(void) const
         {
@@ -68,35 +68,31 @@ namespace Fonts
     {
         FONT_NONE,
         FONT_ITALIC = (1 << 0),
-        FONT_BOLD = (1 << 1),
-        FONT_INDEXED = (1 << 2), // Uses indexed colours which can support changing the font color
+        FONT_BOLD = (1 << 1)
     };
 
     class FontHeader
     {
     public:
-        uint32_t magic;             // Font header magic number
-        const char *name = nullptr; // Font specific name
-        util::Hash id = 0;          // Hashed ID of font
-        uint8_t flags = 0;          // Flags for this font, i.e. is Italic or Bold
-
-        int fontSize = 0;       // Pixel size of this font
-        uint8_t spaceWidth = 0; // Pixel width to use when entering spaces
-        uint8_t tabWidth = 0;   // Pixel width to use when entering tab breaks
-        int lineSpacing = 0;    // Adds/removes spacing between lines if called to do so.
-        int kerning = 0;        // Kerning is only used for certain letters if the context calls for it.
-
-        size_t numBuckets;      // Number of buckets in hashtable
-        size_t numEntries;      // Number of glyphs in font
-        Glyph *table = nullptr; // Hashtable of glyph structs
-
-        uint32_t bitmapType = 0;   // Bitmap file format (if not raw bitmap)
-        uint8_t bpp = 0;           // Bitdepth of the bitmap image
-        size_t bitmapLength = 0;   // Length of the bitmap
-        uint8_t *bitmap = nullptr; // Location of the bitmap entry
-
+        uint32_t magic;              // Font header magic number
+        util::Hash id = 0;           // Hashed ID of font
+        uint8_t version = 0;         // Font version
+        uint8_t fontSize = 0;        // Pixel size of this font
+        uint8_t flags = 0;           // Flags for this font, i.e. is Italic or Bold
+        uint8_t spaceWidth = 0;      // Pixel width to use when entering spaces
+        uint8_t tabWidth = 0;        // Pixel width to use when entering tab breaks
+        int8_t lineSpacing = 0;      // Adds/removes spacing between lines if called to do so.
+        int8_t baseLine = 0;         //
+        int8_t kerning = 0;          // Kerning is only used for certain letters if the context calls for it.
+        uint16_t numBuckets;         // Number of buckets in hashtable
+        uint16_t numEntries;         // Number of glyphs in font
+        uint32_t bitmapType = 0;     // Bitmap file format (if not raw bitmap)
+        uint8_t bpp = 0;             // Bitdepth of the bitmap image
         uint8_t foregroundIndex = 0; // Pallete index that is used for the foreground color (if used)
         uint8_t shadowIndex = 0;     // Pallete index that is used for the shadow color (if used)
+        uint8_t reserved = 0;        // Reserved
+        uint32_t bitmapLength = 0;   // Length of the bitmap
+        uint32_t bitmapOffset = 0;   // Relative offset of bitmap to header
 
         inline bool validateMagic(void) const
         {
@@ -107,13 +103,15 @@ namespace Fonts
     class FontObject : public ObjectBase
     {
     protected:
-        FontHeader header;
-        Textures::TextureObject *texture = nullptr;
+        const FontHeader *_header;
+        Textures::TextureObject *_texture = nullptr;
+
+        const Glyph *_table = nullptr;    // Hashtable of glyph structs
+        const uint8_t *_bitmap = nullptr; // Location of the bitmap entry
 
     public:
-        FontObject(util::Hash objectID);
-        FontObject(util::Hash objectID, FontHeader _header);
-        FontObject(util::Hash objectID, FontHeader _header, Textures::TextureObject *_texture);
+        FontObject(util::Hash objectID, const FontHeader *header, const Glyph *table);
+        FontObject(util::Hash objectID, const FontHeader *header, const Glyph *table, Textures::TextureObject *texture);
         virtual ~FontObject();
 
         int print(const char *str) const;
@@ -121,19 +119,24 @@ namespace Fonts
 
         const Glyph get(util::UTF8CodePoint id) const;
 
-        inline const FontHeader &getHeader() const { return header; }
-        virtual int uploadTexture() const { return texture->uploadTexture(); }
-        const Textures::TextureObject *getTexture() const { return texture; }
+        inline bool validateHeader() const { return _header->validateMagic(); }
+        inline const FontHeader *getHeader() const { return _header; }
+        virtual int uploadTexture() { return _texture->uploadTexture(); }
+        const Textures::TextureObject *getTexture() const { return _texture; }
     };
 
-    class FontsetObject
+    class FontsetHeader
     {
     public:
-        const uint32_t magic;       // Fontset header magic number
-        const char *familyName;     // Fontset family name
-        const char *familyDesigner; // Fontset's designer(s)
-        const uint8_t fontCount;    // Fonts in array
-        FontObject *fontList;       // Font array
+        uint32_t magic = 0;         // Fontset header magic number
+        util::Hash id = 0;          // Font's hashed ID
+        uint8_t version = 0;        // Fontset version
+        uint8_t familyLength = 0;   // Length of family name string
+        uint8_t designerLength = 0; // Length of designer name string
+        uint8_t reserve1 = 0;       // Reserved
+        uint16_t fontCount = 0;     // Fonts in array
+        uint16_t reserve2 = 0;      // Reserved
+        size_t blobOffset = 0;      // Offset from first font blob
 
         inline bool validateMagic(void) const
         {
@@ -141,8 +144,40 @@ namespace Fonts
         }
     };
 
-    int loadFontFromFile(FontObject **fObj, const char *filePath);
-    int loadFontFromMem(FontObject **fObj, const uint8_t *data, const size_t length);
-    int loadFontFromMem(FontObject **fObj, Textures::TextureObject *tObj, FontHeader _header);
+    class FontsetObject : public ObjectBase
+    {
+    private:
+        const FontsetHeader *_header = nullptr;
+        const char *_familyName = nullptr;
+        const char *_designerName = nullptr;
+        FontObject **_fontList = nullptr; // Font array
+
+    public:
+        FontsetObject(const FontsetHeader &header, const char *familyName, const char *designerName, FontObject **list);
+        ~FontsetObject();
+
+        inline const char *getFamilyName() const { return _familyName; }
+        inline const char *getDesignerName() const { return _designerName; }
+        inline const FontsetHeader &getHeader() const { return *_header; }
+        inline uint8_t size() const { return _header->fontCount; }
+
+        inline FontObject &fontAt(uint8_t idx) const
+        {
+            if (idx > _header->fontCount)
+                idx = 0;
+            return *_fontList[idx];
+        }
+        FontObject &operator[](uint8_t idx) const { return this->fontAt(idx); };
+
+        inline bool validateMagic(void) const
+        {
+            return _header->validateMagic();
+        }
+
+        int find(uint8_t size, uint8_t flags = FONT_NONE);
+    };
+
+    FontsetObject *loadFontsetFromFile(const char *filePath);
+    FontsetObject *loadFontsetFromMem(const void *data, const size_t length);
 
 } // namespace Fonts

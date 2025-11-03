@@ -105,7 +105,7 @@ namespace Audio
             return valid;
         }
 
-        inline void *getSampleData()
+        inline const uint8_t *getSampleData()
         {
             return sampleData;
         }
@@ -122,7 +122,7 @@ namespace Audio
         Files::FileObject *file;
         SampleMeta meta;
 
-        void *sampleData = nullptr;
+        const uint8_t *sampleData = nullptr;
 
         bool valid = false;
         bool loop = false;

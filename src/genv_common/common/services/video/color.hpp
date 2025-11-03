@@ -113,36 +113,24 @@ namespace Video
     };
 
     template <typename T>
-    bool array_from_colors(T *&arr, size_t arrSize, const Color *c, const size_t length, const ColorTypes convertTo)
+    bool array_from_colors(T arr[], size_t arrSize, const Color *c, const size_t length, const ColorTypes convertTo)
     {
         if (!c || !length || (arr && arrSize < length)) return false;
-
-        T *t = nullptr;
-        if (!*arr && arrSize)
-        {
-            t = new T[arrSize]();
-        }
-        else if (!*arr && !arrSize)
-        {
-            t = new T[length]();
-        }
-
         for (size_t i = 0; i < length; i++)
         {
             switch (convertTo)
             {
-            case CT_RGB555: t[i] = c[i].toRGB555(); break;
-            case CT_BGR555: t[i] = c[i].toBGR555(); break;
-            case CT_RGB565: t[i] = c[i].toRGB565(); break;
-            case CT_BGR565: t[i] = c[i].toBGR565(); break;
-            case CT_RGB888: t[i] = c[i].toRGB888(); break;
-            case CT_BGR888: t[i] = c[i].toBGR888(); break;
-            case CT_ARGB8888: t[i] = c[i].toARGB8888(); break;
-            case CT_ABGR8888: t[i] = c[i].toABGR8888(); break;
-            default: delete[] t; return false;
+            case CT_RGB555: arr[i] = c[i].toRGB555(); break;
+            case CT_BGR555: arr[i] = c[i].toBGR555(); break;
+            case CT_RGB565: arr[i] = c[i].toRGB565(); break;
+            case CT_BGR565: arr[i] = c[i].toBGR565(); break;
+            case CT_RGB888: arr[i] = c[i].toRGB888(); break;
+            case CT_BGR888: arr[i] = c[i].toBGR888(); break;
+            case CT_ARGB8888: arr[i] = c[i].toARGB8888(); break;
+            case CT_ABGR8888: arr[i] = c[i].toABGR8888(); break;
+            default: return false;
             }
         }
-        arr = t;
         return true;
     }
 

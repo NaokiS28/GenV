@@ -15,6 +15,9 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// TODO: Code works but has unnaccounted edge cases and an O(-3) problem as spicy puts it.
+// Ideally needs going through and tidying up.
+
 #include <stdint.h>
 #include <string.h>
 #include "texmgr.hpp"
@@ -63,7 +66,7 @@ namespace System::PSX::GPU
             return TMGR_INUSE;
 
         uint32_t bitmask = (1 << (x % 32));
-        size_t clut_idx = ((x / 32) + ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * row) + (y % MAX_CLUT_LINES_PER_PAGE));
+        size_t clut_idx = ((x / 32) + (((VRAM_WIDTH * 2) / (PIXELS_PER_TILE(8) * 32)) * row) + (y % MAX_CLUT_LINES_PER_PAGE));
         for (int i = 0; i < w; i += MAX_COLORS_4BPP)
         {
             if ((_clut_bitmap[clut_idx] & bitmask) != TMGR_FREE)
@@ -106,10 +109,10 @@ namespace System::PSX::GPU
         uint8_t row = clut_y_row(y);
 
         if (!_clut_bitmap) return;
-        if ((x % 2) != 0 ||                                             // X can only be in multiples of 16
-            !clut_y_valid(y) ||                                         // Y can only be in the last N lines of a page
-            (row >= MAX_CLUT_LINES_PER_PAGE) ||                         // Lines must be within the allowed limit
-            (w != (MAX_COLORS_4BPP - 1) && w != (MAX_COLORS_8BPP - 1))) // Bitdepth width must be 4bpp or 8bpp
+        if ((x % 2) != 0 ||                                 // X can only be in multiples of 16
+            !clut_y_valid(y) ||                             // Y can only be in the last N lines of a page
+            (row >= MAX_CLUT_LINES_PER_PAGE) ||             // Lines must be within the allowed limit
+            (w != MAX_COLORS_4BPP && w != MAX_COLORS_8BPP)) // Bitdepth width must be 4bpp or 8bpp
             return;
 
         uint32_t bitmask = (1 << (x % 32));
@@ -213,7 +216,7 @@ namespace System::PSX::GPU
             // Page alignment
             for (; (t.y + (t.h - 1)) < maxH + (32 * pageY); t.y++)
             {
-                for (; (t.x + (t.w - 1)) < (maxW * 4); t.x++)
+                for (; (t.x + (t.w - 1)) < (maxW * (bpp / 4)); t.x++)
                 {
                     // If we're in the framebuffer box, try to snap to the outer edge of it, or move to the next page
                     if (t.x >= _frameBufferBox.x && t.x < (_frameBufferBox.x + _frameBufferBox.w))
@@ -336,7 +339,7 @@ namespace System::PSX::GPU
         if (r != GV_OK)
             return r;
 
-        _vramBitmap.mark_clut(x, y, bpp, VRAM_Bitmap_POD::TMGR_INUSE);
+        _vramBitmap.mark_clut(x, y, clutWidth(bpp), VRAM_Bitmap_POD::TMGR_INUSE);
         return r;
     }
 

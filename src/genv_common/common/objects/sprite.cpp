@@ -17,6 +17,7 @@
 
 #include "sprite.hpp"
 
+#include "common/objects/texture.hpp"
 #include "common/services/services.hpp"
 #include "common/util/hash.hpp"
 
@@ -25,6 +26,11 @@ namespace Sprites
     SpriteObject::SpriteObject(util::Hash objectID)
     {
         texture = Services::getVideo()->createTexture(objectID);
+    }
+
+    SpriteObject::SpriteObject(util::Hash objectID, Textures::TextureObject *tObj)
+    {
+        texture = tObj;
     }
 
     SpriteObject::SpriteObject(util::Hash objectID, const char *filePath)
@@ -45,5 +51,17 @@ namespace Sprites
     int SpriteObject::uploadTexture()
     {
         return Services::getVideo()->uploadTexture(texture);
+    }
+
+    SpriteObject *createSprite(util::Hash objectID, Textures::TextureObject *tObj)
+    {
+        if (!tObj) return nullptr;
+        SpriteObject *sObj = new SpriteObject(objectID, tObj);
+        return sObj;
+    }
+
+    SpriteObject *createSprite(util::Hash objectID, const char *filePath)
+    {
+        return nullptr;
     }
 } // namespace Sprites

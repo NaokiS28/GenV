@@ -140,10 +140,7 @@ namespace System::PSX::GPU
         int uploadTexture(Textures::TextureObject *tObj) override;
         int releaseTexture(Textures::TextureObject *tObj) override;
 
-        void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) override
-        {
-        }
-
+        void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) override;
         void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) override
         {
         }

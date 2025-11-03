@@ -35,7 +35,7 @@ bool RIFFObject::isRIFF(Files::FileObject *fObj, uint32_t fcc)
             result = (hdr.format == fcc);
 
         return (hdr.magic == FCC(fourccRIFF) &&
-                hdr.size == (fObj->getSize() - 8) &&
+                hdr.size == (fObj->size() - 8) &&
                 result);
     }
     return false;
@@ -61,7 +61,7 @@ int RIFFObject::openFile(const char *filePath, bool lock)
 bool RIFFObject::skipToChunk(uint32_t fcc)
 {
     FileObject::rewind();
-    while (FileObject::bytesRemaining() > sizeof(FourCCInt))
+    while (FileObject::available() > sizeof(FourCCInt))
     {
         FourCCInt i = FileObject::readAs<FourCCInt>();
         if (i == fcc)

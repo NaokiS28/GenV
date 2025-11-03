@@ -50,7 +50,7 @@ namespace System::PSX::GPU
 
     static constexpr const int VRAM_WIDTH_IN_PX(const uint8_t bpp)
     {
-        return ((VRAM_WIDTH * 10) / (((bpp * 10) / 8)));
+        return (VRAM_WIDTH * 8) / (int)bpp;
     }
 
     static constexpr const int PIXELS_PER_TILE(const uint8_t bpp)
@@ -62,7 +62,6 @@ namespace System::PSX::GPU
         case 4: return MIN_TILE_SIZE;
         case 8: return (MIN_TILE_SIZE / 2);
         case 16: return (MIN_TILE_SIZE / 4);
-        case 24: return (MIN_TILE_SIZE / 5);
         }
     }
 
@@ -75,14 +74,12 @@ namespace System::PSX::GPU
         case 4: return 1;
         case 8: return 1;
         case 16: return 2;
-        case 24: return 3;
         }
     }
 
     static constexpr unsigned int MAX_COLORS_4BPP = (1 << 4);
     static constexpr unsigned int MAX_COLORS_8BPP = (1 << 8);
     static constexpr unsigned int MAX_COLORS_16BPP = (1 << 16);
-    static constexpr unsigned int MAX_COLORS_24BPP = (1 << 24);
 
     /*
     Texture pages in TextureManager

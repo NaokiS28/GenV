@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * spice.hpp - Created on 21-08-2025
+ * fontset.hpp - Created on 23-10-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -14,14 +14,3 @@
  * You should have received a copy of the GNU General Public License along with
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
-
-#include <stdint.h>
-#include "common/objects/font.hpp"
-#include "common/util/hash.hpp"
-
-namespace Fonts
-{
-    extern const uint8_t spice_data[];
-    extern const size_t spice_len;
-    constexpr util::Hash spice_hash = "Spice"_h;
-} // namespace Fonts

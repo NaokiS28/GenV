@@ -27,6 +27,7 @@
 namespace Textures
 {
     static constexpr const char *GENV_TEXTURE_OBJ_TYPENAME = "GenVTextureObject";
+    static constexpr util::Hash TextureUploaded = "TextureUploaded"_h;
 
     enum BitsPerPixel : uint8_t
     {

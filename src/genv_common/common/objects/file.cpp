@@ -25,7 +25,6 @@ namespace Files
     {
         delete[] fileName;
         delete[] filePath;
-        delete this->data;
         closeFile();
     }
 
@@ -54,7 +53,6 @@ namespace Files
         int r = Services::getStorage()->closeFile(this);
         fileName = nullptr;
         filePath = nullptr;
-        delete this->data;
         return r;
     }
     int FileObject::deleteFile()
@@ -62,54 +60,7 @@ namespace Files
         int r = Services::getStorage()->deleteFile(this);
         fileName = nullptr;
         filePath = nullptr;
-        delete this->data;
         return r;
-    }
-
-    uint8_t FileObject::read()
-    {
-        // if (!this->data->getRawData())
-        //    throw std::runtime_error("No data loaded");
-
-        uint8_t d = data->getRawData()[filePos++];
-
-        if (filePos >= getSize())
-        {
-            if (allowWrap)
-            {
-                filePos = 0; // Wraparound or handle as error?
-            }
-            else
-            {
-                return UINT8_MAX;
-            }
-        }
-
-        return d;
-    }
-
-    bool FileObject::read(uint8_t *buffer, size_t length, size_t bufferSize)
-    {
-        if (length < bufferSize && buffer)
-        {
-            for (; length > 0; length--)
-            {
-                buffer[length] = read();
-            }
-            return true;
-        }
-        return false;
-    }
-
-    uint8_t FileObject::peek()
-    {
-        if (!this->data->getRawData())
-            return UINT8_MAX;
-
-        if (filePos + 1 >= getSize())
-            return UINT8_MAX;
-
-        return this->data->getRawData()[filePos + 1];
     }
 
     const char *getFileNamePos(FileObject *fObj)

@@ -46,6 +46,7 @@ namespace Sprites
     public:
         SpriteObject(util::Hash objectID);
         SpriteObject(util::Hash objectID, const char *filePath);
+        SpriteObject(util::Hash objectID, Textures::TextureObject *tObj);
         virtual ~SpriteObject() = default;
 
         inline Textures::TextureObject *getTexture()
@@ -108,5 +109,6 @@ namespace Sprites
         int uploadTexture();
     };
 
-    SpriteObject *createSprite(util::Hash objectID);
+    SpriteObject *createSprite(util::Hash objectID, Textures::TextureObject *tObj);
+    SpriteObject *createSprite(util::Hash objectID, const char *filePath);
 } // namespace Sprites

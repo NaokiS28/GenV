@@ -23,9 +23,8 @@ add_library(genv_common STATIC
 	objects/sprite.cpp
 	objects/texture.cpp
 	objects/texture/missingtex.c
+	objects/data.cpp
 	objects/font.cpp
-	objects/fonts/spice.cpp
-	objects/fonts/roboto.cpp
 	formats/soundfile.cpp
 	formats/image_file.cpp
 	formats/riff.cpp
@@ -36,7 +35,6 @@ target_include_directories(genv_common PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw
 	${LIBC_INCLUDE}
-
 )
 
 

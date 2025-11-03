@@ -26,7 +26,7 @@ namespace Files
 {
     static constexpr const char *GENV_FILE_OBJ_TYPENAME = "GenVFileObject";
 
-    class FileObject : public ObjectBase
+    class FileObject : public ObjectBase, public DataObject
     {
 
     public:
@@ -39,6 +39,10 @@ namespace Files
             openFile(filePath, lock);
             setObjectType(GENV_FILE_OBJ_TYPENAME);
         }
+        FileObject(util::Hash objectID, const uint8_t *data, size_t length) : ObjectBase(objectID), DataObject(data, length)
+        {
+            setObjectType(GENV_FILE_OBJ_TYPENAME);
+        }
         virtual ~FileObject();
 
         // Open file, optionally lock for writing else will be opened as read-only
@@ -48,141 +52,13 @@ namespace Files
         virtual int closeFile();
         virtual int deleteFile();
 
-        uint8_t read();
-        uint8_t peek();
+        const uint8_t *getRawData() { return DataObject::getRawData(); }
 
-        bool read(uint8_t *buffer, size_t length, size_t bufferSize);
-
-        template <typename T>
-        T readAs()
-        {
-            T result{};
-
-            // Ensure there's enough data left
-            if (!this->data->getRawData() ||
-                (getSize() - filePos) < sizeof(T))
-                return result;
-
-            memcpy(&result, data->getRawData() + filePos, sizeof(T));
-            filePos += sizeof(T);
-
-            if (filePos >= getSize() && allowWrap)
-            {
-                filePos = 0; // Wraparound or handle as error?
-            }
-
-            return result;
-        }
-
-        template <typename T>
-        bool readAs(T *buffer, size_t length, size_t bufferSize)
-        {
-            if (!buffer || !this->data->getRawData())
-                return false;
-
-            int unitLen = sizeof(T);
-
-            // Ensure there's enough data left
-            if ((getSize() - filePos) < bufferSize)
-                return false;
-
-            if (length > bufferSize)
-                return false;
-
-            memcpy(&data, this->data->getRawData() + filePos, (unitLen * length));
-            filePos += (unitLen * length);
-
-            if (filePos >= getSize())
-            {
-                if (allowWrap)
-                {
-                    filePos = 0; // Wraparound or handle as error?
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        template <typename T>
-        T peekAs()
-        {
-            if (!this->data->getRawData())
-                return false;
-
-            T result = 0;
-
-            // Ensure there's enough data left
-            if ((getSize() - filePos) < sizeof(T))
-                return false;
-
-            memcpy(&result, data->getRawData() + filePos, sizeof(T));
-
-            return result;
-        }
-
-        template <typename T>
-        bool peekAs(T *buffer, size_t length, size_t bufferSize)
-        {
-            if (!buffer || !this->data->getRawData())
-                return false;
-
-            // Ensure there's enough data left
-            if ((getSize() - filePos) < bufferSize)
-                return false;
-
-            if (length > bufferSize)
-                return false;
-
-            memcpy(&buffer, data->getRawData() + filePos, (bufferSize * length));
-
-            return true;
-        }
-
-        DataObject *getRawDataObj() { return data; }
-        void setDataObj(DataObject *dObj) { data = dObj; }
-        size_t getSize() { return (data ? data->getDataLen() : 0); }
-
-        inline void rewind()
-        {
-            filePos = 0;
-        }
-
-        inline void rewind(size_t byteCount)
-        {
-            if (byteCount > filePos)
-                filePos = 0;
-            filePos -= byteCount;
-        }
-
-        inline bool setPosition(size_t pos)
-        {
-            if (pos < getSize())
-            {
-                filePos = pos;
-                return true;
-            }
-            return false;
-        }
-
-        inline size_t getPosition()
-        {
-            return filePos;
-        }
-
-        inline size_t bytesRemaining()
-        {
-            return (getSize() - filePos);
-        }
-
-        inline const char *getFilePath()
+        inline const char *const getFilePath()
         {
             return filePath;
         }
-        inline const char *getFileName()
+        inline const char *const getFileName()
         {
             return fileName;
         }
@@ -191,10 +67,7 @@ namespace Files
         const char *fileName = nullptr;
         const char *filePath = nullptr;
 
-        bool allowWrap = false;
-        size_t filePos = 0;
         uint16_t permissions = 0x0000; // If it is ever needed. UNIX style.
-        DataObject *data = nullptr;
     };
 
     const char *getFileNamePos(FileObject *fObj);

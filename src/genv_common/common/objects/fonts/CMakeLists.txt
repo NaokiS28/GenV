@@ -16,7 +16,6 @@
 cmake_minimum_required(VERSION 3.25)
 
 add_library(genv_builtin_fonts STATIC
-    roboto.cpp
     spice.cpp
 )
 

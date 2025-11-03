@@ -36,7 +36,7 @@
 
 // Macros for constructing/parsing codes
 #define GV_ERROR(service, category, code) \
-    (((service & 0xF) << 28) | ((category & 0xFF) << 20) | (code & 0xFFFFF))
+    ~(((service & 0xF) << 28) | ((category & 0xFF) << 20) | (code & 0xFFFFF))
 
 #define GV_GET_SERVICE(err) (((err) >> 28) & 0xF)
 #define GV_GET_CATEGORY(err) (((err) >> 20) & 0xFF)
@@ -98,11 +98,12 @@ enum GVE_UniversalResults
     GV_ERR_CONNECTION_REFUSED, // Connection refused
 
     // Parameter / Logic errors
-    GV_ERR_INVALID_PARAM,     // Invalid parameter
-    GV_ERR_INVALID_STATE,     // Operation not valid in current state
-    GV_ERR_INVALID_OPERATION, // Unsupported operation
-    GV_ERR_NULL_POINTER,      // Null pointer passed
-    GV_ERR_BAD_OBJECT,        // Object invalid or corrupted
+    GV_ERR_INVALID_PARAM,       // Invalid parameter
+    GV_ERR_INVALID_STATE,       // Operation not valid in current state
+    GV_ERR_INVALID_OPERATION,   // Unsupported operation
+    GV_ERR_INCOMPATIBLE_PARAMS, // Parameters are valid but not usable by function
+    GV_ERR_NULL_POINTER,        // Null pointer passed
+    GV_ERR_BAD_OBJECT,          // Object invalid or corrupted
 
     // Security / Auth errors
     GV_ERR_AUTH_FAILED,    // Authentication failure
@@ -115,6 +116,7 @@ enum GVE_UniversalResults
     GV_ERR_CONFLICT,          // Data conflict (duplicate key, etc.)
     GV_ERR_CONSTRAINT_FAIL,   // Constraint violation
     GV_ERR_TRANSACTION_ABORT, // Transaction aborted/rolled back
+    GV_ERR_INVALID_VERSION,
 
     // System / Internal errors
     GV_ERR_UNSUPPORTED, // Feature not supported

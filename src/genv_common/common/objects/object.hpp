@@ -24,13 +24,6 @@ constexpr const uint8_t paramListSize = 10;
 constexpr const uint8_t paramNotFound = UINT8_MAX;
 constexpr const util::Hash paramEntryNull = UINT32_MAX;
 
-enum ObjectErrorCodes
-{
-    GENV_OBJ_OKAY,
-    GENV_OBJ_INVALID,
-    GENV_OBJ_WRONG_TYPE
-};
-
 struct ObjectParameter
 {
     util::Hash hash = 0;

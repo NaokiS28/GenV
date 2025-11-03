@@ -444,7 +444,6 @@ namespace System::PSX::GPU
         case Textures::BPP_4BIT: w = ptObj->width / 4; break;
         case Textures::BPP_8BIT: w = ptObj->width / 2; break;
         case Textures::BPP_16BIT: w = ptObj->width; break;
-        case Textures::BPP_24BIT: break;
         default: return V_ERROR(GV_ERR_INVALID_PARAM);
         }
 
@@ -464,15 +463,13 @@ namespace System::PSX::GPU
     {
         uint16_t clutWidth = TextureManager::clutWidth(ptObj->bpp);
 
-        uint16_t *pA = nullptr;
+        // TODO: Cleanup?
+        uint16_t pA[256] = {0};
         array_from_colors<uint16_t>(
             pA, clutWidth, ptObj->palette,
             ptObj->paletteLength, CT_BGR555);
-        if (!pA) return V_ERROR(GV_ERR_OUT_OF_MEMORY);
         _waitForDMADone();
-        _sendVRAMData(pA, clutWidth, {ptObj->clutX, ptObj->clutY, clutWidth, 1});
-        _waitForDMADone();
-        delete[] pA;
+        _sendVRAMData(&pA, (sizeof(uint16_t) * clutWidth), {ptObj->clutX, ptObj->clutY, clutWidth, 1});
         return GV_OK;
     }
 
@@ -761,6 +758,15 @@ namespace System::PSX::GPU
         size_t temp;
         uint16_t c = color.toBGR555();
 
+        int startX = x;
+
+        auto *tObj = fObj->getTexture();
+        if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
+        const PSXTextureObject *ptObj = reinterpret_cast<const PSXTextureObject *>(tObj);
+
+        _GP0RDY(1);
+        _GPUC(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), true, false));
+
         // If the color isnt the font default of white, then try to pick the colour.
         // Defaults to white if for whatever reason it cannot setup the right colour
         if (c != Colors::White.toBGR555() && fObj->getParam(PSXFONT_PALETTE_PTR, temp) && false)
@@ -789,13 +795,45 @@ namespace System::PSX::GPU
         else
         {
             // Print in white
-            drawTextureObject(fObj->getTexture(), x, y, 6, 9, 84, 18, 0, 0);
-            drawTextureObject(fObj->getTexture(), x + (7 * 1), y, 6, 9, 6, 18, 0, 0);
-            drawTextureObject(fObj->getTexture(), x + (7 * 2), y, 6, 9, 90, 18, 0, 0);
-            drawTextureObject(fObj->getTexture(), x + (7 * 3), y, 6, 9, 66, 18, 0, 0);
-            return drawTextureObject(fObj->getTexture(), x + (7 * 4), y, 6, 9, 54, 18, 0, 0);
+            auto &fHeader = *fObj->getHeader();
+            for (int i = 0; i < len; i++)
+            {
+                switch (str[i])
+                {
+                case '\t':
+                    x += fHeader.tabWidth;
+                    break;
+                case '\r':
+                case '\n':
+                    x = startX;
+                    y += fHeader.fontSize;
+                    break;
+                case ' ':
+                    x += fHeader.spaceWidth;
+                    break;
+                default:
+                {
+                    auto c = fObj->get(str[i]);
+                    // TODO: Somewhere, somehow, font height is not being stored in the font file correctly
+                    drawTextureObject(tObj, x, y, c.w, fHeader.fontSize, c.x, c.y, 0, 0);
+                    x += c.w;
+                    break;
+                }
+                }
+            }
         }
         return GV_OK;
+    }
+
+    void PSXGPU::drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h)
+    {
+        auto *tObj = sObj->getTexture();
+        if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return; // GV_ERR_INVALID_PARAM;
+        const PSXTextureObject *ptObj = reinterpret_cast<const PSXTextureObject *>(tObj);
+
+        _GP0RDY(1);
+        _GPUC(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), true, false));
+        drawTextureObject(tObj, x, y, w, h, 0, 0, 0, 0);
     }
 
     int PSXGPU::drawTextureObject(
@@ -806,11 +844,11 @@ namespace System::PSX::GPU
     {
         if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
         const PSXTextureObject *ptObj = reinterpret_cast<const PSXTextureObject *>(tObj);
-        _GP0RDY(5);
-        _GPUC(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), true, false));
+
+        _GP0RDY(4);
         _GPUC(gp0_rgb(255, 255, 255) | gp0_rectangle(true, true, false));
         _GPUC(gp0_xy(x, y));
-        _GPUC(gp0_uv(ptObj->tpage.offsetX + u1, ptObj->tpage.offsetY + v1, gp0_clut(ptObj->clutX, ptObj->clutY)));
+        _GPUC(gp0_uv(ptObj->tpage.offsetX + u1, ptObj->tpage.offsetY + v1, gp0_clut((ptObj->clutX / 16), ptObj->clutY)));
         _GPUC(gp0_xy(w, h));
         return GV_OK;
     }

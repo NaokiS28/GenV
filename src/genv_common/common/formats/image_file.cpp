@@ -27,6 +27,7 @@
 #include "common/util/hash.hpp"
 
 #include "common/vendor/gifn/gifn.h"
+#include "common/vendor/lodepng.h"
 #include "common/vendor/vendor.h"
 
 namespace Textures
@@ -70,14 +71,26 @@ namespace Textures
             mode.bitdepth = 16;
         }
 
+        unsigned int w, h;
         unsigned char **bitmap = nullptr;
-        lodepng_decode_memory(
-            bitmap, &tObj->width, &tObj->height,
-            (unsigned char *)data, length,
-            mode.colortype, mode.bitdepth);
+        if (lodepng_decode_memory(
+                bitmap, &w, &h,
+                (unsigned char *)data, length,
+                mode.colortype, mode.bitdepth))
+        {
+            delete tObj;
+            lodepng_state_cleanup(&state);
+            return nullptr;
+        }
 
-        tObj->bitmap = *bitmap;
-        tObj->bpp = mode.bitdepth;
+        if (*bitmap)
+        {
+            tObj->bitmap = *bitmap;
+            tObj->bitmapLength = (sizeof(uint16_t) * w) * h;
+            tObj->bpp = mode.bitdepth;
+            tObj->width = w;
+            tObj->height = h;
+        }
 
         if (state.info_raw.colortype == LCT_PALETTE)
         {
@@ -151,6 +164,7 @@ namespace Textures
                                        : (ctSize <= 16)  ? 4
                                                          : 8;
 
+            uint8_t *data = gif.frames[0].indices;
             if (bits < 4)
             {
                 // Upconvert to 4bpp
@@ -177,19 +191,25 @@ namespace Textures
                     if (!hp) b++;
                 }
                 numPix = nPx;
-                gif.frames[0].indices = expanded;
+                data = expanded;
                 bits = 4;
+            }
+            else
+            {
+                gif.frames[0].indices = nullptr;
             }
 
             tObj->bpp = bits;
 
             for (int i = 0; i < gif.header.gctSize; i++)
+            {
                 vcPalette[i] = {((0xFFu << 24) | palette_u32[i])};
+            }
 
             tObj->height = gif.header.height;
             tObj->width = gif.header.width;
             tObj->loadTextureFromMem(
-                gif.frames[0].indices,
+                data,
                 numPix,
                 vcPalette,
                 gif.header.gctSize);
@@ -220,16 +240,16 @@ namespace Textures
                 case ecImageFormat::IF_PNG:
                     return loadPNG_memory(
                         objectID,
-                        fObj->getRawDataObj()->getRawData(),
-                        fObj->getRawDataObj()->getDataLen());
+                        fObj->getRawData(),
+                        fObj->size());
                     break;
                 case ecImageFormat::IF_BMP:
                     break;
                 case ecImageFormat::IF_GIF:
                     return loadGIF_memory(
                         objectID,
-                        fObj->getRawDataObj()->getRawData(),
-                        fObj->getRawDataObj()->getDataLen());
+                        fObj->getRawData(),
+                        fObj->size());
                     break;
                 default:
                     return nullptr;

@@ -43,13 +43,13 @@ int WaveFile::loadSoundFile(const char *filePath)
         file.skipToChunk(FCC(fourccDATA));
         waveData.blockID = file.readAs<uint32_t>();
         waveData.dataSize = file.readAs<uint32_t>();
-        waveData.data = file.getPosition();
+        waveData.data = file.position();
 
         SoundObject::meta.bitDepth = waveFormat.bitsPerSample;
         SoundObject::meta.channels = waveFormat.numChannels;
         SoundObject::meta.sampleRate = waveFormat.sampleRate;
         SoundObject::meta.sampleLength = waveData.dataSize;
-        SoundObject::sampleData = (file.getRawDataObj()->getRawData() + waveData.data); // TODO: Change from being hardcoded
+        SoundObject::sampleData = (file.getRawData() + waveData.data); // TODO: Change from being hardcoded
 
         return GV_OK;
     }

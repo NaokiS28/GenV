@@ -128,10 +128,10 @@ static size_t *arena_alloc_sizes(GIF_Object *g, size_t count)
     return (size_t *)arena_alloc(g, count * sizeof(size_t), alignof(size_t));
 }
 
-static uint8_t pow2_table_size(uint8_t flags_bits)
+static unsigned int pow2_table_size(uint8_t flags_bits)
 {
     // GIF: size = 2^(N+1), where N=flags&7
-    return (uint8_t)(1u << ((flags_bits & 7) + 1));
+    return (1u << (((unsigned int)flags_bits & 7u) + 1u));
 }
 
 uint8_t gifn_get_bpp(const uint8_t flags)

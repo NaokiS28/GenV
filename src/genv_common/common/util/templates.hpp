@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "common/util/ifloat.hpp"
 
@@ -356,6 +357,142 @@ namespace util
                 return nullptr;
 
             return &_items[_head];
+        }
+    };
+
+    /* Simple popularity buffer.
+    The least poplular item will be at the start of the list where as more popularly used items
+    will remain near the end of the list. When more space is needed, then the least popular items
+    will be removed.
+    */
+
+    template <typename T, size_t N>
+    class PopList
+    {
+    private:
+        T _items[N];
+        size_t _top;
+
+    public:
+        size_t length;
+
+        inline PopList(void)
+            : _top(0), length(0) {}
+
+        // "Use" a member, thus making it climb in popularity if it can
+        inline T used(T item)
+        {
+            if (!length)
+                return {};
+
+            for (auto entry : _items)
+            {
+                if (item == entry)
+                {
+                    promote(item);
+                    return {};
+                }
+            }
+
+            // Didn't find entry
+            return add(item);
+        }
+
+        // Directly make a member more popular
+        inline void promote(T item)
+        {
+            if (!length)
+                return;
+
+            size_t idx = 0;
+            for (auto entry : _items)
+            {
+                if (item == entry)
+                {
+                    if (idx < _top)
+                    {
+                        _items[idx] = _items[idx + 1];
+                        _items[idx + 1] = item;
+                    }
+                    return;
+                }
+                else
+                    idx++;
+            }
+        }
+
+        // Directly make a member less popular
+        inline void demote(T item)
+        {
+            if (!length)
+                return;
+
+            int idx = 0;
+            for (auto entry : _items)
+            {
+                if (item == entry)
+                {
+                    if (idx < _top)
+                    {
+                        _items[idx] = _items[idx - 1];
+                        _items[idx - 1] = item;
+                    }
+                    return;
+                }
+                else
+                    idx++;
+            }
+        }
+
+        // Add a new member to the list
+        // New members are always popular (lets choose to ignore social conventions)
+        inline T add(T item)
+        {
+            T temp{};
+            if (_top >= length)
+            {
+                temp = remove();
+            }
+            _items[_top] = item;
+            _top++;
+            return temp;
+        }
+
+        // Removes the least popular member. Returns the value for cases where memory deletes
+        //   need to happen.
+        inline T remove(void)
+        {
+            return remove(_items[0]);
+        }
+
+        // Removes a specific member. Returns the value for cases where memory deletes
+        //   need to happen.
+        inline T remove(T item)
+        {
+            if (!length)
+                return {};
+
+            int idx = 0;
+            bool found = false;
+            for (auto entry : _items)
+            {
+                if (item == entry)
+                {
+                    found = true;
+                    break;
+                }
+                else
+                    idx++;
+            }
+
+            if (!found)
+                return {};
+
+            T temp = _items[idx];
+            memmove(_items + (sizeof(T) * idx), _items + (sizeof(T) * (idx + 1)), sizeof(T));
+            _top--;
+            length--;
+            return temp;
         }
     };
 

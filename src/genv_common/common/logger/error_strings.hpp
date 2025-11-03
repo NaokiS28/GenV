@@ -56,6 +56,7 @@ namespace LogReasonStrings
     constexpr const char GenvParameterError[] = "Parameter error.";
     constexpr const char GenvItemNotFound[] = "Item not found.";
     constexpr const char GenvOutOfMemory[] = "Out of memory.";
+    constexpr const char GenvListIsFull[] = "List is full.";
     constexpr const char GenvListIsEmpty[] = "List is empty.";
     constexpr const char GenvTypeIncompatible[] = "Type is incompatbile.";
     constexpr const char GenvUploadFailed[] = "Upload failed.";
@@ -66,6 +67,7 @@ namespace ObjectStrings
 {
     constexpr const char TextureObject[] = "Texture Object";
     constexpr const char FileObject[] = "File Object";
+    constexpr const char FontsetObject[] = "Fontset";
     constexpr const char FontObject[] = "Font Object";
     constexpr const char SoundObject[] = "Sound Object";
     constexpr const char DataObject[] = "Data Object";
