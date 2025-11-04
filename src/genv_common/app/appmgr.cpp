@@ -219,8 +219,6 @@ namespace Apps
         enteredTestMode = ASYS_GAME_MODE;
         firstRun = false;
 
-        foregroundApp = nullptr;
-
         return 0;
     }
 
