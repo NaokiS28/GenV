@@ -15,6 +15,9 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// TODO: Bugs in CLUT allocation. Is only returning free clut lines every 32 pixels instead of 16.
+// TODO: Rewrite for better efficiency.
+
 #pragma once
 
 #include <string.h>
