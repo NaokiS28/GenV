@@ -166,10 +166,7 @@ void DefaultErrorScreen::render()
     }
 
     // Window
-    gpu->drawRect(
-        0, 0,                    // X/Y
-        gpu->getHorizontalRes(), // Width
-        gpu->getVerticalRes(),   // Height
+    gpu->fillScreen(
         Video::Colors::Alpha(Video::Colors::Black, bgAlpha.getValue(Video::frames())));
     gpu->drawRect(area.x, yOffset, area.w, area.h, c1);
     gpu->drawRect(
@@ -178,13 +175,16 @@ void DefaultErrorScreen::render()
         Video::Colors::Black);
 
     // Contents
+    //	Title
     gpu->drawText(msg->title.str, area.x + 20, yOffset + 20, area.w - 20, 50, Video::Colors::White);
-    gpu->drawLine(area.x + 20, yOffset + 60, (area.x + area.w) - 20, yOffset + 60, 2, c2);
-    gpu->drawText(eMsgStrList[msg->style].str, area.x + 20, yOffset + 70, area.w - 20, 100, c2);
-    gpu->drawText(msg->message.str, area.x + 20, yOffset + 95, area.w - 20, 100, Video::Colors::White);
+    gpu->drawLine(area.x + 20, yOffset + 35, (area.x + area.w) - 20, yOffset + 35, 2, c2);
+    //	Severity
+    gpu->drawText(eMsgStrList[msg->style].str, area.x + 20, yOffset + 40, area.w - 20, 100, c2);
+    //	Cause
+    gpu->drawText(msg->message.str, area.x + 20, yOffset + 60, area.w - 20, 100, Video::Colors::White);
 
-    // Options
-    gpu->drawText(eMsgOptionList[msg->action].str, area.x + 20, (yOffset + area.h) - 60, area.w - 20, 100, Video::Colors::White);
+    // 	Button Options
+    gpu->drawText(eMsgOptionList[msg->action].str, area.x + 20, (yOffset + area.h) - 40, area.w - 20, 100, Video::Colors::White);
 }
 
 void DefaultErrorScreen::shutdown()

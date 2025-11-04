@@ -30,5 +30,12 @@ namespace System::PSX::GPU
 
     PSXTextureObject::~PSXTextureObject()
     {
+        size_t temp = 0;
+        if (getParam(PSXFONT_PALETTE_PTR, temp))
+        {
+            FontColorTable *fcTable = (FontColorTable *)temp;
+            delete fcTable;
+            deleteParam(PSXFONT_PALETTE_PTR);
+        }
     }
 } // namespace System::PSX::GPU

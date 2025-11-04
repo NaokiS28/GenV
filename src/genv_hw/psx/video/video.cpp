@@ -41,46 +41,6 @@
 
 namespace System::PSX::GPU
 {
-
-    static constexpr util::Hash PSXFONT_PALETTE_PTR = "PSXFONT_PALETTE_PTR"_h;
-
-    struct FontPaletteEntry
-    {
-        uint16_t color = Colors::White.toBGR555();
-        int vramX = 0;
-        int vramY = 0;
-    };
-
-    class FontColorTable
-    {
-    private:
-        FontPaletteEntry palette[8];
-        uint8_t tail = 0;
-
-    public:
-        void add(int x, int y, uint16_t c)
-        {
-            palette[tail].color = c;
-            palette[tail].vramX = x;
-            palette[tail].vramY = y;
-            tail++;
-            if (tail >= 8) tail = 0;
-        }
-
-        bool find(uint16_t c, FontPaletteEntry **entry)
-        {
-            for (uint8_t i = 0; i < tail; i++)
-            {
-                if (palette[i].color == c)
-                {
-                    *entry = &palette[i];
-                    return true;
-                };
-            }
-            return false;
-        }
-    };
-
 #define _GPUC (this->*_GPUCMD)
 #define _GP0RDY(cmdcount)                              \
     if (!useDMA)                                       \
@@ -468,7 +428,6 @@ namespace System::PSX::GPU
         array_from_colors<uint16_t>(
             pA, clutWidth, ptObj->palette,
             ptObj->paletteLength, CT_BGR555);
-        _waitForDMADone();
         _sendVRAMData(&pA, (sizeof(uint16_t) * clutWidth), {ptObj->clutX, ptObj->clutY, clutWidth, 1});
         return GV_OK;
     }
@@ -522,7 +481,7 @@ namespace System::PSX::GPU
         int x, int y, int width, int height, Color color)
     {
         _GP0RDY(3);
-        _GPUC(color.toRGB888() | gp0_rectangle(false, false, GP0_BLEND_SEMITRANS));
+        _GPUC(color.toBGR888() | gp0_rectangle(false, false, GP0_BLEND_SEMITRANS));
         _GPUC(gp0_xy(x, y));
         _GPUC(gp0_xy(width, height));
     }
@@ -732,96 +691,170 @@ namespace System::PSX::GPU
 
     void PSXGPU::drawLine(int x1, int y1, int x2, int y2, int width, Color color)
     {
-        assert(!width);
-        _GP0RDY(3);
-        _GPUC(color.toBGR888() | gp0_polyLine(false, false));
-        _GPUC(gp0_xy(x1, y1));
-        _GPUC(gp0_xy(x2, y2));
+        assert(width);
+        switch (width)
+        {
+        case 0: return;
+        case 1:
+            _GP0RDY(4);
+            _GPUC(color.toBGR888() | gp0_polyLine(false, false));
+            _GPUC(gp0_xy(x1, y1));
+            _GPUC(gp0_xy(x2, y2));
+            _GPUC(gp0_xy(0x5000, 0x5000));
+            break;
+        default:
+        {
+            int mid = width / 2;
+            _GP0RDY(5);
+            _GPUC(color.toBGR888() | gp0_quad(false, false));
+            _GPUC(gp0_xy(x1, y1 - mid));
+            _GPUC(gp0_xy(x2, y2 - mid));
+            _GPUC(gp0_xy(x1, y1 + mid));
+            _GPUC(gp0_xy(x2, y2 + mid));
+            break;
+        }
+        }
     }
 
     void PSXGPU::drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2)
     {
-        assert(!width);
-        _GP0RDY(4);
-        _GPUC(c1.toBGR888() | gp0_polyLine(true, false));
-        _GPUC(gp0_xy(x1, y1));
-        _GPUC(c2.toBGR888());
-        _GPUC(gp0_xy(x2, y2));
+        assert(width);
+        switch (width)
+        {
+        case 0: return;
+        case 1:
+            _GP0RDY(5);
+            _GPUC(c1.toBGR888() | gp0_polyLine(true, false));
+            _GPUC(gp0_xy(x1, y1));
+            _GPUC(c2.toBGR888());
+            _GPUC(gp0_xy(x2, y2));
+            _GPUC(gp0_xy(0x5000, 0x5000));
+            break;
+        default:
+        {
+            int mid = width / 2;
+            _GP0RDY(8);
+            _GPUC(c1.toBGR888() | gp0_quad(false, false));
+            _GPUC(gp0_xy(x1, y1 - mid));
+            _GPUC(c1.toBGR888());
+            _GPUC(gp0_xy(x2, y2 - mid));
+            _GPUC(c2.toBGR888());
+            _GPUC(gp0_xy(x1, y1 + mid));
+            _GPUC(c2.toBGR888());
+            _GPUC(gp0_xy(x2, y2 + mid));
+            break;
+        }
+        }
     }
 
-    int PSXGPU::drawText(const Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
+    int PSXGPU::drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
     {
         if (fObj->getObjectType() != Fonts::GENV_FONT_OBJ_TYPENAME)
             return V_ERROR(GV_ERR_INVALID_PARAM);
 
-        size_t len = util::getUTF8StringLength(str);
-        size_t temp;
-        uint16_t c = color.toBGR555();
-
-        int startX = x;
-
         auto *tObj = fObj->getTexture();
         if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
-        const PSXTextureObject *ptObj = reinterpret_cast<const PSXTextureObject *>(tObj);
+        PSXTextureObject *ptObj = reinterpret_cast<PSXTextureObject *>(tObj);
+        auto &fHeader = *fObj->getHeader();
+
+        bool clutModified = false;
+        uint16_t c = color.toBGR555();
+        size_t temp = 0;
+
+        uint16_t backupClut[2] = {
+            ptObj->clutX, ptObj->clutY};
 
         _GP0RDY(1);
         _GPUC(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), true, false));
 
         // If the color isnt the font default of white, then try to pick the colour.
         // Defaults to white if for whatever reason it cannot setup the right colour
-        if (c != Colors::White.toBGR555() && fObj->getParam(PSXFONT_PALETTE_PTR, temp) && false)
+        if (c != Colors::White.toBGR555())
         {
-            FontColorTable *fctPtr = (FontColorTable *)temp;
-            FontPaletteEntry *fpePtr = nullptr;
-            if (fctPtr->find(c, &fpePtr))
+            // Get the color table, if it exists
+            FontColorTable *fcTable = nullptr;
+            if (fObj->getParam(PSXFONT_PALETTE_PTR, temp))
             {
-                // Print in color
+                fcTable = (FontColorTable *)temp;
             }
             else
             {
-                uint16_t x = 0, y = 0;
-                if (_texmgr.allocateCLUT(Textures::BPP_4BIT, x, y))
-                {
-                    fctPtr->add(x, y, c);
-                    uint16_t clut[16] = {0};
-                    clut[1] = c;
-                    clut[2] = Fonts::font_shadow.toBGR555();
-                    _waitForDMADone();
-                    _sendVRAMData(clut, 16, {x, y, 16, 1});
-                    // Print in color
-                }
+                // Create a Font Color Table and store the pointer to it
+                fcTable = new FontColorTable;
+                if (fcTable)
+                    fObj->setParam(PSXFONT_PALETTE_PTR, (size_t)fcTable);
             }
-        }
-        else
-        {
-            // Print in white
-            auto &fHeader = *fObj->getHeader();
-            for (int i = 0; i < len; i++)
+
+            if (fcTable)
             {
-                switch (str[i])
+                FontPaletteEntry *fpEntry = nullptr;
+                if (fcTable->find(c, &fpEntry))
                 {
-                case '\t':
-                    x += fHeader.tabWidth;
-                    break;
-                case '\r':
-                case '\n':
-                    x = startX;
-                    y += fHeader.fontSize;
-                    break;
-                case ' ':
-                    x += fHeader.spaceWidth;
-                    break;
-                default:
-                {
-                    auto c = fObj->get(str[i]);
-                    // TODO: Somewhere, somehow, font height is not being stored in the font file correctly
-                    drawTextureObject(tObj, x, y, c.w, fHeader.fontSize, c.x, c.y, 0, 0);
-                    x += c.w;
-                    break;
+                    // Print in color
+                    ptObj->clutX = fpEntry->vramX;
+                    ptObj->clutY = fpEntry->vramY;
+                    clutModified = true;
                 }
+                else
+                {
+                    // Add and upload color
+                    uint16_t _cx = 0, _cy = 0;
+                    if (_texmgr.allocateCLUT(Textures::BPP_4BIT, _cx, _cy) == GV_OK)
+                    {
+                        fcTable->add(_cx, _cy, c);
+
+                        uint16_t clut[MAX_COLORS_4BPP] = {0};
+                        clut[fHeader.foregroundIndex] = c;
+                        clut[fHeader.shadowIndex] = (Fonts::font_shadow.toBGR555() | (1 << 15));
+                        _sendVRAMData(&clut, sizeof(uint16_t) * MAX_COLORS_4BPP, {_cx, _cy, MAX_COLORS_4BPP, 1});
+                        _waitForDMADone();
+
+                        ptObj->clutX = _cx;
+                        ptObj->clutY = _cy;
+                        clutModified = true;
+                    }
                 }
             }
         }
+
+        // Print in selected color
+        size_t len = util::getUTF8StringLength(str);
+        int startX = x;
+
+        for (size_t i = 0; i < len; i++)
+        {
+            switch (str[i])
+            {
+            case '\t':
+                x += fHeader.tabWidth;
+                break;
+            case '\r':
+                x = startX;
+                break;
+            case '\n':
+                y += fHeader.fontSize;
+                break;
+            case ' ':
+                x += fHeader.spaceWidth;
+                break;
+            default:
+            {
+                auto c = fObj->get(str[i]);
+                // TODO: Somewhere, somehow, font height is not being stored in the font file correctly
+                drawTextureObject(tObj, x, y, c.w, fHeader.fontSize, c.x, c.y, 0, 0);
+                x += c.w;
+                break;
+            }
+            }
+        }
+
+        // Restore pre-draw clut values
+        if (clutModified)
+        {
+            ptObj->clutX = backupClut[0];
+            ptObj->clutY = backupClut[1];
+        }
+
         return GV_OK;
     }
 

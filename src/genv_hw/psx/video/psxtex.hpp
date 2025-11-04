@@ -45,4 +45,43 @@ namespace System::PSX::GPU
         uint16_t clutX = 0; // CLUT index (x) in vram in px. Only used for 4bpp CLUTs
         uint16_t clutY = 0; // Line that CLUT lives in vram in px.
     };
+
+    static constexpr util::Hash PSXFONT_PALETTE_PTR = "PSXFONT_PALETTE_PTR"_h;
+
+    struct FontPaletteEntry
+    {
+        uint16_t color = Video::Colors::White.toBGR555();
+        int vramX = 0;
+        int vramY = 0;
+    };
+
+    class FontColorTable
+    {
+    private:
+        FontPaletteEntry palette[8];
+        uint8_t tail = 0;
+
+    public:
+        void add(int x, int y, uint16_t c)
+        {
+            palette[tail].color = c;
+            palette[tail].vramX = x;
+            palette[tail].vramY = y;
+            tail++;
+            if (tail >= 8) tail = 0;
+        }
+
+        bool find(uint16_t c, FontPaletteEntry **entry)
+        {
+            for (uint8_t i = 0; i < tail; i++)
+            {
+                if (palette[i].color == c)
+                {
+                    *entry = &palette[i];
+                    return true;
+                };
+            }
+            return false;
+        }
+    };
 } // namespace System::PSX::GPU

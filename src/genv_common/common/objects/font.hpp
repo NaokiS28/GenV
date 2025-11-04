@@ -122,7 +122,7 @@ namespace Fonts
         inline bool validateHeader() const { return _header->validateMagic(); }
         inline const FontHeader *getHeader() const { return _header; }
         virtual int uploadTexture() { return _texture->uploadTexture(); }
-        const Textures::TextureObject *getTexture() const { return _texture; }
+        Textures::TextureObject *getTexture() const { return _texture; }
     };
 
     class FontsetHeader

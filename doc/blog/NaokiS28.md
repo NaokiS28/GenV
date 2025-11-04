@@ -1,5 +1,34 @@
 # Dev Blog for NaokiS
 
+### 4th November 2025
+
+Well, a day later and I managed to get some other parts working enough to show the generic error message screen. Why is this notable? Well it was written and coded for Windows! Well... ok. It was coded on Windows and when being coded GenV, or DXUX as it was called then, ran only on Windows. So this is technically the first "Application" that ran almost perfectly the first time I tried to run it, outside of back-end bugs. The only things that needed to be changed were some of the font alignment values since they were hard coded to look good at 800x600 with a different font. This is to say, it would have translated pretty well if I used the font sizing and spacing back then, but now I have to API to do so!
+
+![](assets/20251104_133327_genv-error-040925.gif)
+
+So some points about whats going on here:
+
+This is the generic error screen in GenV. When something goes wrong that requires the user to be aware (think more arcade operations than anything), this fades the background out and highlights the error message to the user. It is also supposed to pause the application that was running (or rather stop updates) but that isn't yet working. You can see the following:
+
+* Title
+* Error Severity - The default error screen supports Info, Warning, Error and as you see here, Critical Error.
+  * Info screens - This displays a solid blue colour border and serves more to inform the user of an action (IE, machine needs to restart). The fact it's part of the error message class is a bit misleading but it's almost all the same code so there we go.
+  * Warning screens - These instead show a flashing yellow border and are for when there is non-critical trouble. An example case might be a stuck control or failure to read a memory device.
+  * Error screens/Critical Errors - These are severe errors with a flashing red border that cannot be ignored, i.e. the disc drive is missing the media, a required file cannot load or such. Critical errors differ in that they will halt the program execution until reboot.
+* Error cause - Self explanatory really, the caller of the error code function passes a reason to the error screen to display, in this case "Both app pointers are null". In this example, the foregroundApp and backgroundApp Application class pointers are both nulled out and there is nothing to run. This is a critical error because there must always be an application running in order for execution flow to happen normally as loading screens (which GVSS is a special kind of loading screen) are only initiated from the running foregroundApp. So with nothing to run, a critical error occurs.
+* Button options - In reality, in the case of a critical error this would be blank as there is no continuing from a critical error, but for testing these were enabled. This field can be customised by the caller to have different buttons and actions, but the error screen does not process these inputs, only handing them to the running app. In the case of an error screen, it could give an operator the chance to try again or go into the test mode of the game.
+
+One fun note is how the text uses the same bitmap graphics and modifies the colour lookup table to use when rendering. On the PS1, each call to render text will check to see if the colour requested has been used before (outside of white), if the colour has not been used then it will create and upload a new colour pallete to use and store that in a table of previous colours, up to 8. I have also been working on a popularity list object that will keep the most frequently used items in memory so if there is no more space in the colour list, it will remove the least used colour.
+
+There are some changes I wish I could make such as having a global colour table that can be used across several objects but... thats a later problem.
+
+Anyway a small update but something more betterer than yesterdays images.
+
+Naoki
+
+---
+
+
 ### 3rd November 2025
 
 This is the first entry in a crude dev blog that I am starting to mostly track changes for myself. Also because I feel some of the things I dont explain well in git commits or comments in code could fall here.

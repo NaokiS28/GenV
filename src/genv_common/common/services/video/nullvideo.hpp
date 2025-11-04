@@ -63,7 +63,7 @@ namespace Video
         void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint);
 
         int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT);
-        int drawText(const Fonts::FontObject *Obj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)
+        int drawText(Fonts::FontObject *Obj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)
         {
             return drawText(str, x, y, w, h, color, mode);
         }

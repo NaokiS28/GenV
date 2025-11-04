@@ -31,6 +31,8 @@ extern "C++" int genv_register_apps(IAppHost *host);
 
 // TODO: Rewrite app life cycle management
 // TODO: Better defined API for app management (app should request to close itself and report when it can be quit)
+// TODO: Critical errors should halt the app execution flow (or rather only allow test mode).
+// TODO: Pause the running apps (and sounds). Apps should still render the last frame when the error occurs.
 
 namespace Apps
 {
@@ -216,6 +218,9 @@ namespace Apps
 
         enteredTestMode = ASYS_GAME_MODE;
         firstRun = false;
+
+        foregroundApp = nullptr;
+
         return 0;
     }
 
@@ -247,7 +252,7 @@ namespace Apps
         }
 
         // --- Normal app graph updates -----------------------------------------
-        if (!foregroundApp && !backgroundApp && !errorScreen && (asys && enteredTestMode == ASYS_GAME_MODE))
+        if (!foregroundApp && !backgroundApp && !errorScreen && !(asys && enteredTestMode == ASYS_GAME_MODE))
         {
             showErrorScreen("APPLICATION MANAGER",
                             "BOTH APP POINTERS ARE NULL",
