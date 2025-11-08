@@ -222,7 +222,7 @@ namespace System::PSX::GPU
 
     void PSXGPU::_waitForVSync(void)
     {
-        uint32_t timeout = 0x00FFFFFF;
+        uint32_t timeout = 0x000FFFFF;
         waitingForVsync = true;
         while (waitingForVsync)
         {
@@ -234,8 +234,8 @@ namespace System::PSX::GPU
             }
             else
             {
-                LOG("psxgpu", "WARNING VSync interrupt timeout.");
-                timeout = 0x00FFFFFF;
+                LOG("psxgpu", "WARNING: VSync interrupt timeout.");
+                timeout = 0x000FFFFF;
                 IRQ_MASK |= IRQ_GPU;
             }
         }
@@ -864,8 +864,14 @@ namespace System::PSX::GPU
         if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return; // GV_ERR_INVALID_PARAM;
         const PSXTextureObject *ptObj = reinterpret_cast<const PSXTextureObject *>(tObj);
 
+        GP0ColorDepth colorDepth = GP0_COLOR_16BPP;
+        if (sObj->getTexture()->bpp == Textures::BPP_8BIT)
+            colorDepth = GP0_COLOR_8BPP;
+        else if (sObj->getTexture()->bpp == Textures::BPP_4BIT)
+            colorDepth = GP0_COLOR_4BPP;
+
         _GP0RDY(1);
-        _GPUC(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), true, false));
+        _GPUC(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, colorDepth), true, false));
         drawTextureObject(tObj, x, y, w, h, 0, 0, 0, 0);
     }
 

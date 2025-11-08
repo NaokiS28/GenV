@@ -17,13 +17,12 @@
 
 #include "testmode.hpp"
 
-GenVTestApp::GenVTestApp() : ArcadeTestApp()
+GenVTestApp::GenVTestApp(IAppHost *host) : ArcadeTestApp(host)
 {
 }
 
-int GenVTestApp::init(IAppHost *host)
+int GenVTestApp::init()
 {
-    m_host = host;
     return 0;
 }
 void GenVTestApp::update()

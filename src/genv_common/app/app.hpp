@@ -135,7 +135,6 @@ namespace Apps
         Video::IVideo *gpu; // Local pointer to GPU object to use
         AppType type;
         IAppHost *m_host = nullptr;
-        void setHost(IAppHost *host) { m_host = host; }
         void setAppState(AppExecState state)
         {
             LOG("app", "\"%s\" app state changed to: %s", name(), getAppStateString(state));
@@ -143,11 +142,11 @@ namespace Apps
         }
 
     public:
-        Application();
-        Application(Video::IVideo *_gpu);
+        Application(IAppHost *host);
+        Application(IAppHost *host, Video::IVideo *_gpu);
         virtual ~Application() = default;
 
-        inline virtual bool isReady() { return state != APP_STATE_LOAD; }
+        inline virtual bool isReady() { return (state != APP_STATE_LOAD) && (state != APP_STATE_INIT); }
         inline virtual AppExecState getState() { return state; }
         inline virtual AppType getAppType() { return type; }
 
@@ -160,7 +159,7 @@ namespace Apps
 
         virtual int loadProgress(const char *&str); // State of initial loading progress in percent (str for custom loading text)
 
-        virtual int init(IAppHost *host) = 0;                        // Initialize app
+        virtual int init() = 0;                                      // Initialize app
         virtual void update() = 0;                                   // Update the app's logic
         virtual void render() = 0;                                   // Request app to draw it's UI
         virtual void loadApp() { setAppState(APP_STATE_INIT); }      // Call app to load next file/object (app handles any loading list)
@@ -179,18 +178,14 @@ namespace Apps
         friend class AppManager;
 
     private:
-        Application *app;
+        Application *_appToLoad;
 
     public:
-        LoadScreenApp();
+        LoadScreenApp(IAppHost *host, Application *appToLoad);
 
-        virtual int init(IAppHost *host); // Init the loading screen
-        virtual void update();            // Update the loading screens logic
-        virtual void render() = 0;        // Request loading screen to render it's UI
-        virtual void setAppToLoad(Application *app)
-        {
-            this->app = app;
-        }
+        virtual int init();        // Init the loading screen
+        virtual void update();     // Update the loading screens logic
+        virtual void render() = 0; // Request loading screen to render it's UI
     };
 
     enum ErrorMessageIcon : uint8_t
@@ -238,8 +233,6 @@ namespace Apps
     constexpr const char eMsgWarningStr[] = "WARNING: ";
     constexpr const char eMsgErrorStr[] = "ERROR: ";
     constexpr const char eMsgCriticalStr[] = "CRITICAL ERROR: ";
-
-    constexpr const char eMsgSoundFile[] = "C:\\Users\\Naoki\\Nextcloud\\Programming\\GenV\\bin\\KBMHELL.wav";
 
     const Strings eMsgStrList[] = {
         eMsgInfoStr,
@@ -306,7 +299,7 @@ namespace Apps
         uint8_t maxCount = 1;
 
     public:
-        ErrorScreenApp();
+        ErrorScreenApp(IAppHost *host);
         ~ErrorScreenApp();
 
         inline ErrorMessageStyle getSeverity()
@@ -317,8 +310,8 @@ namespace Apps
                 return ErrorMessageStyle::EM_STYLE_INFO;
         }
 
-        virtual int init(IAppHost *host); // Init the error screen
-        virtual void update();            // Update the error screens logic
+        virtual int init();    // Init the error screen
+        virtual void update(); // Update the error screens logic
         virtual void render() = 0;
     };
 
@@ -335,11 +328,11 @@ namespace Apps
         System::IArcadeSystem *aSystem = nullptr;
 
     public:
-        ArcadeTestApp();
+        ArcadeTestApp(IAppHost *host);
 
-        virtual int init(IAppHost *host); // Init the loading screen
-        virtual void update();            // Update the loading screens logic
-        virtual void render() = 0;        // Request loading screen to render it's UI
+        virtual int init();        // Init the loading screen
+        virtual void update();     // Update the loading screens logic
+        virtual void render() = 0; // Request loading screen to render it's UI
     };
 
     ArcadeTestApp *getArcadeTestApp(Application *app);

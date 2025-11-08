@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * tmss.CPP - Created on 10-06-2025
+ * GVSS.CPP - Created on 10-06-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -16,6 +16,7 @@
  */
 
 #include "gvss.hpp"
+#include "common/util/hash.hpp"
 #include "genvlogo.hpp"
 
 #include "app/app.hpp"
@@ -28,84 +29,99 @@
 
 namespace Apps
 {
-    TMSS::TMSS() : LoadScreenApp()
+    constexpr const util::Hash GENV_LOGO_HASH = "GenVLogo"_h;
+
+    GVSS::GVSS(IAppHost *host, Application *appToLoad) : LoadScreenApp(host, appToLoad)
     {
+        logo = Sprites::createSprite(
+            GENV_LOGO_HASH,
+            Textures::openImageMemory(
+                GENV_LOGO_HASH,
+                Genv_PNG_type,
+                genv_logo_data,
+                genv_logo_length));
+
         setAppState(APP_STATE_INIT);
         reload();
     }
 
-    TMSS::TMSS(Application *appToLoad) : LoadScreenApp()
+    int GVSS::init()
     {
-        this->setAppToLoad(appToLoad);
-        setAppState(APP_STATE_INIT);
-        reload();
-    }
-
-    int TMSS::init(IAppHost *host)
-    {
-        Textures::TextureObject *tObj = Textures::openImageMemory("GenVLogo"_h, Genv_GIF_type, genv_logo_data, genv_logo_length);
-        if (tObj)
+        if (logo)
         {
-            logo = Sprites::createSprite("GenVLogo"_h, tObj);
             logo->uploadTexture();
+            fadeIn.setValue(Video::frames(), 0, 255, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
+            fadeOut.setValue(Video::frames(), 255, 0, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
+            reload();
+            setAppState(APP_STATE_RUN);
         }
-        fadeIn.setValue(Video::frames(), 0, 255, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
-        fadeOut.setValue(Video::frames(), 255, 0, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
-        reload();
-        m_host = host;
-        setAppState(APP_STATE_RUN);
+        else
+        {
+            m_host->requestError(
+                "GVSS",
+                "Main logo Sprite Object is nullptr.",
+                1,
+                EM_STYLE_ERROR, EM_ICON_ERROR);
+            setAppState(APP_STATE_ERROR);
+        }
         return 0;
     }
 
-    void TMSS::render()
+    void GVSS::render()
     {
+        if (getState() == APP_STATE_ERROR) return;
         Video::Color c = Video::Colors::White;
         c.a = alpha;
         // premultiply(c);
         gpu->fillScreen(Video::Colors::Black);
-        logo->draw(16, 50, 128, 128);
-        gpu->drawText(tmssText, textPos.x, textPos.y, textPos.w, textPos.h, c, Video::TALIGN_CENTER);
+        logo->draw(logoPos.x, logoPos.y);
+        gpu->drawText(GVSSText, textPos.x, textPos.y, textPos.w, textPos.h, c, Video::TALIGN_CENTER);
     }
 
-    void TMSS::reload()
+    void GVSS::reload()
     {
+        logoPos = {
+            static_cast<int>((gpu->getHorizontalRes() / 2) - logo->getTexture()->width) - 30,
+            static_cast<int>((gpu->getVerticalRes() / 2) - (logo->getTexture()->height / 2)),
+            static_cast<int>(logo->getTexture()->width),
+            static_cast<int>(logo->getTexture()->height)};
         textPos = {
             gpu->getHorizontalRes() / 2,
-            gpu->getVerticalRes() / 2 - 30,
+            gpu->getVerticalRes() / 2 - 15,
             500,
             60};
     }
 
-    void TMSS::update()
+    void GVSS::update()
     {
-        switch (tmssAnimStep)
+        switch (GVSSAnimStep)
         {
-        case TMSS_FadeIn:
+        case GVSS_FadeIn:
             if (!fadeIn.isDone(Video::frames()) && !fadeIn.isRunning())
                 fadeIn.go();
             alpha = fadeIn.getValue(Video::frames());
             if (fadeIn.isDone(Video::frames()))
             {
-                tmssAnimStep = TMSS_Delay;
+                GVSSAnimStep = GVSS_Delay;
                 timer = System::millis();
             }
             break;
-        case TMSS_FadeOut:
+        case GVSS_FadeOut:
             if (!fadeOut.isDone(Video::frames()) && !fadeOut.isRunning())
                 fadeOut.go();
             alpha = fadeOut.getValue(Video::frames());
             if (fadeOut.isDone(Video::frames()))
             {
-                tmssAnimStep = TMSS_Exit;
+                GVSSAnimStep = GVSS_Exit;
             }
             break;
-        case TMSS_Delay:
+        case GVSS_Delay:
             if ((System::millis() - timer) >= iTimeToShow)
             {
-                tmssAnimStep = TMSS_FadeOut;
+                GVSSAnimStep = GVSS_FadeOut;
             }
             break;
-        case TMSS_Exit:
+        case GVSS_Exit:
         default:
             setAppState(APP_STATE_QUIT);
             break;

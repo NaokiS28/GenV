@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * tmss.hpp - Created on 10-06-2025
+ * GVSS.hpp - Created on 10-06-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -28,23 +28,23 @@ namespace Apps
     constexpr const int iTimeToShow = 4000;
     constexpr const int iFadeTime = 500;
 
-    class TMSS : public LoadScreenApp
+    class GVSS : public LoadScreenApp
     {
     private:
         static constexpr AppInfo appInfo = makeAppInfo(
-            "TMSS",             // name
+            "GVSS",             // name
             "NaokisRC",         // maker
-            AppVersion(0, 0, 1) // version
+            AppVersion(0, 1, 1) // version
         );
         int timer = -1;
 
         enum
         {
-            TMSS_FadeIn,
-            TMSS_Delay,
-            TMSS_FadeOut,
-            TMSS_Exit
-        } tmssAnimStep = TMSS_FadeIn;
+            GVSS_FadeIn,
+            GVSS_Delay,
+            GVSS_FadeOut,
+            GVSS_Exit
+        } GVSSAnimStep = GVSS_FadeIn;
 
         uint8_t alpha = 0;
         Util::Tween<uint16_t, Util::QuadInEasing> fadeIn;
@@ -52,19 +52,18 @@ namespace Apps
 
         Sprites::SpriteObject *logo = nullptr;
 
-        const char *tmssText = "CREATED WITH\nOR RUNNING UNDER\nGEN-V MULTIPLATFORM ENGINE.";
+        const char *GVSSText = "CREATED WITH\n\rOR RUNNING UNDER\n\rGEN-V MULTIPLATFORM ENGINE.";
 
+        RectWH logoPos;
         RectWH textPos;
 
     public:
-        static LoadScreenApp *createApp() { return new TMSS; }
-        static LoadScreenApp *createApp(Application *app) { return new TMSS(app); }
+        static LoadScreenApp *createApp(IAppHost *host, Application *app) { return new GVSS(host, app); }
         static constexpr const AppInfo &infoStatic() { return appInfo; }
 
-        TMSS();
-        TMSS(Application *appToLoad);
+        GVSS(IAppHost *host, Application *appToLoad);
 
-        int init(IAppHost *host) override;
+        int init() override;
         void update() override;
         void render() override;
         void reload() override;

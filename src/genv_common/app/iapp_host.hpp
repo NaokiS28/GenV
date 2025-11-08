@@ -33,7 +33,8 @@ namespace Apps
         APPACT_CLEANBG = 1u << 2,    // close background
     };
 
-    enum AppScreenType : uint8_t {
+    enum AppScreenType : uint8_t
+    {
         APP_SCREEN_GENERIC,
         APP_SCREEN_TITLE,
         APP_SCREEN_GAMEPLAY,
@@ -49,11 +50,11 @@ namespace Apps
         virtual void requestError(ErrorScreenMessage *msg) = 0;
         virtual void requestError(const char *title, const char *text, uint32_t code, ErrorMessageStyle style, ErrorMessageIcon icon) = 0;
         virtual void removeApplicationFactory(AppID id) = 0;
-        virtual void registerApplicationFactory(Application *(*factory)(), const AppInfo *info, AppScreenType type = APP_SCREEN_GENERIC) = 0;
-        virtual void registerErrorScreenFactory(ErrorScreenApp *(*factory)(ErrorScreenMessage *msg), const AppInfo *info) = 0;
-        virtual void registerLoadingScreenFactory(LoadScreenApp *(*factory)(Application *appToLoad), const AppInfo *info) = 0;
+        virtual void registerApplicationFactory(Application *(*factory)(IAppHost *host), const AppInfo *info, AppScreenType type = APP_SCREEN_GENERIC) = 0;
+        virtual void registerErrorScreenFactory(ErrorScreenApp *(*factory)(IAppHost *host, ErrorScreenMessage *msg), const AppInfo *info) = 0;
+        virtual void registerLoadingScreenFactory(LoadScreenApp *(*factory)(IAppHost *host, Application *appToLoad), const AppInfo *info) = 0;
 
     protected:
         ~IAppHost() {} // interface, non-owning
     };
-}
+} // namespace Apps

@@ -36,16 +36,16 @@ namespace Apps
         RectWH textPos;
 
     public:
-        static LoadScreenApp *createApp() { return new TextLoader; }
-        static LoadScreenApp *createApp(Application *app) { return new TextLoader(app); }
+        static LoadScreenApp *createApp(IAppHost *host) { return new TextLoader(host); }
+        static LoadScreenApp *createApp(IAppHost *host, Application *app) { return new TextLoader(host, app); }
         static constexpr const AppInfo &infoStatic() { return appInfo; }
 
-        TextLoader();
-        TextLoader(Application *appToLoad);
+        TextLoader(IAppHost *host);
+        TextLoader(IAppHost *host, Application *appToLoad);
 
-        void render();
-        void reload();
+        void render() override;
+        void reload() override;
 
         const AppInfo &info() const override { return appInfo; }
     };
-}
+} // namespace Apps

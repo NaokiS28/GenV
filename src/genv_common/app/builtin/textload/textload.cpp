@@ -16,20 +16,14 @@
  */
 
 #include "textload.hpp"
+#include "app/app.hpp"
 #include "common/services/services.hpp"
 
 namespace Apps
 {
-    TextLoader::TextLoader()
+    TextLoader::TextLoader(IAppHost *host, Application *appToLoad) : LoadScreenApp(host, appToLoad)
     {
         setAppState(APP_STATE_RUN);
-        reload();
-    }
-
-    TextLoader::TextLoader(Application *appToLoad)
-    {
-        setAppState(APP_STATE_RUN);
-        this->setAppToLoad(appToLoad);
         reload();
     }
 

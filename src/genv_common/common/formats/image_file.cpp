@@ -29,6 +29,7 @@
 #include "common/vendor/gifn/gifn.h"
 #include "common/vendor/lodepng.h"
 #include "common/vendor/vendor.h"
+#include "common/logger/log.hpp"
 
 namespace Textures
 {
@@ -61,50 +62,87 @@ namespace Textures
         if (!tObj) return nullptr;
 
         LodePNGState state;
-        LodePNGColorMode mode;
-        lodepng_state_init(&state);
-        lodepng_inspect(&tObj->width, &tObj->height, &state, (unsigned char *)data, length);
+        unsigned int w = 0, h = 0;
+        unsigned char *bitmap = nullptr;
 
-        mode = state.info_raw;
-        if (mode.bitdepth < 16)
+        auto fail = [&tObj, &state, &bitmap](int err)
         {
-            mode.bitdepth = 16;
-        }
-
-        unsigned int w, h;
-        unsigned char **bitmap = nullptr;
-        if (lodepng_decode_memory(
-                bitmap, &w, &h,
-                (unsigned char *)data, length,
-                mode.colortype, mode.bitdepth))
-        {
+            LOG("pngDecode", "Failed to open PNG file, error:", err);
             delete tObj;
+            if (bitmap) delete[] bitmap;
             lodepng_state_cleanup(&state);
-            return nullptr;
-        }
+            return (Textures::TextureObject *)nullptr;
+        };
 
-        if (*bitmap)
-        {
-            tObj->bitmap = *bitmap;
-            tObj->bitmapLength = (sizeof(uint16_t) * w) * h;
-            tObj->bpp = mode.bitdepth;
-            tObj->width = w;
-            tObj->height = h;
-        }
+        lodepng_state_init(&state);
+        if (lodepng_inspect(&w, &h, &state, data, length))
+            return fail(1);
 
-        if (state.info_raw.colortype == LCT_PALETTE)
+        if (lodepng_decode(&bitmap, &w, &h, &state, data, length))
+            return fail(2);
+
+        if (state.info_png.color.colortype == LCT_PALETTE)
         {
-            unsigned char *palette = new unsigned char[state.info_raw.palettesize];
-            if (!palette)
+            const LodePNGColorMode *pal = &state.info_png.color;
+            if (pal->palettesize == 0)
+                return fail(3);
+
+            auto *paletteBuffer = new Video::Color[pal->palettesize];
+            if (!paletteBuffer)
+                return fail(4);
+
+            for (unsigned i = 0; i < pal->palettesize; i++)
             {
-                delete tObj;
-                lodepng_state_cleanup(&state);
-                return nullptr;
+                uint8_t r = pal->palette[i * 4 + 0];
+                uint8_t g = pal->palette[i * 4 + 1];
+                uint8_t b = pal->palette[i * 4 + 2];
+                uint8_t a = pal->palette[i * 4 + 3];
+                paletteBuffer[i] = {
+                    a, r, g, b};
             }
-            memcpy(palette, state.info_raw.palette, state.info_raw.palettesize);
-            // tObj->palette = palette;
-            // tObj->paletteLength = state.info_raw.palettesize;
+
+            tObj->bpp = state.info_raw.bitdepth;
+            tObj->palette = paletteBuffer;
+            tObj->paletteLength = pal->palettesize;
+
+            tObj->bitmap = bitmap;
+            tObj->bitmapLength = w * h;
         }
+        else
+        {
+            int bitmapLen = w * h * 2;
+            uint8_t *dst = new uint8_t[bitmapLen];
+            if (!dst)
+                return fail(4);
+
+            memset(dst, 0, bitmapLen);
+            unsigned numPixels = w * h;
+            for (unsigned i = 0; i < numPixels; i++)
+            {
+                uint8_t r = bitmap[i * 4 + 0];
+                uint8_t g = bitmap[i * 4 + 1];
+                uint8_t b = bitmap[i * 4 + 2];
+                uint8_t a = bitmap[i * 4 + 3];
+
+                // Alpha bit only for semi-transparent
+                uint16_t px = ((a < 127 ? 0x8000 : 0) |
+                               ((r & 0xF8) << 7) |
+                               ((g & 0xF8) << 2) |
+                               ((b & 0xF8) >> 3));
+                dst[i * 2 + 0] = (px & 0xFF);
+                dst[i * 2 + 1] = ((px >> 8) & 0xFF);
+            }
+            delete[] bitmap;
+            bitmap = dst;
+
+            tObj->bitmap = bitmap;
+            tObj->bitmapLength = bitmapLen;
+            tObj->bpp = 16;
+        }
+
+        tObj->width = w;
+        tObj->height = h;
+
         lodepng_state_cleanup(&state);
         return tObj;
     }
@@ -120,103 +158,103 @@ namespace Textures
         if (result != GIFN_OK)
             return nullptr;
 
-        if (gif.frameCount > 1)
+        // if (gif.frameCount > 1)
+        //{
+        // TODO: Animated image support
+        // Sprites::SpriteObject *tObj = Sprites::createSprite(objectID);
+        //}
+        // else
+        //{
+        tObj = Textures::createTexture(objectID);
+        if (!tObj)
         {
-            // TODO: Animated image support
-            // Sprites::SpriteObject *tObj = Sprites::createSprite(objectID);
+            gifn_cleanup(&gif);
+            return nullptr;
         }
-        else
+
+        // Allocate palette buffers
+        uint32_t *palette_u32 = nullptr;
+        Video::Color *vcPalette = new Video::Color[gif.header.gctSize];
+        if (!vcPalette)
         {
-            tObj = Textures::createTexture(objectID);
-            if (!tObj)
-            {
-                gifn_cleanup(&gif);
-                return nullptr;
-            }
+            gifn_cleanup(&gif);
+            return nullptr;
+        }
 
-            // Allocate palette buffers
-            uint32_t *palette_u32 = nullptr;
-            Video::Color *vcPalette = new Video::Color[gif.header.gctSize];
-            if (!vcPalette)
-            {
-                gifn_cleanup(&gif);
-                return nullptr;
-            }
+        gifn_color_table_as_u32(gif.header.gct, gif.header.gctSize, &palette_u32, false);
+        if (!palette_u32 || !gif.header.gctSize)
+        {
+            delete[] vcPalette;
+            delete tObj;
+            gifn_cleanup(&gif);
+            return nullptr;
+        }
 
-            gifn_color_table_as_u32(gif.header.gct, gif.header.gctSize, &palette_u32, false);
-            if (!palette_u32 || !gif.header.gctSize)
+        // Expand decoded indices to match engine’s minimum bpp (4 bits)
+        // choose correct palette
+        // const GIF_Color *active_ct = gif.frames[0].lct ? gif.frames[0].lct : gif.header.gct;
+        int ctSize = gif.frames[0].lctSize ? gif.frames[0].lctSize : gif.header.gctSize;
+
+        // use actual frame size, not full logical screen
+        int numPix = gif.frames[0].w * gif.frames[0].h;
+
+        int bits = (ctSize <= 2) ? 1 : (ctSize <= 4) ? 2
+                                   : (ctSize <= 16)  ? 4
+                                                     : 8;
+
+        uint8_t *workBuffer = gif.frames[0].indices;
+        if (bits < 4)
+        {
+            // Upconvert to 4bpp
+            size_t nPx = (numPix / 2);
+            size_t padding = (16 - ((nPx / 4) % 16));
+            nPx += padding * 4;
+            uint8_t *expanded = new uint8_t[nPx];
+            if (!expanded)
             {
                 delete[] vcPalette;
+                delete[] palette_u32;
                 delete tObj;
                 gifn_cleanup(&gif);
                 return nullptr;
             }
 
-            // Expand decoded indices to match engine’s minimum bpp (4 bits)
-            // choose correct palette
-            // const GIF_Color *active_ct = gif.frames[0].lct ? gif.frames[0].lct : gif.header.gct;
-            int ctSize = gif.frames[0].lctSize ? gif.frames[0].lctSize : gif.header.gctSize;
-
-            // use actual frame size, not full logical screen
-            int numPix = gif.frames[0].w * gif.frames[0].h;
-
-            int bits = (ctSize <= 2) ? 1 : (ctSize <= 4) ? 2
-                                       : (ctSize <= 16)  ? 4
-                                                         : 8;
-
-            uint8_t *data = gif.frames[0].indices;
-            if (bits < 4)
+            memset(expanded, 0, nPx);
+            bool hp = false; // upper pixel nibble
+            int b = 0;
+            for (int i = 0; i < numPix; i++)
             {
-                // Upconvert to 4bpp
-                size_t nPx = (numPix / 2);
-                size_t padding = (16 - ((nPx / 4) % 16));
-                nPx += padding * 4;
-                uint8_t *expanded = new uint8_t[nPx];
-                if (!expanded)
-                {
-                    delete[] vcPalette;
-                    delete[] palette_u32;
-                    delete tObj;
-                    gifn_cleanup(&gif);
-                    return nullptr;
-                }
-
-                memset(expanded, 0, nPx);
-                bool hp = false; // upper pixel nibble
-                int b = 0;
-                for (int i = 0; i < numPix; i++)
-                {
-                    expanded[b] |= ((gif.frames[0].indices[i] & 0xF) << (4 * hp));
-                    hp = !hp;
-                    if (!hp) b++;
-                }
-                numPix = nPx;
-                data = expanded;
-                bits = 4;
+                expanded[b] |= ((gif.frames[0].indices[i] & 0xF) << (4 * hp));
+                hp = !hp;
+                if (!hp) b++;
             }
-            else
-            {
-                gif.frames[0].indices = nullptr;
-            }
-
-            tObj->bpp = bits;
-
-            for (int i = 0; i < gif.header.gctSize; i++)
-            {
-                vcPalette[i] = {((0xFFu << 24) | palette_u32[i])};
-            }
-
-            tObj->height = gif.header.height;
-            tObj->width = gif.header.width;
-            tObj->loadTextureFromMem(
-                data,
-                numPix,
-                vcPalette,
-                gif.header.gctSize);
-
-            // free temporary palette_u32 (caller owns this one)
-            delete[] palette_u32;
+            numPix = nPx;
+            workBuffer = expanded;
+            bits = 4;
         }
+        else
+        {
+            gif.frames[0].indices = nullptr;
+        }
+
+        tObj->bpp = bits;
+
+        for (int i = 0; i < gif.header.gctSize; i++)
+        {
+            vcPalette[i] = {((0xFFu << 24) | palette_u32[i])};
+        }
+
+        tObj->height = gif.header.height;
+        tObj->width = gif.header.width;
+        tObj->loadTextureFromMem(
+            workBuffer,
+            numPix,
+            vcPalette,
+            gif.header.gctSize);
+
+        // free temporary palette_u32 (caller owns this one)
+        delete[] palette_u32;
+        //}
 
         gifn_cleanup(&gif);
         return tObj;

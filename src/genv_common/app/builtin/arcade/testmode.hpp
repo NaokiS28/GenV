@@ -32,18 +32,18 @@ private:
     );
 
 public:
-    static ArcadeTestApp *createArcadeApp() { return new GenVTestApp; }
-    static Application *createApp() { return new GenVTestApp; }
+    static ArcadeTestApp *createArcadeApp(IAppHost *host) { return new GenVTestApp(host); }
+    static Application *createApp(IAppHost *host) { return new GenVTestApp(host); }
     static constexpr const AppInfo &infoStatic() { return appInfo; }
 
-    GenVTestApp();
+    GenVTestApp(IAppHost *host);
 
-    static inline ArcadeTestApp *create()
+    static inline ArcadeTestApp *create(IAppHost *host)
     {
-        return new GenVTestApp();
+        return new GenVTestApp(host);
     }
 
-    int init(IAppHost *host) override;
+    int init() override;
     void update(void) override;
     void render(void) override;
 

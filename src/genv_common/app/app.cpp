@@ -20,8 +20,9 @@
 
 namespace Apps
 {
-    Application::Application() : gpu(Services::getVideo())
+    Application::Application(IAppHost *host) : gpu(Services::getVideo())
     {
+        m_host = host;
         state = APP_STATE_LOAD;
         type = APP_TYPE_NORMAL_APP;
     }
@@ -76,8 +77,9 @@ namespace Apps
         this->len = len;
     }
 
-    Application::Application(Video::IVideo *_gpu) : gpu(_gpu)
+    Application::Application(IAppHost *host, Video::IVideo *_gpu) : gpu(_gpu)
     {
+        m_host = host;
         state = APP_STATE_LOAD;
     }
 
@@ -89,14 +91,16 @@ namespace Apps
 
     /* Application Loader Preset */
 
-    LoadScreenApp::LoadScreenApp() : Application(Services::getVideo())
+    LoadScreenApp::LoadScreenApp(IAppHost *host, Application *appToLoad)
+        : Application(host, Services::getVideo()),
+          _appToLoad(appToLoad)
     {
+        m_host = host;
         type = APP_TYPE_LOADING_SCREEN;
     }
 
-    int LoadScreenApp::init(IAppHost *host)
+    int LoadScreenApp::init()
     {
-        setHost(host);
         return 0;
     }
 
@@ -104,8 +108,9 @@ namespace Apps
     {
     }
 
-    ErrorScreenApp::ErrorScreenApp() : Application(Services::getVideo())
+    ErrorScreenApp::ErrorScreenApp(IAppHost *host) : Application(host, Services::getVideo())
     {
+        m_host = host;
         type = APP_TYPE_ERROR_SCREEN;
     }
 
@@ -117,9 +122,8 @@ namespace Apps
             delete errorSound;
     }
 
-    int ErrorScreenApp::init(IAppHost *host)
+    int ErrorScreenApp::init()
     {
-        setHost(host);
         return 0;
     }
 
@@ -129,15 +133,15 @@ namespace Apps
 
     /* Arcade Test App Preset */
 
-    ArcadeTestApp::ArcadeTestApp() : Application(Services::getVideo())
+    ArcadeTestApp::ArcadeTestApp(IAppHost *host) : Application(host, Services::getVideo())
     {
+        m_host = host;
         aSystem = System::GetArcadeInterface();
         type = APP_TYPE_ARCADE_TEST_APP;
     }
 
-    int ArcadeTestApp::init(IAppHost *host)
+    int ArcadeTestApp::init()
     {
-        setHost(host);
         return 0;
     }
 
@@ -151,4 +155,4 @@ namespace Apps
             return nullptr;
         return static_cast<ArcadeTestApp *>(app);
     }
-}
+} // namespace Apps

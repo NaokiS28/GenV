@@ -104,7 +104,7 @@ namespace Apps
         {
             const char *str = app->name();
             APPMGR_LOG("Init application: %s", str);
-            app->init(this);
+            app->init();
             break;
         }
 
@@ -191,7 +191,7 @@ namespace Apps
         if (!factory)
             factory = appFactories[0];
 
-        foregroundApp = factory();
+        foregroundApp = factory(this);
         if (!foregroundApp)
         {
             showErrorScreen("APP INIT FAILURE",
@@ -204,7 +204,7 @@ namespace Apps
 
         if (loadScreenFactory)
         {
-            loadingScreen = loadScreenFactory(foregroundApp);
+            loadingScreen = loadScreenFactory(this, foregroundApp);
         }
         if (!loadingScreen)
         {
@@ -309,7 +309,7 @@ namespace Apps
             APPMGR_LOG("Failed to create app for ID %X: %s", id, s_factoryNotExists);
             return nullptr;
         }
-        return factory();
+        return factory(this);
     }
 
     void AppManager::closeApp(AppSelect type)
@@ -392,11 +392,11 @@ namespace Apps
             }
         }
         APPMGR_LOG("Error screen shown: (%s): %s", msg->title, msg->message);
-        errorScreen = errorScreenFactory ? errorScreenFactory(msg) : nullptr;
+        errorScreen = errorScreenFactory ? errorScreenFactory(this, msg) : nullptr;
         return (errorScreen != nullptr);
     }
 
-    void AppManager::registerApplicationFactory(Application *(*factory)(), const AppInfo *info, AppScreenType type)
+    void AppManager::registerApplicationFactory(Application *(*factory)(IAppHost *host), const AppInfo *info, AppScreenType type)
     {
         const int code = appFactories.addFactory(factory, info, type);
         if (code != 0)
@@ -431,7 +431,7 @@ namespace Apps
         }
     }
 
-    void AppManager::registerLoadingScreenFactory(LoadScreenApp *(*factory)(Application *appToLoad), const AppInfo *info)
+    void AppManager::registerLoadingScreenFactory(LoadScreenApp *(*factory)(IAppHost *host, Application *appToLoad), const AppInfo *info)
     {
         const char *str = nullptr;
         if (!factory)
@@ -448,7 +448,7 @@ namespace Apps
         loadScreenInfo = info;
     }
 
-    void AppManager::registerErrorScreenFactory(ErrorScreenApp *(*factory)(ErrorScreenMessage *msg), const AppInfo *info)
+    void AppManager::registerErrorScreenFactory(ErrorScreenApp *(*factory)(IAppHost *host, ErrorScreenMessage *msg), const AppInfo *info)
     {
         const char *str = nullptr;
         if (!factory)
@@ -543,7 +543,7 @@ namespace Apps
             {
                 foregroundApp = next;
                 foregroundApp->setAppState(APP_STATE_INIT);
-                foregroundApp->init(this);
+                foregroundApp->init();
             }
             else
             {
@@ -671,7 +671,7 @@ namespace Apps
             }
 
             appMgr->registerErrorScreenFactory(DefaultErrorScreen::create, &DefaultErrorScreen::infoStatic());
-            appMgr->registerLoadingScreenFactory(TMSS::createApp, &TMSS::infoStatic());
+            appMgr->registerLoadingScreenFactory(GVSS::createApp, &GVSS::infoStatic());
             int r = appMgr->init();
             if (r != 0)
             {

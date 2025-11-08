@@ -39,9 +39,9 @@ namespace Apps
     class AppManager : public IAppHost
     {
     private:
-        typedef Application *(*AppFactory)();
-        typedef LoadScreenApp *(*LoadScreenFactory)(Application *appToLoad);
-        typedef ErrorScreenApp *(*ErrorScreenFactory)(ErrorScreenMessage *msg);
+        typedef Application *(*AppFactory)(IAppHost *host);
+        typedef LoadScreenApp *(*LoadScreenFactory)(IAppHost *host, Application *appToLoad);
+        typedef ErrorScreenApp *(*ErrorScreenFactory)(IAppHost *host, ErrorScreenMessage *msg);
 
         enum AppTestmodeSetup : uint8_t
         {
@@ -156,9 +156,9 @@ namespace Apps
 
         // App factory registry
         void removeApplicationFactory(AppID id) override;
-        void registerApplicationFactory(Application *(*factory)(), const AppInfo *info, AppScreenType type) override;
-        void registerErrorScreenFactory(ErrorScreenApp *(*factory)(ErrorScreenMessage *msg), const AppInfo *info) override;
-        void registerLoadingScreenFactory(LoadScreenApp *(*factory)(Application *appToLoad), const AppInfo *info) override;
+        void registerApplicationFactory(Application *(*factory)(IAppHost *host), const AppInfo *info, AppScreenType type) override;
+        void registerErrorScreenFactory(ErrorScreenApp *(*factory)(IAppHost *host, ErrorScreenMessage *msg), const AppInfo *info) override;
+        void registerLoadingScreenFactory(LoadScreenApp *(*factory)(IAppHost *host, Application *appToLoad), const AppInfo *info) override;
     };
 
     AppManager *getAppManager();

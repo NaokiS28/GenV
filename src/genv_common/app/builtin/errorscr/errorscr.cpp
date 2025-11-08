@@ -17,6 +17,7 @@
 
 #include "errorscr.hpp"
 
+#include "app/app.hpp"
 #include "common/util/templates.hpp"
 #include "common/services/services.hpp"
 
@@ -24,15 +25,17 @@
 
 using namespace Apps;
 
-DefaultErrorScreen::DefaultErrorScreen(ErrorScreenMessage *msg) : colorIntensity(UINT8_MAX)
+DefaultErrorScreen::DefaultErrorScreen(IAppHost *host, ErrorScreenMessage *msg)
+    : ErrorScreenApp(host),
+      colorIntensity(UINT8_MAX)
+
 {
     setAppState(APP_STATE_INIT);
     this->msg = msg;
 }
 
-int DefaultErrorScreen::init(IAppHost *host)
+int DefaultErrorScreen::init()
 {
-    m_host = host;
     setAppState(APP_STATE_RUN);
     area = RectWH(
         gpu->getHorizontalRes() / 10,

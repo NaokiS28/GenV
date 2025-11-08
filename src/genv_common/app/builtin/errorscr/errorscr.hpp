@@ -57,11 +57,12 @@ private:
     Util::Tween<uint16_t, Util::QuadInEasing> jumpOut;
     Util::Tween<uint16_t, Util::QuadOutEasing> jumpIn;
 
-    DefaultErrorScreen(ErrorScreenMessage *msg);
+    DefaultErrorScreen(IAppHost *host, ErrorScreenMessage *msg);
 
 public:
     // Factory method when creating the message inside
     static ErrorScreenApp *create(
+        IAppHost *host,
         const char *title,
         const char *text,
         const uint32_t errorCode,
@@ -72,22 +73,22 @@ public:
         if (!nMsg)
             nMsg = &eMsgUnknownMsg;
 
-        return new DefaultErrorScreen(nMsg);
+        return new DefaultErrorScreen(host, nMsg);
     }
 
     // Factory method when the user already has an ErrorScreenMessage*
-    static ErrorScreenApp *create(ErrorScreenMessage *msg)
+    static ErrorScreenApp *create(IAppHost *host, ErrorScreenMessage *msg)
     {
         if (!msg)
             msg = &eMsgUnknownMsg;
-        return new DefaultErrorScreen(msg);
+        return new DefaultErrorScreen(host, msg);
     }
 
     static constexpr const AppInfo &infoStatic() { return appInfo; }
 
     ~DefaultErrorScreen();
 
-    int init(IAppHost *host) override;
+    int init() override;
     void update() override;
     void render() override;
     void reload() override;

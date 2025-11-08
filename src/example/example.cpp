@@ -32,20 +32,19 @@ private:
     Coord txtOrigin;
 
 public:
-    static Application *createApp()
+    static Application *createApp(IAppHost *host)
     {
-        return new GenV_Demo;
+        return new GenV_Demo(host);
     }
     static constexpr const AppInfo &infoStatic()
     {
         return appInfo;
     }
 
-    GenV_Demo() : Application() {}
+    GenV_Demo(IAppHost *host) : Application(host) {}
 
-    int init(IAppHost *host) override
+    int init() override
     {
-        setHost(host);
         setAppState(APP_STATE_RUN);
         reload();
         // Textures::TextureObject *textTest[256];
