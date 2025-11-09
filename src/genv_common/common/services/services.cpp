@@ -18,6 +18,7 @@
 #include "services.hpp"
 #include "common/logger/log.hpp"
 
+#include "common/return_codes.hpp"
 #include "common/services/adminkey.hpp"
 #include "common/services/io/inputman.hpp"
 #include "common/services/perfmon.hpp"
@@ -102,25 +103,22 @@ constexpr const char *szGetErrorString(int errorcode)
     }
 }
 
-int Services::init()
+int Services::createManagers()
 {
     int error = 0;
     s_storage = new Files::StorageManager(AdminClass_Key());
     if (!s_storage) error = makeErrorCode(SN_STORAGE, SE_NULLPTR);
-    if (s_storage->init() != 0) error = makeErrorCode(SN_STORAGE, SE_INIT_FAILED);
 
     if (!error)
     {
         s_input = new Input::InputManager(AdminClass_Key());
         if (!s_input) error = makeErrorCode(SN_INPUT, SE_NULLPTR);
-        if (s_input->init() != 0) error = makeErrorCode(SN_INPUT, SE_INIT_FAILED);
     }
 
     if (!error)
     {
         s_fonts = new Fonts::FontManager(AdminClass_Key());
         if (!s_fonts) error = makeErrorCode(SN_FONT, SE_NULLPTR);
-        if (s_fonts->init() != 0) error = makeErrorCode(SN_FONT, SE_INIT_FAILED);
     }
 
     if (error)
@@ -128,6 +126,15 @@ int Services::init()
             szGetErrorString(error),
             szServiceName(error),
             getErrorCode(error));
+    return error;
+}
+
+int Services::init()
+{
+    int error = 0;
+    if (s_storage->init() != GV_OK) error = makeErrorCode(SN_STORAGE, SE_INIT_FAILED);
+    if (s_input->init() != GV_OK) error = makeErrorCode(SN_INPUT, SE_INIT_FAILED);
+    if (s_fonts->init() != GV_OK) error = makeErrorCode(SN_FONT, SE_INIT_FAILED);
     return error;
 }
 

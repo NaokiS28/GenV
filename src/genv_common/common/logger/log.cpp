@@ -39,7 +39,7 @@ namespace Logs
     char *LogBuffer::allocateLine(void)
     {
         size_t tail = _tail;
-        _tail = (tail + 1) % MAX_LOG_LINES;
+        _tail       = (tail + 1) % MAX_LOG_LINES;
 
         return _lines[tail];
     }
@@ -84,7 +84,7 @@ namespace Logs
     {
         // CriticalSection sec;
 
-        tm time;
+        tm time   = {0};
         char *str = new char[MAX_LOG_LINE_LENGTH];
         if (!str)
             return;

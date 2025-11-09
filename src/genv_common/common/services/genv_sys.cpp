@@ -38,11 +38,38 @@
 
 #define GENV_LOG(fmt, ...) LOG("genv", fmt, __VA_ARGS__)
 
+#define abortIf(ptr, func, name)                \
+    {                                           \
+        if (!ptr)                               \
+        {                                       \
+            GENV_LOG(badPointerStr, name);      \
+            halt();                             \
+        }                                       \
+        int r = func;                           \
+        if (r != GV_OK)                         \
+        {                                       \
+            GENV_LOG(failedToInitFmt, name, r); \
+            halt();                             \
+        }                                       \
+    }
+
+#define warnIf(func, name)                      \
+    {                                           \
+        int r = func;                           \
+        if (r != GV_OK)                         \
+        {                                       \
+            GENV_LOG(failedToInitFmt, name, r); \
+        }                                       \
+    }
+
+constexpr const char failedToInitFmt[] = "%s failed to init with error: %X";
+constexpr const char badPointerStr[]   = "%s pointer is nullptr!";
+
 void GenvSystemClass::startup()
 {
     System::ISystem *system = System::makeNewSystem();
-    Audio::IAudio *audio = new Audio::NullAudio();
-    Video::IVideo *video = new Video::NullVideo();
+    Audio::IAudio *audio    = new Audio::NullAudio();
+    Video::IVideo *video    = new Video::NullVideo();
 
     Services::setAudio(adminKey, audio);
     Services::setVideo(adminKey, video);
@@ -53,23 +80,28 @@ void GenvSystemClass::startup()
     GENV_LOG("Genv build date: " GENV_BDATE);
     GENV_LOG("System is: %s %s", system->getSysInfo()->make, system->getSysInfo()->name);
     GENV_LOG("System type: %s", System::getSystemTypeString(system->getSysInfo()->type));
+
+    // What constitues an 'OS' is not to be decided by GenV, but if there's a kernel or OS version number,
+    // it should be shown.
     if (system->getSysInfo()->osname != nullptr)
     {
         GENV_LOG("OS Version: %s", system->getSysInfo()->osname);
     }
 
-    if (system == nullptr || system->init() != 0)
-    {
-        GENV_LOG("System manager failed to init.");
-        halt();
-    }
+    // The starting sequence needs to be handled carefully:
+    // * The system core must be set up first for handling system interrupts and similar
+    // * Then the managers must be created for IO, store and such
+    // * The video system is init'd first since if it is not, then the next step will fail
+    // * The managers are init'd which uploads items like the default texture and default font
+    abortIf(system, system->initCore(), "System core");
+    abortIf(system, Services::createManagers(), "Service managers");
+    abortIf(system, system->initVideo(), "Video driver");
+    abortIf(system, Services::init(), "Service managers");
 
-    int service = Services::init();
-    if (service != 0)
-    {
-        GENV_LOG("Core managers failed to init.");
-        halt();
-    }
+    // Past this point, the most critical systems are running
+    warnIf(system->initAudio(), "Audio driver");
+    warnIf(system->initIO(), "IO driver");
+    warnIf(system->initStorage(), "Storage driver");
 }
 
 void GenvSystemClass::shutdown()

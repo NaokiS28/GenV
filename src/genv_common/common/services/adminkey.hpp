@@ -25,6 +25,9 @@ namespace System
 }
 
 // Allow access to administrative functions to specific classes.
+// This exists purely to restrict what functions and classes can
+// modify critical system resources. It should not need to be touched
+// by anything else.
 class AdminClass_Key
 {
     friend class Services;
@@ -32,5 +35,5 @@ class AdminClass_Key
     friend class System::ISystem;
 
 private:
-    AdminClass_Key();
+    inline AdminClass_Key() {}
 };

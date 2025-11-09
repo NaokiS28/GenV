@@ -19,6 +19,8 @@
 
 #include "adminkey.hpp"
 
+// Core GenV class. This exists as a class so it can use the adminkey system
+// to directly manipulate the services available. Else it would be C, trust me ken.
 class GenvSystemClass
 {
 private:

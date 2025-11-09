@@ -28,8 +28,32 @@ namespace System
                    : nullptr;
     };
 
-    size_t millis(){ return Services::getSystem()->millis(); }
-    size_t random(size_t min, size_t max){ return Services::getSystem()->random(min, max); }
-    bool getTime(tm &time){ return Services::getSystem()->getTime(time); }
-    size_t getTime(){ return 0; }
-}
+    size_t millis()
+    {
+        ISystem *sys = Services::getSystem();
+        if (sys)
+            return sys->millis();
+        return false;
+    }
+
+    size_t random(size_t min, size_t max)
+    {
+        ISystem *sys = Services::getSystem();
+        if (sys)
+            return sys->random(min, max);
+        return false;
+    }
+
+    bool getTime(tm &time)
+    {
+        ISystem *sys = Services::getSystem();
+        if (sys)
+            return sys->getTime(time);
+        return false;
+    }
+
+    size_t getTime()
+    {
+        return 0;
+    }
+} // namespace System

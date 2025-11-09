@@ -40,19 +40,24 @@ namespace System
 
     public:
         ISystem() : adminKey(AdminClass_Key()) {};
-        virtual ~ISystem() = default;
-        ISystem(ISystem &other) = delete;
+        virtual ~ISystem()              = default;
+        ISystem(ISystem &other)         = delete;
         void operator=(const ISystem &) = delete;
 
-        virtual int init() = 0;      // Init system then load and init hardware services
-        virtual int update() = 0;    // Update system manager
+        virtual int initCore()    = 0; // Init system core
+        virtual int initVideo()   = 0;
+        virtual int initAudio()   = 0;
+        virtual int initIO()      = 0;
+        virtual int initStorage() = 0;
+
+        virtual int update()    = 0; // Update system manager
         virtual bool shutdown() = 0; // Prepare for app shutdow
 
         virtual const SystemInfo *getSysInfo() const = 0;
 
         virtual size_t millis() = 0; // Millis since system start
         virtual size_t random(size_t min, size_t max)
-        {                            // Gets a random number between given values
+        { // Gets a random number between given values
             return ((min + rand()) % max);
         }
         virtual bool getTime(tm &time) = 0;
@@ -60,6 +65,6 @@ namespace System
         virtual const char *getWorkingDirectory() = 0;
 
         virtual bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq) = 0;
-        virtual bool unregisterTimerFunc(TFunc func, TChannel timer) = 0;
+        virtual bool unregisterTimerFunc(TFunc func, TChannel timer)             = 0;
     };
 } // namespace System

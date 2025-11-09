@@ -30,6 +30,13 @@
 #include "common/services/io/inputman.hpp"
 #include "common/services/storage/storeman.hpp"
 
+// Services uses pointers to avoid issues with atexit() as not all platforms implement this.
+// Using pointers allows the services class to be entirely static. We do this so there's no
+// need for functions or classes to have to find the existing resource. We also do it this
+// way because of the atexit issue, as a static function to return a static instance crashes
+// on bare-metal platforms like PS1. This is the same reason why all the managers are pointers,
+// so we control the lifecycle to avoid this.
+
 class Services
 {
     friend class GenvSystemClass;
@@ -49,26 +56,27 @@ public:
     static inline bool addInputDevice(Input::IInput *dev)
     {
         if (!s_input || !dev) return false;
-        return s_input->attachDevice(dev); // implement attachDevice(...)
+        return s_input->attachDevice(dev);
     }
     static inline bool removeInputDevice(Input::IInput *dev)
     {
         if (!s_input || !dev) return false;
-        return s_input->detachDevice(dev); // implement detachDevice(...)
+        return s_input->detachDevice(dev);
     }
     static inline bool addStorageDevice(Files::IStorageDevice *dev)
     {
         if (!s_storage || !dev) return false;
-        return s_storage->attachDevice(dev); // implement attachDevice(...)
+        return s_storage->attachDevice(dev);
     }
     static inline bool removeStorageDevice(Files::IStorageDevice *dev)
     {
         if (!s_storage || !dev) return false;
-        return s_storage->detachDevice(dev); // implement detachDevice(...)
+        return s_storage->detachDevice(dev);
     }
     static int update();
 
 private:
+    static int createManagers();
     static int init();
     static void shutdown();
 
