@@ -22,3 +22,4 @@
 constexpr const uint32_t Genv_GIF_type = "GIFI"_c;
 constexpr const uint32_t Genv_PNG_type = "PNGI"_c;
 constexpr const uint32_t Genv_BMP_type = "BMPI"_c;
+constexpr const uint32_t Genv_WAV_type = "WAVE"_c;

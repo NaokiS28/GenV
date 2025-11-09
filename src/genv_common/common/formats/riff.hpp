@@ -19,32 +19,21 @@
 #include <stdint.h>
 #include "common/objects/file.hpp"
 #include "common/util/hash.hpp"
+#include "common/util/templates.hpp"
 #include "common/return_codes.hpp"
 
-using FourCC = const char;
-using FourCCInt = uint32_t;
-constexpr FourCC fourccRIFF[] = "RIFF";
-constexpr FourCC fourccDATA[] = "data";
-constexpr FourCC fourccFMT[] = "fmt ";
-constexpr FourCC fourccWAVE[] = "WAVE";
-constexpr FourCC fourccXWMA[] = "XWMA";
-constexpr FourCC fourccDPDS[] = "dpds";
-
-constexpr const uint32_t fourccNULL = UINT32_MAX;
-
-static constexpr inline uint32_t fccToUInt(FourCC *str, int len)
-{
-    if (len >= 4)
-        return (str[0] | str[1] << 8 | str[2] << 16 | str[3] << 24);
-    else
-        return 0;
-}
-
-#define FCC(str) fccToUInt(str, sizeof(str))
+using FourCC = uint32_t;
+constexpr FourCC fccRIFF = "RIFF"_c;
+constexpr FourCC fccDATA = "data"_c;
+constexpr FourCC fccFMT = "fmt "_c;
+constexpr FourCC fccWAVE = "WAVE"_c;
+constexpr FourCC fccXWMA = "XWMA"_c;
+constexpr FourCC fccDPDS = "dpds"_c;
+constexpr FourCC fccNULL = UINT32_MAX;
 
 struct RIFFHeader
 {
-    uint32_t magic = FCC(fourccRIFF);
+    uint32_t magic = fccRIFF;
     uint32_t size = 0;
     uint32_t format = 0;
 };

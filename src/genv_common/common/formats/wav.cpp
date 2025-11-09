@@ -38,9 +38,9 @@ int WaveFile::loadSoundFile(const char *filePath)
     {
         file.rewind();
         file.readAs<RIFFHeader>();
-        file.skipToChunk(FCC(fourccFMT));
+        file.skipToChunk(fccFMT);
         waveFormat = file.readAs<WaveFormat>();
-        file.skipToChunk(FCC(fourccDATA));
+        file.skipToChunk(fccDATA);
         waveData.blockID = file.readAs<uint32_t>();
         waveData.dataSize = file.readAs<uint32_t>();
         waveData.data = file.position();

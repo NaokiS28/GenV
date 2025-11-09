@@ -15,7 +15,7 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "soundfile.hpp"
+#include "sound_file.hpp"
 #include <string.h>
 #include "wav.hpp"
 
@@ -37,9 +37,9 @@ namespace Audio
     constexpr const AudioFileFormat AudioFormatList[] = {
         afWaveFile};
 
-    Audio::SoundObject *openAudioFile(util::Hash objectID, const char *filePath, size_t pathLen)
+    Audio::SoundObject *openAudioFile(util::Hash objectID, const char *filePath)
     {
-        if (filePath == nullptr || pathLen == 0)
+        if (filePath == nullptr)
             return nullptr;
 
         Audio::SoundObject *sObj = nullptr;
@@ -59,6 +59,21 @@ namespace Audio
                 }
             }
         }
+
+        return sObj;
+    }
+
+    Audio::SoundObject *openAudioMemory(util::Hash objectID, const uint8_t *data, size_t dataLen)
+    {
+        if (data == nullptr || dataLen == 0)
+            return nullptr;
+
+        Audio::SoundObject *sObj = nullptr;
+
+        // for (auto &af : AudioFormatList)
+        //{
+
+        //}
 
         return sObj;
     }

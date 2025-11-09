@@ -31,10 +31,10 @@ bool RIFFObject::isRIFF(Files::FileObject *fObj, uint32_t fcc)
     if (hdr.size >= (sizeof(RIFFHeader) - 8))
     {
         bool result = true;
-        if (fcc != fourccNULL)
+        if (fcc != fccNULL)
             result = (hdr.format == fcc);
 
-        return (hdr.magic == FCC(fourccRIFF) &&
+        return (hdr.magic == fccRIFF &&
                 hdr.size == (fObj->size() - 8) &&
                 result);
     }
@@ -46,7 +46,7 @@ int RIFFObject::openFile(const char *filePath, bool lock)
     int result = FileObject::openFile(filePath, lock);
     if (result == GV_OK)
     {
-        if (!isRIFF(this, fourccNULL))
+        if (!isRIFF(this, fccNULL))
         {
             FileObject::closeFile();
             return GV_ERR_INCOMPATIBLE_TYPE;
@@ -61,15 +61,15 @@ int RIFFObject::openFile(const char *filePath, bool lock)
 bool RIFFObject::skipToChunk(uint32_t fcc)
 {
     FileObject::rewind();
-    while (FileObject::available() > sizeof(FourCCInt))
+    while (FileObject::available() > sizeof(FourCC))
     {
-        FourCCInt i = FileObject::readAs<FourCCInt>();
+        FourCC i = FileObject::readAs<FourCC>();
         if (i == fcc)
         {
-            FileObject::rewind(sizeof(FourCCInt));
+            FileObject::rewind(sizeof(FourCC));
             return true;
         }
-        FileObject::rewind(sizeof(FourCCInt) - 1);
+        FileObject::rewind(sizeof(FourCC) - 1);
     }
     return false;
 }

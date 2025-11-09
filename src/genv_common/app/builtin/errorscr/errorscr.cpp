@@ -56,11 +56,11 @@ int DefaultErrorScreen::init()
         Video::msToFrames(toastAnimTime));
     playSound = true;
     animState = INTRO_RUN;
-    errorSound = new WaveFile(eMsgSoundFile);
-    if (Services::getAudio()->uploadSample(errorSound) == GV_OK)
-    {
-        // close sound file?
-    }
+    // errorSound = new WaveFile(eMsgSoundFile);
+    // if (Services::getAudio()->uploadSample(errorSound) == GV_OK)
+    //{
+    // close sound file?
+    //}
 
     ArcadeFunc(
         if (msg->style == EM_STYLE_CRITICAL_ERROR)

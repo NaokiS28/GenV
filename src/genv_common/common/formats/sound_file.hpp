@@ -21,5 +21,7 @@
 
 namespace Audio
 {
-    Audio::SoundObject *openAudioFile(util::Hash objectID, const char *filePath, size_t pathLen);
-}
+    Audio::SoundObject *loadWAV_memory(util::Hash objectID, const uint8_t *data, const size_t length);
+    Audio::SoundObject *openAudioFile(util::Hash objectID, const char *filePath);
+    Audio::SoundObject *openAudioMemory(util::Hash objectID, uint32_t type, const uint8_t *data, size_t dataLen);
+} // namespace Audio

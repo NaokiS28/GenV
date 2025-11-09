@@ -32,18 +32,18 @@ public:
     // Validates Wave header
     static inline bool isWave(Files::FileObject *fObj)
     {
-        return RIFFObject::isRIFF(fObj, FCC(fourccWAVE));
+        return RIFFObject::isRIFF(fObj, fccWAVE);
     }
 
     static inline bool isWave(const char *filePath)
     {
-        return RIFFObject::isRIFF(filePath, FCC(fourccWAVE));
+        return RIFFObject::isRIFF(filePath, fccWAVE);
     }
 
 private:
     struct WaveFormat
     {
-        uint32_t blockID = FCC(fourccFMT);
+        uint32_t blockID = fccFMT;
         uint32_t chunkSize = 0;
         uint16_t audioFormat = 0;
         uint16_t numChannels = 0;
@@ -55,7 +55,7 @@ private:
 
     struct WaveData
     {
-        uint32_t blockID = FCC(fourccDATA);
+        uint32_t blockID = fccDATA;
         uint32_t dataSize = 0;
         uint32_t data = 0;
     } waveData;
