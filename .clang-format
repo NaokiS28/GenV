@@ -42,3 +42,5 @@ AllowShortIfStatementsOnASingleLine: WithoutElse
 
 # Preprocessor at column 0 (nice for bare-metal work)
 IndentPPDirectives: None
+
+AlignConsecutiveAssignments: Consecutive

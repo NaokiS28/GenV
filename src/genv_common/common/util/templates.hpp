@@ -299,7 +299,7 @@ namespace util
             if (ptr)
                 delete[] as<uint8_t>();
 
-            ptr = _length ? (new uint8_t[_length]) : nullptr;
+            ptr    = _length ? (new uint8_t[_length]) : nullptr;
             length = _length;
 
             return ptr;
@@ -335,7 +335,7 @@ namespace util
                 return nullptr;
 
             auto i = _tail;
-            _tail = (i + 1) % N;
+            _tail  = (i + 1) % N;
             length++;
 
             return &_items[i];
@@ -346,7 +346,7 @@ namespace util
                 return nullptr;
 
             auto i = _head;
-            _head = (i + 1) % N;
+            _head  = (i + 1) % N;
             length--;
 
             return &_items[i];
@@ -411,7 +411,7 @@ namespace util
                 {
                     if (idx < _top)
                     {
-                        _items[idx] = _items[idx + 1];
+                        _items[idx]     = _items[idx + 1];
                         _items[idx + 1] = item;
                     }
                     return;
@@ -434,7 +434,7 @@ namespace util
                 {
                     if (idx < _top)
                     {
-                        _items[idx] = _items[idx - 1];
+                        _items[idx]     = _items[idx - 1];
                         _items[idx - 1] = item;
                     }
                     return;
@@ -472,7 +472,7 @@ namespace util
             if (!length)
                 return {};
 
-            int idx = 0;
+            int idx    = 0;
             bool found = false;
             for (auto entry : _items)
             {

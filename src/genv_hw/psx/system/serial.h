@@ -21,16 +21,17 @@
 #ifndef PSX_SIO_H
 #define PSX_SIO_H
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-	int sio1_init(int baud);
-	int sio1_read(char *data, size_t number);
-	int sio1_write(const char *data, size_t number);
-	void sio1_flush();
+    int sio1_init(int baud);
+    int sio1_read(char *data, size_t number);
+    int sio1_write(const char *data, size_t number);
+    void sio1_flush();
 
 #ifdef __cplusplus
 }

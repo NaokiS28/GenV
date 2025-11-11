@@ -25,7 +25,7 @@ add_library(genv_common STATIC
 	objects/texture/missingtex.c
 	objects/data.cpp
 	objects/font.cpp
-	formats/soundfile.cpp
+	formats/sound_file.cpp
 	formats/image_file.cpp
 	formats/riff.cpp
 	formats/wav.cpp
@@ -60,7 +60,6 @@ target_include_directories(genv_util PUBLIC
 add_library(genv_services STATIC
 	services/genv_sys.cpp
 	services/perfmon.cpp
-	services/adminkey.cpp
 	services/services.cpp
 	services/storage/storage.cpp
 	services/storage/storeman.cpp

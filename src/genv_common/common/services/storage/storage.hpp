@@ -101,11 +101,11 @@ namespace Files
         NUL
     };
 
-    struct StorageDevice
+    struct IStorageDevice
     {
         StorageType type; // Type of media
         size_t size;      // Max size of drive in bytes
-        StorageDevice(StorageType type, size_t size)
+        IStorageDevice(StorageType type, size_t size)
             : type(type), size(size) {}
     };
 
@@ -126,12 +126,12 @@ namespace Files
 
     namespace Optical
     {
-        constexpr OpticalFormat CD = {OpticalType::CD, MiB(700)};
-        constexpr OpticalFormat VCD = {OpticalType::VCD, MiB(700)};
-        constexpr OpticalFormat DVD = {OpticalType::DVD, MiB(4812)};
-        constexpr OpticalFormat HDDVD = {OpticalType::HDDVD, GiB(15)};
-        constexpr OpticalFormat HDDVD_DL = {OpticalType::HDDVD, GiB(30)};
-        constexpr OpticalFormat BLURAY = {OpticalType::BLURAY, GiB(25)};
+        constexpr OpticalFormat CD        = {OpticalType::CD, MiB(700)};
+        constexpr OpticalFormat VCD       = {OpticalType::VCD, MiB(700)};
+        constexpr OpticalFormat DVD       = {OpticalType::DVD, MiB(4812)};
+        constexpr OpticalFormat HDDVD     = {OpticalType::HDDVD, GiB(15)};
+        constexpr OpticalFormat HDDVD_DL  = {OpticalType::HDDVD, GiB(30)};
+        constexpr OpticalFormat BLURAY    = {OpticalType::BLURAY, GiB(25)};
         constexpr OpticalFormat BLURAY_DL = {OpticalType::BLURAY, GiB(50)};
         constexpr OpticalFormat BLURAY_XL = {OpticalType::BLURAY, GiB(100)};
     } // namespace Optical
@@ -147,44 +147,44 @@ namespace Files
 
     namespace IDE
     {
-        constexpr uint8_t PRIMARY = 0;
+        constexpr uint8_t PRIMARY   = 0;
         constexpr uint8_t SECONDARY = 1;
     } // namespace IDE
 
     struct HDDDevice
     {
         HDDBus bus;
-        bool solidState = false;
-        size_t size = 0;
+        bool solidState     = false;
+        size_t size         = 0;
         uint8_t busPosition = 0;
         // HDDPartition  partitions;
     };
 
     struct OpticalMedia
     {
-        StorageDevice odd;
+        IStorageDevice odd;
         uint8_t sessions; // DATA sessions
         uint8_t tracks;   // AUDIO tracks
 
         OpticalMedia(
             size_t size,
             uint8_t sessions = 0,
-            uint8_t tracks = 0)
+            uint8_t tracks   = 0)
             : odd(StorageType::ODD, size),
               sessions(sessions),
               tracks(tracks) {}
     };
 
-    constexpr const char *hddStr = "hdd";
-    constexpr const char *oddStr = "odd";
-    constexpr const char *rddStr = "rdd";
-    constexpr const char *fddStr = "fdd";
-    constexpr const char *pccStr = "pcc";
-    constexpr const char *mccStr = "mcc";
-    constexpr const char *fsdStr = "fsd";
-    constexpr const char *romStr = "rom";
-    constexpr const char *ramStr = "ram";
-    constexpr const char *nvrStr = "nvr";
+    constexpr const char hddStr[] = "hdd";
+    constexpr const char oddStr[] = "odd";
+    constexpr const char rddStr[] = "rdd";
+    constexpr const char fddStr[] = "fdd";
+    constexpr const char pccStr[] = "pcc";
+    constexpr const char mccStr[] = "mcc";
+    constexpr const char fsdStr[] = "fsd";
+    constexpr const char romStr[] = "rom";
+    constexpr const char ramStr[] = "ram";
+    constexpr const char nvrStr[] = "nvr";
 
     constexpr const char *providerTypes[] = {
         hddStr,

@@ -26,8 +26,8 @@ namespace Files
     class StorageManager : public IStorage
     {
     private:
-        StorageDevice *deviceList = nullptr;
-        int deviceListLength = 0;
+        IStorageDevice *deviceList = nullptr;
+        int deviceListLength       = 0;
 
     public:
         StorageManager(AdminClass_Key key);

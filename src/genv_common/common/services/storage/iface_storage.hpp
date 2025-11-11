@@ -21,9 +21,7 @@
 
 namespace Files
 {
-    struct IStorageDevice
-    {
-    };
+    struct IStorageDevice;
 
     class IStorage
     {
@@ -31,9 +29,9 @@ namespace Files
         IStorage() = default;
         virtual ~IStorage() {}
 
-        virtual int init() = 0;
-        virtual void update() = 0;
-        virtual bool reset() = 0;
+        virtual int init()      = 0;
+        virtual void update()   = 0;
+        virtual bool reset()    = 0;
         virtual void shutdown() = 0;
 
         virtual int openFile(const char *filePath, bool lock, FileObject *fObj)
