@@ -20,48 +20,24 @@
 #include "common/objects/file.hpp"
 #include "common/services/storage/iface_storage.hpp"
 
-namespace System::PSX
+namespace System::PSX::Storage
 {
     class PSX_PCDrive : public Files::IStorage
     {
-        virtual int init() { return 0; };
-        virtual void update() {};
-        virtual bool reset() { return false; };
-        virtual void shutdown() {};
+        int init();
+        void update();
+        bool reset();
+        void shutdown();
 
-        virtual int openFile(const char *filePath, bool lock, Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int closeFile(Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int writeFile(Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int renameFile(const char *fileName, Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int newFile(const char *filePath, const char *filename, Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int deleteFile(Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int readFile(size_t offset, size_t length)
-        {
-            return 0;
-        }
+        int openFile(const char *filePath, bool lock, Files::FileObject *fObj);
+        int closeFile(Files::FileObject *fObj);
+        int writeFile(Files::FileObject *fObj);
+        int renameFile(const char *fileName, Files::FileObject *fObj);
+        int newFile(const char *filePath, const char *filename, Files::FileObject *fObj);
+        int deleteFile(Files::FileObject *fObj);
+        int readFile(size_t offset, size_t length);
 
         // Gets a list of drives present in the system and returns the total count.
-        virtual int getDriveList(Files::IStorageDevice *list, uint8_t &count)
-        {
-            return 0;
-        }
+        int getDriveList(Files::IStorageDevice *list, uint8_t &count);
     };
-} // namespace System::PSX
+} // namespace System::PSX::Storage

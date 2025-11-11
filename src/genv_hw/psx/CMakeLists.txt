@@ -30,6 +30,7 @@ target_sources(genv_hw_psx PRIVATE
     audio.cpp
     system.cpp
 	#file/file.cpp
+	file/memcard.cpp
 	cpu/cache.s
 	system/sys.c
 	system/sys.s
@@ -41,6 +42,11 @@ target_sources(genv_hw_psx PRIVATE
     video/video.cpp
     video/texmgr.cpp
     video/psxtex.cpp
+	drivers/sio0/psx_joy.cpp
+	drivers/sio0/psx_mc.cpp
+	drivers/sio0/psx_sio0.cpp
+	drivers/psx_cdrom.cpp
+	drivers/psx_pcdrv.cpp
 )
 
 target_compile_definitions(

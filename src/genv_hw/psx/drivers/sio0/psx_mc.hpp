@@ -17,51 +17,42 @@
 
 #pragma once
 
+#include <assert.h>
+
+#include "psx_sio0.hpp"
+
 #include "common/objects/file.hpp"
 #include "common/services/storage/iface_storage.hpp"
 
-namespace System::PSX
-{
-    class PSX_MemCard : public Files::IStorage
-    {
-        virtual int init() { return 0; };
-        virtual void update() {};
-        virtual bool reset() { return false; };
-        virtual void shutdown() {};
+// TODO: Implement memory card as a virtual file system complete with directory listing.
 
-        virtual int openFile(const char *filePath, bool lock, Files::FileObject *fObj)
+namespace System::PSX::IO
+{
+    class PSX_MemCard
+    {
+    private:
+        static uint8_t driverCount;
+        const SIOControlFlag _portNumber;
+
+    public:
+        inline PSX_MemCard(uint8_t port) : _portNumber((port % 2) ? SIO_CTRL_CS_PORT_1 : SIO_CTRL_CS_PORT_2)
         {
-            return 0;
-        }
-        virtual int closeFile(Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int writeFile(Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int renameFile(const char *fileName, Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int newFile(const char *filePath, const char *filename, Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int deleteFile(Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int readFile(size_t offset, size_t length)
-        {
-            return 0;
-        }
+            assert(driverCount < 2 && port <= 2);
+        };
+
+        int openFile(const char *filePath, bool lock, Files::FileObject *fObj);
+        int closeFile(Files::FileObject *fObj);
+        int writeFile(Files::FileObject *fObj);
+        int renameFile(const char *fileName, Files::FileObject *fObj);
+        int newFile(const char *filePath, const char *filename, Files::FileObject *fObj);
+        int deleteFile(Files::FileObject *fObj);
+        int readFile(size_t offset, size_t length);
+
+        int readSector(uint16_t address, uint8_t *data, size_t length);
+        int writeSector(uint16_t address, uint8_t *data, size_t length);
+        uint16_t getID();
 
         // Gets a list of drives present in the system and returns the total count.
-        virtual int getDriveList(Files::IStorageDevice *list, uint8_t &count)
-        {
-            return 0;
-        }
+        int getDriveList(Files::IStorageDevice *list, uint8_t &count);
     };
-} // namespace System::PSX
+} // namespace System::PSX::IO

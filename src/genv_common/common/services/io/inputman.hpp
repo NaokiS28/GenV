@@ -25,7 +25,8 @@ namespace Input
     class InputManager
     {
     private:
-        IInput *deviceList = nullptr;
+        IInput **deviceList = nullptr;
+        int deviceCount = 0;
         int deviceListLength = 0;
 
     public:
@@ -34,6 +35,7 @@ namespace Input
 
         int init();
         void update();
+        void reset();
         void shutdown();
 
         bool attachDevice(Input::IInput *dev);

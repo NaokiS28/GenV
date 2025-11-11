@@ -20,48 +20,37 @@
 #include "common/objects/file.hpp"
 #include "common/services/storage/iface_storage.hpp"
 
-namespace System::PSX
+namespace System::PSX::Storage
 {
     class PSX_CDROM : public Files::IStorage
     {
-        virtual int init() { return 0; };
-        virtual void update() {};
-        virtual bool reset() { return false; };
-        virtual void shutdown() {};
+        int init() override;
+        void update() override;
+        bool reset() override;
+        void shutdown() override;
 
-        virtual int openFile(const char *filePath, bool lock, Files::FileObject *fObj)
+        int openFile(const char *filePath, bool lock, Files::FileObject *fObj) override;
+        int closeFile(Files::FileObject *fObj) override;
+        int readFile(size_t offset, size_t length) override;
+
+        inline int writeFile(Files::FileObject *fObj) override
         {
-            return 0;
+            return GV_ERR_INVALID_OPERATION;
         }
-        virtual int closeFile(Files::FileObject *fObj)
+        inline int renameFile(const char *fileName, Files::FileObject *fObj) override
         {
-            return 0;
+            return GV_ERR_INVALID_OPERATION;
         }
-        virtual int writeFile(Files::FileObject *fObj)
+        inline int newFile(const char *filePath, const char *filename, Files::FileObject *fObj) override
         {
-            return 0;
+            return GV_ERR_INVALID_OPERATION;
         }
-        virtual int renameFile(const char *fileName, Files::FileObject *fObj)
+        inline int deleteFile(Files::FileObject *fObj) override
         {
-            return 0;
-        }
-        virtual int newFile(const char *filePath, const char *filename, Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int deleteFile(Files::FileObject *fObj)
-        {
-            return 0;
-        }
-        virtual int readFile(size_t offset, size_t length)
-        {
-            return 0;
+            return GV_ERR_INVALID_OPERATION;
         }
 
         // Gets a list of drives present in the system and returns the total count.
-        virtual int getDriveList(Files::IStorageDevice *list, uint8_t &count)
-        {
-            return 0;
-        }
+        int getDriveList(Files::IStorageDevice *list, uint8_t &count) override;
     };
-} // namespace System::PSX
+} // namespace System::PSX::Storage

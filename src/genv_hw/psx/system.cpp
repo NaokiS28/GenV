@@ -30,15 +30,18 @@
 #include "system/serial.h"
 #include "terminal/terminal.h"
 
+#define LOG_SYS(fmt, ...) LOG("coresys", fmt __VA_OPT__(, ) __VA_ARGS__)
+
 namespace System::PSX
 {
+    constexpr const char PSX_JOY_ERROR[] = "Failed to %s PSX joypad driver on port %d.";
 
     PSXSystem::PSXSystem() : sm_state(SM_NORMAL)
     {
         psx_installExceptionHandler();
         GenV_ConsoleOps ops;
-        ops.init = &sio1_init;
-        ops.read = &sio1_read;
+        ops.init  = &sio1_init;
+        ops.read  = &sio1_read;
         ops.write = &sio1_write;
         ops.flush = &sio1_flush;
         genv_tty_register(&ops);
@@ -53,33 +56,14 @@ namespace System::PSX
             delete clock;
     }
 
-    int PSXSystem::init()
+    int PSXSystem::initCore()
     {
         if (pcsx_present())
         {
-            LOG("System", "Detected host as PCSX-Redux.");
+            LOG_SYS("Detected host as PCSX-Redux.");
         }
         _setupInterruptHandler();
-
-        if (_initIO() != 0)
-        {
-            return PSX_SYS_IO_INIT_FAIL;
-        }
-        if (_initVideo() != 0)
-        {
-            return PSX_SYS_VIDEO_INIT_FAIL;
-        }
-        if (_initFiles() != 0)
-        {
-            return PSX_SYS_FILE_INIT_FAIL;
-        }
-        if (_initAudio() != 0)
-        {
-            return PSX_SYS_SOUND_INIT_FAIL;
-        }
-
         psx_enableInterrupts();
-
         return PSX_SYS_OK;
     }
 
@@ -92,7 +76,7 @@ namespace System::PSX
         // return video()->setResolution(w, h);
     }
 
-    int PSXSystem::_initVideo()
+    int PSXSystem::initVideo()
     {
         gpu = new GPU::PSXGPU;
         Services::setVideo(adminKey, gpu);
@@ -101,32 +85,32 @@ namespace System::PSX
         return 0;
     }
 
-    int PSXSystem::_initAudio()
+    int PSXSystem::initAudio()
     {
         // IAudio *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND,
         // gpuWnd); if (!aDriver || !aDriver->init())
         return 0;
     }
 
-    int PSXSystem::_initFiles()
+    int PSXSystem::initStorage()
     {
-        int r = 0;
-        cdDriver = new PSX_CDROM();
+        int r    = 0;
+        cdDriver = new Storage::PSX_CDROM();
         if (!cdDriver)
             r = -1;
-        mcDriver = new PSX_MemCard();
+        mcDriver = new Storage::PSX_MemCard();
         if (!mcDriver)
             r = -2;
 
 #ifndef NDEBUG
-        pcDriver = new PSX_PCDrive();
+        pcDriver = new Storage::PSX_PCDrive();
         if (!mcDriver)
             r = -3;
 #endif
         return r;
     }
 
-    int PSXSystem::_initIO()
+    int PSXSystem::initIO()
     {
         sio1_init(115200);
         psx_timer_set_params(PSX_TIMER_0, PSX_TMR0_CLK_SRC_SYSTEM);
@@ -140,10 +124,17 @@ namespace System::PSX
         psx_timer_reset(PSX_TIMER_1);
         psx_timer_reset(PSX_TIMER_2);
 
-        joyDriver = new PSX_Joypad();
-        if (!joyDriver)
-            return -1;
-        Services::addInputDevice(joyDriver);
+        int port     = 1;
+        joyDriver[0] = new IO::PSX_Joypad(1);
+        joyDriver[1] = new IO::PSX_Joypad(2);
+        for (auto joy : joyDriver)
+        {
+            if (!joy)
+                LOG_SYS(PSX_JOY_ERROR, "create", port);
+            if (joy->init())
+                LOG_SYS(PSX_JOY_ERROR, "init", port);
+            Services::addInputDevice(joy);
+        }
 
         return 0;
     }

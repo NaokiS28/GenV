@@ -41,7 +41,7 @@ namespace System
     namespace PSX
     {
         constexpr const char *szPlaystation = "PlayStation";
-        constexpr const char *szSony = "Sony";
+        constexpr const char *szSony        = "Sony";
 
         enum
         {
@@ -72,43 +72,43 @@ namespace System
             Time::IRTC *clock;
             uint8_t sm_state; // System Manager state for returning to main.cpp
 
-            virtual int _initVideo();
-            virtual int _initAudio();
-            virtual int _initIO();
-            virtual int _initFiles();
-
             void _setupInterruptHandler(void);
             void _interruptHandler();
 
             void _isr_timer2();
 
             // Millis/Seconds tracking
-            const size_t err_numerator = 307;
-            const size_t err_denominator = 512;
+            const size_t err_numerator      = 307;
+            const size_t err_denominator    = 512;
             volatile size_t timer2_addcycle = 0;
-            volatile size_t timer2_count = 0;
-            volatile size_t timer2_erracc = 0; // Time sync Error accumulator
-            volatile size_t lastRTCTick = 0;
+            volatile size_t timer2_count    = 0;
+            volatile size_t timer2_erracc   = 0; // Time sync Error accumulator
+            volatile size_t lastRTCTick     = 0;
 
             SystemInfo siPS1 = {
-                .type = SYS_Console,
-                .make = szSony,
-                .name = szPlaystation,
+                .type  = SYS_Console,
+                .make  = szSony,
+                .name  = szPlaystation,
                 .flags = SYS_No_Window_Mode};
 
-            GPU::PSXGPU *gpu = nullptr;
-
-            PSX_CDROM *cdDriver = nullptr;
-            PSX_Joypad *joyDriver = nullptr;
-            PSX_MemCard *mcDriver = nullptr;
-            PSX_PCDrive *pcDriver = nullptr;
+            // Pointers to control the life cycle of items. TODO: Do these strinctly *need* to be pointers?
+            GPU::PSXGPU *gpu               = nullptr;
+            IO::PSX_Joypad *joyDriver[2]   = {nullptr};
+            Storage::PSX_CDROM *cdDriver   = nullptr;
+            Storage::PSX_MemCard *mcDriver = nullptr;
+            Storage::PSX_PCDrive *pcDriver = nullptr;
 
         public:
             PSXSystem();
             virtual ~PSXSystem();
 
-            virtual int init() override;              // Registers Windows app class and inits drivers
-            virtual int update() override;            // Process wWindows messages
+            virtual int initCore() override;
+            virtual int initVideo() override;
+            virtual int initAudio() override;
+            virtual int initIO() override;
+            virtual int initStorage() override;
+
+            virtual int update() override;
             virtual bool shutdown() override;         // Prepare drivers and app for close
             virtual bool setResolution(int w, int h); // Sets window resolution (internal viewport)
             bool setFullscreen(Video::FullscreenMode mode)
@@ -129,7 +129,7 @@ namespace System
             {
                 std::atomic_signal_fence(std::memory_order_acquire);
                 constexpr int tmult = 5;
-                constexpr int tdiv = 21168;
+                constexpr int tdiv  = 21168;
                 static_assert(((TIMER2_FREQ * tmult) / tdiv) == 1000);
 
                 return (uint64_t(TIMER_VALUE(PSX_TIMER_2) | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);

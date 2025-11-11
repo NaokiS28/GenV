@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * input.hpp - Created on 09-05-2025
+ * memcard.cpp - Created on 09-11-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,20 +15,33 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "memcard.hpp"
+#include <printf.h>
 
-namespace Input
+uint8_t psx_memcard_xor(void *data, size_t len)
 {
-    class IInput
+    uint8_t sum = 0;
+    for (size_t i = 0; i < len; i++)
     {
-    public:
-        IInput() = default;
-        virtual ~IInput() = default;
-        virtual int init() = 0;
-        virtual int update() = 0;
-        virtual bool reset() = 0;
-        virtual void shutdown() = 0;
-    };
+        sum ^= static_cast<uint8_t *>(data)[i];
+    }
+    return sum;
+}
 
-    class NullInput;
-} // namespace Input
+void psx_memcard_format_filename(
+    char **out,
+    uint32_t titleID,
+    const char *filename,
+    MemCardRegion region,
+    MemCardLicense license,
+    bool pocketexe)
+{
+    if (!*out)
+        return;
+
+    memcpy(out[0], (const void *)region, 2);
+    memcpy(out[2], (const void *)license, 4);
+    *out[7] = (pocketexe ? 'P' : '-');
+    snprintf(out[8], 6, "%05d");
+    memcpy(out[8], filename, 8);
+}

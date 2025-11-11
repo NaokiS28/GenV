@@ -17,6 +17,8 @@
 
 #include "inputman.hpp"
 #include "common/logger/log.hpp"
+#include "common/services/io/iface_input.hpp"
+#include <string.h>
 
 #define ILOG(fmt, ...) LOG("inputman", fmt __VA_OPT__(, ) __VA_ARGS__)
 
@@ -26,6 +28,8 @@ namespace Input
     const char *szDeviceNull = "device pointer is null.";
     const char *szAttach = "Attach";
     const char *szDetach = "Detach";
+
+    constexpr const int startingListSize = 4;
 
     InputManager::InputManager(AdminClass_Key key)
     {
@@ -39,15 +43,39 @@ namespace Input
 
     int InputManager::init()
     {
+        deviceList = new IInput *[startingListSize];
+        if (!deviceList)
+            return 1;
+        deviceListLength = startingListSize;
+        for (int i = 0; i < startingListSize; i++)
+        {
+            deviceList[i] = nullptr;
+        }
         return 0;
     }
 
     void InputManager::update()
     {
+        for (int i = 0; i < deviceCount; i++)
+        {
+            deviceList[i]->update();
+        }
+    }
+
+    void InputManager::reset()
+    {
+        for (int i = 0; i < deviceCount; i++)
+        {
+            deviceList[i]->reset();
+        }
     }
 
     void InputManager::shutdown()
     {
+        for (int i = 0; i < deviceCount; i++)
+        {
+            deviceList[i]->shutdown();
+        }
     }
 
     bool InputManager::attachDevice(Input::IInput *dev)
@@ -57,6 +85,19 @@ namespace Input
             ILOG(szIMFailed, szAttach, szDeviceNull);
             return false;
         }
+        if (deviceCount == deviceListLength)
+        {
+            auto tempArr = new IInput *[deviceCount + 1];
+            if (!tempArr)
+                return false;
+
+            memcpy(tempArr, deviceList, sizeof(IInput *) * (deviceCount + 1));
+            delete[] deviceList;
+            deviceList = tempArr;
+            deviceListLength++;
+        }
+        deviceList[deviceCount] = dev;
+        deviceCount++;
         return true;
     }
 
@@ -66,6 +107,16 @@ namespace Input
         {
             ILOG(szIMFailed, szDetach, szDeviceNull);
             return false;
+        }
+        for (int i = 0; i < deviceCount; i++)
+        {
+            if (deviceList[i] == dev)
+            {
+                auto dev = deviceList[i];
+                dev->shutdown();
+                delete dev;
+                memmove(&deviceList[i], &deviceList[i + 1], sizeof(IInput *) * (deviceCount - i));
+            }
         }
         return true;
     }
