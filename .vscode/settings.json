@@ -131,8 +131,5 @@
 	},
 	"editor.formatOnSave": true,
 	"editor.detectIndentation": false,
-	"editor.insertSpaces": false,
-	"clangd.arguments": [
-		"-std=gnu++23"
-	]
+	"editor.insertSpaces": false
 }
