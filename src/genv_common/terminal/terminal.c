@@ -23,7 +23,7 @@
 
 struct
 {
-    GenV_ConsoleOps ops;
+    GenV_TerminalFuncs ops;
     int baud;
     bool ready;
 } tty_settings;
@@ -91,7 +91,7 @@ int genv_tty_read_bytes(char *data, size_t n)
     return -1;
 }
 
-int genv_tty_register(GenV_ConsoleOps *ops)
+int genv_tty_register(GenV_TerminalFuncs *ops)
 {
     if(ops->init != NULL && ops->read != NULL && ops->read != NULL){
         tty_settings.ops.init = ops->init;

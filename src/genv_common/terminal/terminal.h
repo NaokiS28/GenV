@@ -41,7 +41,7 @@ extern "C"
         int (*read)(char *out, size_t n);
         int (*init)(int baud);
         void (*flush)(void);
-    } GenV_ConsoleOps;
+    } GenV_TerminalFuncs;
 
     int genv_tty_init(int baud);
     int genv_tty_write(char c);
@@ -49,7 +49,7 @@ extern "C"
     int genv_tty_write_str(const char *str);
     int genv_tty_read(void);
     int genv_tty_read_bytes(char *data, size_t n);
-    int genv_tty_register(GenV_ConsoleOps *ops);
+    int genv_tty_register(GenV_TerminalFuncs *ops);
 
 #ifdef __cplusplus
 }
