@@ -129,13 +129,10 @@
 		"ctype.h": "c",
 		"stddef.h": "c"
 	},
-	"C_Cpp.formatting": "clangFormat",
-	"C_Cpp.clang_format_fallbackStyle": "none",
 	"editor.formatOnSave": true,
 	"editor.detectIndentation": false,
 	"editor.insertSpaces": false,
-	"json.schemas": [],
 	"clangd.arguments": [
-		"-std=c++23"
+		"-std=gnu++23"
 	]
 }
