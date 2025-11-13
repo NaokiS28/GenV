@@ -134,5 +134,8 @@
 	"editor.formatOnSave": true,
 	"editor.detectIndentation": false,
 	"editor.insertSpaces": false,
-	"json.schemas": []
+	"json.schemas": [],
+	"clangd.arguments": [
+		"-std=c++23"
+	]
 }

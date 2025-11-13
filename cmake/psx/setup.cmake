@@ -31,11 +31,6 @@ link_libraries(-lgcc)
 add_library   (flags INTERFACE)
 link_libraries(flags)
 
-target_compile_features(
-	flags INTERFACE
-	c_std_17
-	cxx_std_20
-)
 target_compile_options(
 	flags INTERFACE
 		-g
