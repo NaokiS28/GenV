@@ -46,7 +46,6 @@ add_library(genv_util STATIC
 	util/time.cpp
 	util/date.cpp
 	util/string.cpp
-	vendor/genv_stb_image.c
 	vendor/lodepng.cpp
 	vendor/gifn/gifn.cpp
 	#vendor/bmp/bmp.c
