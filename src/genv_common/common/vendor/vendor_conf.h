@@ -17,13 +17,6 @@
 
 #pragma once
 
-// STB Image
-#define STBI_NO_JPEG
-#define STBI_NO_PSD
-#define STBI_NO_HDR
-#define STBI_NO_PIC
-#define STBI_NO_PNM
-
 #define LODEPNG_NO_COMPILE_DISK
 #define LODEPNG_NO_COMPILE_CPP
 #define LODEPNG_NO_COMPILE_ENCODER
@@ -31,7 +24,4 @@
 #ifdef GENV_PSX
 #define GIFN_NO_STDIO
 
-#define STBI_NO_STDIO
-#define STBI_NO_LINEAR
-#define STBI_NO_THREAD_LOCALS
 #endif
