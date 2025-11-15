@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * inputman.cpp - Created on 22-08-2025
+ * adc083x.cpp - Created on 13-11-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,37 +15,4 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "storeman.hpp"
-
-namespace Files
-{
-    StorageManager::StorageManager(AdminClass_Key key)
-    {
-    }
-
-    StorageManager::~StorageManager()
-    {
-        if (deviceList)
-            delete[] deviceList;
-    }
-
-    int StorageManager::registerDriver(Files::IStorageDriver *dev)
-    {
-        return 0;
-    }
-
-    int StorageManager::unregisterDriver(Files::IStorageDriver *dev)
-    {
-        return 0;
-    }
-
-    int StorageManager::attachDevice(Files::IStorageDevice *dev)
-    {
-        return 0;
-    }
-
-    int StorageManager::detachDevice(Files::IStorageDevice *dev)
-    {
-        return 0;
-    }
-} // namespace Files
+#include "adc083x.hpp"

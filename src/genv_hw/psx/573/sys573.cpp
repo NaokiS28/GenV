@@ -32,10 +32,9 @@ namespace System::PSX
         clock = &_rtc;
     }
 
-    int Sys573System::init()
+    int Sys573System::initCore()
     {
-        int r = 0;
-        r = PSXSystem::init();
+        int r = PSXSystem::initCore();
 
         testSwitchLatching = false; // Test switch is push button
 
@@ -66,7 +65,17 @@ namespace System::PSX
         return true;
     }
 
-    int Sys573System::_initAudio()
+    int Sys573System::initVideo()
+    {
+        int error = 0;
+        gpu       = new GPU::PSXGPU;
+        error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
+        if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
+        if (!error) Services::setVideo(adminKey, gpu);
+        return error;
+    }
+
+    int Sys573System::initAudio()
     {
         // IAudio *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND,
         // gpuWnd); if (!aDriver || !aDriver->init())
@@ -74,30 +83,30 @@ namespace System::PSX
         return 0;
     }
 
-    int Sys573System::_initFiles()
+    int Sys573System::initStorage()
     {
-        // S573 CD
-        int r = 0;
-        mcDriver = new PSX_MemCard();
-        if (!mcDriver)
-            r = -2;
+        int port = 1;
+        for (auto &mc : mcDriver)
+        {
+            int mcError = ioTest(mc.init(), PSX_MEMORY_CARD_STR, port, PSX_INIT_STR);
+            if (!mcError) Services::registerStorageDriver(&mc);
+        }
 
 #ifndef NDEBUG
-        pcDriver = new PSX_PCDrive();
-        if (!mcDriver)
-            r = -3;
+        int pcError = 0;
+        pcDriver    = new Storage::PSX_PCDrive();
+        pcError     = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
+        if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
+        if (!pcError) Services::registerStorageDriver(pcDriver);
 #endif
-        return r;
+        return 0;
     }
 
-    int Sys573System::_initIO()
+    int Sys573System::initIO()
     {
-        PSXSystem::_initIO();
-
-        Input::IInput *joyDriver = new Sys573Jamma();
-        if (joyDriver)
-            return -1;
-        Services::addInputDevice(joyDriver);
+        PSXSystem::initIO();
+        Services::attachInputDevice(&_jamma);
+        // Services::attachInputDevice(&_adc);
 
         return 0;
     }

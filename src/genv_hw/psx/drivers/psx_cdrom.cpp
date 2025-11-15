@@ -18,12 +18,15 @@
 #include "psx_cdrom.hpp"
 #include "common/return_codes.hpp"
 
+#include "common/logger/log.hpp"
+
 namespace System::PSX::Storage
 {
 
     int PSX_CDROM::init()
     {
-        return 0;
+        LOG("psxpad", "Init PlayStation CD-ROM driver");
+        return GV_ERROR(GV_SERVICE_FILESYSTEM, GV_CATEGORY_GENERIC, GV_ERR_DEVICE_NOT_READY);
     };
     void PSX_CDROM::update() {};
     bool PSX_CDROM::reset()

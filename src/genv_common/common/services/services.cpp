@@ -27,26 +27,26 @@
 #include "hardware.hpp"
 
 // Static member definitions
-Audio::IAudio *Services::s_audio = nullptr;
-Video::IVideo *Services::s_video = nullptr;
+Audio::IAudio *Services::s_audio    = nullptr;
+Video::IVideo *Services::s_video    = nullptr;
 System::ISystem *Services::s_system = nullptr;
 
-Input::InputManager *Services::s_input = nullptr;
+Input::InputManager *Services::s_input     = nullptr;
 Files::StorageManager *Services::s_storage = nullptr;
-Fonts::FontManager *Services::s_fonts = nullptr;
+Fonts::FontManager *Services::s_fonts      = nullptr;
 
-const char *szManagerNullptr = "Failed to create %s.";
-const char *szManagerInitError = "Failed to init %s, reported error code: %i";
-const char *szChangeServiceError = "Failed to change to new %s: %i";
-const char *szUnkownError = "Unknown error reported from %s: %i";
+constexpr const char szManagerNullptr[]     = "Failed to create %s.";
+constexpr const char szManagerInitError[]   = "Failed to init %s, reported error code: %i";
+constexpr const char szChangeServiceError[] = "Failed to change to new %s: %i";
+constexpr const char szUnkownError[]        = "Unknown error reported from %s: %i";
 
-const char *szSystem = "system service";
-const char *szVideo = "video service";
-const char *szAudio = "audio service";
-const char *szStorage = "storage manager";
-const char *szInput = "input manager";
-const char *szFont = "font manager";
-const char *szUnknown = "unknown";
+constexpr const char szSystem[]  = "system service";
+constexpr const char szVideo[]   = "video service";
+constexpr const char szAudio[]   = "audio service";
+constexpr const char szStorage[] = "storage manager";
+constexpr const char szInput[]   = "input manager";
+constexpr const char szFont[]    = "font manager";
+constexpr const char szUnknown[] = "unknown";
 
 enum ServiceError
 {
@@ -141,7 +141,7 @@ int Services::init()
 int Services::update()
 {
     int r = System::SM_NORMAL;
-    r = s_system->update();
+    r     = s_system->update();
     System::PerfMon.finishSystemExec();
 
     // It's unlikely these would ever be null at this point

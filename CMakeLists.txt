@@ -25,9 +25,11 @@ project(
 	HOMEPAGE_URL "https://github.com/NaokiS28/GenV"
 )
 
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_C_STANDARD 23)
+
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 
 # Store current platform from preset
 if(NOT DEFINED GENV_PLATFORM)

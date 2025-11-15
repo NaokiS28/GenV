@@ -67,13 +67,13 @@ namespace System::PSX::IO
     {
         SIO0_OKAY,
         SIO0_IN_USE,
-        SIO0_NO_RESPONSE,
+        SIO0_NO_RESPONSE
     };
 
     class PSX_SIO0
     {
         friend class PSX_Joypad;
-        friend class PSX_MemCard;
+        friend class PSX_MemoryCard;
         friend class SIO0_Transaction;
 
     private:
@@ -91,6 +91,8 @@ namespace System::PSX::IO
             size_t reqLength,
             size_t maxRespLength,
             bool hasLastACK = false);
+
+        void update_();
 
         void mouseFix_();
     };

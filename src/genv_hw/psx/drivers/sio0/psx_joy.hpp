@@ -20,9 +20,12 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <assert.h>
+#include <string.h>
 
 #include "psx_sio0.hpp"
+#include "../../psx_strings.hpp"
 
+#include "common/logger/log.hpp"
 #include "common/services/io/iface_input.hpp"
 #include "psx/registers.hpp"
 
@@ -56,8 +59,8 @@ namespace System::PSX::IO
 
     enum FeedbackType : uint8_t
     {
-        FEEDBACK_NONE  = 0xFF,
-        FEEDBACK_MOTOR = 0x01,
+        FEEDBACK_NONE = 0,
+        FEEDBACK_MOTOR,
         FEEDBACK_DUALMOTOR,
         FEEDBACK_WHEEL,
     };
@@ -122,7 +125,7 @@ namespace System::PSX::IO
         BTN_IRQ10_GUN_TRIGGER = 1 << 15
     };
 
-    class PSX_Joypad : public IInput
+    class PSX_Joypad : public IInputDriver
     {
         friend class System::PSX::PSXSystem;
         friend class PortLock;
@@ -131,16 +134,14 @@ namespace System::PSX::IO
         static uint8_t driverCount;
         const SIOControlFlag _portNumber;
 
-        struct
+        struct PadInfo
         {
             JoypadType type        = PAD_DISCONNECTED;
             uint8_t numAxis        = 0;
             uint8_t numDigital     = 0;
             FeedbackType motorType = FEEDBACK_NONE;
             uint8_t rumbleStrength = 0; // Rumble power strength (in 10% increments)
-        } pad[4];
-
-        int poll_(void);
+        } _padList[4];
 
         int configMode_(bool state);
         int setAnalog_(bool state = true, bool lock = true);
@@ -151,12 +152,24 @@ namespace System::PSX::IO
         inline PSX_Joypad(uint8_t port) : _portNumber((port % 2) ? SIO_CTRL_CS_PORT_1 : SIO_CTRL_CS_PORT_2)
         {
             assert(driverCount < 2 && port <= 2);
+            _name = PSX_PS_CONTROLLER_STR;
         };
+
+        int poll(uint8_t subport = 0);
 
         inline int init() override
         {
+            LOG("psxpad", "Init PlayStation Controller driver on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
             return psx_sio0.init_();
         }
+
+        inline bool reset() override
+        {
+            memset(_padList, 0, sizeof(_padList));
+            return true;
+        }
+
+        inline void shutdown() override {}
 
         int update() override;
     };

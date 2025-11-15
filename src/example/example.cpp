@@ -15,6 +15,8 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "common/services/system/system.hpp"
+#include "common/util/time.hpp"
 #include <time.h>
 #include <genv.hpp>
 
@@ -30,6 +32,7 @@ private:
     );
 
     Coord txtOrigin;
+    Coord timeOrigin;
 
 public:
     static Application *createApp(IAppHost *host)
@@ -70,14 +73,24 @@ public:
 
     void render() override
     {
+        char timeStr[20];
+        tm time;
+        System::getTime(time);
+        Time::getTimeString(time, timeStr, 20, true, true);
+
         gpu->fillScreen(Video::Colors::Black);
         gpu->drawText("This is an example string.", txtOrigin.x, txtOrigin.y, 500, 100, Video::Colors::White, Video::TALIGN_CENTER);
+        gpu->drawText(timeStr, timeOrigin.x, timeOrigin.y, 100, 100, Video::Colors::White, Video::TALIGN_CENTER);
     }
 
     void reload() override
     {
-        txtOrigin = Coord((gpu->getHorizontalRes() / 2),
-                          (gpu->getVerticalRes() / 2) - 50);
+        txtOrigin = Coord(
+            (gpu->getHorizontalRes() / 2) - 50,
+            (gpu->getVerticalRes() / 2));
+        timeOrigin = Coord(
+            5,
+            5);
     }
     void shutdown() override {}
 

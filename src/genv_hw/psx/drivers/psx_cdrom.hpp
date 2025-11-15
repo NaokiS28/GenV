@@ -22,35 +22,19 @@
 
 namespace System::PSX::Storage
 {
-    class PSX_CDROM : public Files::IStorage
+    class PSX_CDROM : public Files::IStorageDriver
     {
+    public:
         int init() override;
         void update() override;
         bool reset() override;
         void shutdown() override;
 
-        int openFile(const char *filePath, bool lock, Files::FileObject *fObj) override;
-        int closeFile(Files::FileObject *fObj) override;
-        int readFile(size_t offset, size_t length) override;
-
-        inline int writeFile(Files::FileObject *fObj) override
-        {
-            return GV_ERR_INVALID_OPERATION;
-        }
-        inline int renameFile(const char *fileName, Files::FileObject *fObj) override
-        {
-            return GV_ERR_INVALID_OPERATION;
-        }
-        inline int newFile(const char *filePath, const char *filename, Files::FileObject *fObj) override
-        {
-            return GV_ERR_INVALID_OPERATION;
-        }
-        inline int deleteFile(Files::FileObject *fObj) override
-        {
-            return GV_ERR_INVALID_OPERATION;
-        }
+        int openFile(const char *filePath, bool lock, Files::FileObject *fObj);
+        int closeFile(Files::FileObject *fObj);
+        int readFile(size_t offset, size_t length);
 
         // Gets a list of drives present in the system and returns the total count.
-        int getDriveList(Files::IStorageDevice *list, uint8_t &count) override;
+        int getDriveList(Files::IStorageDevice *list, uint8_t &count);
     };
 } // namespace System::PSX::Storage

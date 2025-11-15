@@ -27,7 +27,7 @@ target_sources(genv_hw_sys573 PRIVATE
     video/psxtex.cpp
     573/sys573.cpp
 	573/rtc.cpp
-	573/jamma.cpp
+	573/jamma/jamma.cpp
 	#573/jvs.cpp
 	#573/aio.cpp
 	#573/dio.cpp

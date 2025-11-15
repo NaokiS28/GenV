@@ -20,6 +20,8 @@
 #include <assert.h>
 
 #include "psx_sio0.hpp"
+#include "common/logger/log.hpp"
+#include "common/services/services.hpp"
 #include "psx/registers.hpp"
 #include "psx/system/sys.h"
 
@@ -48,6 +50,26 @@ namespace System::PSX::IO
 
         _initResult = 0;
         return _initResult;
+    }
+
+    // The primary function of update_() is just to make sure the official Sony PS1 mouse doesn't
+    // lock up the bus. It's probably not required but none the less. Because both the Joypad and
+    // memory card drivers will ping this, we have to take any expected max time out and multiply
+    // by 4 since there's two instances of PSXJoy and PSXMemCard. 4 frames * 4 = 16 outta be plenty.
+    void PSX_SIO0::update_()
+    {
+        static int ackCount = 0;
+        if (IRQ_STAT & (1 << IRQ_SIO0))
+            ackCount++; // ACK Asserted
+        else
+            ackCount = 0; // ACK not asserted, we can be sure the bus is "normal"
+        if (ackCount >= 16)
+        {
+            // ACK stuck?
+            LOG("sio0", "ACK held low? Send byte to reset bus on port 1 and 2");
+            mouseFix_();
+            ackCount = 0;
+        }
     }
 
     // To help with PSX mouse when /ACK is stuck low
@@ -109,7 +131,7 @@ namespace System::PSX::IO
             return SIO0_IN_USE;
 
         SIO_CTRL(0) = port | SIO_CTRL_DTR | SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE | SIO_CTRL_ACKNOWLEDGE;
-        psx_delayMicroseconds(_CS_DELAY);
+        psx_delayMicrosecondsBusy(_CS_DELAY);
 
         IRQ_STAT    = ~(1 << IRQ_SIO0);
         SIO_DATA(0) = address;
@@ -129,7 +151,7 @@ namespace System::PSX::IO
 
     void PSX_SIO0::stop_(void)
     {
-        psx_delayMicroseconds(_CS_DELAY);
+        psx_delayMicrosecondsBusy(_CS_DELAY);
         SIO_CTRL(0) = SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE;
         _inUse      = false;
     }

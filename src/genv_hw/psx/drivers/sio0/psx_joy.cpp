@@ -17,6 +17,8 @@
 
 #include "psx_joy.hpp"
 
+#include <string.h>
+
 #include "common/return_codes.hpp"
 #include "psx/drivers/sio0/psx_sio0.hpp"
 #include "psx/registers.hpp"
@@ -45,16 +47,88 @@
             return 2;                     \
     }
 
+#define BOOL(val) ((val) > 0 ? 1 : 0)
+
 namespace System::PSX::IO
 {
     uint8_t PSX_Joypad::driverCount = 0;
 
+    struct ControllerReadResponse
+    {
+        union
+        {
+            uint8_t idLo;
+            uint8_t idHi;
+            uint16_t id;
+        };
+        uint16_t input;
+        struct AnalogInput
+        {
+            uint8_t x, y;
+        } left, right;
+    };
+
+    void printPSControlDebug(ControllerReadResponse &resp)
+    {
+        switch (resp.idLo)
+        {
+        case PAD_DIGITAL: LOG_JOY("Digital, DATA: %04X", resp.input); return;
+        case PAD_ANALOG:
+            LOG_JOY("Analog/DS: Buttons: %04X, Lx:%d Ly:%d Rx:%d Ry:%d",
+                    resp.input,
+                    (int8_t)resp.left.x,
+                    (int8_t)resp.left.y,
+                    (int8_t)resp.right.x,
+                    (int8_t)resp.left.y);
+            return;
+        case PAD_GUNCON:
+        {
+            const char *err = "OK";
+            if (resp.left.x == 0x01)
+            {
+                switch (resp.left.y)
+                {
+                case 0x5: err = "Unexp. Light"; break;
+                case 0xA: err = "No Light"; break;
+                default: break;
+                }
+            }
+            LOG_JOY(
+                "GunCon: A:%x B:%x T:%x x:%u y:%u Error: %s",
+                BOOL(resp.input & BTN_GUNCON_A),
+                BOOL(resp.input & BTN_GUNCON_B),
+                BOOL(resp.input & BTN_GUNCON_TRIGGER),
+                resp.left.x,
+                resp.left.y,
+                err);
+        }
+        case PAD_MOUSE:
+            LOG_JOY(
+                "Mouse: Left:%x, Right:%x x:%d y:%d",
+                BOOL(resp.input & BTN_MOUSE_LEFT),
+                BOOL(resp.input & BTN_MOUSE_RIGHT),
+                (int8_t)resp.left.x,
+                (int8_t)resp.left.y);
+            return;
+        default: LOG_JOY("ID: %02X, DATA: %04X", resp.idLo, resp.input); return;
+        }
+    }
+
     int PSX_Joypad::update()
     {
-        if (poll_() == GV_OK)
+        int fr = GV_OK;
+        for (auto &pad : _padList)
         {
-            // Do shit
         }
+        switch (poll())
+        {
+        case GV_OK: break;
+        case SIO0_NO_RESPONSE: break;
+        default: break; // If SIO0 is in use (somehow on a single threaded app..) ignore.
+        }
+        psx_sio0.update_(); // Mouse ack checking
+        return (fr == GV_OK ? 0 : 1);
+
         return 0;
     }
 
@@ -72,7 +146,7 @@ namespace System::PSX::IO
             sizeof(response));
         END(response, respLength);
 
-        return 0;
+        return GV_OK;
     }
 
     // Enables setting analog button and locking it. Only works on DualShock and above
@@ -89,7 +163,7 @@ namespace System::PSX::IO
             sizeof(response));
         END(response, respLength);
 
-        return 0;
+        return GV_OK;
     }
 
     // Enables dual motors. Only works on DualShock and above
@@ -106,7 +180,7 @@ namespace System::PSX::IO
             sizeof(response));
         END(response, respLength);
 
-        return 0;
+        return GV_OK;
     }
 
     // Enables reading analog buttons. Only works on DualShock2
@@ -130,22 +204,13 @@ namespace System::PSX::IO
             sizeof(response));
         END(response, respLength);
 
-        return 0;
+        return GV_OK;
     }
 
-    int PSX_Joypad::poll_(void)
+    int PSX_Joypad::poll(uint8_t subport)
     {
-
-        // auto lastType  = controllerType;
-        // controllerType = TYPE_NONE;
-        // buttons        = 0;
-        // leftAnalog.x   = 0;
-        // leftAnalog.y   = 0;
-        // rightAnalog.x  = 0;
-        // rightAnalog.y  = 0;
-
         const uint8_t request[4]{CMD_POLL, 0, 0, 0};
-        uint8_t response[8];
+        alignas(ControllerReadResponse) uint8_t response[8];
 
         START(ADDR_CONTROLLER, _portNumber);
         size_t respLength = psx_sio0.exchangeBytes_(
@@ -155,25 +220,14 @@ namespace System::PSX::IO
             sizeof(response));
         END(response, respLength);
 
-        // controllerType = ControllerType(response[0] >> 4);
-        // buttons        = ~util::concat2(response[2], response[3]);
+        static ControllerReadResponse lastResp;
+        auto &resp = *reinterpret_cast<ControllerReadResponse *>(response);
+        if (memcmp(&lastResp, &resp, sizeof(ControllerReadResponse)))
+        {
+            printPSControlDebug(resp);
+            lastResp = resp;
+        }
 
-        // The PS1 mouse outputs signed motion deltas while all other controllers
-        // use unsigned values.
-        // int offset = (controllerType == TYPE_MOUSE) ? 0 : 128;
-
-        // if (respLength >= 6)
-        //{
-        //    rightAnalog.y = response[4] - offset;
-        //    rightAnalog.x = response[5] - offset;
-        //}
-        // if (respLength >= 8)
-        //{
-        //    leftAnalog.y = response[6] - offset;
-        //    leftAnalog.x = response[7] - offset;
-        //}
-
-        // return (controllerType == lastType) ? NO_ERROR : DEVICE_CHANGED;
-        return 0;
+        return GV_OK;
     }
 } // namespace System::PSX::IO

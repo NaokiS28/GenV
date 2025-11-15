@@ -26,7 +26,10 @@ namespace Time
     bool timeValid(int hour, int min, int sec);
     void addSecond(tm &time);
     void addDay(tm &time);
-    int getTimeString(tm &time, char *str, bool seconds = true, bool amPm = false);
-    
-    inline bool timeValid(tm time){ return timeValid(time.tm_hour, time.tm_min, time.tm_sec); }
-}
+    int getTimeString(tm &time, char *str, size_t len, bool seconds = true, bool amPm = false);
+
+    inline bool timeValid(tm time)
+    {
+        return timeValid(time.tm_hour, time.tm_min, time.tm_sec);
+    }
+} // namespace Time

@@ -23,6 +23,21 @@ namespace Files
 {
     struct IStorageDevice;
 
+    class IStorageDriver
+    {
+    protected:
+        const char *name = nullptr;
+
+    public:
+        IStorageDriver()        = default;
+        virtual int init()      = 0;
+        virtual void update()   = 0;
+        virtual bool reset()    = 0;
+        virtual void shutdown() = 0;
+
+        inline const char *getName() { return name; }
+    };
+
     class IStorage
     {
     public:

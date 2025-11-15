@@ -22,8 +22,9 @@
 
 namespace System::PSX::Storage
 {
-    class PSX_PCDrive : public Files::IStorage
+    class PSX_PCDrive : public Files::IStorageDriver
     {
+    public:
         int init();
         void update();
         bool reset();

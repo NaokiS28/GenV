@@ -16,13 +16,14 @@
  */
 
 #include "psx_pcdrv.hpp"
+#include "common/return_codes.hpp"
 
 namespace System::PSX::Storage
 {
 
     int PSX_PCDrive::init()
     {
-        return 0;
+        return GV_ERROR(GV_SERVICE_FILESYSTEM, GV_CATEGORY_GENERIC, GV_ERR_DEVICE_NOT_READY);
     }
     void PSX_PCDrive::update() {}
     bool PSX_PCDrive::reset()

@@ -15,86 +15,92 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "../system.hpp"
-#include "../video/video.hpp"
+#include "psx/video/video.hpp"
 #include "registers573.hpp"
 #include "rtc.hpp"
 #include "common/services/system/arcade/arcade.hpp"
 
-namespace System
+#include "jamma/jamma.hpp"
+#include "jamma/adc083x.hpp"
+
+namespace System::PSX
 {
-    namespace PSX
+
+    namespace KSYS573
     {
-        namespace KSYS573
+        constexpr const char *szSystemName = "System 573";
+        constexpr const char *szMakeName   = "KONAMI";
+    } // namespace KSYS573
+
+    class Sys573System : public PSXSystem, public IArcadeSystem
+    {
+    private:
+        SystemInfo si573 = {
+            .type  = SYS_Arcade,
+            .make  = KSYS573::szMakeName,
+            .name  = KSYS573::szSystemName,
+            .flags = SYS_No_Window_Mode};
+
+        uint8_t outputBanks = 1;
+
+        KSYS573::RTC _rtc;
+
+        Sys573Jamma _jamma;
+        ADC038x _adc = ADC038x(4); // Internal ADC
+
+    public:
+        Sys573System();
+        ~Sys573System();
+
+        int initCore() override;
+        int initVideo() override;
+        int initAudio() override;
+        int initIO() override;
+        int initStorage() override;
+
+        int update() override;
+        bool shutdown() override;
+
+        int readNVRAM(uint8_t *data, int offset, int count) override
         {
-            constexpr const char *szSystemName = "System 573";
-            constexpr const char *szMakeName = "KONAMI";
-        } // namespace KSYS573
-
-        class Sys573System : public PSXSystem, public IArcadeSystem
+            return _rtc.readNVRAM(data, offset, count);
+        }
+        int writeNVRAM(const uint8_t *data, int offset, int count) override
         {
-        private:
-            SystemInfo si573 = {
-                .type = SYS_Arcade,
-                .make = KSYS573::szMakeName,
-                .name = KSYS573::szSystemName,
-                .flags = SYS_No_Window_Mode};
+            return _rtc.writeNVRAM(data, offset, count);
+        }
 
-            int _initAudio() override;
-            int _initIO() override;
-            int _initFiles() override;
+        uint8_t increaseCoinCounter(uint8_t counter) override;
 
-            uint32_t getJAMMAInputs(void);
+        void tickWatchdog(void) override
+        {
+            if (enableWatchdogTicking)
+            {
+                SYS573_WATCHDOG = 0;
+            }
+        }
 
-            uint8_t outputBanks = 1;
+        const SystemInfo *getSysInfo() const override
+        {
+            return &si573;
+        }
 
-            KSYS573::RTC _rtc;
+        uint8_t setOutputs(uint8_t bank, uint8_t data) override;
+        uint8_t setSingleOutput(uint8_t outputNumber, bool state) override;
 
+        const char *getWorkingDirectory() override;
+    };
+
+    namespace GPU
+    {
+        class Sys573Video : public PSXGPU
+        {
         public:
-            Sys573System();
-            ~Sys573System();
-
-            int init() override;
-            int update() override;
-            bool shutdown() override;
-
-            int readNVRAM(uint8_t *data, int offset, int count) override
-            {
-                return _rtc.readNVRAM(data, offset, count);
-            }
-            int writeNVRAM(const uint8_t *data, int offset, int count) override
-            {
-                return _rtc.writeNVRAM(data, offset, count);
-            }
-
-            uint8_t increaseCoinCounter(uint8_t counter) override;
-
-            void tickWatchdog(void) override
-            {
-                if (enableWatchdogTicking)
-                {
-                    SYS573_WATCHDOG = 0;
-                }
-            }
-
-            const SystemInfo *getSysInfo() const override
-            {
-                return &si573;
-            }
-
-            uint8_t setOutputs(uint8_t bank, uint8_t data) override;
-            uint8_t setSingleOutput(uint8_t outputNumber, bool state) override;
-
-            const char *getWorkingDirectory() override;
+            Sys573Video();
         };
+    } // namespace GPU
 
-        namespace GPU
-        {
-            class Sys573Video : public PSXGPU
-            {
-            public:
-                Sys573Video();
-            };
-        } // namespace GPU
-    } // namespace PSX
-} // namespace System
+} // namespace System::PSX

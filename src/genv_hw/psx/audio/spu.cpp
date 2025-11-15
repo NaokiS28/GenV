@@ -28,7 +28,7 @@ namespace spu
     /* Basic API */
 
     static constexpr int _DMA_CHUNK_SIZE = 4;
-    static constexpr int _DMA_TIMEOUT = 100000;
+    static constexpr int _DMA_TIMEOUT    = 100000;
     static constexpr int _STATUS_TIMEOUT = 10000;
 
     static bool _waitForStatus(uint16_t mask, uint16_t value)
@@ -38,7 +38,7 @@ namespace spu
             if ((SPU_STAT & mask) == value)
                 return true;
 
-            psx_delayMicroseconds(10);
+            psx_delayMicrosecondsBusy(10);
         }
 
         return false;
@@ -59,14 +59,14 @@ namespace spu
         SPU_MASTER_VOL_R = 0;
         SPU_REVERB_VOL_L = 0;
         SPU_REVERB_VOL_R = 0;
-        SPU_REVERB_ADDR = 0xfffe;
+        SPU_REVERB_ADDR  = 0xfffe;
 
         SPU_CTRL = SPU_CTRL_ENABLE;
         _waitForStatus(0x3f, 0);
 
         // Place a dummy (silent) looping block at the beginning of SPU RAM.
         SPU_DMA_CTRL = 4;
-        SPU_ADDR = DUMMY_BLOCK_OFFSET / 8;
+        SPU_ADDR     = DUMMY_BLOCK_OFFSET / 8;
 
         SPU_DATA = 0x0500;
         for (int i = 7; i > 0; i--)
@@ -74,7 +74,7 @@ namespace spu
 
         SPU_CTRL = SPU_CTRL_XFER_WRITE | SPU_CTRL_ENABLE;
         _waitForStatus((SPU_CTRL_XFER_BITMASK | SPU_STAT_BUSY), SPU_CTRL_XFER_WRITE);
-        psx_delayMicroseconds(100);
+        psx_delayMicrosecondsBusy(100);
 
         SPU_CTRL = SPU_CTRL_UNMUTE | SPU_CTRL_ENABLE;
         resetAllChannels();
@@ -111,18 +111,18 @@ namespace spu
 
         SPU_CH_VOL_L(ch) = 0;
         SPU_CH_VOL_R(ch) = 0;
-        SPU_CH_FREQ(ch) = 1 << 12;
-        SPU_CH_ADDR(ch) = DUMMY_BLOCK_OFFSET / 8;
+        SPU_CH_FREQ(ch)  = 1 << 12;
+        SPU_CH_ADDR(ch)  = DUMMY_BLOCK_OFFSET / 8;
 
         if (ch < 16)
         {
             SPU_FLAG_OFF1 = 1 << ch;
-            SPU_FLAG_ON1 = 1 << ch;
+            SPU_FLAG_ON1  = 1 << ch;
         }
         else
         {
             SPU_FLAG_OFF2 = 1 << (ch - 16);
-            SPU_FLAG_ON2 = 1 << (ch - 16);
+            SPU_FLAG_ON2  = 1 << (ch - 16);
         }
     }
 
@@ -132,18 +132,18 @@ namespace spu
         {
             SPU_CH_VOL_L(ch) = 0;
             SPU_CH_VOL_R(ch) = 0;
-            SPU_CH_FREQ(ch) = 1 << 12;
-            SPU_CH_ADDR(ch) = DUMMY_BLOCK_OFFSET / 8;
+            SPU_CH_FREQ(ch)  = 1 << 12;
+            SPU_CH_ADDR(ch)  = DUMMY_BLOCK_OFFSET / 8;
         }
 
-        SPU_FLAG_FM1 = 0;
-        SPU_FLAG_FM2 = 0;
-        SPU_FLAG_NOISE1 = 0;
-        SPU_FLAG_NOISE2 = 0;
+        SPU_FLAG_FM1     = 0;
+        SPU_FLAG_FM2     = 0;
+        SPU_FLAG_NOISE1  = 0;
+        SPU_FLAG_NOISE2  = 0;
         SPU_FLAG_REVERB1 = 0;
         SPU_FLAG_REVERB2 = 0;
-        SPU_FLAG_ON1 = 0xffff;
-        SPU_FLAG_ON2 = 0x00ff;
+        SPU_FLAG_ON1     = 0xffff;
+        SPU_FLAG_ON2     = 0x00ff;
     }
 
     size_t upload(uint32_t ramOffset, const void *data, size_t length, bool wait)
@@ -163,12 +163,12 @@ namespace spu
         _waitForStatus(SPU_CTRL_XFER_BITMASK, 0);
 
         SPU_DMA_CTRL = 4;
-        SPU_ADDR = ramOffset / 8;
-        SPU_CTRL = ctrlReg | SPU_CTRL_XFER_DMA_WRITE;
+        SPU_ADDR     = ramOffset / 8;
+        SPU_CTRL     = ctrlReg | SPU_CTRL_XFER_DMA_WRITE;
         _waitForStatus(SPU_CTRL_XFER_BITMASK, SPU_CTRL_XFER_DMA_WRITE);
 
         DMA_MADR(DMA_SPU) = reinterpret_cast<uint32_t>(data);
-        DMA_BCR(DMA_SPU) = _DMA_CHUNK_SIZE | (length << 16);
+        DMA_BCR(DMA_SPU)  = _DMA_CHUNK_SIZE | (length << 16);
         DMA_CHCR(DMA_SPU) = DMA_CHCR_WRITE | DMA_CHCR_MODE_SLICE | DMA_CHCR_ENABLE;
 
         if (wait)
@@ -184,9 +184,9 @@ namespace spu
         if (header->magic != util::concat4('V', 'A', 'G', 'p'))
             return false;
 
-        offset = ramOffset / 8;
+        offset     = ramOffset / 8;
         sampleRate = (__builtin_bswap32(header->sampleRate) << 12) / 44100;
-        length = __builtin_bswap32(header->length);
+        length     = __builtin_bswap32(header->length);
 
         return true;
     }
@@ -200,8 +200,8 @@ namespace spu
 
         SPU_CH_VOL_L(ch) = left;
         SPU_CH_VOL_R(ch) = right;
-        SPU_CH_FREQ(ch) = sampleRate;
-        SPU_CH_ADDR(ch) = offset;
+        SPU_CH_FREQ(ch)  = sampleRate;
+        SPU_CH_ADDR(ch)  = offset;
         SPU_CH_ADSR1(ch) = 0x00ff;
         SPU_CH_ADSR2(ch) = 0x0000;
 

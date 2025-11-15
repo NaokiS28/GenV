@@ -21,6 +21,9 @@
 
 #include "psx_sio0.hpp"
 
+#include "../../psx_strings.hpp"
+
+#include "common/logger/log.hpp"
 #include "common/objects/file.hpp"
 #include "common/services/storage/iface_storage.hpp"
 
@@ -28,17 +31,32 @@
 
 namespace System::PSX::IO
 {
-    class PSX_MemCard
+    class PSX_MemoryCard : public Files::IStorageDriver
     {
     private:
         static uint8_t driverCount;
         const SIOControlFlag _portNumber;
 
     public:
-        inline PSX_MemCard(uint8_t port) : _portNumber((port % 2) ? SIO_CTRL_CS_PORT_1 : SIO_CTRL_CS_PORT_2)
+        inline PSX_MemoryCard(uint8_t port) : _portNumber((port % 2) ? SIO_CTRL_CS_PORT_1 : SIO_CTRL_CS_PORT_2)
         {
             assert(driverCount < 2 && port <= 2);
+            name = PSX_PS_MEMCARD_STR;
         };
+
+        int init() override
+        {
+            LOG("psxmcd", "Init PlayStation Memory Card driver on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
+            return 0;
+        }
+
+        void update() override
+        {
+            psx_sio0.update_(); // Mouse ack checking
+            return;
+        }
+        bool reset() override { return false; }
+        void shutdown() override { return; }
 
         int openFile(const char *filePath, bool lock, Files::FileObject *fObj);
         int closeFile(Files::FileObject *fObj);

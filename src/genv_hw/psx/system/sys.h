@@ -40,7 +40,7 @@ extern "C"
 
     /**
      * @brief Read-only pointer to the currently running thread.
-     */ 
+     */
     extern Thread *currentThread;
 
     /**
@@ -154,7 +154,7 @@ extern "C"
      *
      * @param time
      */
-    void psx_delayMicroseconds(int time);
+    // void psx_delayMicroseconds(int time);	// TODO: Make this function save the state of the Timer 2 variable so that it wont break things.
 
     /**
      * @brief Blocks for (roughly) the specified number of microseconds. This

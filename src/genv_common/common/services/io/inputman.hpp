@@ -17,20 +17,41 @@
 
 #pragma once
 
+#include "common/util/templates.hpp"
 #include "iface_input.hpp"
 #include "common/services/adminkey.hpp"
+#include <string.h>
 
 namespace Input
 {
+    static constexpr const int initialDrivers     = 10;
+    static constexpr const int initialControllers = 12;
+    static constexpr const int initialKeyboards   = 6;
+    static constexpr const int initialMice        = 6;
+
+    // Placeholders - VKey and VMouse will provide a universal inteface to the app
+    class VPad
+    {
+    };
+
+    class VKeyboard
+    {
+    };
+
+    class VMouse
+    {
+    };
+
     class InputManager
     {
     private:
-        IInput **deviceList = nullptr;
-        int deviceCount = 0;
-        int deviceListLength = 0;
+        util::PointerList<IInputDriver *, initialDrivers> _driverList;
+        util::PointerList<IController *, initialControllers> _padList;
+        util::PointerList<IKeyboard *, initialKeyboards> _keyList;
+        util::PointerList<IMouse *, initialMice> _mouseList;
 
     public:
-        InputManager(AdminClass_Key key);
+        inline InputManager(AdminClass_Key key) {};
         ~InputManager();
 
         int init();
@@ -38,7 +59,10 @@ namespace Input
         void reset();
         void shutdown();
 
-        bool attachDevice(Input::IInput *dev);
-        bool detachDevice(Input::IInput *dev);
+        int registerDriver(Input::IInputDriver *device);
+        int unregisterDriver(Input::IInputDriver *device);
+
+        int attachDevice(Input::IInputDevice *driver);
+        int detachDevice(Input::IInputDevice *driver);
     };
 } // namespace Input

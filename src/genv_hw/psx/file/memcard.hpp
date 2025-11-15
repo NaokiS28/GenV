@@ -31,7 +31,7 @@
  * @param data Pointer to the block of data
  * @param len Length of the data
  */
-uint8_t psx_memcard_xor(void *data, size_t len);
+uint8_t PSX_MemoryCard_xor(void *data, size_t len);
 
 typedef enum : uint16_t
 {
@@ -58,7 +58,7 @@ class MemCard_Header_Frame
 public:
     uint16_t id;
     uint8_t checksum = 0;
-    inline uint8_t calcSum() { return psx_memcard_xor(this, structsize(-2)); }
+    inline uint8_t calcSum() { return PSX_MemoryCard_xor(this, structsize(-2)); }
 };
 
 class MemCard_Directory_Frame
@@ -69,7 +69,7 @@ public:
     uint32_t nextFrame;
     char fileName[21];
     uint8_t checksum;
-    inline uint8_t calcSum() { return psx_memcard_xor(this, structsize(-3)); }
+    inline uint8_t calcSum() { return PSX_MemoryCard_xor(this, structsize(-3)); }
 };
 
 class MemCard_BadSector_List
@@ -77,7 +77,7 @@ class MemCard_BadSector_List
 public:
     uint32_t offset;
     uint8_t checksum;
-    inline uint8_t calcSum() { return psx_memcard_xor(this, structsize(-4)); }
+    inline uint8_t calcSum() { return PSX_MemoryCard_xor(this, structsize(-4)); }
 };
 
 typedef enum : uint8_t
@@ -118,7 +118,7 @@ struct MemCard_Data_Frame
  * @param license Game's 4 character license string as described in MemCardLicense
  * @param pocketexe Set to true if this file is a PocketStation executable
  */
-void psx_memcard_format_filename(
+void PSX_MemoryCard_format_filename(
     char **out,
     uint32_t titleID,
     const char *filename,

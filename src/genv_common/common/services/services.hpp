@@ -51,18 +51,41 @@ public:
     static inline void setVideo(AdminClass_Key key, Video::IVideo *video) { setVideo(video); }
     static inline void setAudio(AdminClass_Key key, Audio::IAudio *audio) { setAudio(audio); }
 
-    // static Input::IInput *getInput(void) { return s_input; }
+    // static Input::IInputDriver *getInput(void) { return s_input; }
     static Files::IStorage *getStorage(void) { return s_storage; }
-    static inline bool addInputDevice(Input::IInput *dev)
+    static inline bool registerInputDriver(Input::IInputDriver *dev)
+    {
+        if (!s_input || !dev) return false;
+        return s_input->registerDriver(dev);
+    }
+    static inline bool unregisterInputDriver(Input::IInputDriver *dev)
+    {
+        if (!s_input || !dev) return false;
+        return s_input->unregisterDriver(dev);
+    }
+
+    static inline bool attachInputDevice(Input::IInputDevice *dev)
     {
         if (!s_input || !dev) return false;
         return s_input->attachDevice(dev);
     }
-    static inline bool removeInputDevice(Input::IInput *dev)
+    static inline bool dettachInputDevice(Input::IInputDevice *dev)
     {
         if (!s_input || !dev) return false;
         return s_input->detachDevice(dev);
     }
+
+    static inline bool registerStorageDriver(Files::IStorageDriver *dev)
+    {
+        if (!s_storage || !dev) return false;
+        return s_storage->registerDriver(dev);
+    }
+    static inline bool unregisterStorageDriver(Files::IStorageDriver *dev)
+    {
+        if (!s_storage || !dev) return false;
+        return s_storage->unregisterDriver(dev);
+    }
+
     static inline bool addStorageDevice(Files::IStorageDevice *dev)
     {
         if (!s_storage || !dev) return false;

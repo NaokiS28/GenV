@@ -33,8 +33,11 @@ namespace Files
         StorageManager(AdminClass_Key key);
         ~StorageManager();
 
-        bool attachDevice(Files::IStorageDevice *dev);
-        bool detachDevice(Files::IStorageDevice *dev);
+        int attachDevice(Files::IStorageDevice *dev);
+        int detachDevice(Files::IStorageDevice *dev);
+
+        int registerDriver(Files::IStorageDriver *dev);
+        int unregisterDriver(Files::IStorageDriver *dev);
 
         int init() override { return 0; };
         bool reset() override { return true; }

@@ -84,19 +84,15 @@ namespace Logs
     {
         // CriticalSection sec;
 
-        tm time   = {0};
-        char *str = new char[MAX_LOG_LINE_LENGTH];
-        if (!str)
-            return;
+        tm time = {0};
+        char str[MAX_LOG_LINE_LENGTH];
         memset(str, 0, MAX_LOG_LINE_LENGTH);
 
-        char *t_str = new char[16];
-        if (!t_str)
-            return;
-        memset(t_str, 0, 16);
+        char t_str[20];
+        memset(t_str, 0, sizeof(t_str));
 
         System::getTime(time);
-        Time::getTimeString(time, t_str);
+        Time::getTimeString(time, t_str, sizeof(t_str));
         va_list ap;
 
         snprintf(str, MAX_LOG_LINE_LENGTH, "<%s> %s,%s(%d): %s", t_str, type, func, linenum, format);

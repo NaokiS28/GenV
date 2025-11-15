@@ -36,12 +36,14 @@
 #include "drivers/psx_cdrom.hpp"
 #include "drivers/psx_pcdrv.hpp"
 
+#include "psx_strings.hpp"
+
 namespace System
 {
     namespace PSX
     {
-        constexpr const char *szPlaystation = "PlayStation";
-        constexpr const char *szSony        = "Sony";
+
+#define LOG_SYS(fmt, ...) LOG("coresys", fmt __VA_OPT__(, ) __VA_ARGS__)
 
         enum
         {
@@ -52,6 +54,26 @@ namespace System
             PSX_SYS_FILE_INIT_FAIL,
             PSX_SYS_IO_INIT_FAIL,
         };
+
+        typedef void (*PSX_SystemCallback)();
+
+        // Test input parameter as an if statment, and if the process fails the test,
+        // print an error string and associated error code.
+        int ioTest(void *ptr, const char *device, const char *string);
+
+        // Test input parameter as an if statment, and if the process fails the test,
+        // print an error string and associated error code.
+        int ioTest(int returnVal, const char *device, const char *string);
+
+        // Test input parameter as an if statment, and if the process fails the test,
+        // print an error string and associated error code and port number. Requires
+        // `int error` to be defined in the context of this declaration. Will auto
+        int ioTest(void *ptr, const char *device, int port, const char *string);
+
+        // Test input parameter as an if statment, and if the process fails the test,
+        // print an error string and associated error code and port number. Requires
+        // `int error` to be defined in the context of this declaration. Will auto
+        int ioTest(int returnVal, const char *device, int port, const char *string);
 
         /*
          * PSX System base class
@@ -91,12 +113,12 @@ namespace System
                 .name  = szPlaystation,
                 .flags = SYS_No_Window_Mode};
 
-            // Pointers to control the life cycle of items. TODO: Do these strinctly *need* to be pointers?
-            GPU::PSXGPU *gpu               = nullptr;
-            IO::PSX_Joypad *joyDriver[2]   = {nullptr};
-            Storage::PSX_CDROM *cdDriver   = nullptr;
-            Storage::PSX_MemCard *mcDriver = nullptr;
-            Storage::PSX_PCDrive *pcDriver = nullptr;
+            // Pointers to control the life cycle of items. TODO: Do these strictly *need* to be pointers?
+            GPU::PSXGPU *gpu               = nullptr;    // GPU probably needs to stay as pointer for V1/V2 CPU differences
+            IO::PSX_Joypad joyDriver[2]    = {(1), (2)}; // <-| These are part of the CPU and thus can always be "present"
+            IO::PSX_MemoryCard mcDriver[2] = {(1), (2)}; // <-/
+            Storage::PSX_CDROM *cdDriver   = nullptr;    // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
+            Storage::PSX_PCDrive *pcDriver = nullptr;    // Not always needed?
 
         public:
             PSXSystem();
@@ -130,7 +152,7 @@ namespace System
                 std::atomic_signal_fence(std::memory_order_acquire);
                 constexpr int tmult = 5;
                 constexpr int tdiv  = 21168;
-                static_assert(((TIMER2_FREQ * tmult) / tdiv) == 1000);
+                static_assert(((TIMER2_FREQ * tmult) / tdiv) == 1000, "");
 
                 return (uint64_t(TIMER_VALUE(PSX_TIMER_2) | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
             }

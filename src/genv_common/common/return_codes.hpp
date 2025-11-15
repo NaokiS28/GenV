@@ -75,6 +75,7 @@ enum GVE_UniversalResults
     GV_ERR_LIST_EMPTY,        // List or collection empty
 
     // Filesystem errors
+    GV_ERR_DEVICE_NOT_READY,
     GV_ERR_FILE_NOT_FOUND,    // File was not found
     GV_ERR_PATH_INVALID,      // Invalid/malformed path
     GV_ERR_FILE_IN_USE,       // File locked by another process

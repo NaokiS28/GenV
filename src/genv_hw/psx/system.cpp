@@ -17,8 +17,11 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <atomic>
 
 #include "system.hpp"
+#include "common/return_codes.hpp"
+#include "psx/psx_strings.hpp"
 #include "psx/system/pcsxhw.h"
 #include "psx/system/timer.h"
 #include "registers.hpp"
@@ -30,16 +33,51 @@
 #include "system/serial.h"
 #include "terminal/terminal.h"
 
-#define LOG_SYS(fmt, ...) LOG("coresys", fmt __VA_OPT__(, ) __VA_ARGS__)
-
 namespace System::PSX
 {
-    constexpr const char PSX_JOY_ERROR[] = "Failed to %s PSX joypad driver on port %d.";
+
+    int ioTest(void *ptr, const char *device, const char *string)
+    {
+        if (ptr == nullptr)
+        {
+            LOG_SYS(PSX_IO_ERROR_FMT, string, device);
+            return GV_ERROR(GV_SERVICE_GENERIC, GV_CATEGORY_GENERIC, GV_ERR_CREATE_FAILED);
+        }
+        return GV_OK;
+    }
+
+    int ioTest(int returnVal, const char *device, const char *string)
+    {
+        if (returnVal != GV_OK)
+        {
+            LOG_SYS(PSX_IO_ERROR_FMT, string, device);
+        }
+        return returnVal;
+    }
+
+    int ioTest(void *ptr, const char *device, int port, const char *string)
+    {
+        if (ptr == nullptr)
+        {
+            LOG_SYS(PSX_IO_ERROR_FMT, string, device, port);
+            return GV_ERROR(GV_SERVICE_GENERIC, GV_CATEGORY_GENERIC, GV_ERR_CREATE_FAILED);
+        }
+        return GV_OK;
+    }
+
+    int ioTest(int returnVal, const char *device, int port, const char *string)
+    {
+        if (returnVal != GV_OK)
+        {
+            LOG_SYS(PSX_IO_ERROR_FMT, string, device, port);
+        }
+        return returnVal;
+    }
 
     PSXSystem::PSXSystem() : sm_state(SM_NORMAL)
     {
         psx_installExceptionHandler();
-        GenV_ConsoleOps ops;
+        GenV_TerminalFuncs ops;
         ops.init  = &sio1_init;
         ops.read  = &sio1_read;
         ops.write = &sio1_write;
@@ -60,7 +98,7 @@ namespace System::PSX
     {
         if (pcsx_present())
         {
-            LOG_SYS("Detected host as PCSX-Redux.");
+            LOG_SYS(szRedux);
         }
         _setupInterruptHandler();
         psx_enableInterrupts();
@@ -69,45 +107,58 @@ namespace System::PSX
 
     bool PSXSystem::setResolution(int w, int h)
     {
-        // if (!video())
-        return false;
+        if (!gpu)
+            return false;
 
         sm_state = SM_RESIZE;
-        // return video()->setResolution(w, h);
+        return gpu->setResolution(w, h);
     }
 
     int PSXSystem::initVideo()
     {
-        gpu = new GPU::PSXGPU;
-        Services::setVideo(adminKey, gpu);
-        if (!gpu || gpu->init())
-            return -1;
-        return 0;
+        int error = 0;
+        gpu       = new GPU::PSXGPU;
+        error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
+        if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
+        if (!error) Services::setVideo(adminKey, gpu);
+        return error;
     }
 
     int PSXSystem::initAudio()
     {
-        // IAudio *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND,
-        // gpuWnd); if (!aDriver || !aDriver->init())
+        /*
+        int error = 0;
+        spu       = new Sound::PSXSPU;
+        error     = ioTest(spu, PSX_SPU_STR, PSX_CREATE_STR);
+        if (!error) ioTest(spu->init(), PSX_SPU_STR, PSX_INIT_STR);
+        if (!error) Services::setAudio(adminKey, spu);
+        */
         return 0;
     }
 
     int PSXSystem::initStorage()
     {
-        int r    = 0;
-        cdDriver = new Storage::PSX_CDROM();
-        if (!cdDriver)
-            r = -1;
-        mcDriver = new Storage::PSX_MemCard();
-        if (!mcDriver)
-            r = -2;
+        int error = 0; // TODO: How to handle multiple driver failures?
+        cdDriver  = new Storage::PSX_CDROM();
+        error     = ioTest(cdDriver, PSX_CDROM_DRIVE_STR, PSX_CREATE_STR);
+        if (!error) error = ioTest(cdDriver->init(), PSX_CDROM_DRIVE_STR, PSX_INIT_STR);
+        if (!error) Services::registerStorageDriver(cdDriver);
+
+        int port = 1;
+        for (auto &mc : mcDriver)
+        {
+            int mcError = ioTest(mc.init(), PSX_MEMORY_CARD_STR, port, PSX_INIT_STR);
+            if (!mcError) Services::registerStorageDriver(&mc);
+        }
 
 #ifndef NDEBUG
-        pcDriver = new Storage::PSX_PCDrive();
-        if (!mcDriver)
-            r = -3;
+        int pcError = 0;
+        pcDriver    = new Storage::PSX_PCDrive();
+        pcError     = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
+        if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
+        if (!pcError) Services::registerStorageDriver(pcDriver);
 #endif
-        return r;
+        return error;
     }
 
     int PSXSystem::initIO()
@@ -124,19 +175,16 @@ namespace System::PSX
         psx_timer_reset(PSX_TIMER_1);
         psx_timer_reset(PSX_TIMER_2);
 
-        int port     = 1;
-        joyDriver[0] = new IO::PSX_Joypad(1);
-        joyDriver[1] = new IO::PSX_Joypad(2);
-        for (auto joy : joyDriver)
+        int error = 0;
+        int port  = 1;
+        for (auto &joy : joyDriver)
         {
-            if (!joy)
-                LOG_SYS(PSX_JOY_ERROR, "create", port);
-            if (joy->init())
-                LOG_SYS(PSX_JOY_ERROR, "init", port);
-            Services::addInputDevice(joy);
+            error = ioTest(joy.init(), PSX_JOYPAD_STR, port, PSX_INIT_STR);
+            if (!error) Services::registerInputDriver(&joy);
+            port++;
         }
 
-        return 0;
+        return error;
     }
 
     void PSXSystem::_setupInterruptHandler(void)
@@ -145,7 +193,6 @@ namespace System::PSX
             [](void *arg)
             {
                 auto app = reinterpret_cast<PSXSystem *>(arg);
-
                 app->_interruptHandler(); // etc.
             },
             this);
@@ -203,6 +250,7 @@ namespace System::PSX
 
     const char *PSXSystem::getWorkingDirectory()
     {
+        // Figure out how to get a path which the program started at, more often than not ODD0:
         return nullptr;
     }
 

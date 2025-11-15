@@ -23,7 +23,8 @@
 
 namespace Time
 {
-    bool timeValid(int hour, int min, int sec){
+    bool timeValid(int hour, int min, int sec)
+    {
         if ((hour > 23) || (min > 59) || (sec > 59))
             return false;
         return true;
@@ -60,7 +61,7 @@ namespace Time
         if (time.tm_yday >= 365)
         {
             time.tm_mday = 1;
-            time.tm_mon = 0; // C tm struct is 0-based months.
+            time.tm_mon  = 0; // C tm struct is 0-based months.
             time.tm_year++;
             time.tm_yday = 0;
         }
@@ -78,27 +79,33 @@ namespace Time
         }
     }
 
-    int getTimeString(tm &time, char *str, bool seconds, bool amPm)
+    int getTimeString(tm &time, char *str, size_t len, bool seconds, bool amPm)
     {
+        if (!str || (seconds && len < 12) || (!seconds && len < 8))
+            return 1;
+
         int hour;
         bool pm = false;
-        if(time.tm_hour > 12) {
-            pm = true;
+        if (time.tm_hour > 12)
+        {
+            pm   = true;
             hour = time.tm_hour - 12;
-        } else {
+        }
+        else
+        {
             hour = time.tm_hour;
         }
 
-        if(!seconds)
+        if (!seconds)
             snprintf(
-                str, 20, "%02u%c%02u%s", 
+                str, 8, "%02u%c%02u%s",
                 hour, (time.tm_sec % 2 ? ' ' : ':'), time.tm_min,
                 (amPm ? (pm ? "PM" : "AM") : ""));
         else
             snprintf(
-                str, 20, "%02u:%02u:%02u%s", 
+                str, 12, "%02u:%02u:%02u%s",
                 hour, time.tm_min, time.tm_sec,
                 (amPm ? (pm ? " PM" : " AM") : ""));
         return 0;
     }
-}
+} // namespace Time

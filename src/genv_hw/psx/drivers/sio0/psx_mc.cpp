@@ -36,6 +36,8 @@
 
 namespace System::PSX::IO
 {
+    uint8_t PSX_MemoryCard::driverCount = 0;
+
     class Memcard_SectorRead
     {
     private:
@@ -57,7 +59,7 @@ namespace System::PSX::IO
         inline uint8_t checksum() { return rawData[sizeof(rawData) - 2]; }
         inline uint8_t endByte() { return rawData[sizeof(rawData) - 1]; }
 
-        bool validate() { return (psx_memcard_xor(&rawData[7], 130) == checksum()); }
+        bool validate() { return (PSX_MemoryCard_xor(&rawData[7], 130) == checksum()); }
     };
 
     class Memcard_SectorWrite
@@ -74,7 +76,7 @@ namespace System::PSX::IO
             rawData[3]       = (address & 0xff00) >> 8;
             rawData[4]       = (address & 0xff);
             memcpy(&rawData[5], _data, _length);
-            rawData[(sizeof(rawData) - 1)] = psx_memcard_xor(&rawData[3], (sizeof(address) + _length));
+            rawData[(sizeof(rawData) - 1)] = PSX_MemoryCard_xor(&rawData[3], (sizeof(address) + _length));
         }
 
         const uint8_t *asBytes() const
@@ -83,36 +85,36 @@ namespace System::PSX::IO
         }
     };
 
-    int PSX_MemCard::openFile(const char *filePath, bool lock, Files::FileObject *fObj)
+    int PSX_MemoryCard::openFile(const char *filePath, bool lock, Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_MemCard::closeFile(Files::FileObject *fObj)
+    int PSX_MemoryCard::closeFile(Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_MemCard::writeFile(Files::FileObject *fObj)
+    int PSX_MemoryCard::writeFile(Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_MemCard::renameFile(const char *fileName, Files::FileObject *fObj)
+    int PSX_MemoryCard::renameFile(const char *fileName, Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_MemCard::newFile(const char *filePath, const char *filename, Files::FileObject *fObj)
+    int PSX_MemoryCard::newFile(const char *filePath, const char *filename, Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_MemCard::deleteFile(Files::FileObject *fObj)
+    int PSX_MemoryCard::deleteFile(Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_MemCard::readFile(size_t offset, size_t length)
+    int PSX_MemoryCard::readFile(size_t offset, size_t length)
     {
         return 0;
     }
 
-    int PSX_MemCard::readSector(uint16_t address, uint8_t *data, size_t length)
+    int PSX_MemoryCard::readSector(uint16_t address, uint8_t *data, size_t length)
     {
         if (!data || !length || address > 0x3FFF)
             return 1;
@@ -140,7 +142,7 @@ namespace System::PSX::IO
         return response.endByte();
     }
 
-    int PSX_MemCard::writeSector(uint16_t address, uint8_t *data, size_t length)
+    int PSX_MemoryCard::writeSector(uint16_t address, uint8_t *data, size_t length)
     {
         if (!data || !length || address > 0x3FFF)
             return 1;
@@ -168,7 +170,7 @@ namespace System::PSX::IO
         return result;
     }
 
-    uint16_t PSX_MemCard::getID()
+    uint16_t PSX_MemoryCard::getID()
     {
         uint8_t request[]{CMD_IDENTIFY_CARD, 0, 0, 0};
         uint8_t response[8];
@@ -187,7 +189,7 @@ namespace System::PSX::IO
     }
 
     // Gets a list of drives present in the system and returns the total count.
-    int PSX_MemCard::getDriveList(Files::IStorageDevice *list, uint8_t &count)
+    int PSX_MemoryCard::getDriveList(Files::IStorageDevice *list, uint8_t &count)
     {
         return 0;
     }

@@ -314,6 +314,122 @@ namespace util
         }
     };
 
+    /* Simple list */
+    template <typename T, size_t initialSize>
+    class PointerList
+    {
+    private:
+        T *_list           = nullptr;
+        size_t _listSize   = 0;
+        size_t _listLength = 0;
+        bool _ready        = false;
+
+    public:
+        PointerList() { _ready = (init() == 0); }
+        ~PointerList() { delete[] _list; }
+
+        bool ready() { return _ready; }
+        size_t length() { return _listLength; }
+
+        int insert(T ptr, size_t idx)
+        {
+            if (_listLength >= _listSize && expand(1))
+                return 1;
+            memmove(&_list[idx + 1], &_list[idx], sizeof(T) * (_listLength - idx));
+            _list[idx] = ptr;
+            return 0;
+        }
+
+        T at(size_t idx)
+        {
+            if (idx >= _listLength) return nullptr;
+            return _list[idx];
+        }
+
+        int init()
+        {
+            _list = new T[initialSize];
+            if (!_list)
+                return 1;
+            memset(_list, 0, sizeof(T) * initialSize);
+            _listSize = initialSize;
+            return 0;
+        }
+
+        int expand(int count)
+        {
+            auto tempArr = new T[_listSize + count];
+            if (!tempArr)
+                return 1;
+
+            memset(tempArr, 0, sizeof(T) * (_listSize + count));
+            memcpy(tempArr, _list, sizeof(T) * _listSize);
+            delete[] _list;
+            _list = tempArr;
+            _listSize += count;
+            return 0;
+        }
+
+        int shrink(int count)
+        {
+            int _c = 0;
+            for (size_t i = 0; i < _listSize; i++)
+            {
+                if (_list[i] != nullptr) _c++;
+            }
+
+            if (_c >= (_listSize - count))
+                return 2;
+
+            auto tempArr = new T *[_listSize - count];
+            if (!tempArr)
+                return 1;
+
+            memcpy(tempArr, _list, sizeof(T) * (_listSize - count));
+            delete[] _list;
+            _list = tempArr;
+            _listSize -= count;
+            return 0;
+        }
+
+        int append(T ptr)
+        {
+            if (_listLength >= _listSize && expand(1))
+                return 1;
+
+            _list[_listLength] = ptr;
+            _listLength++;
+            return 0;
+        }
+
+        int remove(size_t idx)
+        {
+            if (idx >= _listLength)
+                return 1;
+
+            _list[idx] = nullptr;
+            memmove(&_list[idx], &_list[idx + 1], sizeof(T) * (_listLength - idx - 1));
+            _listLength--;
+
+            return 0;
+        }
+
+        int remove(T item)
+        {
+            for (size_t i = 0; i < _listLength; i++)
+            {
+                if (item == _list[i])
+                {
+                    return remove(i);
+                }
+            }
+            return 1;
+        }
+
+        T *begin() { return _list; }
+        T *end() { return _list + _listLength; }
+    };
+
     /* Simple ring buffer */
 
     template <typename T, size_t N>
@@ -500,7 +616,7 @@ namespace util
 
 /* Character concatenation operator */
 
-static consteval inline uint32_t operator""_c(
+static constexpr inline uint32_t operator""_c(
     const char *const literal,
     size_t length)
 {

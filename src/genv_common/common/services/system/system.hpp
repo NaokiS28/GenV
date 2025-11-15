@@ -55,7 +55,7 @@ namespace System
         using:
         * Services::setVideo(IVideo *gpu);
         * Services::setAudio(IAudio *audio);
-        * Services::setInput(IInput *input);
+        * Services::setInput(IInputDriver *input);
     */
 
     enum SysType : uint32_t
@@ -67,11 +67,11 @@ namespace System
         SYS_Handheld
     };
 
-    constexpr const char *szSystemType_Console = "Console";
+    constexpr const char *szSystemType_Console  = "Console";
     constexpr const char *szSystemType_Computer = "Computer";
-    constexpr const char *szSystemType_Arcade = "Arcade";
+    constexpr const char *szSystemType_Arcade   = "Arcade";
     constexpr const char *szSystemType_Handheld = "Handheld";
-    constexpr const char *szSystemType_Unknown = "Unknown";
+    constexpr const char *szSystemType_Unknown  = "Unknown";
 
     constexpr const char *getSystemTypeString(System::SysType type)
     {
@@ -93,16 +93,16 @@ namespace System
     enum SysFlags : uint32_t
     {
         SYS_No_Window_Mode = (1 << 0),
-        SYS_No_Switch_Res = (1 << 1),
+        SYS_No_Switch_Res  = (1 << 1),
     };
 
     struct SystemInfo
     {
-        SysType type = SysType::SYS_Unknown;
-        const char *make = nullptr;
-        const char *name = nullptr;
+        SysType type       = SysType::SYS_Unknown;
+        const char *make   = nullptr;
+        const char *name   = nullptr;
         const char *osname = nullptr;
-        uint32_t flags = 0;
+        uint32_t flags     = 0;
     };
 
     size_t millis();
@@ -111,7 +111,7 @@ namespace System
     size_t getTime();
     IArcadeSystem *GetArcadeInterface();
 
-}
+} // namespace System
 
 // TODO: Is this macro of any real benefit now? GetArcadeInterface does the important thing.
 // This macro is a short hand to mean that this code should only be run if the system

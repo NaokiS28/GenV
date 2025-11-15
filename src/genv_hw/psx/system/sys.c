@@ -128,7 +128,7 @@ bool psx_waitForInterrupt(IRQChannel irq, int timeout) {
 		if (psx_acknowledgeInterrupt(irq))
 			return true;
 
-		psx_delayMicroseconds(10);
+		psx_delayMicrosecondsBusy(10);
 	}
 
 	return false;
@@ -139,7 +139,7 @@ bool psx_waitForDMATransfer(DMAChannel dma, int timeout) {
 		if (!(DMA_CHCR(dma) & DMA_CHCR_ENABLE))
 			return true;
 
-		psx_delayMicroseconds(10);
+		psx_delayMicrosecondsBusy(10);
 	}
 
 	return false;

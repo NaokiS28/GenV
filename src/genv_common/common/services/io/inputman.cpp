@@ -24,100 +24,129 @@
 
 namespace Input
 {
-    const char *szIMFailed = "%s device failed: %s";
-    const char *szDeviceNull = "device pointer is null.";
-    const char *szAttach = "Attach";
-    const char *szDetach = "Detach";
+    const char szInputFailedFmt[] = "%s %s failed to %s: %s";
+    const char szInputFmt[]       = "%s %s %sed.";
+    const char szAttach[]         = "attach";
+    const char szDetach[]         = "detach";
+    const char szRegister[]       = "register";
+    const char szUnregister[]     = "unregister";
+    const char szInput[]          = "Input";
+    const char szDriver[]         = "driver";
+    const char szDevice[]         = "device";
 
-    constexpr const int startingListSize = 4;
-
-    InputManager::InputManager(AdminClass_Key key)
-    {
-    }
+    const char szDeviceNull[] = "device pointer is null.";
 
     InputManager::~InputManager()
     {
-        if (deviceList)
-            delete[] deviceList;
+        for (auto pad : _padList)
+            if (pad) delete pad;
+        for (auto key : _driverList)
+            if (key) delete key;
+        for (auto mouse : _driverList)
+            if (mouse) delete mouse;
+        for (auto driver : _driverList)
+            if (driver) delete driver;
     }
 
     int InputManager::init()
     {
-        deviceList = new IInput *[startingListSize];
-        if (!deviceList)
+        if (!_driverList.ready() ||
+            !_padList.ready() ||
+            !_keyList.ready() ||
+            !_mouseList.ready())
             return 1;
-        deviceListLength = startingListSize;
-        for (int i = 0; i < startingListSize; i++)
-        {
-            deviceList[i] = nullptr;
-        }
         return 0;
     }
 
     void InputManager::update()
     {
-        for (int i = 0; i < deviceCount; i++)
-        {
-            deviceList[i]->update();
-        }
+        for (auto driver : _driverList)
+            if (driver) driver->update();
+
+        for (auto pad : _padList)
+            if (pad && pad->canPoll()) pad->poll();
+        for (auto key : _keyList)
+            if (key && key->canPoll()) key->poll();
+        for (auto mouse : _mouseList)
+            if (mouse && mouse->canPoll()) mouse->poll();
     }
 
     void InputManager::reset()
     {
-        for (int i = 0; i < deviceCount; i++)
-        {
-            deviceList[i]->reset();
-        }
+        for (auto driver : _driverList)
+            if (driver) driver->reset();
     }
 
     void InputManager::shutdown()
     {
-        for (int i = 0; i < deviceCount; i++)
-        {
-            deviceList[i]->shutdown();
-        }
+        for (auto pad : _padList)
+            if (pad) pad->shutdown();
+        for (auto key : _keyList)
+            if (key) key->shutdown();
+        for (auto mouse : _mouseList)
+            if (mouse) mouse->shutdown();
+
+        for (auto driver : _driverList)
+            if (driver) driver->shutdown();
     }
 
-    bool InputManager::attachDevice(Input::IInput *dev)
+    int InputManager::attachDevice(Input::IInputDevice *dev)
     {
         if (!dev)
         {
-            ILOG(szIMFailed, szAttach, szDeviceNull);
+            ILOG(szInputFailedFmt, szInput, szDevice, szAttach, szDeviceNull);
             return false;
         }
-        if (deviceCount == deviceListLength)
+        switch (dev->getType())
         {
-            auto tempArr = new IInput *[deviceCount + 1];
-            if (!tempArr)
-                return false;
-
-            memcpy(tempArr, deviceList, sizeof(IInput *) * (deviceCount + 1));
-            delete[] deviceList;
-            deviceList = tempArr;
-            deviceListLength++;
+        case DEVICE_TYPE_CONTROLLER: _padList.append(static_cast<IController *>(dev)); break;
+        case DEVICE_TYPE_KEYBOARD: _keyList.append(static_cast<IKeyboard *>(dev)); break;
+        case DEVICE_TYPE_MOUSE: _mouseList.append(static_cast<IMouse *>(dev)); break;
+        default: return 1;
         }
-        deviceList[deviceCount] = dev;
-        deviceCount++;
+        ILOG(szInputFmt, dev->getName(), szDevice, szAttach);
+        return 0;
+    }
+
+    int InputManager::detachDevice(Input::IInputDevice *dev)
+    {
+        if (!dev)
+        {
+            ILOG(szInputFailedFmt, szInput, szDevice, szDetach, szDeviceNull);
+            return false;
+        }
+        switch (dev->getType())
+        {
+        case DEVICE_TYPE_CONTROLLER: _padList.remove(static_cast<IController *>(dev)); break;
+        case DEVICE_TYPE_KEYBOARD: _keyList.remove(static_cast<IKeyboard *>(dev)); break;
+        case DEVICE_TYPE_MOUSE: _mouseList.remove(static_cast<IMouse *>(dev)); break;
+        default: return 1;
+        }
+        ILOG(szInputFmt, dev->getName(), szDevice, szDetach, szDeviceNull);
+        return 0;
+    }
+
+    int InputManager::registerDriver(Input::IInputDriver *driver)
+    {
+        if (!driver)
+        {
+            ILOG(szInputFailedFmt, szInput, szDriver, szRegister, szDeviceNull);
+            return false;
+        }
+        _driverList.append(driver);
+        ILOG(szInputFmt, driver->getName(), szDriver, szRegister);
         return true;
     }
 
-    bool InputManager::detachDevice(Input::IInput *dev)
+    int InputManager::unregisterDriver(Input::IInputDriver *driver)
     {
-        if (!dev)
+        if (!driver)
         {
-            ILOG(szIMFailed, szDetach, szDeviceNull);
+            ILOG(szInputFailedFmt, szInput, szDriver, szUnregister, szDeviceNull);
             return false;
         }
-        for (int i = 0; i < deviceCount; i++)
-        {
-            if (deviceList[i] == dev)
-            {
-                auto dev = deviceList[i];
-                dev->shutdown();
-                delete dev;
-                memmove(&deviceList[i], &deviceList[i + 1], sizeof(IInput *) * (deviceCount - i));
-            }
-        }
+        _driverList.remove(driver);
+        ILOG(szInputFmt, driver->getName(), szDriver, szUnregister);
         return true;
     }
 } // namespace Input
