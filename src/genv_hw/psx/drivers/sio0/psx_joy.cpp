@@ -116,7 +116,7 @@ namespace System::PSX::IO
 
     int PSX_Joypad::update()
     {
-        int fr = GV_OK;
+        /*int fr = GV_OK;
         for (auto &pad : _padList)
         {
         }
@@ -125,10 +125,13 @@ namespace System::PSX::IO
         case GV_OK: break;
         case SIO0_NO_RESPONSE: break;
         default: break; // If SIO0 is in use (somehow on a single threaded app..) ignore.
+        case GV_OK: break;
+        case SIO0_NO_RESPONSE: break;
+        default: break; // If SIO0 is in use (somehow on a single threaded app..) ignore.
         }
         psx_sio0.update_(); // Mouse ack checking
         return (fr == GV_OK ? 0 : 1);
-
+        */
         return 0;
     }
 
@@ -205,11 +208,13 @@ namespace System::PSX::IO
         END(response, respLength);
 
         return GV_OK;
+        return GV_OK;
     }
 
-    int PSX_Joypad::poll(uint8_t subport)
+    int PSX_Joypad::poll(uint8_t subport) int PSX_Joypad::poll(uint8_t subport)
     {
         const uint8_t request[4]{CMD_POLL, 0, 0, 0};
+        alignas(ControllerReadResponse) uint8_t response[8];
         alignas(ControllerReadResponse) uint8_t response[8];
 
         START(ADDR_CONTROLLER, _portNumber);
@@ -220,6 +225,15 @@ namespace System::PSX::IO
             sizeof(response));
         END(response, respLength);
 
+        static ControllerReadResponse lastResp;
+        auto &resp = *reinterpret_cast<ControllerReadResponse *>(response);
+        if (memcmp(&lastResp, &resp, sizeof(ControllerReadResponse)))
+        {
+            printPSControlDebug(resp);
+            lastResp = resp;
+        }
+
+        return GV_OK;
         static ControllerReadResponse lastResp;
         auto &resp = *reinterpret_cast<ControllerReadResponse *>(response);
         if (memcmp(&lastResp, &resp, sizeof(ControllerReadResponse)))

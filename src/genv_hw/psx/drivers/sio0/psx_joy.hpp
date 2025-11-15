@@ -21,10 +21,14 @@
 #include <stddef.h>
 #include <assert.h>
 #include <string.h>
+#include <string.h>
 
+#include "common/services/services.hpp"
 #include "psx_sio0.hpp"
 #include "../../psx_strings.hpp"
+#include "../../psx_strings.hpp"
 
+#include "common/logger/log.hpp"
 #include "common/logger/log.hpp"
 #include "common/services/io/iface_input.hpp"
 #include "psx/registers.hpp"
@@ -59,6 +63,8 @@ namespace System::PSX::IO
 
     enum FeedbackType : uint8_t
     {
+        FEEDBACK_NONE = 0,
+        FEEDBACK_MOTOR,
         FEEDBACK_NONE = 0,
         FEEDBACK_MOTOR,
         FEEDBACK_DUALMOTOR,
@@ -125,6 +131,8 @@ namespace System::PSX::IO
         BTN_IRQ10_GUN_TRIGGER = 1 << 15
     };
 
+    class PSX_Controller;
+
     class PSX_Joypad : public IInputDriver
     {
         friend class System::PSX::PSXSystem;
@@ -134,14 +142,7 @@ namespace System::PSX::IO
         static uint8_t driverCount;
         const SIOControlFlag _portNumber;
 
-        struct PadInfo
-        {
-            JoypadType type        = PAD_DISCONNECTED;
-            uint8_t numAxis        = 0;
-            uint8_t numDigital     = 0;
-            FeedbackType motorType = FEEDBACK_NONE;
-            uint8_t rumbleStrength = 0; // Rumble power strength (in 10% increments)
-        } _padList[4];
+        PSX_Controller _pads[4];
 
         int configMode_(bool state);
         int setAnalog_(bool state = true, bool lock = true);
@@ -153,19 +154,26 @@ namespace System::PSX::IO
         {
             assert(driverCount < 2 && port <= 2);
             _name = PSX_PS_CONTROLLER_STR;
+            _name = PSX_PS_CONTROLLER_STR;
         };
+
+        int poll(uint8_t subport = 0);
 
         int poll(uint8_t subport = 0);
 
         inline int init() override
         {
             LOG("psxpad", "Init PlayStation Controller driver on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
+            LOG("psxpad", "Init PlayStation Controller driver on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
             return psx_sio0.init_();
         }
 
         inline bool reset() override
         {
-            memset(_padList, 0, sizeof(_padList));
+            for (auto pad : _pads)
+            {
+                Services::dettachInputDevice(&pad);
+            }
             return true;
         }
 
