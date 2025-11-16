@@ -52,7 +52,7 @@ namespace System::PSX::IO
 
         void update() override
         {
-            psx_sio0.update_(); // Mouse ack checking
+            psx_sio0.update(); // Mouse ack checking
             return;
         }
         bool reset() override { return false; }

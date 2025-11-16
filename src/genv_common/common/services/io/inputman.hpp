@@ -46,9 +46,7 @@ namespace Input
     {
     private:
         util::PointerList<IInputDriver *, initialDrivers> _driverList;
-        util::PointerList<IController *, initialControllers> _padList;
-        util::PointerList<IKeyboard *, initialKeyboards> _keyList;
-        util::PointerList<IMouse *, initialMice> _mouseList;
+        util::PointerList<const IInputDevice *, initialControllers> _devList;
 
     public:
         inline InputManager(AdminClass_Key key) {};
@@ -62,7 +60,7 @@ namespace Input
         int registerDriver(Input::IInputDriver *device);
         int unregisterDriver(Input::IInputDriver *device);
 
-        int attachDevice(Input::IInputDevice *driver);
-        int detachDevice(Input::IInputDevice *driver);
+        int attachDevice(const Input::IInputDevice *driver);
+        int detachDevice(const Input::IInputDevice *driver);
     };
 } // namespace Input

@@ -19,20 +19,20 @@
 #include "psx/file/memcard.hpp"
 #include "psx_sio0.hpp"
 
-#define START(addr, port)                                    \
-    {                                                        \
-        int r = 0;                                           \
-        if (r = psx_sio0.start_(addr, port), r != SIO0_OKAY) \
-        {                                                    \
-            switch (r)                                       \
-            {                                                \
-            case SIO0_IN_USE: return 3;                      \
-            case SIO0_NO_RESPONSE: return 1;                 \
-            }                                                \
-        }                                                    \
+#define START(addr, port)                                   \
+    {                                                       \
+        int r = 0;                                          \
+        if (r = psx_sio0.start(addr, port), r != SIO0_OKAY) \
+        {                                                   \
+            switch (r)                                      \
+            {                                               \
+            case SIO0_IN_USE: return 3;                     \
+            case SIO0_NO_RESPONSE: return 1;                \
+            }                                               \
+        }                                                   \
     }
 
-#define END() psx_sio0.stop_()
+#define END() psx_sio0.stop()
 
 namespace System::PSX::IO
 {
@@ -127,7 +127,7 @@ namespace System::PSX::IO
 
         Memcard_SectorRead response;
 
-        size_t respLength = psx_sio0.exchangeBytes_(
+        size_t respLength = psx_sio0.exchangeBytes(
             request,
             response.asBytes(),
             sizeof(request),
@@ -151,7 +151,7 @@ namespace System::PSX::IO
 
         START(ADDR_MEMORY_CARD, _portNumber);
         uint8_t response[sizeof(request) + 3]; // Ack + endbyte
-        size_t respLength = psx_sio0.exchangeBytes_(
+        size_t respLength = psx_sio0.exchangeBytes(
             request.asBytes(),
             response,
             sizeof(request),
@@ -176,7 +176,7 @@ namespace System::PSX::IO
         uint8_t response[8];
 
         START(ADDR_MEMORY_CARD, _portNumber);
-        size_t respLength = psx_sio0.exchangeBytes_(
+        size_t respLength = psx_sio0.exchangeBytes(
             request,
             response,
             sizeof(request),

@@ -70,6 +70,13 @@ namespace System::PSX::IO
         SIO0_NO_RESPONSE
     };
 
+    enum MultitapState : uint8_t
+    {
+        MT_NOT_PRESENT,
+        MT_TEST_PRESENCE,
+        MT_IS_PRESENT
+    };
+
     class PSX_SIO0
     {
         friend class PSX_Joypad;
@@ -81,20 +88,41 @@ namespace System::PSX::IO
         int _initResult   = 0;
         bool _inUse       = false;
 
-        int init_();
-        int start_(uint8_t address, SIOControlFlag port);
-        void stop_();
-        uint8_t exchangeByte_(uint8_t value);
-        size_t exchangeBytes_(
+        MultitapState _multitap[2] = {MT_TEST_PRESENCE, MT_TEST_PRESENCE};
+
+        int init();
+        int start(uint8_t address, SIOControlFlag port);
+        void stop();
+        uint8_t exchangeByte(uint8_t value);
+        size_t exchangeBytes(
             const uint8_t *request,
             uint8_t *response,
             size_t reqLength,
             size_t maxRespLength,
             bool hasLastACK = false);
 
-        void update_();
+        void update();
 
-        void mouseFix_();
+        // Multitap code - Set and used by the controller drivers, also used by memory card drivers
+        inline bool multitapPresent(SIOControlFlag port)
+        {
+            uint8_t _port = (port == SIO_CTRL_CS_PORT_1 ? 0 : 1);
+            return _multitap[_port] == MT_IS_PRESENT;
+        }
+
+        inline MultitapState getMultitapState(SIOControlFlag port)
+        {
+            uint8_t _port = (port == SIO_CTRL_CS_PORT_1 ? 0 : 1);
+            return _multitap[_port];
+        }
+
+        inline void setMultitapState(SIOControlFlag port, MultitapState state)
+        {
+            uint8_t _port    = (port == SIO_CTRL_CS_PORT_1 ? 0 : 1);
+            _multitap[_port] = state;
+        }
+
+        void mouseFix();
     };
 
     extern PSX_SIO0 psx_sio0;

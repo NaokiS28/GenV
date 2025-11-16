@@ -36,7 +36,7 @@ namespace System::PSX::IO
     static constexpr int _ACK_TIMEOUT    = 120;
     static constexpr int _CS_DELAY       = 60;
 
-    int PSX_SIO0::init_()
+    int PSX_SIO0::init()
     {
         if (_initialised)
             return 0;
@@ -45,7 +45,7 @@ namespace System::PSX::IO
         SIO_MODE(0) = SIO_MODE_BAUD_DIV1 | SIO_MODE_DATA_8;
         SIO_BAUD(0) = F_CPU / _SIO0_BAUD_RATE;
         SIO_CTRL(0) = SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE;
-        mouseFix_();
+        mouseFix();
         _initialised = true;
 
         _initResult = 0;
@@ -56,7 +56,7 @@ namespace System::PSX::IO
     // lock up the bus. It's probably not required but none the less. Because both the Joypad and
     // memory card drivers will ping this, we have to take any expected max time out and multiply
     // by 4 since there's two instances of PSXJoy and PSXMemCard. 4 frames * 4 = 16 outta be plenty.
-    void PSX_SIO0::update_()
+    void PSX_SIO0::update()
     {
         static int ackCount = 0;
         if (IRQ_STAT & (1 << IRQ_SIO0))
@@ -67,21 +67,21 @@ namespace System::PSX::IO
         {
             // ACK stuck?
             LOG("sio0", "ACK held low? Send byte to reset bus on port 1 and 2");
-            mouseFix_();
+            mouseFix();
             ackCount = 0;
         }
     }
 
     // To help with PSX mouse when /ACK is stuck low
-    void PSX_SIO0::mouseFix_()
+    void PSX_SIO0::mouseFix()
     {
-        start_(ADDR_CONTROLLER, SIO_CTRL_CS_PORT_1);
-        stop_();
-        start_(ADDR_CONTROLLER, SIO_CTRL_CS_PORT_2);
-        stop_();
+        start(ADDR_CONTROLLER, SIO_CTRL_CS_PORT_1);
+        stop();
+        start(ADDR_CONTROLLER, SIO_CTRL_CS_PORT_2);
+        stop();
     }
 
-    uint8_t PSX_SIO0::exchangeByte_(uint8_t value)
+    uint8_t PSX_SIO0::exchangeByte(uint8_t value)
     {
         while (!(SIO_STAT(0) & SIO_STAT_TX_NOT_FULL))
             __asm__ volatile("");
@@ -95,7 +95,7 @@ namespace System::PSX::IO
         return SIO_DATA(0);
     }
 
-    size_t PSX_SIO0::exchangeBytes_(
+    size_t PSX_SIO0::exchangeBytes(
         const uint8_t *request,
         uint8_t *response,
         size_t reqLength,
@@ -106,7 +106,7 @@ namespace System::PSX::IO
 
         while (respLength < maxRespLength)
         {
-            uint8_t byte = exchangeByte_(reqLength ? *(request++) : 0);
+            uint8_t byte = exchangeByte(reqLength ? *(request++) : 0);
             respLength++;
 
             if (reqLength)
@@ -125,7 +125,7 @@ namespace System::PSX::IO
         return respLength;
     }
 
-    int PSX_SIO0::start_(uint8_t address, SIOControlFlag port)
+    int PSX_SIO0::start(uint8_t address, SIOControlFlag port)
     {
         if (_inUse)
             return SIO0_IN_USE;
@@ -149,7 +149,7 @@ namespace System::PSX::IO
         return SIO0_OKAY;
     }
 
-    void PSX_SIO0::stop_(void)
+    void PSX_SIO0::stop(void)
     {
         psx_delayMicrosecondsBusy(_CS_DELAY);
         SIO_CTRL(0) = SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE;

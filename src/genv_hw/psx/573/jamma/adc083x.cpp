@@ -16,3 +16,11 @@
  */
 
 #include "adc083x.hpp"
+
+namespace System::PSX
+{
+    int ADC038x::getValue(uint8_t channel)
+    {
+        return 0;
+    }
+} // namespace System::PSX

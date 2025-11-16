@@ -49,7 +49,6 @@ namespace System::PSX
         KSYS573::RTC _rtc;
 
         Sys573Jamma _jamma;
-        ADC038x _adc = ADC038x(4); // Internal ADC
 
     public:
         Sys573System();

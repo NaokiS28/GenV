@@ -43,7 +43,6 @@ target_sources(genv_hw_psx PRIVATE
     video/texmgr.cpp
     video/psxtex.cpp
 	drivers/sio0/psx_joy.cpp
-	drivers/sio0/psx_pads.cpp
 	drivers/sio0/psx_mc.cpp
 	drivers/sio0/psx_sio0.cpp
 	drivers/psx_cdrom.cpp

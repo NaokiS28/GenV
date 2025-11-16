@@ -38,22 +38,13 @@ namespace Input
 
     InputManager::~InputManager()
     {
-        for (auto pad : _padList)
-            if (pad) delete pad;
-        for (auto key : _driverList)
-            if (key) delete key;
-        for (auto mouse : _driverList)
-            if (mouse) delete mouse;
         for (auto driver : _driverList)
             if (driver) delete driver;
     }
 
     int InputManager::init()
     {
-        if (!_driverList.ready() ||
-            !_padList.ready() ||
-            !_keyList.ready() ||
-            !_mouseList.ready())
+        if (!_driverList.ready() || !_devList.ready())
             return 1;
         return 0;
     }
@@ -63,12 +54,7 @@ namespace Input
         for (auto driver : _driverList)
             if (driver) driver->update();
 
-        for (auto pad : _padList)
-            if (pad && pad->canPoll()) pad->poll();
-        for (auto key : _keyList)
-            if (key && key->canPoll()) key->poll();
-        for (auto mouse : _mouseList)
-            if (mouse && mouse->canPoll()) mouse->poll();
+        // for (auto pad : _devList)
     }
 
     void InputManager::reset()
@@ -79,50 +65,31 @@ namespace Input
 
     void InputManager::shutdown()
     {
-        for (auto pad : _padList)
-            if (pad) pad->shutdown();
-        for (auto key : _keyList)
-            if (key) key->shutdown();
-        for (auto mouse : _mouseList)
-            if (mouse) mouse->shutdown();
-
         for (auto driver : _driverList)
             if (driver) driver->shutdown();
     }
 
-    int InputManager::attachDevice(Input::IInputDevice *dev)
+    int InputManager::attachDevice(const Input::IInputDevice *dev)
     {
         if (!dev)
         {
             ILOG(szInputFailedFmt, szInput, szDevice, szAttach, szDeviceNull);
             return false;
         }
-        switch (dev->getType())
-        {
-        case DEVICE_TYPE_CONTROLLER: _padList.append(static_cast<IController *>(dev)); break;
-        case DEVICE_TYPE_KEYBOARD: _keyList.append(static_cast<IKeyboard *>(dev)); break;
-        case DEVICE_TYPE_MOUSE: _mouseList.append(static_cast<IMouse *>(dev)); break;
-        default: return 1;
-        }
-        ILOG(szInputFmt, dev->getName(), szDevice, szAttach);
+        _devList.append(dev);
+        ILOG(szInputFmt, dev->name, szDevice, szAttach);
         return 0;
     }
 
-    int InputManager::detachDevice(Input::IInputDevice *dev)
+    int InputManager::detachDevice(const Input::IInputDevice *dev)
     {
         if (!dev)
         {
             ILOG(szInputFailedFmt, szInput, szDevice, szDetach, szDeviceNull);
             return false;
         }
-        switch (dev->getType())
-        {
-        case DEVICE_TYPE_CONTROLLER: _padList.remove(static_cast<IController *>(dev)); break;
-        case DEVICE_TYPE_KEYBOARD: _keyList.remove(static_cast<IKeyboard *>(dev)); break;
-        case DEVICE_TYPE_MOUSE: _mouseList.remove(static_cast<IMouse *>(dev)); break;
-        default: return 1;
-        }
-        ILOG(szInputFmt, dev->getName(), szDevice, szDetach, szDeviceNull);
+        _devList.remove(dev);
+        ILOG(szInputFmt, dev->name, szDevice, szDetach, szDeviceNull);
         return 0;
     }
 

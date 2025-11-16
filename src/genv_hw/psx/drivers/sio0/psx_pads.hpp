@@ -17,58 +17,68 @@
 
 #pragma once
 
-#include "common/services/services.hpp"
-#include "common/services/io/inputman.hpp"
-#include "common/util/hash.hpp"
+#include <stdint.h>
+#include <stddef.h>
+
 #include "psx/psx_strings.hpp"
-#include "psx_joy.hpp"
+
+#include "common/services/io/iface_input.hpp"
+#include "common/util/hash.hpp"
 
 namespace System::PSX::IO
 {
-    class PSX_Controller : public Input::IInputDevice
-    {
-    private:
-        PSX_Joypad *const _driver;
-        const uint8_t _subportNumber;
+    using namespace Input;
 
-    public:
-        PSX_Controller(PSX_Joypad *driver, uint8_t port, InputDeviceType type, util::Hash id);
-        ~PSX_Controller();
+    constexpr const util::Hash PSX_PAD_HASH        = "PSXPAD"_h;
+    constexpr const util::Hash PSX_DIGITAL_HASH    = "PSXDIGITAL"_h;
+    constexpr const util::Hash PSX_ANALOG_HASH     = "PSXANALOG"_h;
+    constexpr const util::Hash PSX_DUALSHOCK_HASH  = "PSXDUALSHOCK"_h;
+    constexpr const util::Hash PSX_DUALSHOCK2_HASH = "PSXDUALSHOCK2"_h;
+    constexpr const util::Hash PSX_GUNCON_HASH     = "PSXGUNCON"_h;
+    constexpr const util::Hash PSX_JUSTIFIER_HASH  = "PSXJUSTIFIER"_h;
+    constexpr const util::Hash PSX_MOUSE_HASH      = "PSXMOUSE"_h;
+    constexpr const util::Hash PSX_KEYBOARD_HASH   = "PSXKEYBOARD"_h;
 
-        inline virtual int poll() override { return _driver->poll(_subportNumber); }
-    };
+    constexpr IInputDevice psxPad(const char *name, util::Hash type, PlayerSuggestion player, uint8_t subport, uint32_t *digital, int16_t *analog = nullptr)
+    {
+        return {
+            name,
+            PSX_PAD_HASH,
+            type,
+            Input::DEVICE_TYPE_CONTROLLER,
+            Input::DEVICE_SUBTYPE_STANDARD,
+            subport,
+            player,
+            {14, 0, 0, 0},
+            {digital, analog, nullptr}};
+    }
 
-    class PSX_Digital : public PSX_Controller
+    constexpr IInputDevice psxGun(const char *name, util::Hash type, PlayerSuggestion player, uint8_t subport, uint32_t *digital, int16_t *analog)
     {
-        inline PSX_Digital(PSX_Joypad *driver, uint8_t port, InputDeviceType type, util::Hash id)
-            : PSX_Controller(driver, port, DEVICE_TYPE_CONTROLLER, "PS1 Digital"_h)
-        {
-            _name = PSX_DIGITAL_STR;
-        }
-    };
-    class PSX_Analogue : public PSX_Controller
+        return {
+            name,
+            PSX_PAD_HASH,
+            type,
+            Input::DEVICE_TYPE_LIGHTGUN,
+            Input::DEVICE_SUBTYPE_STANDARD,
+            subport,
+            player,
+            {3, 2, 0, 0},
+            {digital, analog, nullptr}};
+    }
+
+    constexpr IInputDevice devMouse(PlayerSuggestion player, uint8_t subport, uint32_t *digital, int16_t *delta)
     {
-        inline PSX_Analogue(PSX_Joypad *driver, uint8_t port, InputDeviceType type, util::Hash id)
-            : PSX_Controller(driver, port, DEVICE_TYPE_CONTROLLER, "PS1 Analog"_h)
-        {
-            _name = PSX_ANALOG_STR;
-        }
-    };
-    class PSX_DualShock : public PSX_Controller
-    {
-        inline PSX_DualShock(PSX_Joypad *driver, uint8_t port, InputDeviceType type, util::Hash id)
-            : PSX_Controller(driver, port, DEVICE_TYPE_CONTROLLER, "PS1 DualShock"_h)
-        {
-            _name = PSX_DUALSHOCK_STR;
-        }
-    };
-    class PSX_DualShock2 : public PSX_Controller
-    {
-        inline PSX_DualShock2(PSX_Joypad *driver, uint8_t port, InputDeviceType type, util::Hash id)
-            : PSX_Controller(driver, port, DEVICE_TYPE_CONTROLLER, "PS1 DualShock2"_h)
-        {
-            _name = PSX_DUALSHOCK2_STR;
-        }
-    };
+        return {
+            PSX_MOUSE_STR,
+            PSX_PAD_HASH,
+            PSX_MOUSE_HASH,
+            Input::DEVICE_TYPE_MOUSE,
+            Input::DEVICE_SUBTYPE_STANDARD,
+            subport,
+            player,
+            {3, 0, 2, 0},
+            {digital, nullptr, delta}};
+    }
 
 } // namespace System::PSX::IO

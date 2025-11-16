@@ -105,8 +105,7 @@ namespace System::PSX
     int Sys573System::initIO()
     {
         PSXSystem::initIO();
-        Services::attachInputDevice(&_jamma);
-        // Services::attachInputDevice(&_adc);
+        Services::registerInputDriver(&_jamma);
 
         return 0;
     }

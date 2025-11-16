@@ -26,22 +26,22 @@
 #include "common/logger/log.hpp"
 
 #define LOG_JOY(fmt, ...) LOG("psx_joy", fmt __VA_OPT__(, ) __VA_ARGS__)
-#define START(addr, port)                                    \
-    {                                                        \
-        int r = 0;                                           \
-        if (r = psx_sio0.start_(addr, port), r != SIO0_OKAY) \
-        {                                                    \
-            switch (r)                                       \
-            {                                                \
-            case SIO0_IN_USE: return 3;                      \
-            case SIO0_NO_RESPONSE: return 1;                 \
-            }                                                \
-        }                                                    \
+#define START(addr, port)                                   \
+    {                                                       \
+        int r = 0;                                          \
+        if (r = psx_sio0.start(addr, port), r != SIO0_OKAY) \
+        {                                                   \
+            switch (r)                                      \
+            {                                               \
+            case SIO0_IN_USE: return 3;                     \
+            case SIO0_NO_RESPONSE: return 1;                \
+            }                                               \
+        }                                                   \
     }
 
 #define END(data, rspLen)                 \
     {                                     \
-        psx_sio0.stop_();                 \
+        psx_sio0.stop();                  \
         if (rspLen < 4) return 1;         \
         if (data[1] != PREFIX_CONTROLLER) \
             return 2;                     \
@@ -116,23 +116,33 @@ namespace System::PSX::IO
 
     int PSX_Joypad::update()
     {
-        /*int fr = GV_OK;
-        for (auto &pad : _padList)
+        psx_sio0.update(); // Mouse ack checking
+
+        int fr = GV_OK;
+        for (auto pad : _padList)
         {
+            switch (poll(pad.subBusID))
+            {
+            case GV_OK: continue;
+            case SIO0_NO_RESPONSE: psx_sio0.setMultitapState(_portNumber, MT_TEST_PRESENCE); continue;
+            default: break; // If SIO0 is in use (somehow on a single threaded app..) ignore.
+            }
+
+            if (!psx_sio0.multitapPresent(_portNumber)) break; // No need to scan further
         }
-        switch (poll())
-        {
-        case GV_OK: break;
-        case SIO0_NO_RESPONSE: break;
-        default: break; // If SIO0 is in use (somehow on a single threaded app..) ignore.
-        case GV_OK: break;
-        case SIO0_NO_RESPONSE: break;
-        default: break; // If SIO0 is in use (somehow on a single threaded app..) ignore.
-        }
-        psx_sio0.update_(); // Mouse ack checking
+
         return (fr == GV_OK ? 0 : 1);
-        */
-        return 0;
+    }
+
+    bool PSX_Joypad::reset()
+    {
+        for (auto pad : _padList)
+        {
+            Services::dettachInputDevice(&pad);
+        }
+        memset(_padList, 0, sizeof(IInputDevice));
+        memset(_padData, 0, sizeof(PSX_PadData));
+        return true;
     }
 
     // Enter or exit controller config mode. Only works on DualShock and above
@@ -142,7 +152,7 @@ namespace System::PSX::IO
         uint8_t response[8];
 
         START(ADDR_CONTROLLER, _portNumber);
-        size_t respLength = psx_sio0.exchangeBytes_(
+        size_t respLength = psx_sio0.exchangeBytes(
             request,
             response,
             sizeof(request),
@@ -159,7 +169,7 @@ namespace System::PSX::IO
         uint8_t response[8];
 
         START(ADDR_CONTROLLER, _portNumber);
-        size_t respLength = psx_sio0.exchangeBytes_(
+        size_t respLength = psx_sio0.exchangeBytes(
             request,
             response,
             sizeof(request),
@@ -176,7 +186,7 @@ namespace System::PSX::IO
         uint8_t response[8];
 
         START(ADDR_CONTROLLER, _portNumber);
-        size_t respLength = psx_sio0.exchangeBytes_(
+        size_t respLength = psx_sio0.exchangeBytes(
             request,
             response,
             sizeof(request),
@@ -200,7 +210,7 @@ namespace System::PSX::IO
         uint8_t response[8];
 
         START(ADDR_CONTROLLER, _portNumber);
-        size_t respLength = psx_sio0.exchangeBytes_(
+        size_t respLength = psx_sio0.exchangeBytes(
             request,
             response,
             sizeof(request),
@@ -211,14 +221,22 @@ namespace System::PSX::IO
         return GV_OK;
     }
 
-    int PSX_Joypad::poll(uint8_t subport) int PSX_Joypad::poll(uint8_t subport)
+    // Polls a standard controller on given subport (of multitap)
+    int PSX_Joypad::poll(uint8_t subport)
     {
-        const uint8_t request[4]{CMD_POLL, 0, 0, 0};
-        alignas(ControllerReadResponse) uint8_t response[8];
-        alignas(ControllerReadResponse) uint8_t response[8];
+        // Send a poll command. Also send a multitap enable command. If MT is not present, controller will respond
+        // and we detect this and turn of this test. When we get NO_ACK from the SIO0 driver, start testing again.
+        // Theory is that after NO_ACKs, controller was unplugged and that whilst we still have a controller plugged in,
+        // if it responded as a multitap, then we can assume it's always one.
+        // We use the second method of polling when using a multitap so it's more flexible, just using method 1 to test presence.
 
-        START(ADDR_CONTROLLER, _portNumber);
-        size_t respLength = psx_sio0.exchangeBytes_(
+        MultitapState _mt = psx_sio0.getMultitapState(_portNumber);
+
+        const uint8_t request[4]{CMD_POLL, (uint8_t)(_mt == MT_TEST_PRESENCE ? 1 : 0), 0, 0};
+        alignas(ControllerReadResponse) uint8_t response[(2 * (4 * 4))];
+
+        START(ADDR_CONTROLLER + subport, _portNumber);
+        size_t respLength = psx_sio0.exchangeBytes(
             request,
             response,
             sizeof(request),
@@ -227,15 +245,17 @@ namespace System::PSX::IO
 
         static ControllerReadResponse lastResp;
         auto &resp = *reinterpret_cast<ControllerReadResponse *>(response);
-        if (memcmp(&lastResp, &resp, sizeof(ControllerReadResponse)))
+
+        if (_mt == MT_TEST_PRESENCE && resp.idLo == PAD_MULTITAP)
         {
-            printPSControlDebug(resp);
-            lastResp = resp;
+            psx_sio0.setMultitapState(_portNumber, MT_IS_PRESENT);
+            resp = *reinterpret_cast<ControllerReadResponse *>(response[2]); // Port A data
+        }
+        else
+        {
+            psx_sio0.setMultitapState(_portNumber, MT_NOT_PRESENT);
         }
 
-        return GV_OK;
-        static ControllerReadResponse lastResp;
-        auto &resp = *reinterpret_cast<ControllerReadResponse *>(response);
         if (memcmp(&lastResp, &resp, sizeof(ControllerReadResponse)))
         {
             printPSControlDebug(resp);

@@ -22,16 +22,21 @@
 
 #include "psx/registers.hpp"
 
-class ADC038x
+namespace System::PSX
 {
-private:
-    const uint8_t _numChannels;
-
-public:
-    ADC038x(uint8_t channels) : _numChannels(channels)
+    class ADC038x
     {
-        // The *x* in ADC038x
-        assert((channels == 1) || (channels == 2) ||
-               (channels == 4) || (channels == 8));
-    }
-};
+    private:
+        const uint8_t _numChannels;
+
+    public:
+        ADC038x(uint8_t channels) : _numChannels(channels)
+        {
+            // The *x* in ADC038x
+            assert((channels == 1) || (channels == 2) ||
+                   (channels == 4) || (channels == 8));
+        }
+
+        int getValue(uint8_t channel);
+    };
+} // namespace System::PSX

@@ -22,6 +22,7 @@
 #include "common/services/io/iface_input.hpp"
 #include "common/services/io/inputman.hpp"
 #include "common/services/system/iface_system.hpp"
+#include "psx/573/jamma/adc083x.hpp"
 
 namespace System::PSX
 {
@@ -65,24 +66,33 @@ namespace System::PSX
         JAMMA_SERVICE    = 1 << 28
     };
 
-    using namespace ::Input;
+    using namespace Input;
 
-    class Sys573Jamma : public IInputDevice
+    constexpr const uint8_t GX700_ANALOG_COUNT = 4;
+    constexpr const char GX700_JAMMA_NAME[]    = "System 573 JAMMA";
+
+    class Sys573Jamma : public IInputDriver
     {
+    private:
+        uint32_t _digital[3]                = {0};
+        int16_t _analog[GX700_ANALOG_COUNT] = {0};
+
+        void getJAMMAInputs(void);
+        void getAnalogInputs(void);
+
+        ADC038x _adc = ADC038x(GX700_ANALOG_COUNT);
+
+        IInputDevice _devs[3];
+
     public:
         // The System 573 JAMMA interface is memory mapped.
         // There's really not much to do other that read in data.
-        inline Sys573Jamma() : IInputDevice(DEVICE_TYPE_CONTROLLER, 0)
+        inline Sys573Jamma()
         {
-            _name = "System 573 JAMMA";
+            _name = GX700_JAMMA_NAME;
         }
 
-        int init() { return true; }
-        bool reset() { return true; }
-        void shutdown() {}
-
-        uint32_t getJAMMAInputs(void);
-
-        int readAnalog() { return 0; }
+        int init() override;
+        int update() override;
     };
 } // namespace System::PSX
