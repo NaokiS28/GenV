@@ -159,22 +159,9 @@ namespace System::PSX::IO
 
         int poll(uint8_t subport = 0);
 
-        inline int init() override
-        {
-            LOG("psxpad", "Init PlayStation Controller driver on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
-            return psx_sio0.init();
-        }
-
-        bool reset() override;
-
-        inline void shutdown() override
-        {
-            for (auto pad : _padList)
-            {
-                Services::dettachInputDevice(&pad);
-            }
-        }
-
+        int init() override;
         int update() override;
+        bool reset() override;
+        inline void shutdown() override { reset(); }
     };
 } // namespace System::PSX::IO

@@ -94,13 +94,13 @@ namespace Input
     // Note that all controller data is expected to be in the defined GenV controller data format.
     struct IInputDevice
     {
-        const char *name           = szGenericInputDevice; // Friendly printable name
-        util::Hash id              = "NULL"_h;             // Device ID - Usage is defined by the driver implementation
-        util::Hash subid           = "NULL"_h;             // Device SubID - Usage is defined by the driver implementation
-        InputDeviceType type       = DEVICE_TYPE_NULL;     // Device Type - Tells the input mapper what class the device is
-        InputDeviceSubType subtype = DEVICE_SUBTYPE_NULL;  // Device Subtype - Not presently used
-        uint8_t subBusID           = 0;                    // Sub Bus ID - Usage is defined by the driver implementation
-        PlayerSuggestion player    = DEVICE_PLAYER_ANY;    // Player Suggestion to give to the mapper
+        const char *name           = szNullInputDevice;   // Friendly printable name
+        util::Hash id              = "NULL"_h;            // Device ID - Usage is defined by the driver implementation
+        util::Hash subid           = "NULL"_h;            // Device SubID - Usage is defined by the driver implementation
+        InputDeviceType type       = DEVICE_TYPE_NULL;    // Device Type - Tells the input mapper what class the device is
+        InputDeviceSubType subtype = DEVICE_SUBTYPE_NULL; // Device Subtype - Not presently used
+        uint8_t subBusID           = 0;                   // Sub Bus ID - Usage is defined by the driver implementation
+        PlayerSuggestion player    = DEVICE_PLAYER_ANY;   // Player Suggestion to give to the mapper
         struct
         {
             uint8_t numDigital  = 0; // Number of digital inputs

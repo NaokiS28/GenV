@@ -20,6 +20,8 @@
 #include <string.h>
 
 #include "common/return_codes.hpp"
+#include "common/services/io/iface_input.hpp"
+#include "psx/drivers/sio0/psx_pads.hpp"
 #include "psx/drivers/sio0/psx_sio0.hpp"
 #include "psx/registers.hpp"
 #include "psx/system/sys.h"
@@ -134,13 +136,21 @@ namespace System::PSX::IO
         return (fr == GV_OK ? 0 : 1);
     }
 
+    int PSX_Joypad::init()
+    {
+        LOG("psxpad", "Init PlayStation Controller driver on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
+        for (auto &pad : _padList)
+            pad = IInputDevice(); // Null device
+        return psx_sio0.init();
+    }
+
     bool PSX_Joypad::reset()
     {
-        for (auto pad : _padList)
+        for (auto &pad : _padList)
         {
             Services::dettachInputDevice(&pad);
+            pad = IInputDevice(); // Null device
         }
-        memset(_padList, 0, sizeof(IInputDevice));
         memset(_padData, 0, sizeof(PSX_PadData));
         return true;
     }
