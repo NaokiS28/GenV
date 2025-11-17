@@ -21,8 +21,10 @@
 
 #include "common/return_codes.hpp"
 #include "common/services/io/iface_input.hpp"
+#include "common/services/services.hpp"
 #include "psx/drivers/sio0/psx_pads.hpp"
 #include "psx/drivers/sio0/psx_sio0.hpp"
+#include "psx/psx_strings.hpp"
 #include "psx/registers.hpp"
 #include "psx/system/sys.h"
 #include "common/logger/log.hpp"
@@ -33,11 +35,7 @@
         int r = 0;                                          \
         if (r = psx_sio0.start(addr, port), r != SIO0_OKAY) \
         {                                                   \
-            switch (r)                                      \
-            {                                               \
-            case SIO0_IN_USE: return 3;                     \
-            case SIO0_NO_RESPONSE: return 1;                \
-            }                                               \
+            return r;                                       \
         }                                                   \
     }
 
@@ -54,21 +52,6 @@
 namespace System::PSX::IO
 {
     uint8_t PSX_Joypad::driverCount = 0;
-
-    struct ControllerReadResponse
-    {
-        union
-        {
-            uint8_t idLo;
-            uint8_t idHi;
-            uint16_t id;
-        };
-        uint16_t input;
-        struct AnalogInput
-        {
-            uint8_t x, y;
-        } left, right;
-    };
 
     void printPSControlDebug(ControllerReadResponse &resp)
     {
@@ -116,21 +99,116 @@ namespace System::PSX::IO
         }
     }
 
+    IInputDevice addController(
+        ControllerReadResponse &resp,
+        PlayerSuggestion player,
+        uint8_t subport,
+        uint32_t *digital,
+        int16_t *analog)
+    {
+        switch (resp.idLo)
+        {
+        case PAD_DIGITAL: return psxPad(PSX_DIGITAL_STR, PSX_DIGITAL_HASH, player, subport, digital, 14);
+        case PAD_ANALOG: return psxPad(PSX_ANALOG_STR, PSX_ANALOG_HASH, player, subport, digital, 16, analog, 4);
+        case PAD_DUALSHOCK2: return psxPad(PSX_DUALSHOCK2_STR, PSX_DUALSHOCK2_HASH, player, subport, digital, 16, analog, 10);
+        case PAD_TWINSTICK: return psxPad(PSX_TWINSTICK_STR, PSX_TWINSTICK_HASH, player, subport, digital, 14, analog, 4);
+        case PAD_GUNCON: return psxGun(PSX_GUNCON_STR, PSX_GUNCON_HASH, player, subport, digital, analog);
+        case PAD_KONAMI_GUN: return psxGun(PSX_JUSTIFIER_STR, PSX_JUSTIFIER_HASH, player, subport, digital, analog);
+        // case PAD_MOUSE: return devMouse(player, subport, digital, delta);
+        // case PAD_KEYBOARD: break;
+        case PAD_NEGCON: return psxPad(PSX_NEGCON_STR, PSX_NEGCON_HASH, player, subport, digital, 7, analog, 4);
+        // case PAD_JOGCON: return psxJogcon(player, subport, digital, delta);
+        default: return IInputDevice();
+        }
+    }
+
+    constexpr const char *getPadName(uint16_t id)
+    {
+        switch (id & 0xFF)
+        {
+        case PAD_DIGITAL: return PSX_DIGITAL_STR;
+        case PAD_ANALOG: return PSX_ANALOG_STR;
+        case PAD_DUALSHOCK2: return PSX_DUALSHOCK2_STR;
+        case PAD_TWINSTICK: return PSX_TWINSTICK_STR;
+        case PAD_GUNCON: return PSX_GUNCON_STR;
+        case PAD_KONAMI_GUN: return PSX_JUSTIFIER_STR;
+        // case PAD_MOUSE: return PSX_MOUSE_STR;
+        // case PAD_KEYBOARD: return PSX_KEYBOARD_STR;
+        case PAD_NEGCON: return PSX_NEGCON_STR;
+        // case PAD_JOGCON: return PSX_JOGCON_STR;
+        default: return "Unsupported controller";
+        }
+    }
+
     int PSX_Joypad::update()
     {
         psx_sio0.update(); // Mouse ack checking
 
-        int fr = GV_OK;
-        for (auto pad : _padList)
+        int fr   = GV_OK;
+        int port = 0;
+        ControllerReadResponse resp;
+        // Will always do the first subport (assuming multitap is connected, else just first port)
+        for (auto &pad : _padList)
         {
-            switch (poll(pad.subBusID))
+            switch (poll(resp, pad.subBusID))
             {
-            case GV_OK: continue;
-            case SIO0_NO_RESPONSE: psx_sio0.setMultitapState(_portNumber, MT_TEST_PRESENCE); continue;
+            case SIO0_OKAY:
+                if (_padData[pad.subBusID].type == PAD_DISCONNECTED ||
+                    _padData[pad.subBusID].type != resp.idLo)
+                {
+                    // Device changed
+                    LOG("psxpad", "Controller changed on port %d to 0x%04X (%s)",
+                        (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2),
+                        resp.id,
+                        getPadName(resp.id));
+
+                    if (_padData[pad.subBusID].doDSTest)
+                    {
+                        _padData[pad.subBusID].doDSTest = false;
+                        // Config mode only works on DualShock and above
+                        if (!configMode_(true, pad.subBusID))
+                        {
+                            setAnalog_(true, false, pad.subBusID);
+                            setDualshock_(true, pad.subBusID);
+                            setDS2Analog_(0x3FFFF, pad.subBusID);
+                            configMode_(false, pad.subBusID);
+                            poll(resp, pad.subBusID);
+
+                            LOG("psxpad", "Set controller mode on port %d to 0x%04X (%s)",
+                                (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2),
+                                resp.id,
+                                getPadName(resp.id));
+                        }
+                    }
+
+                    _padData[pad.subBusID].type = static_cast<JoypadType>(resp.idLo);
+
+                    pad = addController(
+                        resp, Input::DEVICE_PLAYER_1, pad.subBusID,
+                        &_padData[pad.subBusID].digital,
+                        _padData[pad.subBusID].analog);
+                    if (pad.type != Input::DEVICE_TYPE_NULL)
+                        Services::attachInputDevice(&pad);
+                }
+
+                break;
+            case SIO0_NO_RESPONSE:
+                if (_padData[pad.subBusID].type != PAD_DISCONNECTED)
+                {
+                    LOG("psxpad", "Controller disconnected on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
+                    if (pad.type != Input::DEVICE_TYPE_NULL)
+                        Services::dettachInputDevice(&pad);
+                    _padData[pad.subBusID] = PSX_PadData(); // Null it out
+                    pad                    = IInputDevice();
+                    if (port == 0)
+                        psx_sio0.setMultitapState(_portNumber, MT_TEST_PRESENCE);
+                }
+                break;
             default: break; // If SIO0 is in use (somehow on a single threaded app..) ignore.
             }
 
             if (!psx_sio0.multitapPresent(_portNumber)) break; // No need to scan further
+            port++;
         }
 
         return (fr == GV_OK ? 0 : 1);
@@ -139,8 +217,6 @@ namespace System::PSX::IO
     int PSX_Joypad::init()
     {
         LOG("psxpad", "Init PlayStation Controller driver on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
-        for (auto &pad : _padList)
-            pad = IInputDevice(); // Null device
         return psx_sio0.init();
     }
 
@@ -156,7 +232,7 @@ namespace System::PSX::IO
     }
 
     // Enter or exit controller config mode. Only works on DualShock and above
-    int PSX_Joypad::configMode_(bool state)
+    int PSX_Joypad::configMode_(bool state, uint8_t subport)
     {
         uint8_t request[4]{CMD_CONFIG, 0, state, 0};
         uint8_t response[8];
@@ -169,11 +245,11 @@ namespace System::PSX::IO
             sizeof(response));
         END(response, respLength);
 
-        return GV_OK;
+        return SIO0_OKAY;
     }
 
     // Enables setting analog button and locking it. Only works on DualShock and above
-    int PSX_Joypad::setAnalog_(bool state, bool lock)
+    int PSX_Joypad::setAnalog_(bool state, bool lock, uint8_t subport)
     {
         const uint8_t request[4]{CMD_SET_ANALOG, 0, state, (uint8_t)(lock ? 0x3 : 0x0)};
         uint8_t response[8];
@@ -186,11 +262,11 @@ namespace System::PSX::IO
             sizeof(response));
         END(response, respLength);
 
-        return GV_OK;
+        return SIO0_OKAY;
     }
 
     // Enables dual motors. Only works on DualShock and above
-    int PSX_Joypad::setDualshock_(bool state)
+    int PSX_Joypad::setDualshock_(bool state, uint8_t subport)
     {
         const uint8_t request[]{CMD_REQ_CONFIG, 0, 0, state, 0xFF, 0xFF, 0xFF, 0xFF};
         uint8_t response[8];
@@ -203,12 +279,12 @@ namespace System::PSX::IO
             sizeof(response));
         END(response, respLength);
 
-        return GV_OK;
+        return SIO0_OKAY;
     }
 
     // Enables reading analog buttons. Only works on DualShock2
     // Configures how the normal controller response sequence works
-    int PSX_Joypad::setDS2Analog_(uint32_t bitmask)
+    int PSX_Joypad::setDS2Analog_(uint32_t bitmask, uint8_t subport)
     {
         uint8_t mask[] = {
             (uint8_t)(bitmask & 0xFF),
@@ -228,22 +304,21 @@ namespace System::PSX::IO
         END(response, respLength);
 
         return GV_OK;
-        return GV_OK;
     }
 
     // Polls a standard controller on given subport (of multitap)
-    int PSX_Joypad::poll(uint8_t subport)
+    int PSX_Joypad::poll(ControllerReadResponse &resp, uint8_t subport)
     {
         // Send a poll command. Also send a multitap enable command. If MT is not present, controller will respond
-        // and we detect this and turn of this test. When we get NO_ACK from the SIO0 driver, start testing again.
-        // Theory is that after NO_ACKs, controller was unplugged and that whilst we still have a controller plugged in,
-        // if it responded as a multitap, then we can assume it's always one.
+        // and we detect this (or MT will respond with ID) and then we turn off this test. When we get NO_ACK from
+        // the SIO0 driver, start testing again. Theory is that after NO_ACKs, controller was unplugged and that
+        // whilst we still have a controller plugged in, if it responded as a multitap, then we can assume it's always one.
         // We use the second method of polling when using a multitap so it's more flexible, just using method 1 to test presence.
 
         MultitapState _mt = psx_sio0.getMultitapState(_portNumber);
 
         const uint8_t request[4]{CMD_POLL, (uint8_t)(_mt == MT_TEST_PRESENCE ? 1 : 0), 0, 0};
-        alignas(ControllerReadResponse) uint8_t response[(2 * (4 * 4))];
+        alignas(ControllerReadResponse) uint8_t response[(2 + ((2 * 4) * 4))]; // 2 ID bits, 4 'half-words (uint16_t)' of controller data, 4 contollers
 
         START(ADDR_CONTROLLER + subport, _portNumber);
         size_t respLength = psx_sio0.exchangeBytes(
@@ -253,25 +328,19 @@ namespace System::PSX::IO
             sizeof(response));
         END(response, respLength);
 
-        static ControllerReadResponse lastResp;
-        auto &resp = *reinterpret_cast<ControllerReadResponse *>(response);
-
-        if (_mt == MT_TEST_PRESENCE && resp.idLo == PAD_MULTITAP)
+        resp = ControllerReadResponse(response, respLength);
+        if (_mt == MT_TEST_PRESENCE)
         {
-            psx_sio0.setMultitapState(_portNumber, MT_IS_PRESENT);
-            resp = *reinterpret_cast<ControllerReadResponse *>(response[2]); // Port A data
+            if (resp.idLo == PAD_MULTITAP)
+            {
+                psx_sio0.setMultitapState(_portNumber, MT_IS_PRESENT);
+                resp = ControllerReadResponse(&response[2], respLength); // Port A data
+            }
+            else
+            {
+                psx_sio0.setMultitapState(_portNumber, MT_NOT_PRESENT);
+            }
         }
-        else
-        {
-            psx_sio0.setMultitapState(_portNumber, MT_NOT_PRESENT);
-        }
-
-        if (memcmp(&lastResp, &resp, sizeof(ControllerReadResponse)))
-        {
-            printPSControlDebug(resp);
-            lastResp = resp;
-        }
-
-        return GV_OK;
+        return SIO0_OKAY;
     }
 } // namespace System::PSX::IO

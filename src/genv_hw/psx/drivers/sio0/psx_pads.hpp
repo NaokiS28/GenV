@@ -35,11 +35,17 @@ namespace System::PSX::IO
     constexpr const util::Hash PSX_DUALSHOCK_HASH  = "PSXDUALSHOCK"_h;
     constexpr const util::Hash PSX_DUALSHOCK2_HASH = "PSXDUALSHOCK2"_h;
     constexpr const util::Hash PSX_GUNCON_HASH     = "PSXGUNCON"_h;
+    constexpr const util::Hash PSX_TWINSTICK_HASH  = "PSXTWINSTICK"_h;
     constexpr const util::Hash PSX_JUSTIFIER_HASH  = "PSXJUSTIFIER"_h;
     constexpr const util::Hash PSX_MOUSE_HASH      = "PSXMOUSE"_h;
     constexpr const util::Hash PSX_KEYBOARD_HASH   = "PSXKEYBOARD"_h;
+    constexpr const util::Hash PSX_NEGCON_HASH     = "PSXNEGCON"_h;
+    constexpr const util::Hash PSX_JOGCON_HASH     = "PSXJOGCON"_h;
 
-    constexpr IInputDevice psxPad(const char *name, util::Hash type, PlayerSuggestion player, uint8_t subport, uint32_t *digital, int16_t *analog = nullptr)
+    constexpr IInputDevice psxPad(
+        const char *name, util::Hash type, PlayerSuggestion player, uint8_t subport,
+        uint32_t *digital, uint8_t numDig = 14,
+        int16_t *analog = nullptr, uint8_t numAnalog = 0)
     {
         return {
             name,
@@ -49,11 +55,13 @@ namespace System::PSX::IO
             Input::DEVICE_SUBTYPE_STANDARD,
             subport,
             player,
-            {14, 0, 0, 0},
+            {numDig, numAnalog},
             {digital, analog, nullptr}};
     }
 
-    constexpr IInputDevice psxGun(const char *name, util::Hash type, PlayerSuggestion player, uint8_t subport, uint32_t *digital, int16_t *analog)
+    constexpr IInputDevice psxGun(
+        const char *name, util::Hash type, PlayerSuggestion player, uint8_t subport,
+        uint32_t *digital, int16_t *analog)
     {
         return {
             name,
@@ -63,7 +71,7 @@ namespace System::PSX::IO
             Input::DEVICE_SUBTYPE_STANDARD,
             subport,
             player,
-            {3, 2, 0, 0},
+            {3, 2}, // Normally I'd say not to hard code the digital button count but conveniently the only two PSX guns are 3.
             {digital, analog, nullptr}};
     }
 
@@ -77,7 +85,7 @@ namespace System::PSX::IO
             Input::DEVICE_SUBTYPE_STANDARD,
             subport,
             player,
-            {3, 0, 2, 0},
+            {2, 0, 2},
             {digital, nullptr, delta}};
     }
 

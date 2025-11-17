@@ -71,7 +71,7 @@ namespace Input
 
     int InputManager::attachDevice(const Input::IInputDevice *dev)
     {
-        if (!dev)
+        if (!dev || dev->type == DEVICE_TYPE_NULL)
         {
             ILOG(szInputFailedFmt, szInput, szDevice, szAttach, szDeviceNull);
             return false;

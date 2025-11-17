@@ -67,21 +67,6 @@ namespace System::PSX::IO
         FEEDBACK_WHEEL,
     };
 
-    enum ControllerType : uint8_t
-    {
-        TYPE_NONE         = 0,
-        TYPE_MOUSE        = 1,
-        TYPE_NEGCON       = 2,
-        TYPE_IRQ10_GUN    = 3,
-        TYPE_DIGITAL      = 4,
-        TYPE_ANALOG_STICK = 5,
-        TYPE_GUNCON       = 6,
-        TYPE_ANALOG       = 7,
-        TYPE_MULTITAP     = 8,
-        TYPE_JOGCON       = 14,
-        TYPE_CONFIG_MODE  = 15
-    };
-
     enum ControllerButton : uint16_t
     {
         // Standard controllers
@@ -127,28 +112,57 @@ namespace System::PSX::IO
         BTN_IRQ10_GUN_TRIGGER = 1 << 15
     };
 
+    struct ControllerReadResponse
+    {
+        union
+        {
+            uint8_t idLo;
+            uint8_t idHi;
+            uint16_t id = 0;
+        };
+        uint16_t input = 0;
+        struct AnalogInput
+        {
+            uint8_t x = 0, y = 0;
+        } left, right;
+
+        ControllerReadResponse() {}
+        ControllerReadResponse(const uint8_t *rsp, size_t len)
+        {
+            assert(len >= 4);
+            id    = (uint16_t)((rsp[1] << 8) | rsp[0]);
+            input = (uint16_t)((rsp[3] << 8) | rsp[2]);
+            if (len > 4)
+            {
+                left.x  = rsp[4];
+                left.y  = rsp[5];
+                right.x = rsp[6];
+                right.y = rsp[7];
+            }
+        }
+    };
+
     class PSX_Joypad : public IInputDriver
     {
-        friend class System::PSX::PSXSystem;
-        friend class PortLock;
-
     private:
         static uint8_t driverCount;
         const SIOControlFlag _portNumber;
 
         struct PSX_PadData
         {
-            uint16_t digital;
-            int16_t analog[10];
-            uint8_t motorStrength[2];
+            uint32_t digital         = 0;
+            int16_t analog[10]       = {0};
+            uint8_t motorStrength[2] = {0};
+            JoypadType type          = PAD_DISCONNECTED;
+            bool doDSTest            = true;
         } _padData[4];
 
         IInputDevice _padList[4];
 
-        int configMode_(bool state);
-        int setAnalog_(bool state = true, bool lock = true);
-        int setDualshock_(bool state = true);
-        int setDS2Analog_(uint32_t bitmask = 0x3FFFF);
+        int configMode_(bool state, uint8_t subport = 0);
+        int setAnalog_(bool state = true, bool lock = true, uint8_t subport = 0);
+        int setDualshock_(bool state = true, uint8_t subport = 0);
+        int setDS2Analog_(uint32_t bitmask = 0x3FFFF, uint8_t subport = 0);
 
     public:
         inline PSX_Joypad(uint8_t port) : _portNumber((port % 2) ? SIO_CTRL_CS_PORT_1 : SIO_CTRL_CS_PORT_2)
@@ -157,7 +171,7 @@ namespace System::PSX::IO
             _name = PSX_PS_CONTROLLER_STR;
         };
 
-        int poll(uint8_t subport = 0);
+        int poll(ControllerReadResponse &resp, uint8_t subport = 0);
 
         int init() override;
         int update() override;

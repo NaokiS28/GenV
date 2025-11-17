@@ -179,9 +179,8 @@ namespace System::PSX
         int port  = 1;
         for (auto &joy : joyDriver)
         {
-            error = ioTest(joy.init(), PSX_JOYPAD_STR, port, PSX_INIT_STR);
+            error = ioTest(joy.init(), PSX_JOYPAD_STR, port++, PSX_INIT_STR);
             if (!error) Services::registerInputDriver(&joy);
-            port++;
         }
 
         return error;

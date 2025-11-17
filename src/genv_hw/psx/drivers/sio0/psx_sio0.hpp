@@ -67,7 +67,7 @@ namespace System::PSX::IO
     {
         SIO0_OKAY,
         SIO0_IN_USE,
-        SIO0_NO_RESPONSE
+        SIO0_NO_RESPONSE,
     };
 
     enum MultitapState : uint8_t

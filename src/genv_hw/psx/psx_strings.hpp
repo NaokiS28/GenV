@@ -37,11 +37,16 @@ namespace System::PSX
     constexpr const char PSX_PS_CONTROLLER_STR[] = "PlayStation Controller";
     constexpr const char PSX_PS_MEMCARD_STR[]    = "PlayStation Memory Card";
 
-    constexpr const char PSX_DIGITAL_STR[]    = "Digital";
-    constexpr const char PSX_ANALOG_STR[]     = "Analog";
-    constexpr const char PSX_MOUSE_STR[]      = "Mouse";
-    constexpr const char PSX_GUNCON_STR[]     = "GunCon";
-    constexpr const char PSX_JUSTIFIER_STR[]  = "Justifier";
-    constexpr const char PSX_DUALSHOCK_STR[]  = "DualShock";
-    constexpr const char PSX_DUALSHOCK2_STR[] = "DualShock2";
+    constexpr const char PSX_PLAYSTATION_STR[] = "PlayStation";
+    constexpr const char PSX_DIGITAL_STR[]     = "PlayStation Digital";
+    constexpr const char PSX_ANALOG_STR[]      = "PlayStation DualAnalog/DualShock";
+    constexpr const char PSX_MOUSE_STR[]       = "PlayStation Mouse";
+    constexpr const char PSX_TWINSTICK_STR[]   = "PlayStation TwinStick";
+    constexpr const char PSX_GUNCON_STR[]      = "Namco GunCon";
+    constexpr const char PSX_JUSTIFIER_STR[]   = "Konami Justifier";
+    constexpr const char PSX_DUALSHOCK_STR[]   = "PlayStation DualShock";
+    constexpr const char PSX_DUALSHOCK2_STR[]  = "PlayStation DualShock2";
+    constexpr const char PSX_NEGCON_STR[]      = "Namco NegCon";
+    constexpr const char PSX_JOGCON_STR[]      = "Namco JogCon";
+
 } // namespace System::PSX
