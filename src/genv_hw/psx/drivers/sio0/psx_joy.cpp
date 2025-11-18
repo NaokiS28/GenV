@@ -104,7 +104,7 @@ namespace System::PSX::IO
         PlayerSuggestion player,
         uint8_t subport,
         uint32_t *digital,
-        int16_t *analog)
+        int16_t *analog = nullptr)
     {
         switch (resp.idLo)
         {
@@ -114,7 +114,7 @@ namespace System::PSX::IO
         case PAD_TWINSTICK: return psxPad(PSX_TWINSTICK_STR, PSX_TWINSTICK_HASH, player, subport, digital, 14, analog, 4);
         case PAD_GUNCON: return psxGun(PSX_GUNCON_STR, PSX_GUNCON_HASH, player, subport, digital, analog);
         case PAD_KONAMI_GUN: return psxGun(PSX_JUSTIFIER_STR, PSX_JUSTIFIER_HASH, player, subport, digital, analog);
-        // case PAD_MOUSE: return devMouse(player, subport, digital, delta);
+        case PAD_MOUSE: return devMouse(player, subport, digital, analog);
         // case PAD_KEYBOARD: break;
         case PAD_NEGCON: return psxPad(PSX_NEGCON_STR, PSX_NEGCON_HASH, player, subport, digital, 7, analog, 4);
         // case PAD_JOGCON: return psxJogcon(player, subport, digital, delta);
@@ -132,7 +132,7 @@ namespace System::PSX::IO
         case PAD_TWINSTICK: return PSX_TWINSTICK_STR;
         case PAD_GUNCON: return PSX_GUNCON_STR;
         case PAD_KONAMI_GUN: return PSX_JUSTIFIER_STR;
-        // case PAD_MOUSE: return PSX_MOUSE_STR;
+        case PAD_MOUSE: return PSX_MOUSE_STR;
         // case PAD_KEYBOARD: return PSX_KEYBOARD_STR;
         case PAD_NEGCON: return PSX_NEGCON_STR;
         // case PAD_JOGCON: return PSX_JOGCON_STR;
@@ -144,71 +144,94 @@ namespace System::PSX::IO
     {
         psx_sio0.update(); // Mouse ack checking
 
-        int fr   = GV_OK;
-        int port = 0;
+        int fr      = GV_OK;
+        int subport = 0;
         ControllerReadResponse resp;
         // Will always do the first subport (assuming multitap is connected, else just first port)
         for (auto &pad : _padList)
         {
-            switch (poll(resp, pad.subBusID))
+            switch (poll(resp, subport))
             {
             case SIO0_OKAY:
-                if (_padData[pad.subBusID].type == PAD_DISCONNECTED ||
-                    _padData[pad.subBusID].type != resp.idLo)
+                if (_padData[subport].type == PAD_DISCONNECTED ||
+                    _padData[subport].type != resp.idLo)
                 {
                     // Device changed
-                    LOG("psxpad", "Controller changed on port %d to 0x%04X (%s)",
+                    LOG("psxpad", "Controller changed on port %d:%d to 0x%04X (%s)",
                         (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2),
+                        subport,
                         resp.id,
                         getPadName(resp.id));
 
-                    if (_padData[pad.subBusID].doDSTest)
+                    if (_padData[subport].doDSTest)
                     {
-                        _padData[pad.subBusID].doDSTest = false;
+                        _padData[subport].doDSTest = false;
                         // Config mode only works on DualShock and above
-                        if (!configMode_(true, pad.subBusID))
+                        if (!configMode_(true, subport))
                         {
-                            setAnalog_(true, false, pad.subBusID);
-                            setDualshock_(true, pad.subBusID);
-                            setDS2Analog_(0x3FFFF, pad.subBusID);
-                            configMode_(false, pad.subBusID);
-                            poll(resp, pad.subBusID);
+                            setAnalog_(true, false, subport);
+                            psx_delayMicrosecondsBusy(5000);
+                            setDualshock_(true, subport);
+                            psx_delayMicrosecondsBusy(5000);
+                            // setDS2Analog_(0x3FFFF, subport);
+                            // psx_delayMicrosecondsBusy(200);
+                            configMode_(false, subport);
+                            psx_delayMicrosecondsBusy(5000);
+                            poll(resp, subport);
 
-                            LOG("psxpad", "Set controller mode on port %d to 0x%04X (%s)",
+                            LOG("psxpad", "Set controller mode on port %d:%d to 0x%04X (%s)",
                                 (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2),
+                                subport,
                                 resp.id,
                                 getPadName(resp.id));
                         }
                     }
 
-                    _padData[pad.subBusID].type = static_cast<JoypadType>(resp.idLo);
-
+                    _padData[subport].type = static_cast<JoypadType>(resp.idLo);
+                    if (pad.type != Input::DEVICE_TYPE_NULL)
+                        Services::dettachInputDevice(&pad);
                     pad = addController(
-                        resp, Input::DEVICE_PLAYER_1, pad.subBusID,
-                        &_padData[pad.subBusID].digital,
-                        _padData[pad.subBusID].analog);
+                        resp, Input::DEVICE_PLAYER_1, subport,
+                        &_padData[subport].digital,
+                        _padData[subport].analog);
                     if (pad.type != Input::DEVICE_TYPE_NULL)
                         Services::attachInputDevice(&pad);
                 }
-
                 break;
             case SIO0_NO_RESPONSE:
-                if (_padData[pad.subBusID].type != PAD_DISCONNECTED)
+                if (_padData[subport].type != PAD_DISCONNECTED)
                 {
-                    LOG("psxpad", "Controller disconnected on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
-                    if (pad.type != Input::DEVICE_TYPE_NULL)
-                        Services::dettachInputDevice(&pad);
-                    _padData[pad.subBusID] = PSX_PadData(); // Null it out
-                    pad                    = IInputDevice();
-                    if (port == 0)
+                    if (subport == 0 && psx_sio0.multitapPresent(_portNumber))
+                    {
+                        LOG("psxpad", "Multitap disconnected on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
+                        for (auto &_tPad : _padList)
+                        {
+                            if (_tPad.type != DEVICE_TYPE_NULL)
+                            {
+                                LOG("psxpad", "Controller disconnected on port %d:%d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2), _tPad.subBusID);
+                                Services::dettachInputDevice(&_tPad);
+                                _padData[_tPad.subBusID] = PSX_PadData(); // Null it out
+                                _tPad                    = IInputDevice();
+                            }
+                        }
                         psx_sio0.setMultitapState(_portNumber, MT_TEST_PRESENCE);
+                    }
+                    else
+                    {
+                        LOG("psxpad", "Controller disconnected on port %d:%d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2), subport);
+                        if (pad.type != Input::DEVICE_TYPE_NULL)
+                            Services::dettachInputDevice(&pad);
+                        _padData[subport] = PSX_PadData(); // Null it out
+                        pad               = IInputDevice();
+                        if (subport == 0) psx_sio0.setMultitapState(_portNumber, MT_TEST_PRESENCE);
+                    }
                 }
                 break;
             default: break; // If SIO0 is in use (somehow on a single threaded app..) ignore.
             }
 
             if (!psx_sio0.multitapPresent(_portNumber)) break; // No need to scan further
-            port++;
+            subport++;
         }
 
         return (fr == GV_OK ? 0 : 1);
@@ -244,7 +267,7 @@ namespace System::PSX::IO
             sizeof(request),
             sizeof(response));
         END(response, respLength);
-
+        // LOG("psxpad", "Config mode port: %d, %02X %02X%02X", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2), state, response[1], response[0]);
         return SIO0_OKAY;
     }
 
@@ -261,7 +284,7 @@ namespace System::PSX::IO
             sizeof(request),
             sizeof(response));
         END(response, respLength);
-
+        // LOG("psxpad", "Set analog mode port: %d, %02X %02X%02X", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2), state, response[1], response[0]);
         return SIO0_OKAY;
     }
 
@@ -278,7 +301,7 @@ namespace System::PSX::IO
             sizeof(request),
             sizeof(response));
         END(response, respLength);
-
+        // LOG("psxpad", "Set dualshock mode port: %d, %02X %02X%02X", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2), state, response[1], response[0]);
         return SIO0_OKAY;
     }
 
@@ -302,7 +325,7 @@ namespace System::PSX::IO
             sizeof(request),
             sizeof(response));
         END(response, respLength);
-
+        LOG("psxpad", "Set dualshock 2 mode port: %08X, %02X %02X%02X", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2), bitmask, response[1], response[0]);
         return GV_OK;
     }
 
@@ -315,7 +338,9 @@ namespace System::PSX::IO
         // whilst we still have a controller plugged in, if it responded as a multitap, then we can assume it's always one.
         // We use the second method of polling when using a multitap so it's more flexible, just using method 1 to test presence.
 
-        MultitapState _mt = psx_sio0.getMultitapState(_portNumber);
+        MultitapState _mt = MT_NOT_PRESENT;
+        if (subport == 0)
+            _mt = psx_sio0.getMultitapState(_portNumber);
 
         const uint8_t request[4]{CMD_POLL, (uint8_t)(_mt == MT_TEST_PRESENCE ? 1 : 0), 0, 0};
         alignas(ControllerReadResponse) uint8_t response[(2 + ((2 * 4) * 4))]; // 2 ID bits, 4 'half-words (uint16_t)' of controller data, 4 contollers
@@ -333,11 +358,13 @@ namespace System::PSX::IO
         {
             if (resp.idLo == PAD_MULTITAP)
             {
+                LOG("psxpad", "Found PlayStation multitap on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
                 psx_sio0.setMultitapState(_portNumber, MT_IS_PRESENT);
                 resp = ControllerReadResponse(&response[2], respLength); // Port A data
             }
             else
             {
+                LOG("psxpad", "Did not find PlayStation multitap on port %d: 0x%04X", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2), resp.id);
                 psx_sio0.setMultitapState(_portNumber, MT_NOT_PRESENT);
             }
         }
