@@ -1,75 +1,103 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "gdb",
-            "request": "attach",
-            "name": "GenV (PSX-gdb)",
-            "target": "localhost:3333",
-            "remote": true,
-            "stopAtConnect": true,
-            "executable": "./bin/psx/genv.elf",
-            "gdbpath": "/opt/homebrew/bin/gdb",
-            "preLaunchTask": "CMake: build",
-            "windows": {
-                "gdbpath": "C:/gdb-multiarch/bin/gdb.exe",
-            },
-            "cwd": "${workspaceRoot}",
-            "autorun": [
-                "set substitute-path /project .",
-                "monitor reset shellhalt",
-                "load ./bin/psx/genv.elf",
-                "tbreak main",
-                "continue",
-            ],
-            "valuesFormatting": "parseText"
-        },
-        {
-            "name": "PyTerm (PSX)",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/scripts/pyterm.py",
-            "args": [
-                "-url",
-                "localhost",
-                "-port",
-                "6699"
-            ],
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Debug (cmake)",
-            "type": "node",
-            "request": "launch",
-            "program": "${command:cmake.launchTargetPath}",
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "name": "Python Debugger: Current File with Arguments",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "gdb",
+			"request": "attach",
+			"name": "GenV (PSX-gdb)",
+			"target": "localhost:3333",
+			"remote": true,
+			"stopAtConnect": true,
+			"executable": "./bin/psx/core/genv.elf",
+			"gdbpath": "/opt/homebrew/bin/gdb",
+			"preLaunchTask": "CMake: build",
+			"windows": {
+				"gdbpath": "C:/gdb-multiarch/bin/gdb.exe",
+			},
+			"cwd": "${workspaceRoot}",
+			"autorun": [
+				"set substitute-path /project .",
+				"monitor reset shellhalt",
+				"load ./bin/psx/genv.elf",
+				"tbreak main",
+				"continue",
+			],
+			"valuesFormatting": "parseText"
+		},
+		{
+			"type": "gdb",
+			"request": "attach",
+			"name": "GenV (573-gdb)",
+			"target": "localhost:3333",
+			"remote": true,
+			"stopAtConnect": true,
+			"executable": "./bin/psx/sys573/genv.elf",
+			"gdbpath": "/opt/homebrew/bin/gdb",
+			"preLaunchTask": "CMake: build",
+			"windows": {
+				"gdbpath": "C:/gdb-multiarch/bin/gdb.exe",
+			},
+			"cwd": "${workspaceRoot}",
+			"autorun": [
+				"set substitute-path /project .",
+				"monitor reset shellhalt",
+				"load ./bin/psx/genv.elf",
+				"tbreak main",
+				"continue",
+			],
+			"valuesFormatting": "parseText"
+		},
+		{
+			"name": "PyTerm (PSX)",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${workspaceFolder}/scripts/pyterm.py",
+			"args": [
+				"-url",
+				"localhost",
+				"-port",
+				"6699"
+			],
+			"console": "integratedTerminal"
+		},
+		{
+			"name": "Debug (cmake)",
+			"type": "node",
+			"request": "launch",
+			"program": "${command:cmake.launchTargetPath}",
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"name": "Python Debugger: Current File with Arguments",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${file}",
+			"console": "integratedTerminal",
 			"justMyCode": true,
-            "args": ["-o spice.gvf", "/Volumes/Nextcloud/Programming/Project-Vigfell/lib/GenV/assets/fonts/spice/spice.json"],
-			"purpose": ["debug-in-terminal"]
-        }
-    ],
-    "compounds": [
-        {
-            "name": "GenV-PSX + PyTerm",
-            "configurations": [
-                "GenV (PSX-gdb)",
-                "PyTerm (PSX)"
-            ],
-            "presentation": {
-                "hidden": false,
-                "group": "PSX",
-                "order": 1
-            },
-            "preLaunchTask": "CMake: build",
-            "stopAll": true
-        }
-    ]
+			"args": [
+				"-o spice.gvf",
+				"/Volumes/Nextcloud/Programming/Project-Vigfell/lib/GenV/assets/fonts/spice/spice.json"
+			],
+			"purpose": [
+				"debug-in-terminal"
+			]
+		}
+	],
+	"compounds": [
+		{
+			"name": "GenV-PSX + PyTerm",
+			"configurations": [
+				"GenV (PSX-gdb)",
+				"PyTerm (PSX)"
+			],
+			"presentation": {
+				"hidden": false,
+				"group": "PSX",
+				"order": 1
+			},
+			"preLaunchTask": "CMake: build",
+			"stopAll": true
+		}
+	]
 }

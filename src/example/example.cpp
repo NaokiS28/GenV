@@ -15,8 +15,10 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "common/services/services.hpp"
 #include "common/services/system/system.hpp"
 #include "common/util/time.hpp"
+#include <string.h>
 #include <time.h>
 #include <genv.hpp>
 
@@ -66,7 +68,7 @@ public:
         static int lastSeconds = 0;
         if (time.tm_sec != lastSeconds)
         {
-            LOG("clock", "tick");
+            // LOG("clock", "tick");
             lastSeconds = time.tm_sec;
         }
     }
@@ -74,13 +76,27 @@ public:
     void render() override
     {
         char timeStr[20];
+        char padStr[16];
+        char padNameStr[35 * 8] = {0};
         tm time;
         System::getTime(time);
         Time::getTimeString(time, timeStr, 20, true, true);
 
+        auto padCount = Services::inputManager()->deviceCount();
+        snprintf(padStr, 16, "Pads: %d", padCount);
+        for (size_t i = 0; i < padCount; i++)
+        {
+            char _name[32];
+            snprintf(_name, 32, "%d: %s", i, Services::inputManager()->deviceName(i));
+            strncat(padNameStr, _name, 32);
+            strncat(padNameStr, "\r\n", 2);
+        }
+
         gpu->fillScreen(Video::Colors::Black);
         gpu->drawText("This is an example string.", txtOrigin.x, txtOrigin.y, 500, 100, Video::Colors::White, Video::TALIGN_CENTER);
         gpu->drawText(timeStr, timeOrigin.x, timeOrigin.y, 100, 100, Video::Colors::White, Video::TALIGN_CENTER);
+        gpu->drawText(padStr, timeOrigin.x, timeOrigin.y + 10, 500, 100, Video::Colors::White, Video::TALIGN_CENTER);
+        gpu->drawText(padNameStr, timeOrigin.x, timeOrigin.y + 20, 500, 100, Video::Colors::White, Video::TALIGN_CENTER);
     }
 
     void reload() override

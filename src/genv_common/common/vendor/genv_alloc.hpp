@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * vendor.h - Created on 09-06-2025
+ * genv_gfx_alloc.hpp - Created on 20-11-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,13 +15,22 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef VENDOR_H
-#define VENDOR_H
 #pragma once
 
-#include "vendor_conf.h" // IWYU pragma: export
+#include <stdint.h>
+#include <stddef.h>
+#include "common/services/services.hpp"
 
-#include "lodepng.h"   // IWYU pragma: export
-#include "gifn/gifn.h" // IWYU pragma: export
+struct AllocInfo
+{
+    void *ptr;
+    uint32_t size;
+    uint32_t alignment;
+};
 
-#endif
+class IGenAllocator
+{
+public:
+    virtual AllocInfo allocate(uint32_t size, uint32_t alignment) = 0;
+    virtual void deallocate(void *ptr)                            = 0;
+};

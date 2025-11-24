@@ -116,4 +116,10 @@ namespace Input
         ILOG(szInputFmt, driver->getName(), szDriver, szUnregister);
         return true;
     }
+
+    const char *InputManager::deviceName(size_t idx)
+    {
+        if (idx >= _devList.length()) return nullptr;
+        return _devList.at(idx)->name;
+    }
 } // namespace Input

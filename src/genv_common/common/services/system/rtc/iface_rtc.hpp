@@ -21,26 +21,26 @@
 #include <stddef.h>
 #include <time.h>
 
-#include "common/util/time.hpp"
+#include "common/util/time.hpp" // IWYU pragma: export
 
 namespace Time
 {
     class IRTC
     {
     public:
-        IRTC() = default;
+        IRTC()          = default;
         virtual ~IRTC() = default;
 
         // Clock settings
-        virtual void tick() = 0;
+        virtual void tick()                                        = 0;
         virtual int setTime(int hour, int min, int sec, bool amPm) = 0;
-        virtual int setDate(int day, int month, int year) = 0;
-        virtual int setTimezone(int offset) = 0;
-        virtual int setDST(bool useDST) = 0;
-        virtual bool getTime(tm &time) = 0;
+        virtual int setDate(int day, int month, int year)          = 0;
+        virtual int setTimezone(int offset)                        = 0;
+        virtual int setDST(bool useDST)                            = 0;
+        virtual bool getTime(tm &time)                             = 0;
 
         // Get the current time
-        virtual size_t getUnixTime() = 0;
+        virtual size_t getUnixTime()                     = 0;
         virtual int getLocalTime(tm *tmObj, time_t time) = 0;
     };
-}
+} // namespace Time

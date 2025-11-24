@@ -1,88 +1,105 @@
 {
-    "version": 10,
-    "cmakeMinimumRequired": {
-        "major": 3,
-        "minor": 29,
-        "patch": 0
-    },
-    "configurePresets": [
-        {
-            "name": "win-debug",
-            "displayName": "Debug build (Win32)",
-            "description": "Build the project with no optimization and assertions enabled.",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/win32",
-            "graphviz": "graph/build_graph.dot",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
-                "GENV_PLATFORM": "win32"
-            }
-        },
-        {
-            "name": "win-release",
-            "displayName": "Release build (Win32)",
-            "description": "Build the project with performance optimization and assertions stripped.",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/win32",
-            "graphviz": "graph/build_graph.dot",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
-                "GENV_PLATFORM": "win32"
-            }
-        },
-        {
-            "name": "win-min-size-release",
-            "displayName": "Minimum size release build (Win32)",
-            "description": "Build the project with size optimization and assertions stripped.",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/win32",
-            "graphviz": "graph/build_graph.dot",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "MinSizeRel",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
-                "GENV_PLATFORM": "win32"
-            }
-        },
-        {
-            "name": "psx-debug",
-            "displayName": "Debug build (PSX)",
-            "description": "Build the project with no optimization and assertions enabled.",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/psx",
-            "graphviz": "graph/build_graph.dot",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
-                "GENV_PLATFORM": "psx"
-            }
-        },
-        {
-            "name": "psx-release",
-            "displayName": "Release build (PSX)",
-            "description": "Build the project with performance optimization and assertions stripped.",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/psx",
-            "graphviz": "graph/build_graph.dot",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
-                "GENV_PLATFORM": "psx"
-            }
-        },
-        {
-            "name": "psx-min-size-release",
-            "displayName": "Minimum size release build (PSX)",
-            "description": "Build the project with size optimization and assertions stripped.",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/psx",
-            "graphviz": "graph/build_graph.dot",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "MinSizeRel",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
-                "GENV_PLATFORM": "psx"
-            }
-        }
-    ]
+	"version": 10,
+	"cmakeMinimumRequired": {
+		"major": 3,
+		"minor": 29,
+		"patch": 0
+	},
+	"configurePresets": [
+		{
+			"name": "win-debug",
+			"displayName": "Debug build (Win32)",
+			"description": "Build the project with no optimization and assertions enabled.",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build/win32",
+			"graphviz": "graph/build_graph.dot",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
+				"GENV_PLATFORM": "win32"
+			}
+		},
+		{
+			"name": "win-release",
+			"displayName": "Release build (Win32)",
+			"description": "Build the project with performance optimization and assertions stripped.",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build/win32",
+			"graphviz": "graph/build_graph.dot",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release",
+				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
+				"GENV_PLATFORM": "win32"
+			}
+		},
+		{
+			"name": "win-min-size-release",
+			"displayName": "Minimum size release build (Win32)",
+			"description": "Build the project with size optimization and assertions stripped.",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build/win32",
+			"graphviz": "graph/build_graph.dot",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "MinSizeRel",
+				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
+				"GENV_PLATFORM": "win32"
+			}
+		},
+		{
+			"name": "psx-debug",
+			"displayName": "Debug build (PSX)",
+			"description": "Build the project with no optimization and assertions enabled.",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build/psx/core",
+			"graphviz": "graph/build_graph.dot",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
+				"GENV_PLATFORM": "psx",
+				"GENV_SUBPLATFORM": "psx"
+			}
+		},
+		{
+			"name": "psx-release",
+			"displayName": "Release build (PSX)",
+			"description": "Build the project with performance optimization and assertions stripped.",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build/psx/core",
+			"graphviz": "graph/build_graph.dot",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release",
+				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
+				"GENV_PLATFORM": "psx",
+				"GENV_SUBPLATFORM": "psx"
+			}
+		},
+		{
+			"name": "psx-min-size-release",
+			"displayName": "Minimum size release build (PSX)",
+			"description": "Build the project with size optimization and assertions stripped.",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build/psx/core",
+			"graphviz": "graph/build_graph.dot",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "MinSizeRel",
+				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
+				"GENV_PLATFORM": "psx",
+				"GENV_SUBPLATFORM": "psx"
+			}
+		},
+		{
+			"name": "573-debug",
+			"displayName": "Debug build (573)",
+			"description": "Build the project with no optimization and assertions enabled.",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build/psx/sys573",
+			"graphviz": "graph/build_graph.dot",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
+				"GENV_PLATFORM": "psx",
+				"GENV_SUBPLATFORM": "sys573"
+			}
+		}
+	]
 }

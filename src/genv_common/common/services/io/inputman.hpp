@@ -62,5 +62,9 @@ namespace Input
 
         int attachDevice(const Input::IInputDevice *driver);
         int detachDevice(const Input::IInputDevice *driver);
+
+        const char *deviceName(size_t idx);
+
+        inline size_t deviceCount() { return _devList.length(); }
     };
 } // namespace Input

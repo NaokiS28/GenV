@@ -15,9 +15,6 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "app/appmgr.hpp"
 #include "common/services/services.hpp"
 #include "common/services/genv_sys.hpp"
@@ -29,7 +26,7 @@ int main(int argc, char *argv[])
 {
     genv.startup();
 
-    Video::IVideo *video = Services::getVideo(); // It is assumed the System class will have init'd the I/O driver.
+    Video::IVideo *video   = Services::getVideo(); // It is assumed the System class will have init'd the I/O driver.
     Apps::AppManager *apps = Apps::getAppManager();
     if (!apps)
         genv.halt();
@@ -38,7 +35,7 @@ int main(int argc, char *argv[])
     while (sm_state != System::SM_QUIT)
     {
         System::PerfMon.loopStart();
-        sm_state = Services::update();                         // System, IO, Storage
+        sm_state = Services::update(); // System, IO, Storage
 
         if (sm_state == System::SM_RESIZE) { apps->reload(); } // For windowed/computer platforms and the window has changed size.
 

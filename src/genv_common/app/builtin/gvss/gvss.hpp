@@ -19,14 +19,13 @@
 #include "app/app.hpp"
 #include "app/iapp_host.hpp"
 #include "common/objects/sprite.hpp"
-#include "common/objects/texture.hpp"
 #include "common/util/rect.h"
 #include "common/util/tween.hpp"
 
 namespace Apps
 {
     constexpr const int iTimeToShow = 4000;
-    constexpr const int iFadeTime = 500;
+    constexpr const int iFadeTime   = 500;
 
     class GVSS : public LoadScreenApp
     {
@@ -40,22 +39,39 @@ namespace Apps
 
         enum
         {
-            GVSS_FadeIn,
+            GVSS_Init,
+            GVSS_Start,
+            GVSS_Line1,
+            GVSS_VReveal,
+            GVSS_Line2,
+            GVSS_RingReveal,
+            GVSS_LogoMoveLeft,
+            GVSS_TextReveal,
             GVSS_Delay,
             GVSS_FadeOut,
             GVSS_Exit
-        } GVSSAnimStep = GVSS_FadeIn;
+        } GVSSAnimStep = GVSS_Init;
 
         uint8_t alpha = 0;
         Util::Tween<uint16_t, Util::QuadInEasing> fadeIn;
         Util::Tween<uint16_t, Util::QuadOutEasing> fadeOut;
+        Util::Tween<uint16_t, Util::QuadInOutEasing> logoMove;
 
-        Sprites::SpriteObject *logo = nullptr;
+        Sprites::SpriteObject *logo_ring = nullptr;
+        Sprites::SpriteObject *logo_v    = nullptr;
 
         const char *GVSSText = "CREATED WITH\n\rOR RUNNING UNDER\n\rGEN-V MULTIPLATFORM ENGINE.";
 
-        RectWH logoPos;
+        RectWH logoRPos;
+        RectWH logoVPos;
+        RectWH linePos;
         RectWH textPos;
+        RectWH vBoxPos;
+
+        uint16_t lineStop = 0;
+        size_t vStep = 0, pStep = 0;
+        uint8_t ringAlpha = 0;
+        uint8_t textAlpha = 0;
 
     public:
         static LoadScreenApp *createApp(IAppHost *host, Application *app) { return new GVSS(host, app); }

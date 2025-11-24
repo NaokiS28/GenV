@@ -34,51 +34,31 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Store current platform from preset
 if(NOT DEFINED GENV_PLATFORM)
     message(FATAL_ERROR "GENV_PLATFORM is not set! Please use a CMake preset.")
+elseif(NOT DEFINED GENV_SUBPLATFORM)
+    message(FATAL_ERROR "GENV_SUBPLATFORM is not set! Please use a CMake preset.")
 endif()
 
 if(CONFIG EQUAL "Debug")
 	add_definitions(ENABLE_APP_LOGGING)
 endif()
 
-message(STATUS "Building for: ${GENV_PLATFORM}")
+message(STATUS "Building for: ${GENV_PLATFORM}/${GENV_SUBPLATFORM}")
 include(cmake/${GENV_PLATFORM}/setup.cmake)
 include(cmake/${GENV_PLATFORM}/tools.cmake)
 include(cmake/util.cmake)
 
-
 ## Main executable
-
-# Always generate compile_commands.json when building. This allows some IDEs and
-# tools (such as clangd) to automatically configure include directories and
-# other options.
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/${GENV_PLATFORM}")
-
-# Enable compile commands for completeness (optional)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# Find Graphviz 'dot' executable
-find_program(DOT_EXECUTABLE dot)
-
-# Automatically generate dependency graph when CMake runs
-if (DOT_EXECUTABLE)
-    execute_process(
-        COMMAND ${DOT_EXECUTABLE} -Tpng ${CMAKE_BINARY_DIR}/graph/build_graph.dot -o ${CMAKE_BINARY_DIR}/build_graph.png
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    )
-    message(STATUS "Generated build_graph.dot and build_graph.png in ${CMAKE_BINARY_DIR}")
-endif()
-
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/debug/${GENV_PLATFORM}/${GENV_SUBPLATFORM}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/release/${GENV_PLATFORM}/${GENV_SUBPLATFORM}")
 
 include (TestBigEndian)
 TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
 if(IS_BIG_ENDIAN)
-	message(STATUS "BIG_ENDIAN")
+	message(STATUS "Target is Big Endian")
 else()
-	message(STATUS "LITTLE_ENDIAN")
+	message(STATUS "Target is Little Endian")
 endif()
 
-#set(GENV_PLATFORM win CACHE STRING "Target platform to build for (win or psx)")
 
 if(NOT COMMAND addGenVExecutable)
     # use default add_executable() if it hasn't been overridden by the toolchain script
@@ -101,14 +81,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Generic")
 	)
 endif()
 
+# System dispatcher
+if(IS_READABLE "${CMAKE_SOURCE_DIR}/cmake/${GENV_PLATFORM}/${GENV_SUBPLATFORM}.cmake")
+	include("cmake/${GENV_PLATFORM}/${GENV_SUBPLATFORM}.cmake")
+else()
+	message(FATAL_ERROR "Unknown platform: ${GENV_PLATFORM}/${GENV_SUBPLATFORM}")
+endif()
+
+set(PLATFORM_PATH "${CMAKE_SOURCE_DIR}/src/genv_hw/${GENV_PLATFORM}/${GENV_SUBPLATFORM}")
+add_subdirectory(${PLATFORM_PATH})
+
 add_subdirectory(src/genv_common/common)
 add_subdirectory(src/genv_common/app)
 add_subdirectory(src/genv_common/common/objects/fonts)
 
-# System dispatcher
-include(cmake/dispatcher.cmake)
-resolve_platform(${GENV_PLATFORM} PLATFORM_PATH)
-add_subdirectory(${PLATFORM_PATH})
 
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     message(STATUS "Building default GenV test app")
@@ -124,4 +110,16 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 		VERSION="${PROJECT_VERSION}"
 	)
 
+endif()
+
+# Find Graphviz 'dot' executable
+find_program(DOT_EXECUTABLE dot)
+
+# Automatically generate dependency graph when CMake runs
+if (DOT_EXECUTABLE)
+    execute_process(
+        COMMAND ${DOT_EXECUTABLE} -Tpng ${CMAKE_BINARY_DIR}/graph/build_graph.dot -o ${CMAKE_BINARY_DIR}/build_graph.png
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+    message(STATUS "Generated build_graph.dot and build_graph.png in ${CMAKE_BINARY_DIR}")
 endif()

@@ -1,0 +1,1 @@
+add_definitions(-DGENV_PSX -DGENV_SYS573)

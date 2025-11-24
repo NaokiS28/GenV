@@ -24,4 +24,4 @@ namespace System
 {
     // System factory
     ISystem *makeNewSystem();
-}
+} // namespace System

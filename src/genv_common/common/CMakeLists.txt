@@ -74,7 +74,7 @@ add_library(genv_services STATIC
 	services/system/arcade/nvram.cpp
 	${CMAKE_SOURCE_DIR}/src/genv_hw/hardware.cpp
 )
-target_link_libraries(genv_services PUBLIC genv_hw_${GENV_PLATFORM} genv_logger genv_builtin_fonts)
+target_link_libraries(genv_services PUBLIC genv_hw_${GENV_SUBPLATFORM} genv_logger genv_builtin_fonts)
 target_include_directories(genv_services PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw

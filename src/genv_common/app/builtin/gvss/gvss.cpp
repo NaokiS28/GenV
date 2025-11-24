@@ -16,6 +16,8 @@
  */
 
 #include "gvss.hpp"
+#include "common/services/video/color.hpp"
+#include "common/services/video/video.hpp"
 #include "common/util/hash.hpp"
 #include "genvlogo.hpp"
 
@@ -24,22 +26,32 @@
 #include "common/formats/typenames.hpp"
 #include "common/objects/sprite.hpp"
 #include "common/objects/texture.hpp"
-#include "common/services/services.hpp"
 #include "common/util/tween.hpp"
 
 namespace Apps
 {
-    constexpr const util::Hash GENV_LOGO_HASH = "GenVLogo"_h;
+    constexpr const util::Hash GENV_LOGO_V_HASH = "GenVLogo_V"_h;
+    constexpr const util::Hash GENV_LOGO_R_HASH = "GenVLogo_R"_h;
+
+    constexpr const uint16_t line_width = 20;
 
     GVSS::GVSS(IAppHost *host, Application *appToLoad) : LoadScreenApp(host, appToLoad)
     {
-        logo = Sprites::createSprite(
-            GENV_LOGO_HASH,
+        logo_v = Sprites::createSprite(
+            GENV_LOGO_V_HASH,
             Textures::openImageMemory(
-                GENV_LOGO_HASH,
+                GENV_LOGO_V_HASH,
                 Genv_PNG_type,
-                genv_logo_data,
-                genv_logo_length));
+                genv_v_data,
+                genv_v_length));
+
+        logo_ring = Sprites::createSprite(
+            GENV_LOGO_R_HASH,
+            Textures::openImageMemory(
+                GENV_LOGO_R_HASH,
+                Genv_PNG_type,
+                genv_ring_data,
+                genv_ring_length));
 
         setAppState(APP_STATE_INIT);
         reload();
@@ -47,11 +59,13 @@ namespace Apps
 
     int GVSS::init()
     {
-        if (logo)
+        if (logo_ring && logo_v)
         {
-            logo->uploadTexture();
+            logo_ring->uploadTexture();
+            logo_v->uploadTexture();
             fadeIn.setValue(Video::frames(), 0, 255, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
             fadeOut.setValue(Video::frames(), 255, 0, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
+            logoMove.setValue(Video::frames(), 0, 64, Video::msToFrames(iFadeTime), Util::TWEEN_STOP);
             reload();
             setAppState(APP_STATE_RUN);
         }
@@ -59,7 +73,7 @@ namespace Apps
         {
             m_host->requestError(
                 "GVSS",
-                "Main logo Sprite Object is nullptr.",
+                "Main logo Sprite Objects are nullptr.",
                 1,
                 EM_STYLE_ERROR, EM_ICON_ERROR);
             setAppState(APP_STATE_ERROR);
@@ -70,49 +84,121 @@ namespace Apps
     void GVSS::render()
     {
         if (getState() == APP_STATE_ERROR) return;
-        Video::Color c = Video::Colors::White;
-        c.a = alpha;
-        // premultiply(c);
         gpu->fillScreen(Video::Colors::Black);
-        logo->draw(logoPos.x, logoPos.y);
-        gpu->drawText(GVSSText, textPos.x, textPos.y, textPos.w, textPos.h, c, Video::TALIGN_CENTER);
+        // logo_ring->draw(logoPos.x, logoPos.y);
+        if (linePos.w) gpu->drawRect(linePos, Video::Colors::White);
+        logo_v->draw(logoVPos.x, logoVPos.y);
+        if (vBoxPos.w > 0) gpu->drawRect(vBoxPos, Video::Colors::Black);
+        if (ringAlpha) logo_ring->draw(logoRPos.x, logoRPos.y);
+        if (textAlpha) gpu->drawText(GVSSText, textPos.x, textPos.y, textPos.w, textPos.h);
+        vStep++;
     }
 
     void GVSS::reload()
     {
-        logoPos = {
-            static_cast<int>((gpu->getHorizontalRes() / 2) - logo->getTexture()->width) - 30,
-            static_cast<int>((gpu->getVerticalRes() / 2) - (logo->getTexture()->height / 2)),
-            static_cast<int>(logo->getTexture()->width),
-            static_cast<int>(logo->getTexture()->height)};
+        logoRPos = {
+            static_cast<int>((gpu->getHorizontalRes() / 2) - (logo_ring->getTexture()->width / 2)),
+            static_cast<int>((gpu->getVerticalRes() / 2) - (logo_ring->getTexture()->height / 2)),
+            static_cast<int>(logo_ring->getTexture()->width),
+            static_cast<int>(logo_ring->getTexture()->height)};
+        logoVPos = {
+            static_cast<int>((gpu->getHorizontalRes() / 2) - (logo_v->getTexture()->width / 2)),
+            static_cast<int>((gpu->getVerticalRes() / 2) - (logo_v->getTexture()->height / 2)),
+            static_cast<int>(logo_v->getTexture()->width),
+            static_cast<int>(logo_v->getTexture()->height)};
+        vBoxPos = logoVPos;
         textPos = {
             gpu->getHorizontalRes() / 2,
             gpu->getVerticalRes() / 2 - 15,
             500,
             60};
+        linePos = {
+            0,
+            logoVPos.y,
+            1,
+            4};
     }
 
     void GVSS::update()
     {
+        if (pStep == vStep) return;
+
         switch (GVSSAnimStep)
         {
-        case GVSS_FadeIn:
-            if (!fadeIn.isDone(Video::frames()) && !fadeIn.isRunning())
-                fadeIn.go();
-            alpha = fadeIn.getValue(Video::frames());
-            if (fadeIn.isDone(Video::frames()))
+        case GVSS_Init:
+            lineStop     = logoVPos.x;
+            GVSSAnimStep = GVSS_Line1;
+            break;
+        case GVSS_Line1:
+            if (linePos.w < line_width)
+                linePos.w += 4;
+            else
             {
-                GVSSAnimStep = GVSS_Delay;
-                timer = System::millis();
+                if ((linePos.x + linePos.w) < logoVPos.x)
+                    linePos.x += 4;
+                else
+                    GVSSAnimStep = GVSS_VReveal;
             }
             break;
-        case GVSS_FadeOut:
-            if (!fadeOut.isDone(Video::frames()) && !fadeOut.isRunning())
-                fadeOut.go();
-            alpha = fadeOut.getValue(Video::frames());
-            if (fadeOut.isDone(Video::frames()))
+        case GVSS_VReveal:
+            if (linePos.w > 0)
             {
-                GVSSAnimStep = GVSS_Exit;
+                linePos.x += 4;
+                linePos.w -= 4;
+            }
+            if (vBoxPos.w > 0)
+            {
+                vBoxPos.x += 4;
+                vBoxPos.w -= 4;
+            }
+            else
+            {
+                linePos.x    = logoVPos.x + logoVPos.w;
+                linePos.w    = 1;
+                GVSSAnimStep = GVSS_Line2;
+            }
+            break;
+        case GVSS_Line2:
+            if (linePos.w < line_width)
+                linePos.w += 4;
+            else
+            {
+                if ((linePos.x + linePos.w) < gpu->getHorizontalRes())
+                    linePos.x += 4;
+                else
+                    GVSSAnimStep = GVSS_RingReveal;
+            }
+            break;
+        case GVSS_RingReveal:
+            if (linePos.w > 0)
+            {
+                linePos.x += 4;
+                linePos.w -= 4;
+            }
+            if (ringAlpha < 0xFF)
+            {
+                ringAlpha++;
+            }
+            else
+            {
+                logoMove.go();
+                GVSSAnimStep = GVSS_LogoMoveLeft;
+            }
+            break;
+        case GVSS_LogoMoveLeft:
+            if (logoMove.isDone(Video::frames()))
+            {
+                GVSSAnimStep = GVSS_TextReveal;
+            }
+            break;
+        case GVSS_TextReveal:
+            if (textAlpha < 0xFF)
+            {
+                textAlpha++;
+            }
+            else
+            {
+                GVSSAnimStep = GVSS_Delay;
             }
             break;
         case GVSS_Delay:

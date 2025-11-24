@@ -1,19 +1,19 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
  * iface_arcade.hpp - Created on 09-08-2025
- * 
+ *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * GenV is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * GenV. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
 #pragma once
 
@@ -30,12 +30,12 @@ namespace System
         ArcadeEnv::CoinData *playerCoins = nullptr;
 
     protected:
-        uint8_t physicalPlayers = 0;
+        uint8_t physicalPlayers   = 0;
         uint8_t physicalCoinSlots = 0;
 
-        bool enableWatchdogTicking = true; // ⚠️ WARNING ⚠️ Unless you are testWatchdog(), DONT TOUCH.
-        bool testSwitchLatching = false;   // If false, enableTestMode must be disabled by the Test Menu exiting. If true, test screen will exit when enableTestMode goes low,
-        bool enableTestMode = false;       // On systems with a switch, this will mirror the switch ON-OFF state. On push button systems, this will toggle on
+        bool enableWatchdogTicking = true;  // ⚠️ WARNING ⚠️ Unless you are testWatchdog(), DONT TOUCH.
+        bool testSwitchLatching    = false; // If false, enableTestMode must be disabled by the Test Menu exiting. If true, test screen will exit when enableTestMode goes low,
+        bool enableTestMode        = false; // On systems with a switch, this will mirror the switch ON-OFF state. On push button systems, this will toggle on
 
         uint8_t setPhysicalPlayers(uint8_t players);
         uint8_t setPhysicalCoinSlots(uint8_t slots);
@@ -45,9 +45,9 @@ namespace System
         virtual uint8_t increaseCoinCounter(uint8_t counter);
 
     public:
-        IArcadeSystem() = default;
+        IArcadeSystem()          = default;
         virtual ~IArcadeSystem() = default;
-        
+
         // Get the virtual NVRAM data for read/writing
         NVRAM &getNVRAM() { return _eeprom; }
         // Get the DIP switch at a given `bank`.
@@ -123,17 +123,17 @@ namespace System
         // Writes an analogue value to an analogue output (DAC/PWM/RGB/RGBA).
         // Returns the output number if succesful, returns 0xFF if number is invalid.
         // Note: Unlike digital outputs, analogOutputs will always be assigned to an output.
-        virtual uint8_t writeAnalogueOut(uint8_t analogOutput, uint8_t state) = 0;
+        virtual uint8_t writeAnalogueOut(uint8_t analogOutput, uint8_t state);
 
         // Writes a 16-bit analogue value to an analogue output (DAC/PWM/RGB/RGBA).
         // Returns the output number if succesful, returns 0xFF if number is invalid.
         // Note: Unlike digital outputs, analogOutputs will always be assigned to an output.
-        virtual uint8_t writeAnalogueOut16(uint8_t analogOutput, uint16_t state) = 0;
+        virtual uint8_t writeAnalogueOut16(uint8_t analogOutput, uint16_t state);
 
         // Writes a 32-bit analogue value to an analogue output (DAC/PWM/RGB/RGBA).
         // Returns the output number if succesful, returns 0xFF if number is invalid.
         // Note: Unlike digital outputs, analogOutputs will always be assigned to an output.
-        virtual uint8_t writeAnalogueOut32(uint8_t analogOutput, uint32_t state) = 0;
+        virtual uint8_t writeAnalogueOut32(uint8_t analogOutput, uint32_t state);
     };
 
 } // namespace System

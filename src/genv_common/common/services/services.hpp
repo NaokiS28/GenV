@@ -46,6 +46,7 @@ public:
     static inline Video::IVideo *getVideo(void) { return s_video; }
     static inline System::ISystem *getSystem(void) { return s_system; }
     static inline Fonts::FontManager *fontManager(void) { return s_fonts; }
+    static inline Input::InputManager *inputManager(void) { return s_input; }
 
     static inline void setSystem(AdminClass_Key key, System::ISystem *sys) { setSystem(sys); }
     static inline void setVideo(AdminClass_Key key, Video::IVideo *video) { setVideo(video); }
@@ -97,6 +98,9 @@ public:
         return s_storage->detachDevice(dev);
     }
     static int update();
+
+    static inline size_t gfx_size(size_t size) { return (s_video ? s_video->getBufferSize(size) : 0); }
+    static inline void *gfx_alloc(size_t size) { return (s_video ? s_video->allocate(size) : nullptr); }
 
 private:
     static int createManagers();

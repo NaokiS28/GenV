@@ -38,9 +38,10 @@ namespace Time
         virtual int setDate(int day, int month, int year);
         virtual int setTimezone(int offset);
         virtual int setDST(bool useDST);
-        virtual bool getTime(tm &time) { 
+        virtual bool getTime(tm &time)
+        {
             time = clock;
-            return true; 
+            return true;
         }
 
         // Get the current time

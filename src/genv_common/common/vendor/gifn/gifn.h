@@ -25,8 +25,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "../vendor_conf.h"
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -37,6 +35,15 @@ extern "C"
 #define GIFN_ERR_TRUNCATED -2
 #define GIFN_ERR_NOMEM -3
 #define GIFN_ERR_BOUNDS -4
+
+/*Compile the default allocators (C's free and malloc). If you disable this,
+you can define the functions gifn_free, gifn_malloc and gifn_realloc in your
+source files with custom allocators.*/
+#ifndef GIFN_NO_COMPILE_ALLOCATORS
+/*pass -DGIFN_NO_COMPILE_ALLOCATORS to the compiler to disable the built-in ones,
+or comment out GIFN_COMPILE_ALLOCATORS below*/
+#define GIFN_COMPILE_ALLOCATORS
+#endif
 
     typedef struct
     {

@@ -19,5 +19,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-extern const uint8_t genv_logo_data[];
-extern const size_t genv_logo_length;
+extern const uint8_t genv_ring_data[];
+extern const size_t genv_ring_length;
+
+extern const uint8_t genv_v_data[];
+extern const size_t genv_v_length;
