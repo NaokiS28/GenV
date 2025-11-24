@@ -92,8 +92,13 @@ add_subdirectory(src/genv_common/terminal)
 if(CMAKE_SYSTEM_NAME STREQUAL "Generic")
     # add global dependency on bare metal libc (must be done here)
     add_subdirectory(lib/libc)
+    add_subdirectory(lib/libbmcxx)
     link_libraries(libc)
-    set(LIBC_INCLUDE ${CMAKE_SOURCE_DIR}/lib/libc)
+    link_libraries(libbmcxx)
+    set(LIBC_INCLUDE 
+		${CMAKE_SOURCE_DIR}/lib/libc
+		${CMAKE_SOURCE_DIR}/lib/libbmcxx
+	)
 endif()
 
 add_subdirectory(src/genv_common/common)

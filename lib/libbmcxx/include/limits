@@ -1,0 +1,97 @@
+#ifndef LIBBMCXX_LIMITS_INCLUDED
+#define LIBBMCXX_LIMITS_INCLUDED 1
+
+#include <type_traits>
+
+// Numeric limits.
+// Note that we assume 2's complement representation, i.e. if max=N then min=-(N+1)
+
+namespace std {
+
+template <typename T>
+class numeric_limits {
+public:
+    static constexpr bool is_specialized = false;
+    static constexpr bool is_signed = false;
+    static constexpr bool is_integer = false;
+    static T min() { return T(); }
+    static T max() { return T(); }
+};
+
+template <typename T>
+class __bmcxx_numeric_limits {
+public:
+    static constexpr bool is_specialized = true;
+    static constexpr bool is_signed = ((T)-1) < 0;
+    static constexpr bool is_integer = true;
+
+    constexpr static T min() noexcept { return is_signed ? -max()-1 : 0; }
+    constexpr static T max() noexcept {
+        return is_signed ?
+            (((typename make_unsigned<T>::type)-1) >> 1) : (T)-1;
+    }
+};
+
+template <>
+class numeric_limits<unsigned char> : public __bmcxx_numeric_limits<unsigned char> {};
+template <>
+class numeric_limits<signed char> : public __bmcxx_numeric_limits<signed char> {};
+
+// Welcome to C++, where "char", "unsigned char", and "signed char" are three different types, even
+// though "char" is either signed or unsigned
+
+template <>
+class numeric_limits<char> : public __bmcxx_numeric_limits<char> {};
+template <>
+class numeric_limits<char16_t> : public __bmcxx_numeric_limits<char16_t> {};
+template <>
+class numeric_limits<char32_t> : public __bmcxx_numeric_limits<char32_t> {};
+template <>
+class numeric_limits<wchar_t> : public __bmcxx_numeric_limits<wchar_t> {};
+template <>
+class numeric_limits<short int> : public __bmcxx_numeric_limits<short int> {};
+template <>
+class numeric_limits<unsigned short int> : public __bmcxx_numeric_limits<unsigned short int> {};
+template <>
+class numeric_limits<int> : public __bmcxx_numeric_limits<int> {};
+template <>
+class numeric_limits<unsigned int> : public __bmcxx_numeric_limits<unsigned int> {};
+template <>
+class numeric_limits<long int> : public __bmcxx_numeric_limits<long int> {};
+template <>
+class numeric_limits<unsigned long> : public __bmcxx_numeric_limits<unsigned long> {};
+template <>
+class numeric_limits<long long int> : public __bmcxx_numeric_limits<long long int> {};
+template <>
+class numeric_limits<unsigned long long> : public __bmcxx_numeric_limits<unsigned long long> {};
+
+#ifdef __GLIBCXX_TYPE_INT_N_0
+template <>
+class numeric_limits<__GLIBCXX_TYPE_INT_N_0> : public __bmcxx_numeric_limits<__GLIBCXX_TYPE_INT_N_0> {};
+#endif
+
+// Undocumented extension (supported by GCC & Clang) to support extended integer types such as int128:
+
+#ifdef __GLIBCXX_TYPE_INT_N_1
+template <>
+class numeric_limits<__GLIBCXX_TYPE_INT_N_1> : public __bmcxx_numeric_limits<__GLIBCXX_TYPE_INT_N_1> {};
+#endif
+
+#ifdef __GLIBCXX_TYPE_INT_N_2
+template <>
+class numeric_limits<__GLIBCXX_TYPE_INT_N_2> : public __bmcxx_numeric_limits<__GLIBCXX_TYPE_INT_N_2> {};
+#endif
+
+#ifdef __GLIBCXX_TYPE_INT_N_3
+template <>
+class numeric_limits<__GLIBCXX_TYPE_INT_N_3> : public __bmcxx_numeric_limits<__GLIBCXX_TYPE_INT_N_3> {};
+#endif
+
+
+#ifdef __GLIBCXX_TYPE_INT_N_4
+#error "Too many extended integer types!"
+#endif
+
+} // namespace std
+
+#endif

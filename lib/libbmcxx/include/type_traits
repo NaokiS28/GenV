@@ -1,0 +1,584 @@
+#ifndef LIBBMCXX_TYPE_TRAITS_INCLUDED
+#define LIBBMCXX_TYPE_TRAITS_INCLUDED 1
+
+namespace std {
+
+namespace libstdbmcxx_type_traits {
+
+// use a local declval so we don't have to #include <utility>
+template<class T>
+T&& declval() noexcept;
+
+}
+
+// type_identity (C++20)
+// (Can be used to prevent type deduction by providing a non-deduced context)
+
+template <typename T>
+struct type_identity {
+    using type = T;
+};
+
+template <typename T>
+using type_identity_t = typename type_identity<T>::type;
+
+// conditional
+
+template <bool B, class T, class F>
+struct conditional { using type = T; };
+
+template <class T, class F>
+struct conditional<false, T, F> { using type = F; };
+
+template <bool B, class T, class F>
+using conditional_t = typename conditional<B,T,F>::type;
+
+// integral_constant
+
+template <typename T, T val>
+struct integral_constant {
+    static constexpr T value  = val;
+    using value_type = T;
+    using type = integral_constant;
+    constexpr operator value_type() const noexcept { return value; }
+    // C++14:
+    constexpr value_type operator()() const noexcept { return value; }
+};
+
+using true_type = integral_constant<bool, true>;
+using false_type = integral_constant<bool, false>;
+
+// is_void
+
+template <typename T>
+struct is_void : false_type {};
+
+template <>
+struct is_void<void> : true_type {};
+
+// is_reference
+
+template <typename T>
+struct is_reference : false_type {};
+
+template <typename T>
+struct is_reference<T &> : true_type {};
+
+template <typename T>
+struct is_reference<T &&> : true_type {};
+
+// is_const
+
+template <typename T> struct is_const : false_type {};
+template <typename T> struct is_const<const T> : true_type {};
+
+// is_function
+
+template <typename T>
+struct is_function : integral_constant<bool,
+        !is_const<const T>::value && !is_reference<T>::value> { };
+
+// is_array
+
+template <typename T>
+struct is_array : false_type {};
+
+template <typename T>
+struct is_array<T[]> : true_type {};
+
+template <typename T, decltype(sizeof(int)) I>
+struct is_array<T[I]> : true_type {};
+
+// extent
+
+template <typename T, unsigned N = 0>
+struct extent : integral_constant<decltype(sizeof(int)), 0> { };
+
+template <typename T>
+struct extent<T[], 0> : integral_constant<decltype(sizeof(int)), 0> { };
+
+template <typename T, unsigned N>
+struct extent<T[], N> : extent<T,N-1> { };
+
+template <typename T, unsigned I>
+struct extent<T[I], 0> : integral_constant<decltype(sizeof(int)), I> { };
+
+template <typename T, unsigned I, unsigned N>
+struct extent<T[I], N> : extent<T,N-1> { };
+
+// remove_extent
+
+template <typename T>
+struct remove_extent { using type = T; };
+
+template <typename T>
+struct remove_extent<T[]> { using type = T; };
+
+template <typename T, decltype(sizeof(int)) I>
+struct remove_extent<T[I]> { using type = T; };
+
+template <typename T> using remove_extent_t = typename remove_extent<T>::type;
+
+// bounded/unbounded array (C++20)
+
+template <typename T>
+struct is_bounded_array : false_type { };
+
+template <typename T, decltype(sizeof(0)) I>
+struct is_bounded_array<T[I]> : true_type { };
+
+template <typename T>
+struct is_unbounded_array : false_type { };
+
+template <typename T>
+struct is_unbounded_array<T[]> : true_type { };
+
+// is_same
+
+template <typename T, typename U>
+struct is_same : false_type {};
+
+template <typename T>
+struct is_same<T,T> : true_type {};
+
+// is...constructible
+
+namespace libstdbmcxx_type_traits {
+
+template <class... Args> struct pack {
+    template <typename T, typename = void> struct constructible : false_type {};
+
+    template <typename T> struct constructible<T, decltype(void(T(declval<Args>()...)))>
+        : true_type {};
+
+    template <typename T, typename = true_type> struct nothrow_constructible : false_type {};
+
+    template <typename T> struct nothrow_constructible<T, integral_constant<bool,
+        noexcept(T(declval<Args>()...))>> : true_type {};
+};
+
+} // namespace libstdbmcxx_type_traits
+
+template <class T, class... Args>
+struct is_constructible : libstdbmcxx_type_traits::pack<Args...>::template constructible<T> { };
+
+template <class T, class... Args>
+struct is_nothrow_constructible
+        : libstdbmcxx_type_traits::pack<Args...>::template nothrow_constructible<T> { };
+
+template <class T>
+struct is_default_constructible : libstdbmcxx_type_traits::pack<>::template constructible<T> { };
+
+template <class T>
+struct is_nothrow_default_constructible
+        : libstdbmcxx_type_traits::pack<>::template nothrow_constructible<T> { };
+
+template <class T>
+struct is_copy_constructible
+        : integral_constant<bool, is_constructible<T, const T&>::value> { };
+
+template <class T, typename = true_type>
+struct is_nothrow_copy_constructible : false_type { };
+
+template <class T>
+struct is_nothrow_copy_constructible<T, integral_constant<bool,
+            noexcept(T(libstdbmcxx_type_traits::declval<const T &>()))>>
+        : true_type { };
+
+template <class T>
+struct is_move_constructible
+        : integral_constant<bool, is_constructible<T, T&&>::value> { };
+
+template <class T, typename = true_type>
+struct is_nothrow_move_constructible : false_type { };
+
+template <class T>
+struct is_nothrow_move_constructible<T, integral_constant<bool,
+            noexcept(T(libstdbmcxx_type_traits::declval<T &&>()))>>
+        : true_type { };
+
+// remove_reference
+
+template <typename T>
+struct remove_reference
+{
+    using type = T;
+};
+
+template <typename T>
+struct remove_reference<T &>
+{
+    using type = T;
+};
+
+template <typename T>
+struct remove_reference<T &&>
+{
+    using type = T;
+};
+
+template <typename T>
+using remove_reference_t = typename remove_reference<T>::type;
+
+// add_lvalue_reference
+
+namespace libstdbmcxx_type_traits {
+
+template <typename T, typename enabler = void>
+struct add_lvalue_ref
+{
+    using type = T; // default case; we can't add lvalue ref, return type unchanged
+};
+
+template <typename T, typename enabler = void>
+struct add_rvalue_ref
+{
+    using type = T; // default case; we can't add rvalue ref, return type unchanged
+};
+
+template <typename T> using map_to_void = void;
+
+template <typename T>
+struct add_lvalue_ref<T, map_to_void<T&>>
+{
+    using type = T&;
+};
+
+template <typename T>
+struct add_rvalue_ref<T, map_to_void<T&&>>
+{
+    using type = T&&;
+};
+
+}
+
+template <typename T>
+struct add_lvalue_reference
+{
+    using type = typename libstdbmcxx_type_traits::add_lvalue_ref<T>::type;
+};
+
+template <typename T>
+using add_lvalue_reference_t = typename add_lvalue_reference<T>::type;
+
+template <typename T>
+struct add_rvalue_reference
+{
+    using type = typename libstdbmcxx_type_traits::add_rvalue_ref<T>::type;
+};
+
+template <typename T>
+using add_rvalue_reference_t = typename add_rvalue_reference<T>::type;
+
+// add_pointer
+
+namespace libstdbmcxx_type_traits {
+
+template <typename T, typename = void>
+struct add_pointer
+{
+    using type = T;
+};
+
+template <typename T>
+struct add_pointer<T, typename conditional<true, void, remove_reference_t<T> *>::type>
+{
+    using type = remove_reference_t<T> *;
+};
+
+} // namespace libstdbmcxx_type_traits
+
+template <typename T>
+struct add_pointer
+{
+    using type = typename libstdbmcxx_type_traits::add_pointer<T>::type;
+};
+
+template <typename T>
+using add_pointer_t = typename add_pointer<T>::type;
+
+// remove const/volatile
+
+template <typename T> struct remove_cv { using type = T; };
+template <typename T> struct remove_cv<const T> { using type = T; };
+template <typename T> struct remove_cv<volatile T> { using type = T; };
+template <typename T> struct remove_cv<const volatile T> { using type = T; };
+
+template <typename T> struct remove_const { using type = T; };
+template <typename T> struct remove_const<const T> { using type = T; };
+
+template <typename T> struct remove_volatile { using type = T; };
+template <typename T> struct remove_volatile<volatile T> { using type = T; };
+
+template <typename T> using remove_cv_t = typename remove_cv<T>::type;
+template <typename T> using remove_const_t = typename remove_const<T>::type;
+template <typename T> using remove_volatile_t = typename remove_volatile<T>::type;
+
+// enable_if
+
+template <bool B, class T = void>
+struct enable_if { };
+
+template <class T>
+struct enable_if<true, T>
+{
+    typedef T type;
+};
+
+template <bool B, class T = void>
+using enable_if_t = typename enable_if<B,T>::type;
+
+// decay
+
+template <typename T> struct decay {
+private:
+    static const bool is_func = is_function<T>::value || is_function<remove_reference_t<T>>::value;
+public:
+    using type = typename conditional<is_func,
+            add_pointer_t<remove_reference_t<T>>,
+            T>::type;
+};
+
+template <typename T> struct decay<T[]> { using type = T *; };
+template <typename T, decltype(sizeof(0)) I> struct decay<T[I]> { using type = T *; };
+template <typename T> struct decay<T(&)[]> { using type = T *; };
+template <typename T, decltype(sizeof(0)) I> struct decay<T(&)[I]> { using type = T *; };
+
+template <typename T>
+using decay_t = typename decay<T>::type;
+
+// is_convertible
+
+namespace libstdbmcxx_type_traits {
+
+template <class T, typename U = void>
+struct returnable : false_type {  };
+
+// test that a type is "returnable". Notable exceptions include arrays.
+// Apparently is_convertible should return true only if the target type is returnable.
+template <class T>
+struct returnable<T, decltype(void(static_cast<T(*)()>(nullptr)))>
+    : true_type { };
+
+// function which accepts a parameter of type T. This can be used to test for possibility of
+// implicitly converting a value (of some type) to type T.
+template <class T> inline void consume(T t) {}
+
+} // namespace libstdbmcxx_type_traits
+
+template <class From, class To, typename Enabler = true_type>
+struct is_convertible : false_type { };
+
+template <class From, class To>
+struct is_convertible<From, To,
+    integral_constant<bool,
+        (is_void<decltype(libstdbmcxx_type_traits::consume<To>(libstdbmcxx_type_traits::declval<From>()))>::value
+        && libstdbmcxx_type_traits::returnable<To>::value)
+        || (std::is_void<To>() && std::is_void<From>())
+    > >
+    : true_type {};
+
+// is_assignable
+
+template <class To, class From, typename Enabler = void>
+struct is_assignable : false_type { };
+
+template <class To, class From>
+struct is_assignable<To, From,
+        decltype(void((To &)libstdbmcxx_type_traits::declval<To>() = libstdbmcxx_type_traits::declval<From>()))>
+        : true_type { };
+
+// This would also work instead of the above, but requires GCC 8+:
+//template <class To, class From>
+//struct is_assignable : integral_constant<bool, __is_assignable(To,From)> { };
+
+template <class To, class From, typename Enabler = true_type>
+struct is_trivially_assignable : integral_constant<bool, __is_trivially_assignable(To,From)> { };
+
+// This works only for Clang:
+//template <class To, class From>
+//struct is_nothrow_assignable : integral_constant<bool, __is_nothrow_assignable(To,From)> { };
+
+template <class To, class From, typename Enabler = true_type>
+struct is_nothrow_assignable : false_type { };
+
+template <class To, class From>
+struct is_nothrow_assignable<To, From, integral_constant<bool,
+        noexcept(libstdbmcxx_type_traits::declval<To>() = libstdbmcxx_type_traits::declval<From>())>> : true_type { };
+
+template <class T>
+struct is_copy_assignable : std::is_assignable<typename add_lvalue_reference<T>::type, typename add_lvalue_reference<const T>::type>
+{ };
+
+template <class T>
+struct is_trivially_copy_assignable : std::is_trivially_assignable<typename add_lvalue_reference<T>::type,
+        typename add_lvalue_reference<const T>::type>
+{ };
+
+template <class T>
+struct is_nothrow_copy_assignable : std::is_nothrow_assignable<typename add_lvalue_reference<T>::type,
+        typename add_lvalue_reference<const T>::type>
+{ };
+
+template <class T>
+struct is_trivially_copyable : std::integral_constant<bool, __is_trivially_copyable(T)>
+{ };
+
+template <class T>
+struct is_move_assignable : std::is_assignable<typename add_lvalue_reference<T>::type, typename add_rvalue_reference<const T>::type>
+{ };
+
+template <class T>
+struct is_nothrow_move_assignable : std::is_nothrow_assignable<typename add_lvalue_reference<T>::type,
+        typename add_rvalue_reference<const T>::type>
+{ };
+
+// swappability:
+
+// must forward-declare swap function:
+template <class T>
+constexpr
+enable_if_t<is_move_constructible<T>::value && is_move_assignable<T>::value, void>
+swap(T &a, T &b) noexcept(is_nothrow_move_constructible<T>::value
+        && is_nothrow_move_assignable<T>::value);
+
+template <class T, typename Enabler = void> struct is_swappable; // forward
+
+template <class T, decltype(sizeof(int)) N>
+constexpr
+enable_if_t<is_swappable<T>::value, void>
+swap(T (&a)[N], T (&b)[N]) noexcept(noexcept(swap(a[0],b[0])));
+
+template <class T, class U, class V = void>
+struct is_swappable_with : public false_type {};
+
+template <class T, class U>
+struct is_swappable_with<T, U, decltype((void)(swap(libstdbmcxx_type_traits::declval<T>(),
+        libstdbmcxx_type_traits::declval<U>(),
+        swap(libstdbmcxx_type_traits::declval<U>(), libstdbmcxx_type_traits::declval<T>()))))> : true_type {};
+
+template <class T, typename Enabler>
+struct is_swappable : public false_type {};
+
+template <class T>
+struct is_swappable<T, decltype(void(libstdbmcxx_type_traits::declval<T&>()))>
+        : public integral_constant<bool, is_swappable_with<T&,T&>::value> {};
+
+// is_integral:
+
+template <class T>
+struct is_integral : false_type { };
+
+template <> struct is_integral<bool> : true_type { };
+
+template <> struct is_integral<char> : true_type { };
+template <> struct is_integral<signed char> : true_type { };
+template <> struct is_integral<unsigned char> : true_type { };
+template <> struct is_integral<char16_t> : true_type { };
+template <> struct is_integral<char32_t> : true_type { };
+template <> struct is_integral<wchar_t> : true_type { };
+
+template <> struct is_integral<short> : true_type { };
+template <> struct is_integral<int> : true_type { };
+template <> struct is_integral<long> : true_type { };
+template <> struct is_integral<long long> : true_type { };
+
+template <> struct is_integral<unsigned short> : true_type { };
+template <> struct is_integral<unsigned int> : true_type { };
+template <> struct is_integral<unsigned long> : true_type { };
+template <> struct is_integral<unsigned long long> : true_type { };
+
+#ifdef __GLIBCXX_TYPE_INT_N_0
+template <> struct is_integral<__GLIBCXX_TYPE_INT_N_0> : true_type { };
+template <> struct is_integral<unsigned __GLIBCXX_TYPE_INT_N_0> : true_type { };
+#endif
+
+#ifdef __GLIBCXX_TYPE_INT_N_1
+template <> struct is_integral<__GLIBCXX_TYPE_INT_N_1> : true_type { };
+template <> struct is_integral<unsigned __GLIBCXX_TYPE_INT_N_1> : true_type { };
+#endif
+
+#ifdef __GLIBCXX_TYPE_INT_N_2
+template <> struct is_integral<__GLIBCXX_TYPE_INT_N_2> : true_type { };
+template <> struct is_integral<unsigned __GLIBCXX_TYPE_INT_N_2> : true_type { };
+#endif
+
+#ifdef __GLIBCXX_TYPE_INT_N_3
+template <> struct is_integral<__GLIBCXX_TYPE_INT_N_3> : true_type { };
+template <> struct is_integral<unsigned __GLIBCXX_TYPE_INT_N_3> : true_type { };
+#endif
+
+#ifdef __GLIBCXX_TYPE_INT_N_4
+#error "Too many extended integer types!"
+#endif
+
+template <class T> struct is_integral<const T> : is_integral<T> { };
+template <class T> struct is_integral<volatile T> : is_integral<T> { };
+template <class T> struct is_integral<const volatile T> : is_integral<T> { };
+
+// make_signed/make_unsigned
+
+template <class T> struct make_unsigned;
+template <> struct make_unsigned<char> { using type = unsigned char; };
+template <> struct make_unsigned<unsigned char> { using type = unsigned char; };
+template <> struct make_unsigned<signed char> { using type = unsigned char; };
+template <> struct make_unsigned<char16_t> { using type = __UINT16_TYPE__; };
+template <> struct make_unsigned<char32_t> { using type = __UINT32_TYPE__; };
+template <> struct make_unsigned<short> { using type = unsigned short; };
+template <> struct make_unsigned<unsigned short> { using type = unsigned short; };
+template <> struct make_unsigned<int> { using type = unsigned int; };
+template <> struct make_unsigned<unsigned int> { using type = unsigned int; };
+template <> struct make_unsigned<long> { using type = unsigned int; };
+template <> struct make_unsigned<unsigned long> { using type = unsigned int; };
+template <> struct make_unsigned<long long> { using type = unsigned long long; };
+template <> struct make_unsigned<unsigned long long> { using type = unsigned long long; };
+// TODO: enums
+
+template <class T> struct make_signed;
+template <> struct make_signed<char> { using type = signed char; };
+template <> struct make_signed<unsigned char> { using type = signed char; };
+template <> struct make_signed<signed char> { using type = signed char; };
+template <> struct make_signed<char16_t> { using type = __INT16_TYPE__; };
+template <> struct make_signed<char32_t> { using type = __INT32_TYPE__; };
+template <> struct make_signed<short> { using type = signed short; };
+template <> struct make_signed<unsigned short> { using type = signed short; };
+template <> struct make_signed<int> { using type = signed int; };
+template <> struct make_signed<unsigned int> { using type = signed int; };
+template <> struct make_signed<long> { using type = signed int; };
+template <> struct make_signed<unsigned long> { using type = signed int; };
+template <> struct make_signed<long long> { using type = signed long long; };
+template <> struct make_signed<unsigned long long> { using type = signed long long; };
+// TODO: enums
+
+#ifdef __GLIBCXX_TYPE_INT_N_0
+template <> struct make_unsigned<__GLIBCXX_TYPE_INT_N_0> { using type = unsigned __GLIBCXX_TYPE_INT_N_0; };
+template <> struct make_unsigned<unsigned __GLIBCXX_TYPE_INT_N_0> { using type = unsigned __GLIBCXX_TYPE_INT_N_0; };
+template <> struct make_signed<__GLIBCXX_TYPE_INT_N_0> { using type = signed __GLIBCXX_TYPE_INT_N_0; };
+template <> struct make_signed<unsigned __GLIBCXX_TYPE_INT_N_0> { using type = signed __GLIBCXX_TYPE_INT_N_0; };
+#endif
+
+#ifdef __GLIBCXX_TYPE_INT_N_1
+template <> struct make_unsigned<__GLIBCXX_TYPE_INT_N_0> { using type = unsigned __GLIBCXX_TYPE_INT_N_1; };
+template <> struct make_unsigned<unsigned __GLIBCXX_TYPE_INT_N_0> { using type = unsigned __GLIBCXX_TYPE_INT_N_1; };
+template <> struct make_signed<__GLIBCXX_TYPE_INT_N_0> { using type = signed __GLIBCXX_TYPE_INT_N_1; };
+template <> struct make_signed<unsigned __GLIBCXX_TYPE_INT_N_0> { using type = signed __GLIBCXX_TYPE_INT_N_1; };
+#endif
+
+#ifdef __GLIBCXX_TYPE_INT_N_2
+template <> struct make_unsigned<__GLIBCXX_TYPE_INT_N_0> { using type = unsigned __GLIBCXX_TYPE_INT_N_2; };
+template <> struct make_unsigned<unsigned __GLIBCXX_TYPE_INT_N_0> { using type = unsigned __GLIBCXX_TYPE_INT_N_2; };
+template <> struct make_signed<__GLIBCXX_TYPE_INT_N_0> { using type = signed __GLIBCXX_TYPE_INT_N_2; };
+template <> struct make_signed<unsigned __GLIBCXX_TYPE_INT_N_0> { using type = signed __GLIBCXX_TYPE_INT_N_2; };
+#endif
+
+// is_pointer:
+
+template <class T> struct is_pointer : false_type { };
+template <class T> struct is_pointer<T *> : true_type { };
+template <class T> struct is_pointer<T * const> : true_type { };
+template <class T> struct is_pointer<T * volatile> : true_type { };
+template <class T> struct is_pointer<T * const volatile> : true_type { };
+
+} // namespace std
+
+#endif
