@@ -19,6 +19,7 @@
 
 #include <string.h> // memcpy, memset
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "../vendor_conf.h"
 
@@ -47,83 +48,99 @@ void gifn_free(void *ptr);
 // -----------------------------
 // Small helpers / arena
 // -----------------------------
-struct GifReader
+typedef struct
 {
     const uint8_t *data;
     const uint8_t *end;
     size_t pos;
+} GifData;
 
-    void init(const uint8_t *p, size_t n)
-    {
-        data = p;
-        end  = p + n;
-        pos  = 0;
-    }
-    bool has(size_t n) const { return (size_t)(end - (data + pos)) >= n; }
-    bool read_u8(uint8_t &v)
-    {
-        if (!has(1)) return false;
-        v = data[pos++];
-        return true;
-    }
-    bool read_u16le(uint16_t &v)
-    {
-        if (!has(2)) return false;
-        v = (uint16_t)data[pos] | ((uint16_t)data[pos + 1] << 8);
-        pos += 2;
-        return true;
-    }
-    bool read(void *dst, size_t n)
-    {
-        if (!has(n)) return false;
-        memcpy(dst, data + pos, n);
-        pos += n;
-        return true;
-    }
-    bool seek(size_t n)
-    {
-        if (!has(n)) return false;
-        pos += n;
-        return true;
-    }
-    bool test_str(const char *s)
-    {
-        size_t len = 0;
-        while (s[len])
-            ++len;
-        if (!has(len)) return false;
-        bool ok = (memcmp(data + pos, s, len) == 0);
-        pos += len;
-        return ok;
-    }
-    uint8_t at_rel(size_t rel) const
-    {
-        if (!has(rel + 1)) return 0;
-        return data[pos + rel];
-    }
-    bool eof() const { return pos >= (size_t)(end - data); }
-};
+void gifn_gifdata_init(GifData *gif, const uint8_t *p, size_t n)
+{
+    gif->data = p;
+    gif->end  = p + n;
+    gif->pos  = 0;
+}
+
+bool gifn_gifdata_has(GifData *gif, size_t n)
+{
+    return (size_t)(gif->end - (gif->data + gif->pos)) >= n;
+}
+
+bool gifn_gifdata_read_u8(GifData *gif, uint8_t *v)
+{
+    if (!gifn_gifdata_has(gif, 1)) return false;
+    *v = gif->data[gif->pos++];
+    return true;
+}
+
+bool gifn_gifdata_read_u16le(GifData *gif, uint16_t *v)
+{
+    if (!gifn_gifdata_has(gif, 2)) return false;
+    *v = (uint16_t)gif->data[gif->pos] | ((uint16_t)gif->data[gif->pos + 1] << 8);
+    gif->pos += 2;
+    return true;
+}
+
+bool gifn_gifdata_read(GifData *gif, void *dst, size_t n)
+{
+    if (!gifn_gifdata_has(gif, n)) return false;
+    memcpy(dst, gif->data + gif->pos, n);
+    gif->pos += n;
+    return true;
+}
+
+bool gifn_gifdata_seek(GifData *gif, size_t n)
+{
+    if (!gifn_gifdata_has(gif, n)) return false;
+    gif->pos += n;
+    return true;
+}
+
+bool gifn_gifdata_test_str(GifData *gif, const char *s)
+{
+    size_t len = 0;
+    while (s[len])
+        ++len;
+    if (!gifn_gifdata_has(gif, len)) return false;
+    bool ok = (memcmp(gif->data + gif->pos, s, len) == 0);
+    gif->pos += len;
+    return ok;
+}
+
+uint8_t gifn_gifdata_at_rel(GifData *gif, size_t rel)
+{
+    if (!gifn_gifdata_has(gif, rel + 1)) return 0;
+    return gif->data[gif->pos + rel];
+}
+
+bool gifn_gifdata_eof(GifData *gif)
+{
+    return gif->pos >= (size_t)(gif->end - gif->data);
+}
 
 // Internal only in gifn.cpp
-struct ArenaBlk
+typedef struct
 {
-    ArenaBlk *next;
+    void *next;
+    size_t len;
     // flexible payload follows
-};
+} ArenaBlk;
 
-static void *arena_alloc(GIF_Object *g, size_t n, size_t align = 1)
+static void *arena_alloc(GIF_Object *g, size_t n, size_t align)
 {
     if (align < 1) align = 1;
     const size_t header = sizeof(ArenaBlk);
     const size_t total  = header + (align - 1) + n;
 
     uint8_t *raw = (uint8_t *)gifn_malloc(total);
-    if (!raw) return nullptr;
+    if (!raw) return NULL;
 
     ArenaBlk *blk = (ArenaBlk *)raw;
     blk->next     = (ArenaBlk *)g->_arena; // push-front
-    g->_arena     = blk;                   // head of list
-    g->_arenaSize = 0;                     // not used anymore
+    blk->len      = n;
+    g->_arena     = blk; // head of list
+    g->_arenaSize = 0;   // not used anymore
 
     uint8_t *payload  = raw + header;
     uintptr_t p       = (uintptr_t)payload;
@@ -133,7 +150,7 @@ static void *arena_alloc(GIF_Object *g, size_t n, size_t align = 1)
 
 static GIF_Color *arena_alloc_colors(GIF_Object *g, size_t count)
 {
-    return (GIF_Color *)arena_alloc(g, count * sizeof(GIF_Color), alignof(GIF_Color));
+    return (GIF_Color *)arena_alloc(g, count * sizeof(GIF_Color), 1);
 }
 static uint8_t *arena_alloc_u8(GIF_Object *g, size_t count)
 {
@@ -142,15 +159,15 @@ static uint8_t *arena_alloc_u8(GIF_Object *g, size_t count)
 
 static GIF_ImageDescriptor *arena_alloc_frames(GIF_Object *g, size_t count)
 {
-    return (GIF_ImageDescriptor *)arena_alloc(g, count * sizeof(GIF_ImageDescriptor), alignof(GIF_ImageDescriptor));
+    return (GIF_ImageDescriptor *)arena_alloc(g, count * sizeof(GIF_ImageDescriptor), 4);
 }
 static GIF_GCE *arena_alloc_gce(GIF_Object *g, size_t count)
 {
-    return (GIF_GCE *)arena_alloc(g, count * sizeof(GIF_GCE), alignof(GIF_GCE));
+    return (GIF_GCE *)arena_alloc(g, count * sizeof(GIF_GCE), 2);
 }
 static size_t *arena_alloc_sizes(GIF_Object *g, size_t count)
 {
-    return (size_t *)arena_alloc(g, count * sizeof(size_t), alignof(size_t));
+    return (size_t *)arena_alloc(g, count * sizeof(size_t), 4);
 }
 
 static unsigned int pow2_table_size(uint8_t flags_bits)
@@ -173,12 +190,14 @@ uint8_t gifn_get_bpp(const uint8_t flags)
 // -----------------------------
 // Palette parsing
 // -----------------------------
-static bool parse_color_table(GifReader &R, GIF_Color *dst, int count)
+static bool parse_color_table(GifData *R, GIF_Color *dst, int count)
 {
     for (int i = 0; i < count; i++)
     {
         uint8_t r, g, b;
-        if (!R.read_u8(r) || !R.read_u8(g) || !R.read_u8(b)) return false;
+        if (!gifn_gifdata_read_u8(R, &r) ||
+            !gifn_gifdata_read_u8(R, &g) ||
+            !gifn_gifdata_read_u8(R, &b)) return false;
         dst[i].r = r;
         dst[i].g = g;
         dst[i].b = b;
@@ -189,14 +208,14 @@ static bool parse_color_table(GifReader &R, GIF_Color *dst, int count)
 // -----------------------------
 // LZW state
 // -----------------------------
-struct GifLZW
+typedef struct
 {
     int16_t prefix;
     uint8_t first;
     uint8_t suffix;
-};
+} GifLZW;
 
-struct GifDecodeCtx
+typedef struct
 {
     uint16_t screen_w, screen_h;
     // Per-image rect & flags
@@ -221,27 +240,27 @@ struct GifDecodeCtx
     // Internal code table
     GifLZW codes[4096]; // 12-bit max
     uint8_t lflags;
-};
+} GifDecodeCtx;
 
 // For interlaced images, advance lines in pass order
-static void gif_write_index(GifDecodeCtx &C, uint8_t idx, int rel_pixel)
+static void gif_write_index(GifDecodeCtx *C, uint8_t idx, int rel_pixel)
 {
     // Compute absolute target within the image's out (w*h), respecting interlace write order.
     // We use a linear cursor over the sub-rectangle, but must mimic STB’s scan progression.
     // Simpler approach: map cur_x/cur_y to sub-buffer coordinates.
-    int abs_x = (C.cur_x / 1) - C.start_x; // since 1 byte per pixel, cur_x is pixel offset
-    int abs_y = (C.cur_y / C.line_size) - (C.start_y / C.line_size);
+    int abs_x = (C->cur_x / 1) - C->start_x; // since 1 byte per pixel, cur_x is pixel offset
+    int abs_y = (C->cur_y / C->line_size) - (C->start_y / C->line_size);
     // clamp (GIF files with zero-width rects are allowed; guard)
-    if ((unsigned)abs_x < C.w && (unsigned)abs_y < C.h)
+    if ((unsigned)abs_x < C->w && (unsigned)abs_y < C->h)
     {
-        C.out[abs_y * C.w + abs_x] = idx;
+        C->out[abs_y * C->w + abs_x] = idx;
     }
-    C.cur_x += 1;
-    if (C.cur_x >= C.max_x)
+    C->cur_x += 1;
+    if (C->cur_x >= C->max_x)
     {
-        C.cur_x = C.start_x;
+        C->cur_x = C->start_x;
         // interlace stepping
-        if (C.interlace)
+        if (C->interlace)
         {
 
             // Find current pass from y mod pattern; cheap approach: move by step and wrap when crossing h
@@ -249,7 +268,7 @@ static void gif_write_index(GifDecodeCtx &C, uint8_t idx, int rel_pixel)
             static const int steps[4]  = {8, 8, 4, 2};
             static const int starts[4] = {0, 4, 2, 1};
             // We emulate stb's variable by computing next interlaced y:
-            int rel_y = (C.cur_y / C.line_size) - (C.start_y / C.line_size);
+            int rel_y = (C->cur_y / C->line_size) - (C->start_y / C->line_size);
             int pass  = 0;
             if (rel_y % 8 == 0)
                 pass = 0;
@@ -260,30 +279,50 @@ static void gif_write_index(GifDecodeCtx &C, uint8_t idx, int rel_pixel)
             else
                 pass = 3;
             int next_rel_y = rel_y + steps[pass];
-            if (next_rel_y >= C.h)
+            if (next_rel_y >= C->h)
             {
                 // move to next pass start
                 pass++;
                 if (pass > 3)
                 {
-                    C.cur_y = C.max_y;
+                    C->cur_y = C->max_y;
                     return;
                 }
                 next_rel_y = starts[pass];
             }
-            C.cur_y = C.start_y + next_rel_y * C.line_size;
+            C->cur_y = C->start_y + next_rel_y * C->line_size;
         }
         else
         {
-            C.cur_y += C.line_size;
+            C->cur_y += C->line_size;
         }
     }
 }
 
-static bool process_gif_raster(GifReader &R, GifDecodeCtx &C)
+static void gifn_out_code(GifDecodeCtx *C, uint16_t code)
+{
+    // Expand prefix chain recursively (iterative to avoid deep recursion on malformed data)
+    uint16_t stack[4096];
+    int sp = 0;
+    while (C->codes[code].prefix >= 0 && sp < 4096)
+    {
+        stack[sp++] = (uint16_t)C->codes[code].suffix;
+        code        = (uint16_t)C->codes[code].prefix;
+    }
+    // first & the last suffix
+    uint8_t first = C->codes[code].first;
+    gif_write_index(C, first, 0);
+    while (sp)
+    {
+        gif_write_index(C, (uint8_t)stack[--sp], 0);
+        if (C->cur_y >= C->max_y) return;
+    }
+};
+
+static bool process_gif_raster(GifData *R, GifDecodeCtx *C)
 {
     uint8_t lzw_cs;
-    if (!R.read_u8(lzw_cs)) return false;
+    if (!gifn_gifdata_read_u8(R, &lzw_cs)) return false;
     if (lzw_cs > 12) return false;
 
     const int clear = 1 << lzw_cs;
@@ -293,9 +332,9 @@ static bool process_gif_raster(GifReader &R, GifDecodeCtx &C)
     // init table
     for (int i = 0; i < clear; ++i)
     {
-        C.codes[i].prefix = -1;
-        C.codes[i].first  = (uint8_t)i;
-        C.codes[i].suffix = (uint8_t)i;
+        C->codes[i].prefix = -1;
+        C->codes[i].first  = (uint8_t)i;
+        C->codes[i].suffix = (uint8_t)i;
     }
     int avail   = clear + 2;
     int oldcode = -1;
@@ -303,33 +342,13 @@ static bool process_gif_raster(GifReader &R, GifDecodeCtx &C)
     int len = 0;
 
     // Prepare write cursors (byte addressing)
-    C.line_size = C.screen_w; // bytes per full line
-    C.start_x   = C.x;
-    C.start_y   = C.y * C.line_size;
-    C.max_x     = C.start_x + C.w;
-    C.max_y     = C.start_y + C.h * C.line_size;
-    C.cur_x     = C.start_x;
-    C.cur_y     = C.start_y;
-
-    auto out_code = [&](uint16_t code)
-    {
-        // Expand prefix chain recursively (iterative to avoid deep recursion on malformed data)
-        uint16_t stack[4096];
-        int sp = 0;
-        while (C.codes[code].prefix >= 0 && sp < 4096)
-        {
-            stack[sp++] = (uint16_t)C.codes[code].suffix;
-            code        = (uint16_t)C.codes[code].prefix;
-        }
-        // first & the last suffix
-        uint8_t first = C.codes[code].first;
-        gif_write_index(C, first, 0);
-        while (sp)
-        {
-            gif_write_index(C, (uint8_t)stack[--sp], 0);
-            if (C.cur_y >= C.max_y) return;
-        }
-    };
+    C->line_size = C->screen_w; // bytes per full line
+    C->start_x   = C->x;
+    C->start_y   = C->y * C->line_size;
+    C->max_x     = C->start_x + C->w;
+    C->max_y     = C->start_y + C->h * C->line_size;
+    C->cur_x     = C->start_x;
+    C->cur_y     = C->start_y;
 
     for (;;)
     {
@@ -338,12 +357,12 @@ static bool process_gif_raster(GifReader &R, GifDecodeCtx &C)
             if (len == 0)
             {
                 uint8_t s;
-                if (!R.read_u8(s)) return false;
+                if (!gifn_gifdata_read_u8(R, &s)) return false;
                 len = s;
                 if (len == 0) return true; // finished
             }
             uint8_t b;
-            if (!R.read_u8(b)) return false;
+            if (!gifn_gifdata_read_u8(R, &b)) return false;
             bits |= (int)b << valid_bits;
             valid_bits += 8;
             --len;
@@ -366,13 +385,13 @@ static bool process_gif_raster(GifReader &R, GifDecodeCtx &C)
             {
                 // end of image data sub-blocks
                 // consume rest of sub-blocks
-                if (len) R.seek(len), len = 0;
+                if (len) gifn_gifdata_seek(R, len), len = 0;
                 uint8_t s;
-                if (!R.read_u8(s)) return true;
+                if (!gifn_gifdata_read_u8(R, &s)) return true;
                 while (s)
                 {
-                    if (!R.seek(s)) return false;
-                    if (!R.read_u8(s)) return false;
+                    if (!gifn_gifdata_seek(R, s)) return false;
+                    if (!gifn_gifdata_read_u8(R, &s)) return false;
                 }
                 return true;
             }
@@ -380,13 +399,13 @@ static bool process_gif_raster(GifReader &R, GifDecodeCtx &C)
             {
                 if (oldcode >= 0)
                 {
-                    GifLZW *p = &C.codes[avail++];
+                    GifLZW *p = &C->codes[avail++];
                     if (avail > 4096) return false;
                     p->prefix = (int16_t)oldcode;
-                    p->first  = C.codes[oldcode].first;
-                    p->suffix = C.codes[code].first;
+                    p->first  = C->codes[oldcode].first;
+                    p->suffix = C->codes[code].first;
                 }
-                out_code((uint16_t)code);
+                gifn_out_code(C, (uint16_t)code);
                 if ((avail & codemask) == 0 && avail <= 0x0FFF)
                 {
                     ++codesize;
@@ -398,12 +417,12 @@ static bool process_gif_raster(GifReader &R, GifDecodeCtx &C)
             {
                 // KwKwK case
                 if (oldcode < 0) return false;
-                GifLZW *p = &C.codes[avail++];
+                GifLZW *p = &C->codes[avail++];
                 if (avail > 4096) return false;
                 p->prefix = (int16_t)oldcode;
-                p->first  = C.codes[oldcode].first;
+                p->first  = C->codes[oldcode].first;
                 p->suffix = p->first;
-                out_code((uint16_t)avail - 1);
+                gifn_out_code(C, (uint16_t)avail - 1);
                 if ((avail & codemask) == 0 && avail <= 0x0FFF)
                 {
                     ++codesize;
@@ -415,16 +434,16 @@ static bool process_gif_raster(GifReader &R, GifDecodeCtx &C)
             {
                 return false;
             }
-            if (C.cur_y >= C.max_y)
+            if (C->cur_y >= C->max_y)
             {
                 // consume remaining sub-block bytes if any
-                if (len) R.seek(len), len = 0;
+                if (len) gifn_gifdata_seek(R, len), len = 0;
                 uint8_t s;
-                if (!R.read_u8(s)) return true;
+                if (!gifn_gifdata_read_u8(R, &s)) return true;
                 while (s)
                 {
-                    if (!R.seek(s)) return false;
-                    if (!R.read_u8(s)) return false;
+                    if (!gifn_gifdata_seek(R, s)) return false;
+                    if (!gifn_gifdata_read_u8(R, &s)) return false;
                 }
                 return true;
             }
@@ -439,37 +458,39 @@ static int gifn_load_core(GIF_Object *gif, const uint8_t *in, size_t inSize)
 {
     memset(gif, 0, sizeof(*gif));
 
-    GifReader R;
-    R.init(in, inSize);
+    GifData R;
+    gifn_gifdata_init(&R, in, inSize);
 
     // Header
-    if (!R.test_str("GIF")) return GIFN_ERR_FORMAT;
-    uint8_t v3 = R.at_rel(0);
-    uint8_t v4 = R.at_rel(1);
-    uint8_t v5 = R.at_rel(2);
+    if (!gifn_gifdata_test_str(&R, "GIF")) return GIFN_ERR_FORMAT;
+    uint8_t v3 = gifn_gifdata_at_rel(&R, 0);
+    uint8_t v4 = gifn_gifdata_at_rel(&R, 1);
+    uint8_t v5 = gifn_gifdata_at_rel(&R, 2);
     if (v3 != '8' || !((v4 == '7' || v4 == '9') && v5 == 'a')) return GIFN_ERR_FORMAT;
-    R.seek(3);
+    gifn_gifdata_seek(&R, 3);
 
-    GIF_Header &H = gif->header;
-    if (!R.read_u16le(H.width) || !R.read_u16le(H.height)) return GIFN_ERR_TRUNCATED;
-    if (!R.read_u8(H.flags) || !R.read_u8(H.bgColorIdx) || !R.read_u8(H.aspect)) return GIFN_ERR_TRUNCATED;
+    if (!gifn_gifdata_read_u16le(&R, &gif->header.width) ||
+        !gifn_gifdata_read_u16le(&R, &gif->header.height)) return GIFN_ERR_TRUNCATED;
+    if (!gifn_gifdata_read_u8(&R, &gif->header.flags) ||
+        !gifn_gifdata_read_u8(&R, &gif->header.bgColorIdx) ||
+        !gifn_gifdata_read_u8(&R, &gif->header.aspect)) return GIFN_ERR_TRUNCATED;
 
     // Global Color Table
-    H.gct     = nullptr;
-    H.gctSize = 0;
-    if (H.flags & 0x80)
+    gif->header.gct     = NULL;
+    gif->header.gctSize = 0;
+    if (gif->header.flags & 0x80)
     {
-        int gcount = pow2_table_size(H.flags);
-        H.gct      = arena_alloc_colors(gif, gcount);
-        if (!H.gct) return GIFN_ERR_NOMEM;
-        if (!parse_color_table(R, H.gct, gcount)) return GIFN_ERR_TRUNCATED;
-        H.gctSize = (uint16_t)gcount; // entry count, not bytes
+        int gcount      = pow2_table_size(gif->header.flags);
+        gif->header.gct = arena_alloc_colors(gif, gcount);
+        if (!gif->header.gct) return GIFN_ERR_NOMEM;
+        if (!parse_color_table(&R, gif->header.gct, gcount)) return GIFN_ERR_TRUNCATED;
+        gif->header.gctSize = (uint16_t)gcount; // entry count, not bytes
     }
 
     // Prepare dynamic arrays (conservative first pass: grow by re-alloc in arena style)
-    gif->frames      = nullptr;
-    gif->framesGCE   = nullptr;
-    gif->frameLength = nullptr;
+    gif->frames      = NULL;
+    gif->framesGCE   = NULL;
+    gif->frameLength = NULL;
     gif->frameCount  = 0;
 
     GIF_GCE currGCE        = {};
@@ -481,16 +502,19 @@ static int gifn_load_core(GIF_Object *gif, const uint8_t *in, size_t inSize)
     // Blocks loop
     for (;;)
     {
-        if (R.eof()) break;
+        if (gifn_gifdata_eof(&R)) break;
         uint8_t tag;
-        if (!R.read_u8(tag)) break;
+        if (!gifn_gifdata_read_u8(&R, &tag)) break;
 
         if (tag == 0x2C)
         { // Image Descriptor
             uint16_t x, y, w, h;
             uint8_t lflags;
-            if (!R.read_u16le(x) || !R.read_u16le(y) || !R.read_u16le(w) || !R.read_u16le(h)) return GIFN_ERR_TRUNCATED;
-            if (!R.read_u8(lflags)) return GIFN_ERR_TRUNCATED;
+            if (!gifn_gifdata_read_u16le(&R, &x) ||
+                !gifn_gifdata_read_u16le(&R, &y) ||
+                !gifn_gifdata_read_u16le(&R, &w) ||
+                !gifn_gifdata_read_u16le(&R, &h)) return GIFN_ERR_TRUNCATED;
+            if (!gifn_gifdata_read_u8(&R, &lflags)) return GIFN_ERR_TRUNCATED;
 
             // Allocate/extend arrays
             uint16_t idx                   = gif->frameCount;
@@ -515,40 +539,41 @@ static int gifn_load_core(GIF_Object *gif, const uint8_t *in, size_t inSize)
             gif->framesGCE   = newGCE;
             gif->frameLength = newLen;
 
-            GIF_ImageDescriptor &F = gif->frames[idx];
-            F.x                    = x;
-            F.y                    = y;
-            F.w                    = w;
-            F.h                    = h;
-            F.flags                = lflags;
-            F.indices              = nullptr;
-            F.lct                  = nullptr;
-            F.lctSize              = 0;
+            GIF_ImageDescriptor *F = &gif->frames[idx];
+
+            F->x       = x;
+            F->y       = y;
+            F->w       = w;
+            F->h       = h;
+            F->flags   = lflags;
+            F->indices = NULL;
+            F->lct     = NULL;
+            F->lctSize = 0;
 
             // Local Color Table
-            const GIF_Color *active_ct = H.gct;
-            int active_ct_count        = H.gct ? (int)H.gctSize : 0;
+            const GIF_Color *active_ct = gif->header.gct;
+            int active_ct_count        = gif->header.gct ? (int)gif->header.gctSize : 0;
 
             if (lflags & 0x80)
             {
                 int lcount = pow2_table_size(lflags);
-                F.lct      = arena_alloc_colors(gif, lcount);
-                if (!F.lct) return GIFN_ERR_NOMEM;
-                if (!parse_color_table(R, F.lct, lcount)) return GIFN_ERR_TRUNCATED;
-                F.lctSize       = (uint16_t)lcount; // entry count
-                active_ct       = F.lct;
+                F->lct     = arena_alloc_colors(gif, lcount);
+                if (!F->lct) return GIFN_ERR_NOMEM;
+                if (!parse_color_table(&R, F->lct, lcount)) return GIFN_ERR_TRUNCATED;
+                F->lctSize      = (uint16_t)lcount; // entry count
+                active_ct       = F->lct;
                 active_ct_count = lcount;
             }
 
             // Allocate output (sub-rectangle only; you composite on your side)
-            F.indices = arena_alloc_u8(gif, (size_t)w * (size_t)h);
-            if (!F.indices) return GIFN_ERR_NOMEM;
-            memset(F.indices, 0, (size_t)w * (size_t)h);
+            F->indices = arena_alloc_u8(gif, (size_t)w * (size_t)h);
+            if (!F->indices) return GIFN_ERR_NOMEM;
+            memset(F->indices, 0, (size_t)w * (size_t)h);
 
             // Decode image data into indices
             GifDecodeCtx C    = {};
-            C.screen_w        = H.width;
-            C.screen_h        = H.height;
+            C.screen_w        = gif->header.width;
+            C.screen_h        = gif->header.height;
             C.x               = x;
             C.y               = y;
             C.w               = w;
@@ -557,9 +582,9 @@ static int gifn_load_core(GIF_Object *gif, const uint8_t *in, size_t inSize)
             C.lct_present     = (lflags & 0x80) ? 1 : 0;
             C.active_ct       = active_ct;
             C.active_ct_count = active_ct_count;
-            C.out             = F.indices;
+            C.out             = F->indices;
 
-            if (!process_gif_raster(R, C)) return GIFN_ERR_FORMAT;
+            if (!process_gif_raster(&R, &C)) return GIFN_ERR_FORMAT;
 
             gif->framesGCE[idx]   = currGCE;
             gif->frameLength[idx] = (size_t)w * (size_t)h; // bytes in indices buffer
@@ -569,24 +594,24 @@ static int gifn_load_core(GIF_Object *gif, const uint8_t *in, size_t inSize)
         else if (tag == 0x21)
         { // Extension
             uint8_t label;
-            if (!R.read_u8(label)) return GIFN_ERR_TRUNCATED;
+            if (!gifn_gifdata_read_u8(&R, &label)) return GIFN_ERR_TRUNCATED;
             if (label == 0xF9)
             {
                 // Graphic Control Extension
                 uint8_t block_size;
-                if (!R.read_u8(block_size)) return GIFN_ERR_TRUNCATED;
+                if (!gifn_gifdata_read_u8(&R, &block_size)) return GIFN_ERR_TRUNCATED;
                 if (block_size != 4)
                 {
-                    if (!R.seek(block_size)) return GIFN_ERR_TRUNCATED;
+                    if (!gifn_gifdata_read_u8(&R, &block_size)) return GIFN_ERR_TRUNCATED;
                 }
                 else
                 {
                     uint8_t packed;
-                    if (!R.read_u8(packed)) return GIFN_ERR_TRUNCATED;
+                    if (!gifn_gifdata_read_u8(&R, &packed)) return GIFN_ERR_TRUNCATED;
                     uint16_t delay;
-                    if (!R.read_u16le(delay)) return GIFN_ERR_TRUNCATED;
+                    if (!gifn_gifdata_read_u16le(&R, &delay)) return GIFN_ERR_TRUNCATED;
                     uint8_t tindex;
-                    if (!R.read_u8(tindex)) return GIFN_ERR_TRUNCATED;
+                    if (!gifn_gifdata_read_u8(&R, &tindex)) return GIFN_ERR_TRUNCATED;
 
                     currGCE.delayTime      = delay;
                     currGCE.transparent    = (packed & 0x01) ? 1u : 0u;
@@ -595,22 +620,22 @@ static int gifn_load_core(GIF_Object *gif, const uint8_t *in, size_t inSize)
                 }
                 // Skip block terminator
                 uint8_t term;
-                if (!R.read_u8(term)) return GIFN_ERR_TRUNCATED;
+                if (!gifn_gifdata_read_u8(&R, &term)) return GIFN_ERR_TRUNCATED;
                 while (term)
                 {
-                    if (!R.seek(term)) return GIFN_ERR_TRUNCATED;
-                    if (!R.read_u8(term)) return GIFN_ERR_TRUNCATED;
+                    if (!gifn_gifdata_seek(&R, term)) return GIFN_ERR_TRUNCATED;
+                    if (!gifn_gifdata_read_u8(&R, &term)) return GIFN_ERR_TRUNCATED;
                 }
             }
             else
             {
                 // skip arbitrary extension blocks
                 uint8_t s;
-                if (!R.read_u8(s)) return GIFN_ERR_TRUNCATED;
+                if (!gifn_gifdata_read_u8(&R, &s)) return GIFN_ERR_TRUNCATED;
                 while (s)
                 {
-                    if (!R.seek(s)) return GIFN_ERR_TRUNCATED;
-                    if (!R.read_u8(s)) return GIFN_ERR_TRUNCATED;
+                    if (!gifn_gifdata_seek(&R, s)) return GIFN_ERR_TRUNCATED;
+                    if (!gifn_gifdata_read_u8(&R, &s)) return GIFN_ERR_TRUNCATED;
                 }
             }
         }
@@ -683,25 +708,24 @@ void gifn_cleanup(GIF_Object *gif)
 // -----------------------------
 // Color table helpers
 // -----------------------------
-int gifn_color_table_as_u32(const GIF_Color *ct, const size_t size, uint32_t **out, const bool xbgr)
+uint32_t *gifn_color_table_as_u32(const GIF_Color *ct, const size_t size, const bool xbgr)
 {
-    if (!ct || !out || size == 0) return GIFN_ERR_FORMAT;
-    uint32_t *p = (uint32_t *)gifn_malloc(size);
-    if (!p) return GIFN_ERR_NOMEM;
+    if (!ct || size == 0) return NULL;
+    uint32_t *p = (uint32_t *)gifn_malloc(sizeof(uint32_t) * size);
+    if (!p) return NULL;
     for (size_t i = 0; i < size; i++)
     {
         uint8_t r = ct[i].r, g = ct[i].g, b = ct[i].b;
         p[i] = xbgr ? (0u | (b << 16) | (g << 8) | r) : (0u | (r << 16) | (g << 8) | b);
     }
-    *out = p;
-    return GIFN_OK;
+    return p;
 }
 
-int gifn_color_table_as_u8(const GIF_Color *ct, const size_t size, uint8_t **out, const bool xbgr)
+uint8_t *gifn_color_table_as_u8(const GIF_Color *ct, const size_t size, const bool xbgr)
 {
-    if (!ct || !out || size == 0) return GIFN_ERR_FORMAT;
+    if (!ct || size == 0) return NULL;
     uint8_t *p = (uint8_t *)gifn_malloc(size * 3);
-    if (!p) return GIFN_ERR_NOMEM;
+    if (!p) return NULL;
     for (size_t i = 0; i < size; i++)
     {
         if (xbgr)
@@ -717,6 +741,5 @@ int gifn_color_table_as_u8(const GIF_Color *ct, const size_t size, uint8_t **out
             p[i * 3 + 2] = ct[i].b;
         }
     }
-    *out = p;
-    return GIFN_OK;
+    return p;
 }
