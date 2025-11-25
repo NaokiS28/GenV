@@ -22,14 +22,13 @@
 
 #include "common/services/services.hpp"
 #include "common/services/io/iface_input.hpp"
+#include "psx/psx/system/pcsxhw.h"
+#include "psx/psx/system/sys.h"
 
 namespace System::PSX
 {
     Sys573System::Sys573System() : PSXSystem()
     {
-        if (clock)
-            delete clock;
-        clock = &_rtc;
     }
 
     Sys573System::~Sys573System()
@@ -38,15 +37,36 @@ namespace System::PSX
 
     int Sys573System::initCore()
     {
-        int r = PSXSystem::initCore();
+        if (pcsx_present())
+        {
+            LOG_SYS(szRedux);
+        }
+        _setupInterruptHandler();
+        psx_enableInterrupts();
+
+        // Enable PIO/573 read/writing with delay slots. These are based on Konami's values
+        // This needs to be done first else the RTC is inacessible
+        BIU_DEV0_ADDR = 0x1F000000;
+        BIU_DEV0_CTRL = 0x24173f47;
+
+        // RAM size should already be configured by the BIOS
+        // DRAM_CTRL = 0x00000B88;
+
+        _rtc.init();
+        if (clock)
+            delete clock; // Remove the softclock
+        clock = &_rtc;
 
         testSwitchLatching = false; // Test switch is push button
 
-        return r;
+        return GV_OK;
     }
 
     int Sys573System::update()
     {
+        // Tick the watchdog. System updates happen after frame has rendered.
+        tickWatchdog();
+
         // Tick each coin counter if there's data to add.
         // Gets all counter buffers as a boolean value.
         uint8_t cc = getCoinCounterBuffer();

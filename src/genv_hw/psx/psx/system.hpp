@@ -40,9 +40,6 @@ namespace System
 {
     namespace PSX
     {
-
-#define LOG_SYS(fmt, ...) LOG("coresys", fmt __VA_OPT__(, ) __VA_ARGS__)
-
         enum
         {
             PSX_SYS_OK,

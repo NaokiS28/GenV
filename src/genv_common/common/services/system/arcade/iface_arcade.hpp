@@ -61,15 +61,16 @@ namespace System
 
         // Ticks the watchdog to prevent system from rebooting
         virtual void tickWatchdog(void) {}
+
         // ⚠️ WARNING ⚠️ THIS WILL IN ALMOST ALL CASES CAUSE SYSTEMS TO FORCIBLY REBOOT!
         virtual void disableWatchdogTicking(void)
         {
             enableWatchdogTicking = false;
         }
 
-        // Reads in the NVRAM data from a physical device
+        // Reads in the NVRAM data from a physical device (if available)
         virtual int readNVRAM(uint8_t *data, int offset, int count) { return 0; }
-        // Writes the current NVRAM data to the physical device
+        // Writes the current NVRAM data to the physical device (if available)
         virtual int writeNVRAM(const uint8_t *data, int offset, int size) { return 0; }
 
         template <typename T>

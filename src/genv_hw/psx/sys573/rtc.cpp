@@ -16,6 +16,8 @@
  */
 
 #include "rtc.hpp"
+#include "common/logger/log.hpp"
+#include "common/services/system/rtc/soft_rtc.hpp"
 #include "registers573.hpp"
 #include "common/util/misc.hpp"
 #include "common/util/time.hpp"
@@ -23,11 +25,15 @@
 
 using namespace System::PSX::KSYS573;
 
-RTC::RTC()
+constexpr auto rtcNvram = "NVRAM";
+
+int RTC::init()
 {
     getClock(clock);
     SYS573_RTC_DAY |= SYS573_RTC_DAY_BATTERY_MONITOR;
     RTC_is_ok = !(SYS573_RTC_DAY & SYS573_RTC_DAY_LOW_BATTERY);
+    if (!RTC_is_ok) LOG_RTC(Time::rtcBattLowFmt);
+    return RTC_is_ok;
 }
 
 int RTC::setTime(int hour, int min, int sec, bool amPm)
@@ -35,10 +41,13 @@ int RTC::setTime(int hour, int min, int sec, bool amPm)
     if (!Time::timeValid(hour, min, sec))
         return 1;
     SYS573_RTC_CTRL |= SYS573_RTC_CTRL_WRITE;
-    SYS573_RTC_HOUR = util::dec2bcd(hour);
+    SYS573_RTC_HOUR   = util::dec2bcd(hour);
     SYS573_RTC_MINUTE = util::dec2bcd(min);
     SYS573_RTC_SECOND = util::dec2bcd(sec) & (SYS573_RTC_SECOND_TENS_BITMASK | SYS573_RTC_SECOND_UNITS_BITMASK);
     SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_WRITE);
+
+    if (!RTC_is_ok) LOG_RTC(Time::rtcSetWithBadBattFmt, Time::rtcTimeString, Time::rtcTimeString);
+
     return 0;
 }
 
@@ -48,13 +57,16 @@ int RTC::setDate(int day, int month, int year)
         return 1;
     SYS573_RTC_CTRL |= SYS573_RTC_CTRL_WRITE;
 
-    bool century = year > 1999;
+    bool century       = year > 1999;
     SYS573_RTC_WEEKDAY = (Date::getDayOfWeek(year, month, day) & (century << 4));
 
-    SYS573_RTC_YEAR = util::dec2bcd(year);
+    SYS573_RTC_YEAR  = util::dec2bcd(year);
     SYS573_RTC_MONTH = util::dec2bcd(month);
-    SYS573_RTC_DAY = (util::dec2bcd(day) & (SYS573_RTC_DAY_TENS_BITMASK | SYS573_RTC_DAY_UNITS_BITMASK));
+    SYS573_RTC_DAY   = (util::dec2bcd(day) & (SYS573_RTC_DAY_TENS_BITMASK | SYS573_RTC_DAY_UNITS_BITMASK));
     SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_WRITE);
+
+    if (!RTC_is_ok) LOG_RTC(Time::rtcSetWithBadBattFmt, Time::rtcDateString, Time::rtcDateString);
+
     return 0;
 }
 
@@ -63,27 +75,32 @@ void RTC::tick()
     SoftRTC::tick();
     if (RTC_is_ok && ticks > RTCSyncTime)
     {
-        // Sync with the physical RTC every so often
+        // Sync with the physical RTC every so often if the battery is good
+        // If not, then the RTC features will be disabled to prevent time/date corruption
         getTime(clock);
         ticks = 0;
     }
 }
 
-bool RTC::getTime(tm &time)
+int RTC::getTime(tm &time)
 {
+    if (!RTC_is_ok) return SoftRTC::getTime(time);
+
     SYS573_RTC_CTRL |= SYS573_RTC_CTRL_READ;
     time.tm_hour = util::bcd2dec(SYS573_RTC_HOUR);
-    time.tm_min = util::bcd2dec(SYS573_RTC_MINUTE);
-    time.tm_sec = util::bcd2dec(SYS573_RTC_SECOND & (SYS573_RTC_SECOND_TENS_BITMASK | SYS573_RTC_SECOND_UNITS_BITMASK));
+    time.tm_min  = util::bcd2dec(SYS573_RTC_MINUTE);
+    time.tm_sec  = util::bcd2dec(SYS573_RTC_SECOND & (SYS573_RTC_SECOND_TENS_BITMASK | SYS573_RTC_SECOND_UNITS_BITMASK));
     SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_READ);
-    return batteryStatus();
+    return 0;
 }
 
 int RTC::getDate(tm &time)
 {
+    if (!RTC_is_ok) return SoftRTC::getDate(time);
+
     SYS573_RTC_CTRL |= SYS573_RTC_CTRL_READ;
     time.tm_mday = util::bcd2dec(SYS573_RTC_DAY & (SYS573_RTC_DAY_TENS_BITMASK | SYS573_RTC_DAY_UNITS_BITMASK));
-    time.tm_mon = util::bcd2dec(SYS573_RTC_MONTH);
+    time.tm_mon  = util::bcd2dec(SYS573_RTC_MONTH);
     time.tm_year = util::bcd2dec(SYS573_RTC_YEAR);
     SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_READ);
     return 0;
@@ -119,6 +136,8 @@ int RTC::writeNVRAM(const uint8_t *data, int offset, int count)
 
     for (int c = 0; c < count; c++)
         SYS573_RTC_SRAM[offset + c] = data[c];
+
+    if (!RTC_is_ok) LOG_RTC(Time::rtcSetWithBadBattFmt, rtcNvram, rtcNvram);
 
     return count;
 };

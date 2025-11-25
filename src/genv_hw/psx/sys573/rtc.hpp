@@ -19,6 +19,7 @@
 
 #include <string.h>
 
+#include "common/services/system/rtc/iface_rtc.hpp"
 #include "registers573.hpp"
 #include "common/services/system/rtc/soft_rtc.hpp"
 #include "common/services/system/arcade/nvram.hpp"
@@ -32,24 +33,22 @@ namespace System::PSX::KSYS573
         bool RTC_is_ok = false;
 
     public:
-        RTC();
-        ~RTC() override {};
+        int init() override;
 
         void tick() override;
         int setTime(int hour, int min, int sec, bool amPm) override;
         int setDate(int day, int month, int year) override;
-        tm getTime(){ return clock; }
-        bool getTime(tm &time);
-        int getDate(tm &time);
+        tm getTime() { return clock; }
+        int getTime(tm &time) override;
+        int getDate(tm &time) override;
         int getClock(tm &time) { return (getTime(time) | getDate(time)); }
 
-        bool batteryStatus(){ return RTC_is_ok; }
+        uint8_t getBatteryState() override { return (RTC_is_ok ? Time::GV_RTC_GOOD : Time::GV_RTC_BATTERY_DEAD); }
 
-        size_t getUnixTime();
-        int getLocalTime(tm *tmObj, time_t time);
+        size_t getUnixTime() override;
+        int getLocalTime(tm *tmObj, time_t time) override;
 
         int readNVRAM(uint8_t *data, int offset, int count);
         int writeNVRAM(const uint8_t *data, int offset, int size);
-
     };
-}
+} // namespace System::PSX::KSYS573

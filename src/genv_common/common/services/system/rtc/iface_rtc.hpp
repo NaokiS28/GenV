@@ -21,15 +21,33 @@
 #include <stddef.h>
 #include <time.h>
 
+#include "common/return_codes.hpp"
 #include "common/util/time.hpp" // IWYU pragma: export
 
 namespace Time
 {
+#define LOG_RTC(fmt, ...) LOG("rtc", fmt __VA_OPT__(, ) __VA_ARGS__)
+
+    constexpr auto rtcSetWithBadBattFmt = "Warning: The %s was set whilst RTC battery is dead, %s will not persist!";
+    constexpr auto rtcBattLowFmt        = "Warning: The RTC battery is low.";
+    constexpr auto rtcDateString        = "date";
+    constexpr auto rtcTimeString        = "time";
+
+    typedef enum : uint8_t
+    {
+        GV_RTC_GOOD,
+        GV_RTC_TIME_NOT_SET,
+        GV_RTC_BATTERY_DEAD,
+        GV_RTC_UNKNOWN_ERROR
+    } RTCState;
+
     class IRTC
     {
     public:
         IRTC()          = default;
         virtual ~IRTC() = default;
+
+        virtual int init() { return GV_OK; }
 
         // Clock settings
         virtual void tick()                                        = 0;
@@ -37,7 +55,10 @@ namespace Time
         virtual int setDate(int day, int month, int year)          = 0;
         virtual int setTimezone(int offset)                        = 0;
         virtual int setDST(bool useDST)                            = 0;
-        virtual bool getTime(tm &time)                             = 0;
+        virtual int getTime(tm &time)                              = 0;
+        virtual inline int getDate(tm &time) { return getTime(time); }
+
+        virtual uint8_t getBatteryState() { return GV_RTC_GOOD; }
 
         // Get the current time
         virtual size_t getUnixTime()                     = 0;

@@ -28,7 +28,6 @@
 
 namespace System::PSX
 {
-
     namespace KSYS573
     {
         constexpr const char *szSystemName = "System 573";
@@ -47,7 +46,6 @@ namespace System::PSX
         uint8_t outputBanks = 1;
 
         KSYS573::RTC _rtc;
-
         Sys573Jamma _jamma;
 
     public:
