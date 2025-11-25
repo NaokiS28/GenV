@@ -110,12 +110,12 @@ or comment out GIFN_COMPILE_ALLOCATORS below*/
     /**
      * Convert a color table to a 32-bit packed array (caller must delete[] result).
      */
-    uint32_t *gifn_color_table_as_u32(const GIF_Color *ct, const size_t size, const bool xbgr);
+    int gifn_color_table_as_u32(const GIF_Color *ct, const size_t size, uint32_t **out, const bool xbgr);
 
     /**
      * Convert a color table to a byte RGB array (caller must delete[] result).
      */
-    uint8_t *gifn_color_table_as_u8(const GIF_Color *ct, const size_t size, const bool xbgr);
+    int gifn_color_table_as_u8(const GIF_Color *ct, const size_t size, uint8_t **out, const bool xbgr);
 
     uint8_t gifn_get_bpp(const uint8_t flags);
 
