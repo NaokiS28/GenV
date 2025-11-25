@@ -30,6 +30,6 @@ add_library(game_code STATIC
 
 target_include_directories(game_code PUBLIC
     ${CMAKE_SOURCE_DIR}/src/example
-    ${CMAKE_SOURCE_DIR}/src
-	${LIBC_INCLUDE}
+    ${CMAKE_SOURCE_DIR}/src/genv_common
+	${CMAKE_SOURCE_DIR}/src
 )

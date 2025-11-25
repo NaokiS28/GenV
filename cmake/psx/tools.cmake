@@ -53,7 +53,7 @@ function(addGenVExecutable name)
 			"${Python3_EXECUTABLE}"
 			"${PROJECT_SOURCE_DIR}/tools/psx/convertExecutable.py"
 			"$<TARGET_FILE:${name}>"
-			"${PROJECT_SOURCE_DIR}/bin/psx/${name}.psexe"
+			"${PROJECT_SOURCE_DIR}/bin/debug/psx/${name}.psexe"
 		VERBATIM
 	)
 endfunction()

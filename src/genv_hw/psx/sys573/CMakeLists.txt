@@ -3,13 +3,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 ## Konami System 573 Library
-
-# Always generate compile_commands.json when building. This allows some IDEs and
-# tools (such as clangd) to automatically configure include directories and
-# other options.
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-add_subdirectory(../core ../core)
+add_subdirectory(../psx ../psx)
 
 add_library(genv_hw_sys573 STATIC)
 
@@ -29,7 +23,7 @@ target_compile_definitions(
 )
 
 target_include_directories(
-    genv_hw_sys573 PRIVATE
+    genv_hw_sys573 PUBLIC
 	${CMAKE_SOURCE_DIR}/src/hw/psx
 	${CMAKE_SOURCE_DIR}/src/genv_common
 	${LIBC_INCLUDE}

@@ -17,11 +17,6 @@ cmake_minimum_required(VERSION 3.25)
 
 ## Lib Bare Metal CXX
 
-# Always generate compile_commands.json when building. This allows some IDEs and
-# tools (such as clangd) to automatically configure include directories and
-# other options.
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 add_library(
 	libbmcxx STATIC
 	src/bad_alloc.cc

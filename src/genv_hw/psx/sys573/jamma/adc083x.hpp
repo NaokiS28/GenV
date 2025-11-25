@@ -20,7 +20,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-// #include "psx/core/registers.hpp"
+// #include "psx/psx/registers.hpp"
 
 namespace System::PSX
 {

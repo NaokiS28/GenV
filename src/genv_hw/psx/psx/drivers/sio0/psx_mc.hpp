@@ -21,7 +21,7 @@
 
 #include "psx_sio0.hpp"
 
-#include "psx/core/psx_strings.hpp"
+#include "psx/psx/psx_strings.hpp"
 
 #include "common/logger/log.hpp"
 #include "common/objects/file.hpp"

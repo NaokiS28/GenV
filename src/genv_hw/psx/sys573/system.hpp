@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "core/system.hpp"
-#include "core/video/video.hpp"
+#include "psx/psx/system.hpp"
+#include "psx/psx/video/video.hpp"
 
 #include "registers573.hpp"
 #include "rtc.hpp"

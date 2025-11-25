@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "psx/core/registers.hpp"
+#include "psx/psx/registers.hpp"
 
 /* System 573 base hardware */
 

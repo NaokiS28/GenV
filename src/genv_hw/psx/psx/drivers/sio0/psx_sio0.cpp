@@ -22,8 +22,8 @@
 #include "psx_sio0.hpp"
 #include "common/logger/log.hpp"
 #include "common/services/services.hpp"
-#include "psx/core/registers.hpp"
-#include "psx/core/system/sys.h"
+#include "psx/psx/registers.hpp"
+#include "psx/psx/system/sys.h"
 
 namespace System::PSX
 {

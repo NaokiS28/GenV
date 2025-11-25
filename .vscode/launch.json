@@ -8,7 +8,7 @@
 			"target": "localhost:3333",
 			"remote": true,
 			"stopAtConnect": true,
-			"executable": "./bin/psx/core/genv.elf",
+			"executable": "./bin/psx/psx/genv.elf",
 			"gdbpath": "/opt/homebrew/bin/gdb",
 			"preLaunchTask": "CMake: build",
 			"windows": {

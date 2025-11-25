@@ -16,7 +16,7 @@
  */
 
 #include "psx_mc.hpp"
-#include "psx/core/file/memcard.hpp"
+#include "psx/psx/file/memcard.hpp"
 #include "psx_sio0.hpp"
 
 #define START(addr, port)                                   \

@@ -17,11 +17,6 @@ cmake_minimum_required(VERSION 3.25)
 
 ## Bare Metal
 
-# Always generate compile_commands.json when building. This allows some IDEs and
-# tools (such as clangd) to automatically configure include directories and
-# other options.
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 add_library(
 	libc STATIC
 	libc/clz.s
@@ -41,7 +36,6 @@ add_library(
 target_link_libraries(libc PUBLIC genv_terminal)
 target_include_directories(
     libc PUBLIC
-	${CMAKE_SOURCE_DIR}/lib/libc
-	${CMAKE_SOURCE_DIR}/lib/libc/libc
-	${CMAKE_SOURCE_DIR}/lib/libc/vendor
+	${CMAKE_CURRENT_SOURCE_DIR}/libc
+	${CMAKE_CURRENT_SOURCE_DIR}/vendor
 )

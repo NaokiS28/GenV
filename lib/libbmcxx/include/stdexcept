@@ -1,31 +1,50 @@
+/*
+ * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
+ * stdexcept - Created on 24-11-2025
+ * 
+ * GenV is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * GenV is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * GenV. If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #ifndef LIBBMCXX_STDEXCEPT_INCLUDED
 #define LIBBMCXX_STDEXCEPT_INCLUDED 1
 
 #include <exception>
 #include <memory>
 
-namespace std {
-
-class logic_error : public exception
+namespace std
 {
-    shared_ptr<char[]> what_ptr;
-public:
-    logic_error(const char *what_arg);
-    logic_error(const logic_error &other) noexcept = default;
-    logic_error &operator=(const logic_error &other) noexcept = default;
 
-    const char *what()
+    class logic_error : public exception
     {
-        return &what_ptr[0];
-    }
-};
+        shared_ptr<char[]> what_ptr;
 
-class out_of_range : public logic_error
-{
-public:
-    out_of_range(const char *what_arg) : logic_error(what_arg) { }
-    out_of_range &operator=(const out_of_range &other) = default;
-};
+    public:
+        logic_error(const char *what_arg);
+        logic_error(const logic_error &other) noexcept            = default;
+        logic_error &operator=(const logic_error &other) noexcept = default;
+
+        const char *what()
+        {
+            return &what_ptr[0];
+        }
+    };
+
+    class out_of_range : public logic_error
+    {
+    public:
+        out_of_range(const char *what_arg) : logic_error(what_arg) {}
+        out_of_range &operator=(const out_of_range &other) = default;
+    };
 
 } // namespace std
 

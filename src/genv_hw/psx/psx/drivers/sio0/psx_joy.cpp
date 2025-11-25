@@ -24,11 +24,11 @@
 #include "common/services/io/iface_input.hpp"
 #include "common/services/services.hpp"
 
-#include "psx/core/drivers/sio0/psx_pads.hpp"
-#include "psx/core/drivers/sio0/psx_sio0.hpp"
-#include "psx/core/psx_strings.hpp"
-#include "psx/core/registers.hpp"
-#include "psx/core/system/sys.h"
+#include "psx/psx/drivers/sio0/psx_pads.hpp"
+#include "psx/psx/drivers/sio0/psx_sio0.hpp"
+#include "psx/psx/psx_strings.hpp"
+#include "psx/psx/registers.hpp"
+#include "psx/psx/system/sys.h"
 
 #define LOG_JOY(fmt, ...) LOG("psx_joy", fmt __VA_OPT__(, ) __VA_ARGS__)
 #define START(addr, port)                                   \

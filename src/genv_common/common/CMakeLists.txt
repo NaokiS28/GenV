@@ -34,7 +34,6 @@ target_link_libraries(genv_common PUBLIC genv_services genv_util)
 target_include_directories(genv_common PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw
-	${LIBC_INCLUDE}
 )
 
 
@@ -53,7 +52,6 @@ add_library(genv_util STATIC
 target_include_directories(genv_util PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw
-	${LIBC_INCLUDE}
 )
 
 add_library(genv_services STATIC
@@ -78,8 +76,6 @@ target_link_libraries(genv_services PUBLIC genv_hw_${GENV_SUBPLATFORM} genv_logg
 target_include_directories(genv_services PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw
-	${LIBC_INCLUDE}
-
 )
 
 add_library(genv_logger STATIC
@@ -88,8 +84,6 @@ add_library(genv_logger STATIC
 target_link_libraries(genv_logger PUBLIC genv_terminal)
 target_include_directories(genv_logger PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
-	${LIBC_INCLUDE}
-
 )
 
 string(TIMESTAMP BUILD_DATE "%d-%m-%Y")

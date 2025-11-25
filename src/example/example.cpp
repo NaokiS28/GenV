@@ -18,7 +18,7 @@
 #include "common/services/services.hpp"
 #include "common/services/system/system.hpp"
 #include "common/util/time.hpp"
-#include <string.h>
+#include <stdio.h>
 #include <time.h>
 #include <genv.hpp>
 

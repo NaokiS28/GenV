@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "psx/core/psx_strings.hpp"
+#include "psx/psx/psx_strings.hpp"
 
 #include "common/services/io/iface_input.hpp"
 #include "common/util/hash.hpp"

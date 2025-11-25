@@ -22,7 +22,7 @@
 #include <string.h>
 #include "texmgr.hpp"
 #include "common/util/rect.h"
-#include "psx/core/video/gpudef.hpp" // IWYU pragma: export
+#include "psx/psx/video/gpudef.hpp" // IWYU pragma: export
 #include "common/return_codes.hpp"
 
 namespace System::PSX::GPU

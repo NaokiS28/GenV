@@ -34,8 +34,8 @@
 
 #include "../registers.hpp"
 #include "common/logger/log.hpp"
-#include "psx/core/video/psxtex.hpp"
-#include "psx/core/video/texmgr.hpp"
+#include "psx/psx/video/psxtex.hpp"
+#include "psx/psx/video/texmgr.hpp"
 
 namespace System::PSX::GPU
 {

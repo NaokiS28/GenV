@@ -26,7 +26,7 @@ System::ISystem *System::makeNewSystem()
     return system;
 }
 #else
-#include "psx/core/system.hpp"
+#include "psx/psx/system.hpp"
 System::ISystem *System::makeNewSystem()
 {
     PSX::PSXSystem *system = new PSX::PSXSystem;

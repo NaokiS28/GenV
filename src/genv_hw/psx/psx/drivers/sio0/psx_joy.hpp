@@ -25,8 +25,8 @@
 #include "common/services/io/iface_input.hpp"
 
 #include "psx_sio0.hpp"
-#include "psx/core/psx_strings.hpp"
-#include "psx/core/registers.hpp"
+#include "psx/psx/psx_strings.hpp"
+#include "psx/psx/registers.hpp"
 
 namespace System::PSX
 {
