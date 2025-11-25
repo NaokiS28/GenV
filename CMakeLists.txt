@@ -38,8 +38,8 @@ elseif(NOT DEFINED GENV_SUBPLATFORM)
     message(FATAL_ERROR "GENV_SUBPLATFORM is not set! Please use a CMake preset.")
 endif()
 
-if(CONFIG EQUAL "Debug")
-	add_definitions(ENABLE_APP_LOGGING)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	add_definitions(-DENABLE_APP_LOGGING)
 endif()
 
 message(STATUS "Building for: ${GENV_PLATFORM}/${GENV_SUBPLATFORM}")
@@ -48,8 +48,8 @@ include(cmake/${GENV_PLATFORM}/tools.cmake)
 include(cmake/util.cmake)
 
 ## Main executable
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/debug/${GENV_PLATFORM}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/release/${GENV_PLATFORM}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/debug/${GENV_PLATFORM}/${GENV_SUBPLATFORM}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/release/${GENV_PLATFORM}/${GENV_SUBPLATFORM}")
 
 include (TestBigEndian)
 TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
@@ -99,14 +99,22 @@ add_subdirectory(src/genv_common/common/objects/fonts)
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     message(STATUS "Building default GenV test app")
 
+	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(exe_folder "debug")
+		set(exe_name "${CMAKE_PROJECT_NAME}-debug")
+	else()
+		set(exe_folder "release")
+		set(exe_name "$${CMAKE_PROJECT_NAME}")
+	endif()
+
 	add_subdirectory(src/example)
 	target_link_libraries(game_code PRIVATE genv_common genv_util genv_app_core genv_services genv_logger)
 
-	addGenVExecutable(genv src/main.cpp)
-	target_link_libraries(genv PRIVATE genv_services genv_app_manager)
+	addGenVExecutable(${exe_name} src/main.cpp)
+	target_link_libraries(${exe_name} PRIVATE genv_services genv_app_manager)
 
 	target_compile_definitions(
-		genv PRIVATE
+		${exe_name} PRIVATE
 		VERSION="${PROJECT_VERSION}"
 	)
 

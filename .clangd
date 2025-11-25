@@ -5,9 +5,9 @@
 # breaking clangd's target autodetection).
 
 CompileFlags:
-  Add:    [ --target=mipsel-none-elf, -march=mips1, -std=gnu++23 ]
+  Add:    [ --target=mipsel-none-elf, -march=mips1 ]
   Remove: [ -march, -mno-llsc, -mdivide-breaks, -std ]
-  CompilationDatabase: build/psx
+  CompilationDatabase: build
 
 Diagnostics:
   UnusedIncludes: None

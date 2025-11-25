@@ -8,7 +8,7 @@
 			"target": "localhost:3333",
 			"remote": true,
 			"stopAtConnect": true,
-			"executable": "./bin/psx/psx/genv.elf",
+			"executable": "./bin/debug/psx/psx/GenV-debug.elf",
 			"gdbpath": "/opt/homebrew/bin/gdb",
 			"preLaunchTask": "CMake: build",
 			"windows": {
@@ -18,7 +18,7 @@
 			"autorun": [
 				"set substitute-path /project .",
 				"monitor reset shellhalt",
-				"load ./bin/psx/genv.elf",
+				"load ./bin/debug/psx/psx/GenV-debug.elf",
 				"tbreak main",
 				"continue",
 			],
@@ -31,7 +31,7 @@
 			"target": "localhost:3333",
 			"remote": true,
 			"stopAtConnect": true,
-			"executable": "./bin/psx/sys573/genv.elf",
+			"executable": "./bin/debug/psx/sys573/GenV-debug.elf",
 			"gdbpath": "/opt/homebrew/bin/gdb",
 			"preLaunchTask": "CMake: build",
 			"windows": {
@@ -41,7 +41,7 @@
 			"autorun": [
 				"set substitute-path /project .",
 				"monitor reset shellhalt",
-				"load ./bin/psx/genv.elf",
+				"load ./bin/debug/psx/sys573/GenV-debug.elf",
 				"tbreak main",
 				"continue",
 			],
@@ -89,6 +89,20 @@
 			"name": "GenV-PSX + PyTerm",
 			"configurations": [
 				"GenV (PSX-gdb)",
+				"PyTerm (PSX)"
+			],
+			"presentation": {
+				"hidden": false,
+				"group": "PSX",
+				"order": 1
+			},
+			"preLaunchTask": "CMake: build",
+			"stopAll": true
+		},
+		{
+			"name": "GenV-573 + PyTerm",
+			"configurations": [
+				"GenV (573-gdb)",
 				"PyTerm (PSX)"
 			],
 			"presentation": {

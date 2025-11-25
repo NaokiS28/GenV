@@ -46,6 +46,12 @@ function(addGenVExecutable name)
 	# on each compiled binary to convert it to the .psexe format expected by the
 	# PS1. By default all custom commands run from the build directory, so paths
 	# to files in the source tree must be prefixed with ${PROJECT_SOURCE_DIR}.
+	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(exe_folder "debug")
+	else()
+		set(exe_folder "release")
+	endif()
+
 	add_custom_command(
 		TARGET     ${name} POST_BUILD
 		BYPRODUCTS ${name}.psexe
@@ -53,7 +59,7 @@ function(addGenVExecutable name)
 			"${Python3_EXECUTABLE}"
 			"${PROJECT_SOURCE_DIR}/tools/psx/convertExecutable.py"
 			"$<TARGET_FILE:${name}>"
-			"${PROJECT_SOURCE_DIR}/bin/debug/psx/${name}.psexe"
+			"${PROJECT_SOURCE_DIR}/bin/${exe_folder}/psx/${GENV_SUBPLATFORM}/${exe_name}.psexe"
 		VERBATIM
 	)
 endfunction()
