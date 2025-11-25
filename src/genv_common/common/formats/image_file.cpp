@@ -181,16 +181,9 @@ namespace Textures
         }
 
         // Allocate palette buffers
-        uint32_t *palette_u32   = nullptr;
+        uint32_t *palette_u32   = gifn_color_table_as_u32(gif.header.gct, gif.header.gctSize, false);
         Video::Color *vcPalette = new Video::Color[gif.header.gctSize];
-        if (!vcPalette)
-        {
-            gifn_cleanup(&gif);
-            return nullptr;
-        }
-
-        gifn_color_table_as_u32(gif.header.gct, gif.header.gctSize, &palette_u32, false);
-        if (!palette_u32 || !gif.header.gctSize)
+        if (!vcPalette || !palette_u32 || !gif.header.gctSize)
         {
             delete[] vcPalette;
             delete tObj;
@@ -210,14 +203,14 @@ namespace Textures
                                    : (ctSize <= 16)  ? 4
                                                      : 8;
 
-        Video::IVideo::GraphicsData workBuffer = gif.frames[0].indices;
+        uint8_t *workBuffer = gif.frames[0].indices;
         if (bits < 4)
         {
             // Upconvert to 4bpp
             size_t nPx     = (numPix / 2);
             size_t padding = (16 - ((nPx / 4) % 16));
             nPx += padding * 4;
-            Video::IVideo::GraphicsData expanded = new uint8_t[nPx];
+            uint8_t *expanded = new uint8_t[nPx];
             if (!expanded)
             {
                 delete[] vcPalette;
