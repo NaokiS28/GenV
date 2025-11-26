@@ -36,9 +36,9 @@ namespace Video
     class IVideo
     {
     protected:
-        Monitor screen;
-        size_t frameCount    = 0;
-        bool useDoubleBuffer = true;
+        Monitor _screen;
+        size_t _frameCount    = 0;
+        bool _useDoubleBuffer = true;
 
         Textures::TextureObject *defaultTexture = nullptr;
 
@@ -48,7 +48,7 @@ namespace Video
 
         virtual inline size_t getFrameCount()
         {
-            return frameCount;
+            return _frameCount;
         }
 
         virtual bool init()        = 0;
@@ -56,6 +56,9 @@ namespace Video
         virtual bool beginRender() = 0;
         virtual bool endRender()   = 0;
         virtual bool shutdown()    = 0;
+
+        virtual bool waitingForVSync() = 0;
+        virtual void doWaitForVSync() {}
 
         inline virtual size_t getBufferSize(size_t length) { return length; }
 
@@ -67,12 +70,12 @@ namespace Video
 
         virtual void disableDoubleBuffer()
         {
-            useDoubleBuffer = false;
+            _useDoubleBuffer = false;
         }
 
         virtual void enableDoubleBuffer()
         {
-            useDoubleBuffer = true;
+            _useDoubleBuffer = true;
         }
 
         inline void drawRect(RectWH &rect, Color color)
@@ -103,17 +106,17 @@ namespace Video
 
         virtual void fillScreen(Color color)
         {
-            drawRect(0, 0, screen.res.width, screen.res.height, color);
+            drawRect(0, 0, _screen.res.width, _screen.res.height, color);
         }
 
-        inline uint16_t getHorizontalRes() { return screen.res.width; }
-        inline uint16_t getVerticalRes() { return screen.res.height; }
-        inline uint16_t getRefreshRate() { return screen.refreshRate; }
-        inline Ratio getAspectRatio() { return getAspectRatioParts(screen.res.aspect); }
-        inline const char *getVideoModeName() { return screen.res.name; }
-        inline const char *getMonitorName() { return screen.screenName; }
-        inline int getDPI() { return screen.dpi; }
-        virtual void getMonitorInfo(Monitor &m) const { m = screen; }
+        inline uint16_t getHorizontalRes() { return _screen.res.width; }
+        inline uint16_t getVerticalRes() { return _screen.res.height; }
+        inline uint16_t getRefreshRate() { return _screen.refreshRate; }
+        inline Ratio getAspectRatio() { return getAspectRatioParts(_screen.res.aspect); }
+        inline const char *getVideoModeName() { return _screen.res.name; }
+        inline const char *getMonitorName() { return _screen.screenName; }
+        inline int getDPI() { return _screen.dpi; }
+        virtual void getMonitorInfo(Monitor &m) const { m = _screen; }
 
         inline int setResolution(VideoResolution v, bool updateWindow = true)
         {
@@ -121,8 +124,8 @@ namespace Video
         }
         virtual int setResolution(int _width, int _height, bool updateWindow = true)
         {
-            this->screen.res.width  = _width;
-            this->screen.res.height = _height;
+            this->_screen.res.width  = _width;
+            this->_screen.res.height = _height;
             return true;
         }
 

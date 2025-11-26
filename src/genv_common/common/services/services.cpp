@@ -24,12 +24,15 @@
 #include "common/services/perfmon.hpp"
 #include "common/services/storage/storeman.hpp"
 #include "common/services/system/iface_system.hpp"
-#include "hardware.hpp"
+
+#define LOG_SVC(fmt, ...) LOG("services", fmt __VA_OPT__(, ) __VA_ARGS__)
 
 // Static member definitions
 Audio::IAudio *Services::s_audio    = nullptr;
 Video::IVideo *Services::s_video    = nullptr;
 System::ISystem *Services::s_system = nullptr;
+
+util::PointerList<AsyncService *, 10> Services::s_service;
 
 Input::InputManager *Services::s_input     = nullptr;
 Files::StorageManager *Services::s_storage = nullptr;
@@ -160,7 +163,7 @@ int Services::update()
 
 void Services::shutdown()
 {
-    LOG("services", "Shutting down services.");
+    LOG_SVC("Shutting down services.");
     destroyAudio();
     destroyVideo();
     destroySystem();
@@ -190,9 +193,9 @@ void Services::setSystem(System::ISystem *system)
     if (!system)
     {
         int error = makeErrorCode(SN_SYSTEM, SE_NULLPTR);
-        LOG("services", szChangeServiceError,
-            szServiceName(error),
-            getErrorCode(error));
+        LOG_SVC(szChangeServiceError,
+                szServiceName(error),
+                getErrorCode(error));
         return;
     }
 
@@ -210,9 +213,9 @@ void Services::setVideo(Video::IVideo *video)
     if (!video)
     {
         int error = makeErrorCode(SN_VIDEO, SE_NULLPTR);
-        LOG("services", szChangeServiceError,
-            szServiceName(error),
-            getErrorCode(error));
+        LOG_SVC(szChangeServiceError,
+                szServiceName(error),
+                getErrorCode(error));
         return;
     }
 
@@ -230,9 +233,9 @@ void Services::setAudio(Audio::IAudio *audio)
     if (!audio)
     {
         int error = makeErrorCode(SN_AUDIO, SE_NULLPTR);
-        LOG("services", szChangeServiceError,
-            szServiceName(error),
-            getErrorCode(error));
+        LOG_SVC(szChangeServiceError,
+                szServiceName(error),
+                getErrorCode(error));
         return;
     }
     if (s_audio)
@@ -269,4 +272,50 @@ void Services::destroyAudio()
     s_audio->shutdown();
     delete s_audio;
     s_audio = nullptr;
+}
+
+int Services::updateAsyncServices()
+{
+    for (auto service : s_service)
+    {
+        if (s_video->waitingForVSync()) // Only run updates whilst waiting for vsync.
+            service->func(service->arg);
+        else
+            return GV_OK;
+    }
+    return 1;
+}
+
+int Services::registerAsyncService(AsyncService &service, void *arg)
+{
+    if (service.func == nullptr)
+    {
+        LOG_SVC("Could not register async service %s: Function pointer is null.", service.name);
+        return 1;
+    }
+    auto position = s_service.append(&service);
+    if (position == -1)
+    {
+        LOG_SVC("Could not register async service %s: Unknown error occured.", service.name);
+    }
+    service.listID = position;
+    service.arg    = arg;
+    LOG_SVC("Registered %s service.", service.name);
+    return GV_OK;
+}
+
+int Services::unregisterAsyncService(AsyncService &service)
+{
+    if (service.listID == -1)
+    {
+        LOG_SVC("Could not unregister async service %s: Entry position is invalid.", service.name);
+        return 1;
+    }
+    if (s_service.remove(service.listID))
+    {
+        LOG_SVC("Could not register async service %s: Entry position not found.", service.name);
+        return 1;
+    }
+    LOG_SVC("Unregistered %s service.", service.name);
+    return GV_OK;
 }

@@ -63,9 +63,8 @@ namespace System::PSX::GPU
         int frameY = 0;
 
         void _waitForGP0Ready(void);
-        void _waitForVSync(void);
         void _waitForDMADone(void);
-        volatile bool waitingForVsync = false;
+        volatile bool _waitingForVsync = false;
 
         void _swapFrameBuffer();
         void _sendLinkedList(const void *data);
@@ -99,6 +98,9 @@ namespace System::PSX::GPU
         {
             return 0;
         }
+
+        bool waitingForVSync() override;
+        void doWaitForVSync() override;
 
         // PS1 buffers to DMA must be aligned to the chunk size and be null terminated
         inline size_t getBufferSize(size_t length) override

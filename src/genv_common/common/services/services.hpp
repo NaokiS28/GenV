@@ -18,6 +18,7 @@
 #pragma once
 
 #include "adminkey.hpp"
+#include "common/util/templates.hpp"
 #include "genv_sys.hpp"
 
 #include "video/iface_video.hpp"
@@ -36,6 +37,15 @@
 // way because of the atexit issue, as a static function to return a static instance crashes
 // on bare-metal platforms like PS1. This is the same reason why all the managers are pointers,
 // so we control the lifecycle to avoid this.
+
+typedef void (*AsyncServiceFunction)(void *arg);
+struct AsyncService
+{
+    const char *name          = nullptr;
+    AsyncServiceFunction func = nullptr;
+    void *arg                 = nullptr;
+    int listID                = -1;
+};
 
 class Services
 {
@@ -98,9 +108,13 @@ public:
         return s_storage->detachDevice(dev);
     }
     static int update();
+    static int updateAsyncServices(); // This runs until either vsync occurs or all services are finished
 
     static inline size_t gfx_size(size_t size) { return (s_video ? s_video->getBufferSize(size) : 0); }
     static inline void *gfx_alloc(size_t size) { return (s_video ? s_video->allocate(size) : nullptr); }
+
+    static int registerAsyncService(AsyncService &service, void *arg);
+    static int unregisterAsyncService(AsyncService &service);
 
 private:
     static int createManagers();
@@ -121,4 +135,5 @@ private:
     static Input::InputManager *s_input;
     static Fonts::FontManager *s_fonts;
     static Files::StorageManager *s_storage;
+    static util::PointerList<AsyncService *, 10> s_service;
 };

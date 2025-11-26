@@ -395,11 +395,11 @@ namespace util
         int append(T ptr)
         {
             if (_listLength >= _listSize && expand(1))
-                return 1;
+                return -1;
 
             _list[_listLength] = ptr;
             _listLength++;
-            return 0;
+            return _listLength;
         }
 
         int remove(size_t idx)

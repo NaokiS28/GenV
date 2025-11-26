@@ -37,52 +37,54 @@ namespace Video
         NullVideo();
         ~NullVideo() = default;
 
-        bool init();
-        bool reset();
-        bool beginRender();
-        bool endRender();
-        bool shutdown();
+        bool init() override;
+        bool reset() override;
+        bool beginRender() override;
+        bool endRender() override;
+        bool shutdown() override;
+
+        bool waitingForVSync() override { return false; }
 
         // Returns a list of video output modes that the application can set and use
-        const VideoModeList *getSupportedResolutions();
+        const VideoModeList *getSupportedResolutions() override;
 
-        void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const;
+        void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const override;
 
         // void newLayer(int x, int y, int drawWidth, int drawHeight);
 
-        void drawLine(int x1, int y1, int x2, int y2, int width, Color color);
-        void drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2);
+        void drawLine(int x1, int y1, int x2, int y2, int width, Color color) override;
+        void drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2) override;
 
-        void drawRect(int x, int y, int width, int height, Color color);
-        void drawGradientRectH(int x, int y, int w, int h, Color left, Color right);
-        void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom);
-        void drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom);
+        void drawRect(int x, int y, int width, int height, Color color) override;
+        void drawGradientRectH(int x, int y, int w, int h, Color left, Color right) override;
+        void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom) override;
+        void drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom) override;
 
-        void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m);
-        void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint);
-        void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint);
+        void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m) override;
+        void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) override;
+        void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) override;
 
-        int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT);
-        int drawText(Fonts::FontObject *Obj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)
+        int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override;
+        int drawText(Fonts::FontObject *Obj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override
         {
             return drawText(str, x, y, w, h, color, mode);
         }
 
-        int uploadTexture(Textures::TextureObject *tObj);
-        int releaseTexture(Textures::TextureObject *tObj);
+        int uploadTexture(Textures::TextureObject *tObj) override;
+        int releaseTexture(Textures::TextureObject *tObj) override;
 
-        void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h);
-        void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h);
+        void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) override;
+        void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) override;
 
         virtual int drawTextureObject(
             const Textures::TextureObject *tObj,
             int x, int y, int w, int h,
             ifloat u1, ifloat v1,
-            ifloat u2, ifloat v2);
+            ifloat u2, ifloat v2) override;
 
         virtual int drawTextureObject(
             const Textures::TextureObject *tObj,
             int x, int y,
-            Vertex v[]);
+            Vertex v[]) override;
     };
 } // namespace Video

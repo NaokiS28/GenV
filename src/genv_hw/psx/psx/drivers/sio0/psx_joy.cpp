@@ -384,4 +384,11 @@ namespace System::PSX::IO
         }
         return SIO0_OKAY;
     }
+
+    void PSX_Joypad::processPackets_()
+    {
+        if (_packetBuffer.length)
+        {
+        }
+    }
 } // namespace System::PSX::IO

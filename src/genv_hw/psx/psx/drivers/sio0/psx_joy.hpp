@@ -24,6 +24,8 @@
 
 #include "common/services/io/iface_input.hpp"
 
+#include "common/services/services.hpp"
+#include "common/util/templates.hpp"
 #include "psx_sio0.hpp"
 #include "psx/psx/psx_strings.hpp"
 #include "psx/psx/registers.hpp"
@@ -144,6 +146,15 @@ namespace System::PSX::IO
         static uint8_t driverCount;
         const SIOControlFlag _portNumber;
 
+        AsyncService _psxJoyService = {
+            "PlayStation Joypad",
+            [](void *arg)
+            {
+                auto service = reinterpret_cast<PSX_Joypad *>(arg);
+                service->processPackets_();
+            },
+            this};
+
         struct PSX_PadData
         {
             uint32_t digital         = 0;
@@ -155,10 +166,14 @@ namespace System::PSX::IO
 
         IInputDevice _padList[4];
 
+        util::RingBuffer<uint8_t, 64> _packetBuffer;
+
         int configMode_(bool state, uint8_t subport = 0);
         int setAnalog_(bool state = true, bool lock = true, uint8_t subport = 0);
         int setDualshock_(bool state = true, uint8_t subport = 0);
         int setDS2Analog_(uint32_t bitmask = 0x3FFFF, uint8_t subport = 0);
+
+        void processPackets_();
 
     public:
         inline PSX_Joypad(uint8_t port) : _portNumber((port % 2) ? SIO_CTRL_CS_PORT_1 : SIO_CTRL_CS_PORT_2)
@@ -172,6 +187,9 @@ namespace System::PSX::IO
         int init() override;
         int update() override;
         bool reset() override;
-        inline void shutdown() override { reset(); }
-    };
+        inline void shutdown() override
+        {
+            reset();
+        }
+    }; // namespace System::PSX::IO
 } // namespace System::PSX::IO

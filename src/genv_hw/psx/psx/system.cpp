@@ -200,7 +200,8 @@ namespace System::PSX
         std::atomic_signal_fence(std::memory_order_acquire);
         if (psx_acknowledgeInterrupt(IRQ_VSYNC))
         {
-            gpu->waitingForVsync = false;
+            gpu->_waitingForVsync = false;
+            gpu->_frameCount++;
         }
         else if (psx_acknowledgeInterrupt(IRQ_TIMER2))
         {

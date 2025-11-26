@@ -50,6 +50,8 @@ namespace System::PSX::GPU
         gpuListPtr = _allocatePacket(chain, cmdcount); \
     }
 
+    constexpr const size_t PSX_GPU_VSYNC_TIMEOUT = 0x000FFFFF;
+
     PSXGPU::PSXGPU() : _texmgr(PSX::GPU::VRAM_1MIB)
     {
     }
@@ -139,9 +141,9 @@ namespace System::PSX::GPU
                 result = V_RES_MODIFIED;
         }
 
-        screen.res.width   = vidMode.width;
-        screen.res.height  = vidMode.height;
-        screen.refreshRate = (mode == GP1_MODE_NTSC ? 60 : 50); // Refresh rate is constant.
+        _screen.res.width   = vidMode.width;
+        _screen.res.height  = vidMode.height;
+        _screen.refreshRate = (mode == GP1_MODE_NTSC ? 60 : 50); // Refresh rate is constant.
 
         // Set the resolution. The GPU provides a number of fixed horizontal (256,
         // 320, 368, 512, 640) and vertical (240-256, 480-512) resolutions to pick
@@ -159,8 +161,8 @@ namespace System::PSX::GPU
         bool interlace = false;
         if (verticalRes != GP1_VRES_256)
         {
-            useDoubleBuffer = false;
-            interlace       = true;
+            _useDoubleBuffer = false;
+            interlace        = true;
         }
 
         // Hand all parameters over to the GPU by sending GP1 commands.
@@ -175,7 +177,7 @@ namespace System::PSX::GPU
             GP1_COLOR_16BPP);
 
         // Marks the screen buffer areas as unavailable for textures and CLUTs
-        if (useDoubleBuffer)
+        if (_useDoubleBuffer)
         {
             h *= 2;
         }
@@ -207,7 +209,7 @@ namespace System::PSX::GPU
         _GP0RDY(3);
         _GPUC(gp0_rgb(color.r, color.g, color.b) | gp0_vramFill());
         _GPUC(gp0_xy(frameX, frameY));
-        _GPUC(gp0_xy(screen.res.width, screen.res.height));
+        _GPUC(gp0_xy(_screen.res.width, _screen.res.height));
     }
 
     void PSXGPU::clearVRAM()
@@ -218,26 +220,30 @@ namespace System::PSX::GPU
         _GPUC(gp0_xy(VRAM_WIDTH / 2, VRAM_HEIGHT));
     }
 
-    void PSXGPU::_waitForVSync(void)
+    bool PSXGPU::waitingForVSync(void)
     {
-        uint32_t timeout = 0x000FFFFF;
-        waitingForVsync  = true;
-        while (waitingForVsync)
+        static uint32_t timeout = PSX_GPU_VSYNC_TIMEOUT;
+        if (_waitingForVsync)
         {
             if (timeout)
-            {
-                if (!waitingForVsync)
-                    break;
                 timeout -= 1;
-            }
             else
             {
                 LOG("psxgpu", "WARNING: VSync interrupt timeout.");
-                timeout = 0x000FFFFF;
-                IRQ_MASK |= IRQ_GPU;
+                timeout = PSX_GPU_VSYNC_TIMEOUT;
+                IRQ_MASK |= IRQ_GPU; // Reset the interrupt mask just incase it somehow was cleared
             }
         }
-        frameCount++;
+        else if (!_waitingForVsync && timeout < PSX_GPU_VSYNC_TIMEOUT)
+        {
+            timeout = PSX_GPU_VSYNC_TIMEOUT;
+        }
+        return _waitingForVsync;
+    }
+
+    void PSXGPU::doWaitForVSync()
+    {
+        while (waitingForVSync()) {}
     }
 
     void PSXGPU::_swapFrameBuffer()
@@ -248,21 +254,21 @@ namespace System::PSX::GPU
             chain->nextPacket = chain->data;
         }
 
-        if (useDoubleBuffer)
+        if (_useDoubleBuffer)
             screenBufferPage = !screenBufferPage;
         else
             screenBufferPage = 0;
 
         frameX = 0;
-        frameY = (screenBufferPage ? screen.res.height : 0);
+        frameY = (screenBufferPage ? _screen.res.height : 0);
 
         _GP0RDY(4);
         _GPUC(gp0_texpage(0, true, false));
         _GPUC(gp0_fbOrigin(frameX, frameY));
         _GPUC(gp0_fbOffset1(frameX, frameY));
         _GPUC(gp0_fbOffset2(
-            frameX + screen.res.width - 1,
-            frameY + screen.res.height - 2));
+            frameX + _screen.res.width - 1,
+            frameY + _screen.res.height - 2));
     }
 
     uint32_t *PSXGPU::_allocatePacket(DMAChain *chain, int numCommands)
@@ -325,6 +331,11 @@ namespace System::PSX::GPU
 
     bool PSXGPU::beginRender()
     {
+        _waitForGP0Ready();
+        _waitForDMADone();
+        //_waitForVSync();
+        if (useDMA)
+            _sendLinkedList(chain->data);
         _swapFrameBuffer();
         return true;
     }
@@ -333,11 +344,8 @@ namespace System::PSX::GPU
     {
         if (useDMA)
             *(chain->nextPacket) = gp0_endTag(0);
-        _waitForGP0Ready();
-        _waitForDMADone();
-        _waitForVSync();
-        if (useDMA)
-            _sendLinkedList(chain->data);
+
+        _waitingForVsync = true;
         return true;
     }
 
