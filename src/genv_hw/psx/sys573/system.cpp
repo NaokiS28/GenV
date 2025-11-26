@@ -17,11 +17,9 @@
 
 #include "system.hpp"
 
-#include "jamma/jamma.hpp"
 #include "psx/psx/system.hpp"
 
 #include "common/services/services.hpp"
-#include "common/services/io/iface_input.hpp"
 #include "psx/psx/system/pcsxhw.h"
 #include "psx/psx/system/sys.h"
 

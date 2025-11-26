@@ -20,9 +20,9 @@
 #include "psx/psx/system.hpp"
 #include "psx/psx/video/video.hpp"
 
-#include "registers573.hpp"
+#include "psx/sys573/io/io.h"
 #include "rtc.hpp"
-#include "common/services/system/arcade/arcade.hpp"
+#include "common/services/system/arcade/iface_arcade.hpp"
 
 #include "jamma/jamma.hpp"
 
@@ -76,7 +76,7 @@ namespace System::PSX
         {
             if (enableWatchdogTicking)
             {
-                SYS573_WATCHDOG = 0;
+                sys573_watchdog_kick();
             }
         }
 

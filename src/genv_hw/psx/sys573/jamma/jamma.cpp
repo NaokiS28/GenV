@@ -19,6 +19,7 @@
 #include "common/return_codes.hpp"
 #include "common/services/io/iface_input.hpp"
 #include "common/services/services.hpp"
+#include "psx/sys573/registers573.hpp"
 
 namespace System::PSX
 {

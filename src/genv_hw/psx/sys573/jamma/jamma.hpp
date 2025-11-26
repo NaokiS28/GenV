@@ -19,13 +19,8 @@
 
 #include <stdint.h>
 
-#include "../registers573.hpp"
-
-#include "common/services/io/iface_input.hpp"
-#include "common/services/io/inputman.hpp"
-#include "common/services/system/iface_system.hpp"
-
 #include "adc083x.hpp"
+#include "common/services/io/iface_input.hpp"
 
 namespace System::PSX
 {

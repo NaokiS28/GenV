@@ -8,13 +8,18 @@ add_subdirectory(../psx ../psx)
 add_library(genv_hw_sys573 STATIC)
 
 target_sources(genv_hw_sys573 PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/system.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/rtc.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/jamma/jamma.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/jamma/adc083x.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/jvs/jvs.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/aio/aio.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/dio/dio.cpp
+    system.cpp
+	rtc.cpp
+	asic.c
+	io/io.c
+	jvs/h8.c
+	jamma/jamma.cpp
+	jamma/adc083x.cpp
+	storage/flash.c
+	#storage/ide.c
+	#jvs/jvs.cpp
+	#aio/aio.cpp
+	#dio/dio.cpp
 )
 
 target_compile_definitions(
