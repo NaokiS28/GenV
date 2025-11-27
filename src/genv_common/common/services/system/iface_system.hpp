@@ -22,14 +22,6 @@
 #include <time.h>
 
 #include "timer.hpp"
-#include "system.hpp"
-#include "common/services/adminkey.hpp"
-#include "common/services/video/iface_video.hpp"
-#include "common/services/audio/iface_audio.hpp"
-#include "common/services/storage/iface_storage.hpp"
-#include "common/services/io/iface_input.hpp"
-
-#define LOG_SYS(fmt, ...) LOG("system", fmt __VA_OPT__(, ) __VA_ARGS__)
 
 namespace System
 {
@@ -37,14 +29,8 @@ namespace System
 
     class ISystem
     {
-    protected:
-        AdminClass_Key adminKey;
-
     public:
-        ISystem() : adminKey(AdminClass_Key()) {};
-        virtual ~ISystem()              = default;
-        ISystem(ISystem &other)         = delete;
-        void operator=(const ISystem &) = delete;
+        virtual ~ISystem() = default;
 
         virtual int initCore()    = 0; // Init system core
         virtual int initVideo()   = 0;

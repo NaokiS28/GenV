@@ -23,6 +23,10 @@
 
 #include "arcade/iface_arcade.hpp"
 #include "../video/iface_video.hpp"
+#include "common/services/services.hpp"
+#include "iface_system.hpp"
+
+#define LOG_SYS(fmt, ...) LOG("system", fmt __VA_OPT__(, ) __VA_ARGS__)
 
 namespace System
 {
@@ -53,9 +57,9 @@ namespace System
 
         Once created and init'd, the driver instances should be set to the global space
         using:
-        * Services::setVideo(IVideo *gpu);
-        * Services::setAudio(IAudio *audio);
-        * Services::setInput(IInputDriver *input);
+        * getServiceManager()->setVideo(IVideo *gpu);
+        * getServiceManager()->setAudio(IAudio *audio);
+        * getServiceManager()->setInput(IInputDriver *input);
     */
 
     enum SysType : uint32_t
@@ -110,6 +114,17 @@ namespace System
     bool getTime(tm &time);
     size_t getTime();
     IArcadeSystem *GetArcadeInterface();
+
+    class BaseSystem : public ISystem
+    {
+    protected:
+        ServiceManager &services;
+        AdminClass_Key adminKey;
+
+    public:
+        virtual ~BaseSystem() = default;
+        BaseSystem() : services(*getServiceManager()), adminKey(AdminClass_Key()) {};
+    };
 
 } // namespace System
 

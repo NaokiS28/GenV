@@ -17,9 +17,9 @@
 
 #include "genv_sys.hpp"
 
+#include "common/services/services.hpp"
 #include "common/services/storage/iface_storage.hpp"
 #include "common/services/storage/storeman.hpp"
-#include "services.hpp"
 #include "system/iface_system.hpp"
 #include "common/logger/log.hpp"
 #include "terminal/terminal.h"
@@ -67,13 +67,15 @@ constexpr const char badPointerStr[]   = "%s pointer is nullptr!";
 
 void GenvSystemClass::startup()
 {
+    auto services = getServiceManager();
+
     System::ISystem *system = System::makeNewSystem();
     Audio::IAudio *audio    = new Audio::NullAudio();
     Video::IVideo *video    = new Video::NullVideo();
 
-    Services::setAudio(adminKey, audio);
-    Services::setVideo(adminKey, video);
-    Services::setSystem(adminKey, system);
+    services->setAudio(adminKey, audio);
+    services->setVideo(adminKey, video);
+    services->setSystem(adminKey, system);
 
     genv_tty_init(115200);
     GENV_LOG("GenV (" GENV_VERSION ") - Build: " GENV_BUILD);
@@ -94,9 +96,9 @@ void GenvSystemClass::startup()
     // * The video system is init'd first since if it is not, then the next step will fail
     // * The managers are init'd which uploads items like the default texture and default font
     abortIf(system, system->initCore(), "System core");
-    abortIf(system, Services::createManagers(), "Service managers");
+    abortIf(system, services->createManagers(), "Service managers");
     abortIf(system, system->initVideo(), "Video driver");
-    abortIf(system, Services::init(), "Service managers");
+    abortIf(system, services->init(), "Service managers");
 
     // Past this point, the most critical systems are running
     warnIf(system->initAudio(), "Audio driver");
@@ -107,7 +109,7 @@ void GenvSystemClass::startup()
 void GenvSystemClass::shutdown()
 {
     GENV_LOG("GenV is shutting down...");
-    Services::shutdown();
+    getServiceManager()->shutdown();
 }
 
 void GenvSystemClass::halt(int return_code)

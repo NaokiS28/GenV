@@ -25,8 +25,9 @@ GenvSystemClass genv;
 int main(int argc, char *argv[])
 {
     genv.startup();
+    ServiceManager *serviceManager = getServiceManager();
 
-    Video::IVideo *video   = Services::getVideo(); // It is assumed the System class will have init'd the I/O driver.
+    Video::IVideo *video   = serviceManager->getVideo(); // It is assumed the System class will have init'd the I/O driver.
     Apps::AppManager *apps = Apps::getAppManager();
     if (!apps)
         genv.halt();
@@ -35,7 +36,7 @@ int main(int argc, char *argv[])
     while (sm_state != System::SM_QUIT)
     {
         System::PerfMon.loopStart();
-        sm_state = Services::update(); // System, IO, Storage
+        sm_state = serviceManager->update(); // System, IO, Storage
 
         if (sm_state == System::SM_RESIZE) { apps->reload(); } // For windowed/computer platforms and the window has changed size.
 
@@ -49,8 +50,8 @@ int main(int argc, char *argv[])
             video->endRender();
         }
 
-        if (Services::updateAsyncServices()) // These are run in a lower priority to vsync. If vsync happens, the update cycle pauses
-            video->doWaitForVSync();         // If Service manager runs out of services to update, then we pause for next cycle
+        if (serviceManager->updateAsyncServices()) // These are run in a lower priority to vsync. If vsync happens, the update cycle pauses
+            video->doWaitForVSync();               // If Service manager runs out of services to update, then we pause for next cycle
     }
 
     apps->shutdown();

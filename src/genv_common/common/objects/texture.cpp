@@ -28,7 +28,7 @@ namespace Textures
 {
     TextureObject::~TextureObject()
     {
-        Services::getVideo()->releaseTexture(this);
+        getServiceManager()->getVideo()->releaseTexture(this);
         delete[] palette;
         delete[] bitmap;
     }
@@ -75,11 +75,11 @@ namespace Textures
     {
         if (data != nullptr && length != 0)
         {
-            this->bitmap = data;
+            this->bitmap       = data;
             this->bitmapLength = length;
             if (palette != nullptr && paletteLength != 0)
             {
-                this->palette = palette;
+                this->palette       = palette;
                 this->paletteLength = paletteLength;
             }
             return 0;
@@ -89,7 +89,7 @@ namespace Textures
 
     int TextureObject::uploadTexture()
     {
-        return Services::getVideo()->uploadTexture(this);
+        return getServiceManager()->getVideo()->uploadTexture(this);
     }
 
     TextureObject *createDefaultTexture()
@@ -98,23 +98,23 @@ namespace Textures
         if (!tObj)
             return nullptr;
 
-        tObj->bitmap = missingTextureImg;
-        tObj->width = missingTextureMeta.w;
-        tObj->height = missingTextureMeta.h;
-        tObj->bpp = missingTextureMeta.bpp;
+        tObj->bitmap       = missingTextureImg;
+        tObj->width        = missingTextureMeta.w;
+        tObj->height       = missingTextureMeta.h;
+        tObj->bpp          = missingTextureMeta.bpp;
         tObj->bitmapLength = missingTextureMeta.size;
         return tObj;
     }
 
     TextureObject *createTexture(util::Hash objectID)
     {
-        TextureObject *tObj = Services::getVideo()->createTexture(objectID);
+        TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
         return tObj;
     }
 
     TextureObject *createTexture(util::Hash objectID, const char *filePath)
     {
-        TextureObject *tObj = Services::getVideo()->createTexture(objectID);
+        TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
         if (tObj != nullptr)
         {
             if (tObj->loadTextureFromFile(filePath) == GV_OK)
@@ -133,7 +133,7 @@ namespace Textures
         const uint8_t *data, const size_t length,
         const Video::Color *palette, const size_t paletteLength)
     {
-        TextureObject *tObj = Services::getVideo()->createTexture(objectID);
+        TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
         if (tObj != nullptr)
         {
             if (tObj->loadTextureFromMem(data, length, palette, paletteLength) == 0)

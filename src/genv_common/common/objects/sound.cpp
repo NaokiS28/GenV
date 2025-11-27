@@ -23,23 +23,23 @@ namespace Audio
 {
     bool SoundObject::play()
     {
-        return Services::getAudio()->play(this);
+        return getServiceManager()->getAudio()->play(this);
     }
     bool SoundObject::stop()
     {
-        return Services::getAudio()->stop(this);
+        return getServiceManager()->getAudio()->stop(this);
     }
     bool SoundObject::pause()
     {
-        return Services::getAudio()->pause(this);
+        return getServiceManager()->getAudio()->pause(this);
     }
     bool SoundObject::isPlaying()
     {
-        return Services::getAudio()->isPlaying(this);
+        return getServiceManager()->getAudio()->isPlaying(this);
     }
     int SoundObject::uploadSample()
     {
-        return Services::getAudio()->uploadSample(this);
+        return getServiceManager()->getAudio()->uploadSample(this);
     }
 
     SoundObject *createSample(util::Hash objectID, const char *filePath)

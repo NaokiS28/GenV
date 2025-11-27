@@ -140,7 +140,7 @@ namespace System::PSX::GPU
 
         inline int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override
         {
-            Fonts::FontObject *fObj = Services::fontManager()->getCurrentFont();
+            Fonts::FontObject *fObj = getServiceManager()->fontManager()->getCurrentFont();
             return drawText(fObj, str, x, y, w, h, color, mode);
         }
         int drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override;

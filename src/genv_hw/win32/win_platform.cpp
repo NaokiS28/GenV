@@ -32,22 +32,22 @@ namespace System
                 break;
             case WM_SIZE:
             {
-                UINT width = LOWORD(lParam);
+                UINT width  = LOWORD(lParam);
                 UINT height = HIWORD(lParam);
-                static_cast<System::WinSystem *>(Services::getSystem())->setResolution(width, height);
+                static_cast<System::WinSystem *>(getServiceManager()->getSystem())->setResolution(width, height);
             }
             break;
             case WM_KEYDOWN:
             {
                 if (LOWORD(wParam) == VK_F11)
                 {
-                    static_cast<System::WinSystem *>(Services::getSystem())->toggleFullscreen();
+                    static_cast<System::WinSystem *>(getServiceManager()->getSystem())->toggleFullscreen();
                 }
             }
             break;
             case WM_DEVICECHANGE:
             {
-                static_cast<System::WinSystem *>(Services::getSystem())->hardwareChanged(wParam, lParam);
+                static_cast<System::WinSystem *>(getServiceManager()->getSystem())->hardwareChanged(wParam, lParam);
             }
             break;
             default:
@@ -61,5 +61,5 @@ namespace System
             System::Timer *timer = reinterpret_cast<System::Timer *>(lpParam);
             timer->tick();
         }
-    }
-}
+    } // namespace WinAPI
+} // namespace System

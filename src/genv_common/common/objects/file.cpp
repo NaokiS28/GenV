@@ -33,31 +33,31 @@ namespace Files
     {
         this->filePath = filePath;
         this->fileName = getFileNamePos(this);
-        return Services::getStorage()->openFile(filePath, lock, this);
+        return getServiceManager()->getStorage()->openFile(filePath, lock, this);
     }
     int FileObject::saveFile()
     {
-        return Services::getStorage()->writeFile(this);
+        return getServiceManager()->getStorage()->writeFile(this);
     }
     int FileObject::renameFile(const char *fileName)
     {
         if (fileName != nullptr)
         {
             this->fileName = fileName;
-            return Services::getStorage()->renameFile(fileName, this);
+            return getServiceManager()->getStorage()->renameFile(fileName, this);
         }
         return GV_ERROR(GV_SERVICE_FILESYSTEM, GV_CATEGORY_GENERIC, GV_ERR_INVALID_PARAM);
     }
     int FileObject::closeFile()
     {
-        int r = Services::getStorage()->closeFile(this);
+        int r    = getServiceManager()->getStorage()->closeFile(this);
         fileName = nullptr;
         filePath = nullptr;
         return r;
     }
     int FileObject::deleteFile()
     {
-        int r = Services::getStorage()->deleteFile(this);
+        int r    = getServiceManager()->getStorage()->deleteFile(this);
         fileName = nullptr;
         filePath = nullptr;
         return r;
@@ -78,7 +78,7 @@ namespace Files
         {
             strcpy(tempstr, path);
             char *token = strtok(tempstr, "\\");
-            char *test = token;
+            char *test  = token;
             if (token != nullptr)
             {
                 while (test != nullptr)

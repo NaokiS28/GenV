@@ -51,13 +51,13 @@ int DefaultErrorScreen::init()
     jumpOut.setValue(0);
     jumpIn.setValue(
         Video::frames(),
-        Services::getVideo()->getVerticalRes(),
+        getServiceManager()->getVideo()->getVerticalRes(),
         0,
         Video::msToFrames(toastAnimTime));
     playSound = true;
     animState = INTRO_RUN;
     // errorSound = new WaveFile(eMsgSoundFile);
-    // if (Services::getAudio()->uploadSample(errorSound) == GV_OK)
+    // if (getServiceManager()->getAudio()->uploadSample(errorSound) == GV_OK)
     //{
     // close sound file?
     //}
@@ -150,7 +150,7 @@ void DefaultErrorScreen::render()
         break;
     }
 
-    c2 = c1;
+    c2   = c1;
     c1.a = colorIntensity.getValue(Video::frames());
     Video::premultiply(c1);
 

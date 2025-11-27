@@ -15,14 +15,15 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "iface_system.hpp"
+#include "system.hpp"
+#include "arcade/arcade.hpp"
 #include "../services.hpp"
 
 namespace System
 {
     IArcadeSystem *GetArcadeInterface()
     {
-        ISystem *Genv_Sys = Services::getSystem();
+        ISystem *Genv_Sys = getServiceManager()->getSystem();
         return (Genv_Sys && Genv_Sys->getSysInfo()->type == System::SYS_Arcade)
                    ? reinterpret_cast<IArcadeSystem *>(Genv_Sys)
                    : nullptr;
@@ -30,7 +31,7 @@ namespace System
 
     size_t millis()
     {
-        ISystem *sys = Services::getSystem();
+        ISystem *sys = getServiceManager()->getSystem();
         if (sys)
             return sys->millis();
         return false;
@@ -38,7 +39,7 @@ namespace System
 
     size_t random(size_t min, size_t max)
     {
-        ISystem *sys = Services::getSystem();
+        ISystem *sys = getServiceManager()->getSystem();
         if (sys)
             return sys->random(min, max);
         return false;
@@ -46,7 +47,7 @@ namespace System
 
     bool getTime(tm &time)
     {
-        ISystem *sys = Services::getSystem();
+        ISystem *sys = getServiceManager()->getSystem();
         if (sys)
             return sys->getTime(time);
         return false;

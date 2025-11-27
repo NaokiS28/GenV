@@ -93,7 +93,7 @@ namespace System::PSX
         gpu       = new GPU::PSXGPU;
         error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
-        if (!error) Services::setVideo(adminKey, gpu);
+        if (!error) services.setVideo(adminKey, gpu);
         return error;
     }
 
@@ -111,7 +111,7 @@ namespace System::PSX
         for (auto &mc : mcDriver)
         {
             int mcError = ioTest(mc.init(), PSX_MEMORY_CARD_STR, port, PSX_INIT_STR);
-            if (!mcError) Services::registerStorageDriver(&mc);
+            if (!mcError) services.registerStorageDriver(&mc);
         }
 
 #ifndef NDEBUG
@@ -119,7 +119,7 @@ namespace System::PSX
         pcDriver    = new Storage::PSX_PCDrive();
         pcError     = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
         if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
-        if (!pcError) Services::registerStorageDriver(pcDriver);
+        if (!pcError) services.registerStorageDriver(pcDriver);
 #endif
         return 0;
     }
@@ -127,7 +127,7 @@ namespace System::PSX
     int Sys573System::initIO()
     {
         PSXSystem::initIO();
-        Services::registerInputDriver(&_jamma);
+        services.registerInputDriver(&_jamma);
 
         return 0;
     }

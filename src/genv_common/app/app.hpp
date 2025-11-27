@@ -24,8 +24,8 @@
 #include "common/util/hash.hpp"
 
 #include "common/logger/log.hpp"
-#include "common/services/system/iface_system.hpp"
-#include "common/services/system/arcade/iface_arcade.hpp"
+#include "common/services/system/system.hpp"
+#include "common/services/system/arcade/arcade.hpp"
 #include "common/services/video/video.hpp"
 #include "common/objects/sound.hpp"
 
@@ -36,7 +36,7 @@ namespace Apps
     class AppManager;
 
     // Forward declaration, in iapp_host.hpp
-    struct IAppHost;
+    class IAppHost;
 
     static constexpr const char *defaultLoadString = "Loading...";
 
@@ -141,6 +141,8 @@ namespace Apps
             this->state = state;
         }
 
+        ServiceManager &services = *getServiceManager();
+
     public:
         Application(IAppHost *host);
         Application(IAppHost *host, Video::IVideo *_gpu);
@@ -159,7 +161,7 @@ namespace Apps
 
         virtual int loadProgress(const char *&str); // State of initial loading progress in percent (str for custom loading text)
 
-        virtual int init() = 0;                                      // Initialize app
+        virtual int init()    = 0;                                   // Initialize app
         virtual void update() = 0;                                   // Update the app's logic
         virtual void render() = 0;                                   // Request app to draw it's UI
         virtual void loadApp() { setAppState(APP_STATE_INIT); }      // Call app to load next file/object (app handles any loading list)
@@ -224,14 +226,14 @@ namespace Apps
         int len = 0;
     };
 
-    constexpr const uint16_t bgFadeTime = 500;     // Time in ms for BG to fade to black level to divert user attention
-    constexpr const uint16_t toastAnimTime = 250;  // Time in ms for error screen to pop in/pop out
+    constexpr const uint16_t bgFadeTime     = 500; // Time in ms for BG to fade to black level to divert user attention
+    constexpr const uint16_t toastAnimTime  = 250; // Time in ms for error screen to pop in/pop out
     constexpr const uint16_t borderFadeTime = 500; // Time in ms for error screen border to fade between color intensity
 
-    constexpr const int MAX_EMSG_LENGTH = 200;
-    constexpr const char eMsgInfoStr[] = "INFORMATION: ";
-    constexpr const char eMsgWarningStr[] = "WARNING: ";
-    constexpr const char eMsgErrorStr[] = "ERROR: ";
+    constexpr const int MAX_EMSG_LENGTH    = 200;
+    constexpr const char eMsgInfoStr[]     = "INFORMATION: ";
+    constexpr const char eMsgWarningStr[]  = "WARNING: ";
+    constexpr const char eMsgErrorStr[]    = "ERROR: ";
     constexpr const char eMsgCriticalStr[] = "CRITICAL ERROR: ";
 
     const Strings eMsgStrList[] = {
@@ -240,8 +242,8 @@ namespace Apps
         eMsgErrorStr,
         eMsgCriticalStr};
 
-    constexpr const char eMsgOptionNone[] = "Cannot proceed\r\nPlease restart the system";
-    constexpr const char eMsgOptionTest[] = "TEST BUTTON = Test menu";
+    constexpr const char eMsgOptionNone[]    = "Cannot proceed\r\nPlease restart the system";
+    constexpr const char eMsgOptionTest[]    = "TEST BUTTON = Test menu";
     constexpr const char eMsgOptionTestSrv[] = "SERVICE BUTTON = Continue\r\nTEST BUTTON = Test menu";
 
     const Strings eMsgOptionList[] = {
@@ -251,10 +253,10 @@ namespace Apps
 
     struct ErrorScreenMessage
     {
-        ErrorMessageIcon icon = ErrorMessageIcon::EM_ICON_DEFAULT;
-        ErrorMessageStyle style = ErrorMessageStyle::EM_STYLE_DEFAULT;
+        ErrorMessageIcon icon      = ErrorMessageIcon::EM_ICON_DEFAULT;
+        ErrorMessageStyle style    = ErrorMessageStyle::EM_STYLE_DEFAULT;
         ErrorMessageOptions action = ErrorMessageOptions::EM_BUTTONS_TEST_SEVICE;
-        uint32_t errorCode = 0x0;
+        uint32_t errorCode         = 0x0;
         Strings title, message;
 
         ErrorScreenMessage() {}
@@ -262,8 +264,8 @@ namespace Apps
             const char *title,
             const char *message,
             const uint32_t errorCode,
-            ErrorMessageStyle style = ErrorMessageStyle::EM_STYLE_DEFAULT,
-            ErrorMessageIcon icon = ErrorMessageIcon::EM_ICON_DEFAULT,
+            ErrorMessageStyle style    = ErrorMessageStyle::EM_STYLE_DEFAULT,
+            ErrorMessageIcon icon      = ErrorMessageIcon::EM_ICON_DEFAULT,
             ErrorMessageOptions action = ErrorMessageOptions::EM_BUTTONS_TEST_SEVICE);
         ErrorScreenMessage(
             const char *title,
@@ -271,8 +273,8 @@ namespace Apps
             const char *message,
             int mLen,
             const uint32_t errorCode,
-            ErrorMessageStyle style = ErrorMessageStyle::EM_STYLE_DEFAULT,
-            ErrorMessageIcon icon = ErrorMessageIcon::EM_ICON_DEFAULT,
+            ErrorMessageStyle style    = ErrorMessageStyle::EM_STYLE_DEFAULT,
+            ErrorMessageIcon icon      = ErrorMessageIcon::EM_ICON_DEFAULT,
             ErrorMessageOptions action = ErrorMessageOptions::EM_BUTTONS_TEST_SEVICE);
     };
 
@@ -292,11 +294,11 @@ namespace Apps
         friend class AppManager;
 
     protected:
-        ErrorScreenMessage *msg = nullptr;
+        ErrorScreenMessage *msg        = nullptr;
         Audio::SoundObject *errorSound = nullptr;
-        bool playSound = false;
-        uint8_t playCount = 0;
-        uint8_t maxCount = 1;
+        bool playSound                 = false;
+        uint8_t playCount              = 0;
+        uint8_t maxCount               = 1;
 
     public:
         ErrorScreenApp(IAppHost *host);

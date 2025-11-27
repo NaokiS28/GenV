@@ -18,10 +18,10 @@
 #pragma once
 
 class GenvSystemClass;
-class Services;
+class ServiceManager;
 namespace System
 {
-    class ISystem;
+    class BaseSystem;
 }
 
 // Allow access to administrative functions to specific classes.
@@ -30,9 +30,9 @@ namespace System
 // by anything else.
 class AdminClass_Key
 {
-    friend class Services;
+    friend class ServiceManager;
     friend class GenvSystemClass;
-    friend class System::ISystem;
+    friend class System::BaseSystem;
 
 private:
     inline AdminClass_Key() {}

@@ -23,20 +23,9 @@
 #include "common/services/io/inputman.hpp"
 #include "common/services/perfmon.hpp"
 #include "common/services/storage/storeman.hpp"
-#include "common/services/system/iface_system.hpp"
+#include "common/services/system/system.hpp"
 
 #define LOG_SVC(fmt, ...) LOG("services", fmt __VA_OPT__(, ) __VA_ARGS__)
-
-// Static member definitions
-Audio::IAudio *Services::s_audio    = nullptr;
-Video::IVideo *Services::s_video    = nullptr;
-System::ISystem *Services::s_system = nullptr;
-
-util::PointerList<AsyncService *, 10> Services::s_service;
-
-Input::InputManager *Services::s_input     = nullptr;
-Files::StorageManager *Services::s_storage = nullptr;
-Fonts::FontManager *Services::s_fonts      = nullptr;
 
 constexpr const char szManagerNullptr[]     = "Failed to create %s.";
 constexpr const char szManagerInitError[]   = "Failed to init %s, reported error code: %i";
@@ -106,7 +95,7 @@ constexpr const char *szGetErrorString(int errorcode)
     }
 }
 
-int Services::createManagers()
+int ServiceManager::createManagers()
 {
     int error = 0;
     s_storage = new Files::StorageManager(AdminClass_Key());
@@ -132,7 +121,7 @@ int Services::createManagers()
     return error;
 }
 
-int Services::init()
+int ServiceManager::init()
 {
     int error = 0;
     if (s_storage->init() != GV_OK) error = makeErrorCode(SN_STORAGE, SE_INIT_FAILED);
@@ -141,7 +130,7 @@ int Services::init()
     return error;
 }
 
-int Services::update()
+int ServiceManager::update()
 {
     int r = System::SM_NORMAL;
     r     = s_system->update();
@@ -161,9 +150,9 @@ int Services::update()
     return r;
 }
 
-void Services::shutdown()
+void ServiceManager::shutdown()
 {
-    LOG_SVC("Shutting down services.");
+    LOG_SVC("Shutting down ServiceManager.");
     destroyAudio();
     destroyVideo();
     destroySystem();
@@ -188,7 +177,19 @@ void Services::shutdown()
     }
 }
 
-void Services::setSystem(System::ISystem *system)
+void ServiceManager::setSystem(System::ISystem (*system)(void))
+{
+}
+
+void ServiceManager::setVideo(Video::IVideo (*video)(void))
+{
+}
+
+void ServiceManager::setAudio(Audio::IAudio (*audio)(void))
+{
+}
+
+void ServiceManager::setSystem(System::ISystem *system)
 {
     if (!system)
     {
@@ -208,7 +209,7 @@ void Services::setSystem(System::ISystem *system)
     s_system = system;
 }
 
-void Services::setVideo(Video::IVideo *video)
+void ServiceManager::setVideo(Video::IVideo *video)
 {
     if (!video)
     {
@@ -228,7 +229,7 @@ void Services::setVideo(Video::IVideo *video)
     s_video = video;
 }
 
-void Services::setAudio(Audio::IAudio *audio)
+void ServiceManager::setAudio(Audio::IAudio *audio)
 {
     if (!audio)
     {
@@ -247,7 +248,7 @@ void Services::setAudio(Audio::IAudio *audio)
     s_audio = audio;
 }
 
-void Services::destroySystem()
+void ServiceManager::destroySystem()
 {
     if (!s_system)
         return;
@@ -256,7 +257,7 @@ void Services::destroySystem()
     s_system = nullptr;
 }
 
-void Services::destroyVideo()
+void ServiceManager::destroyVideo()
 {
     if (!s_video)
         return;
@@ -265,7 +266,7 @@ void Services::destroyVideo()
     s_video = nullptr;
 }
 
-void Services::destroyAudio()
+void ServiceManager::destroyAudio()
 {
     if (!s_audio)
         return;
@@ -274,7 +275,7 @@ void Services::destroyAudio()
     s_audio = nullptr;
 }
 
-int Services::updateAsyncServices()
+int ServiceManager::updateAsyncServices()
 {
     for (auto service : s_service)
     {
@@ -286,7 +287,7 @@ int Services::updateAsyncServices()
     return 1;
 }
 
-int Services::registerAsyncService(AsyncService &service, void *arg)
+int ServiceManager::registerAsyncService(AsyncService &service, void *arg)
 {
     if (service.func == nullptr)
     {
@@ -304,7 +305,7 @@ int Services::registerAsyncService(AsyncService &service, void *arg)
     return GV_OK;
 }
 
-int Services::unregisterAsyncService(AsyncService &service)
+int ServiceManager::unregisterAsyncService(AsyncService &service)
 {
     if (service.listID == -1)
     {
@@ -318,4 +319,21 @@ int Services::unregisterAsyncService(AsyncService &service)
     }
     LOG_SVC("Unregistered %s service.", service.name);
     return GV_OK;
+}
+
+// --- ServiceManager ------------------------------------------------------------
+
+static ServiceManager *serviceManager = nullptr;
+ServiceManager *getServiceManager()
+{
+    if (!serviceManager)
+    {
+        serviceManager = new ServiceManager;
+        if (!serviceManager)
+        {
+            LOG("services", "Failed to create ServiceManager.");
+            return nullptr;
+        }
+    }
+    return serviceManager;
 }

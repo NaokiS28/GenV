@@ -20,7 +20,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "system/iface_system.hpp"
+#include "system/system.hpp"
+#include "video/video.hpp"
 
 namespace System
 {
@@ -35,13 +36,13 @@ namespace System
 
     struct PerformanceGraph
     {
-        size_t systemTime = 0;
+        size_t systemTime  = 0;
         size_t storageTime = 0;
-        size_t inputTime = 0;
-        size_t appTime = 0;
-        size_t renderTime = 0;
-        size_t idleTime = 0;
-        size_t cycleTime = 0;
+        size_t inputTime   = 0;
+        size_t appTime     = 0;
+        size_t renderTime  = 0;
+        size_t idleTime    = 0;
+        size_t cycleTime   = 0;
 
         PerformanceGraphStyle style = PERFMON_GRAPH_PIE;
     };
@@ -49,14 +50,14 @@ namespace System
     class PerformanceMonitor
     {
     private:
-        size_t loopStartTime = 0;
-        size_t systemExecTime = 0;
-        size_t appExecTime = 0;
-        size_t inputUpdateTime = 0;
+        size_t loopStartTime     = 0;
+        size_t systemExecTime    = 0;
+        size_t appExecTime       = 0;
+        size_t inputUpdateTime   = 0;
         size_t storageUpdateTime = 0;
-        size_t renderTime = 0;
-        size_t cycleTime = 0;
-        size_t lastFrame = 0;
+        size_t renderTime        = 0;
+        size_t cycleTime         = 0;
+        size_t lastFrame         = 0;
 
         PerformanceGraph lastGraph;
         PerformanceGraph nextGraph;

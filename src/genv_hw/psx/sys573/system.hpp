@@ -17,12 +17,15 @@
 
 #pragma once
 
+#include "common/services/services.hpp"
+#include "common/services/system/system.hpp"
 #include "psx/psx/system.hpp"
 #include "psx/psx/video/video.hpp"
 
 #include "psx/sys573/io/io.h"
 #include "rtc.hpp"
-#include "common/services/system/arcade/iface_arcade.hpp"
+
+#include "common/services/system/arcade/arcade.hpp"
 
 #include "jamma/jamma.hpp"
 
@@ -34,7 +37,7 @@ namespace System::PSX
         constexpr const char *szMakeName   = "KONAMI";
     } // namespace KSYS573
 
-    class Sys573System : public PSXSystem, public IArcadeSystem
+    class Sys573System : public PSXSystem, public BaseArcadeSystem
     {
     private:
         SystemInfo si573 = {

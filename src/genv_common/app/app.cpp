@@ -20,11 +20,11 @@
 
 namespace Apps
 {
-    Application::Application(IAppHost *host) : gpu(Services::getVideo())
+    Application::Application(IAppHost *host) : gpu(getServiceManager()->getVideo())
     {
         m_host = host;
-        state = APP_STATE_LOAD;
-        type = APP_TYPE_NORMAL_APP;
+        state  = APP_STATE_LOAD;
+        type   = APP_TYPE_NORMAL_APP;
     }
 
     ErrorScreenMessage::ErrorScreenMessage(
@@ -35,10 +35,10 @@ namespace Apps
         ErrorMessageIcon icon,
         ErrorMessageOptions action)
     {
-        this->title = Strings(title, strnlen(title, MAX_EMSG_LENGTH));
+        this->title   = Strings(title, strnlen(title, MAX_EMSG_LENGTH));
         this->message = Strings(message, strnlen(message, MAX_EMSG_LENGTH));
-        this->style = style;
-        this->action = action;
+        this->style   = style;
+        this->action  = action;
     }
 
     ErrorScreenMessage::ErrorScreenMessage(
@@ -51,13 +51,13 @@ namespace Apps
         ErrorMessageIcon icon,
         ErrorMessageOptions action)
     {
-        this->title.str = title;
-        this->title.len = tLen;
+        this->title.str   = title;
+        this->title.len   = tLen;
         this->message.str = message;
         this->message.len = mLen;
-        this->style = style;
-        this->icon = icon;
-        this->action = action;
+        this->style       = style;
+        this->icon        = icon;
+        this->action      = action;
     }
 
     Strings::Strings()
@@ -80,7 +80,7 @@ namespace Apps
     Application::Application(IAppHost *host, Video::IVideo *_gpu) : gpu(_gpu)
     {
         m_host = host;
-        state = APP_STATE_LOAD;
+        state  = APP_STATE_LOAD;
     }
 
     int Application::loadProgress(const char *&str)
@@ -92,11 +92,11 @@ namespace Apps
     /* Application Loader Preset */
 
     LoadScreenApp::LoadScreenApp(IAppHost *host, Application *appToLoad)
-        : Application(host, Services::getVideo()),
+        : Application(host, getServiceManager()->getVideo()),
           _appToLoad(appToLoad)
     {
         m_host = host;
-        type = APP_TYPE_LOADING_SCREEN;
+        type   = APP_TYPE_LOADING_SCREEN;
     }
 
     int LoadScreenApp::init()
@@ -108,10 +108,10 @@ namespace Apps
     {
     }
 
-    ErrorScreenApp::ErrorScreenApp(IAppHost *host) : Application(host, Services::getVideo())
+    ErrorScreenApp::ErrorScreenApp(IAppHost *host) : Application(host, getServiceManager()->getVideo())
     {
         m_host = host;
-        type = APP_TYPE_ERROR_SCREEN;
+        type   = APP_TYPE_ERROR_SCREEN;
     }
 
     ErrorScreenApp::~ErrorScreenApp()
@@ -133,11 +133,11 @@ namespace Apps
 
     /* Arcade Test App Preset */
 
-    ArcadeTestApp::ArcadeTestApp(IAppHost *host) : Application(host, Services::getVideo())
+    ArcadeTestApp::ArcadeTestApp(IAppHost *host) : Application(host, getServiceManager()->getVideo())
     {
-        m_host = host;
+        m_host  = host;
         aSystem = System::GetArcadeInterface();
-        type = APP_TYPE_ARCADE_TEST_APP;
+        type    = APP_TYPE_ARCADE_TEST_APP;
     }
 
     int ArcadeTestApp::init()

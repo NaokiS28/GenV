@@ -55,6 +55,8 @@ namespace Textures
 
     Textures::TextureObject *loadPNG_memory(util::Hash objectID, const uint8_t *data, size_t length)
     {
+        ServiceManager &services = *getServiceManager();
+
         if (data == nullptr || length == 0)
             return nullptr;
 
@@ -107,8 +109,8 @@ namespace Textures
             tObj->paletteLength = pal->palettesize;
 
             // TODO: Dont do this
-            tObj->bitmapLength = Services::gfx_size(w * h);
-            uint8_t *dst       = (uint8_t *)Services::gfx_alloc(w * h);
+            tObj->bitmapLength = services.gfx_size(w * h);
+            uint8_t *dst       = (uint8_t *)services.gfx_alloc(w * h);
             memcpy(dst, bitmap, tObj->bitmapLength);
             delete[] bitmap;
             // Seriously
@@ -118,8 +120,8 @@ namespace Textures
         else
         {
             // TODO: Dont do this
-            int bitmapLen = Services::gfx_size(w * h * 2);
-            uint8_t *dst  = (uint8_t *)Services::gfx_alloc(w * h * 2);
+            int bitmapLen = services.gfx_size(w * h * 2);
+            uint8_t *dst  = (uint8_t *)services.gfx_alloc(w * h * 2);
             if (!dst)
                 return fail(4);
 

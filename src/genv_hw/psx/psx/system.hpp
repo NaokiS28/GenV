@@ -25,8 +25,8 @@
 #include "system/timer.h"
 
 #include "common/services/system/timer.hpp"
-#include "common/services/system/iface_system.hpp"
 #include "common/services/system/rtc/iface_rtc.hpp"
+#include "common/services/system/system.hpp"
 
 #include "drivers/sio0/psx_joy.hpp"
 #include "drivers/sio0/psx_mc.hpp"
@@ -83,7 +83,7 @@ namespace System
          * and GPU are the same, but the audio, input and files system change (audio is
          * expanded upon with the Digital Sound IO board)
          */
-        class PSXSystem : public ISystem
+        class PSXSystem : public BaseSystem
         {
         protected:
             Time::IRTC *clock;

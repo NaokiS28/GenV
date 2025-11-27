@@ -34,7 +34,7 @@
 // Services uses pointers to avoid issues with atexit() as not all platforms implement this.
 // Using pointers allows the services class to be entirely static. We do this so there's no
 // need for functions or classes to have to find the existing resource. We also do it this
-// way because of the atexit issue, as a static function to return a static instance crashes
+// way because of the atexit issue, as a  function to return a static instance crashes
 // on bare-metal platforms like PS1. This is the same reason why all the managers are pointers,
 // so we control the lifecycle to avoid this.
 
@@ -47,93 +47,104 @@ struct AsyncService
     int listID                = -1;
 };
 
-class Services
+class ServiceManager
 {
     friend class GenvSystemClass;
 
 public:
-    static inline Audio::IAudio *getAudio(void) { return s_audio; }
-    static inline Video::IVideo *getVideo(void) { return s_video; }
-    static inline System::ISystem *getSystem(void) { return s_system; }
-    static inline Fonts::FontManager *fontManager(void) { return s_fonts; }
-    static inline Input::InputManager *inputManager(void) { return s_input; }
+    ServiceManager() {}
+    ~ServiceManager() { shutdown(); }
 
-    static inline void setSystem(AdminClass_Key key, System::ISystem *sys) { setSystem(sys); }
-    static inline void setVideo(AdminClass_Key key, Video::IVideo *video) { setVideo(video); }
-    static inline void setAudio(AdminClass_Key key, Audio::IAudio *audio) { setAudio(audio); }
+    inline Audio::IAudio *getAudio(void) { return s_audio; }
+    inline Video::IVideo *getVideo(void) { return s_video; }
+    inline System::ISystem *getSystem(void) { return s_system; }
+    inline Fonts::FontManager *fontManager(void) { return s_fonts; }
+    inline Input::InputManager *inputManager(void) { return s_input; }
 
-    // static Input::IInputDriver *getInput(void) { return s_input; }
-    static Files::IStorage *getStorage(void) { return s_storage; }
-    static inline bool registerInputDriver(Input::IInputDriver *dev)
+    inline void setSystem(AdminClass_Key key, System::ISystem (*sys)(void)) { setSystem(sys); }
+    inline void setVideo(AdminClass_Key key, Video::IVideo (*video)(void)) { setVideo(video); }
+    inline void setAudio(AdminClass_Key key, Audio::IAudio (*audio)(void)) { setAudio(audio); }
+    inline void setSystem(AdminClass_Key key, System::ISystem *sys) { setSystem(sys); }
+    inline void setVideo(AdminClass_Key key, Video::IVideo *video) { setVideo(video); }
+    inline void setAudio(AdminClass_Key key, Audio::IAudio *audio) { setAudio(audio); }
+
+    // Input::IInputDriver *getInput(void) { return s_input; }
+    Files::IStorage *getStorage(void) { return s_storage; }
+    inline bool registerInputDriver(Input::IInputDriver *dev)
     {
         if (!s_input || !dev) return false;
         return s_input->registerDriver(dev);
     }
-    static inline bool unregisterInputDriver(Input::IInputDriver *dev)
+    inline bool unregisterInputDriver(Input::IInputDriver *dev)
     {
         if (!s_input || !dev) return false;
         return s_input->unregisterDriver(dev);
     }
 
-    static inline bool attachInputDevice(Input::IInputDevice *dev)
+    inline bool attachInputDevice(Input::IInputDevice *dev)
     {
         if (!s_input || !dev) return false;
         return s_input->attachDevice(dev);
     }
-    static inline bool dettachInputDevice(Input::IInputDevice *dev)
+    inline bool dettachInputDevice(Input::IInputDevice *dev)
     {
         if (!s_input || !dev) return false;
         return s_input->detachDevice(dev);
     }
 
-    static inline bool registerStorageDriver(Files::IStorageDriver *dev)
+    inline bool registerStorageDriver(Files::IStorageDriver *dev)
     {
         if (!s_storage || !dev) return false;
         return s_storage->registerDriver(dev);
     }
-    static inline bool unregisterStorageDriver(Files::IStorageDriver *dev)
+    inline bool unregisterStorageDriver(Files::IStorageDriver *dev)
     {
         if (!s_storage || !dev) return false;
         return s_storage->unregisterDriver(dev);
     }
 
-    static inline bool addStorageDevice(Files::IStorageDevice *dev)
+    inline bool addStorageDevice(Files::IStorageDevice *dev)
     {
         if (!s_storage || !dev) return false;
         return s_storage->attachDevice(dev);
     }
-    static inline bool removeStorageDevice(Files::IStorageDevice *dev)
+    inline bool removeStorageDevice(Files::IStorageDevice *dev)
     {
         if (!s_storage || !dev) return false;
         return s_storage->detachDevice(dev);
     }
-    static int update();
-    static int updateAsyncServices(); // This runs until either vsync occurs or all services are finished
+    int update();
+    int updateAsyncServices(); // This runs until either vsync occurs or all services are finished
 
-    static inline size_t gfx_size(size_t size) { return (s_video ? s_video->getBufferSize(size) : 0); }
-    static inline void *gfx_alloc(size_t size) { return (s_video ? s_video->allocate(size) : nullptr); }
+    inline size_t gfx_size(size_t size) { return (s_video ? s_video->getBufferSize(size) : 0); }
+    inline void *gfx_alloc(size_t size) { return (s_video ? s_video->allocate(size) : nullptr); }
 
-    static int registerAsyncService(AsyncService &service, void *arg);
-    static int unregisterAsyncService(AsyncService &service);
+    int registerAsyncService(AsyncService &service, void *arg);
+    int unregisterAsyncService(AsyncService &service);
 
 private:
-    static int createManagers();
-    static int init();
-    static void shutdown();
+    int createManagers();
+    int init();
+    void shutdown();
 
-    // Static pointers to service implementations
-    static Audio::IAudio *s_audio;
-    static Video::IVideo *s_video;
-    static System::ISystem *s_system;
-    static void setSystem(System::ISystem *sys);
-    static void setVideo(Video::IVideo *video);
-    static void setAudio(Audio::IAudio *audio);
-    static void destroySystem();
-    static void destroyVideo();
-    static void destroyAudio();
+    // pointers to service implementations
+    Audio::IAudio *s_audio;
+    Video::IVideo *s_video;
+    System::ISystem *s_system;
+    void setSystem(System::ISystem (*sys)(void));
+    void setVideo(Video::IVideo (*video)(void));
+    void setAudio(Audio::IAudio (*audio)(void));
+    void setSystem(System::ISystem *sys);
+    void setVideo(Video::IVideo *video);
+    void setAudio(Audio::IAudio *audio);
+    void destroySystem();
+    void destroyVideo();
+    void destroyAudio();
 
-    static Input::InputManager *s_input;
-    static Fonts::FontManager *s_fonts;
-    static Files::StorageManager *s_storage;
-    static util::PointerList<AsyncService *, 10> s_service;
+    Input::InputManager *s_input;
+    Fonts::FontManager *s_fonts;
+    Files::StorageManager *s_storage;
+    util::PointerList<AsyncService *, 10> s_service;
 };
+
+ServiceManager *getServiceManager();

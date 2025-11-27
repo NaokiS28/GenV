@@ -24,17 +24,17 @@ namespace Sprites
     TileObject::TileObject(util::Hash objectID)
     {
         resetTransform();
-        texture = Services::getVideo()->createTexture(objectID);
+        texture = getServiceManager()->getVideo()->createTexture(objectID);
     }
 
     TileObject::TileObject(util::Hash objectID, const char *filePath)
     {
-        texture = Services::getVideo()->createTexture(objectID, filePath);
+        texture = getServiceManager()->getVideo()->createTexture(objectID, filePath);
     }
 
     int TileObject::draw(int x, int y)
     {
-        int r = Services::getVideo()->drawTextureObject(texture, x, y, vertex);
+        int r = getServiceManager()->getVideo()->drawTextureObject(texture, x, y, vertex);
         if (meta.resetOnDraw)
         {
             meta.resetOnDraw = false;
@@ -47,7 +47,7 @@ namespace Sprites
 
     int TileObject::repeat(int x, int y, uint16_t w, uint16_t h)
     {
-        int r = 0;
+        int r   = 0;
         int tx1 = 0, ty1 = 0, tx2 = 0, ty2 = 0, tw = 0, th = 0;
         int ih2 = 0;
         _getTransformedSize(tw, th);
@@ -60,7 +60,7 @@ namespace Sprites
         {
             for (int iw = 0; iw < w; iw++)
             {
-                r = Services::getVideo()->drawTextureObject(texture, x + (tx1 * iw) + (tx2 * ih), y + (ty1 * ih2++) + (ty2 * ih), vertex);
+                r = getServiceManager()->getVideo()->drawTextureObject(texture, x + (tx1 * iw) + (tx2 * ih), y + (ty1 * ih2++) + (ty2 * ih), vertex);
             }
             ih2 = 0;
         }
@@ -136,7 +136,7 @@ namespace Sprites
 
     int TileObject::loadTextureFromFile(const char *filePath)
     {
-        int r = texture->loadTextureFromFile(filePath);
+        int r        = texture->loadTextureFromFile(filePath);
         this->meta.w = texture->width;
         this->meta.h = texture->height;
         resetTransform();
@@ -145,7 +145,7 @@ namespace Sprites
 
     int TileObject::uploadTexture()
     {
-        return Services::getVideo()->uploadTexture(texture);
+        return getServiceManager()->getVideo()->uploadTexture(texture);
     }
 
     void TileObject::fillScreen(int x, int y)
@@ -182,7 +182,7 @@ namespace Sprites
         meta.cropArea.y = y;
         meta.cropArea.w = w;
         meta.cropArea.h = h;
-        meta.cropped = true;
+        meta.cropped    = true;
 
         // Get the absolute tile coord and box
         RectWH tile = {
@@ -304,12 +304,12 @@ namespace Sprites
 
     void TileObject::resetTransform()
     {
-        vertex[0] = Vertex();                                                         // Top left
-        vertex[1] = Vertex(meta.w, 0, 0, 1, intToiFloat(meta.w, texture->width), 0);  // Top right
-        vertex[2] = Vertex(0, meta.h, 0, 1, 0, intToiFloat(meta.h, texture->height)); // Bottom left
-        vertex[3] = Vertex(meta.w, meta.h, 0, 1,
-                           intToiFloat(meta.w, texture->width), intToiFloat(meta.h, texture->height)); // Bottom right
-        meta.cropped = false;
+        vertex[0]     = Vertex();                                                         // Top left
+        vertex[1]     = Vertex(meta.w, 0, 0, 1, intToiFloat(meta.w, texture->width), 0);  // Top right
+        vertex[2]     = Vertex(0, meta.h, 0, 1, 0, intToiFloat(meta.h, texture->height)); // Bottom left
+        vertex[3]     = Vertex(meta.w, meta.h, 0, 1,
+                               intToiFloat(meta.w, texture->width), intToiFloat(meta.h, texture->height)); // Bottom right
+        meta.cropped  = false;
         meta.cropArea = RectWH();
     }
 

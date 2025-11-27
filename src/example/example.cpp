@@ -82,12 +82,12 @@ public:
         System::getTime(time);
         Time::getTimeString(time, timeStr, 20, true, true);
 
-        auto padCount = Services::inputManager()->deviceCount();
+        auto padCount = getServiceManager()->inputManager()->deviceCount();
         snprintf(padStr, 16, "Pads: %d", padCount);
         for (size_t i = 0; i < padCount; i++)
         {
             char _name[32];
-            snprintf(_name, 32, "%d: %s", i, Services::inputManager()->deviceName(i));
+            snprintf(_name, 32, "%d: %s", i, getServiceManager()->inputManager()->deviceName(i));
             strncat(padNameStr, _name, 32);
             strncat(padNameStr, "\r\n", 2);
         }
