@@ -33,7 +33,7 @@ add_library(
 	vendor/printf.c
 )
 
-target_link_libraries(libc PUBLIC genv_terminal)
+target_link_libraries(libc PUBLIC genv_terminal genv_halt_screen)
 target_include_directories(
     libc PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/libc

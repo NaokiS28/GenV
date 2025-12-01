@@ -18,8 +18,6 @@
 #pragma once
 
 #include "common/objects/font.hpp"
-#include "common/objects/object.hpp"
-#include "common/objects/texture.hpp"
 #include "common/services/adminkey.hpp"
 #include "common/util/hash.hpp"
 #include "common/util/templates.hpp"
@@ -37,13 +35,13 @@ namespace Fonts
     private:
         struct
         {
-            util::Hash id  = 0; // Hashed ID
-            uint8_t index  = 0; // Font list index
+            util::Hash id = 0;  // Hashed ID
+            uint8_t index = 0;  // Font list index
             uint16_t entry = 0; // Font blob entry index
-            uint8_t size   = 0; // The set size
+            uint8_t size = 0;   // The set size
         } _currentFont;
 
-        int _fontListLength                 = 0;
+        int _fontListLength = 0;
         FontsetObject *_fontList[MAX_FONTS] = {nullptr};
         util::PopList<util::Hash, MAX_FONTS> _uploadedFonts;
 

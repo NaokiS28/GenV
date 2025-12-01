@@ -15,18 +15,7 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-add_library(genv_font_glyph STATIC
-    font_glyph.c
+add_library(genv_halt_screen STATIC
+	halt_screen.c
 )
 
-target_include_directories(genv_font_glyph PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/
-)
-
-add_library(genv_builtin_fonts STATIC
-    spice.cpp
-)
-
-target_include_directories(genv_builtin_fonts PUBLIC
-    ${CMAKE_SOURCE_DIR}/src/genv_common
-)

@@ -30,7 +30,7 @@ add_library(genv_common STATIC
 	formats/riff.cpp
 	formats/wav.cpp
 )
-target_link_libraries(genv_common PUBLIC genv_services genv_util)
+target_link_libraries(genv_common PUBLIC genv_services genv_util genv_font_glyph)
 target_include_directories(genv_common PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw
@@ -55,6 +55,7 @@ target_include_directories(genv_util PUBLIC
 )
 
 add_library(genv_services STATIC
+	services/scheduler.cpp
 	services/genv_sys.cpp
 	services/perfmon.cpp
 	services/services.cpp
@@ -72,7 +73,7 @@ add_library(genv_services STATIC
 	services/system/arcade/nvram.cpp
 	${CMAKE_SOURCE_DIR}/src/genv_hw/hardware.cpp
 )
-target_link_libraries(genv_services PUBLIC genv_hw_${GENV_SUBPLATFORM} genv_logger genv_builtin_fonts)
+target_link_libraries(genv_services PUBLIC genv_halt_screen genv_hw_${GENV_SUBPLATFORM} genv_logger genv_builtin_fonts)
 target_include_directories(genv_services PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/genv_hw

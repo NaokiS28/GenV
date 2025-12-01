@@ -17,26 +17,27 @@
 add_library(genv_hw_psx STATIC)
 
 target_sources(genv_hw_psx PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/audio.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/system.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/file/file.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/file/memcard.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/cpu/cache.s
-	${CMAKE_CURRENT_SOURCE_DIR}/system/sys.c
-	${CMAKE_CURRENT_SOURCE_DIR}/system/sys.s
-	${CMAKE_CURRENT_SOURCE_DIR}/system/unhandledexc.c
-	${CMAKE_CURRENT_SOURCE_DIR}/system/serial.c
-	${CMAKE_CURRENT_SOURCE_DIR}/system/timer.c
-	${CMAKE_CURRENT_SOURCE_DIR}/file/pcdrv.s
-	${CMAKE_CURRENT_SOURCE_DIR}/audio/spu.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/video/video.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/video/texmgr.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/video/psxtex.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/drivers/sio0/psx_joy.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/drivers/sio0/psx_mc.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/drivers/sio0/psx_sio0.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/drivers/psx_cdrom.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/drivers/psx_pcdrv.cpp
+    audio.cpp
+    system.cpp
+	#file/file.cpp
+	file/memcard.cpp
+	cpu/cache.s
+	system/sys.c
+	system/sys.s
+	system/unhandledexc.c
+	system/serial.c
+	system/timer.c
+	file/pcdrv.s
+	audio/spu.cpp
+    video/video.cpp
+    video/texmgr.cpp
+    video/psxtex.cpp
+	video/halt/halt.c
+	drivers/sio0/psx_joy.cpp
+	drivers/sio0/psx_mc.cpp
+	drivers/sio0/psx_sio0.cpp
+	drivers/psx_cdrom.cpp
+	drivers/psx_pcdrv.cpp
 )
 
 target_compile_definitions(
@@ -51,4 +52,4 @@ target_include_directories(
 	${LIBC_INCLUDE}
 )
 
-target_link_libraries(genv_hw_psx PRIVATE genv_common genv_util genv_terminal)
+target_link_libraries(genv_hw_psx PRIVATE genv_common genv_util genv_terminal genv_halt_screen genv_font_glyph)

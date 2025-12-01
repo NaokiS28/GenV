@@ -54,9 +54,9 @@ namespace System::PSX::GPU
         TextureManager _texmgr;
 
         bool screenBufferPage = 0;
-        uint16_t dmaPtrIdx    = 0;
+        uint16_t dmaPtrIdx = 0;
         DMAChain dmaChains[2];
-        bool useDMA          = false;
+        bool useDMA = false;
         GP1VideoMode gpuMode = GP1_MODE_NTSC;
 
         int frameX = 0;
@@ -70,7 +70,7 @@ namespace System::PSX::GPU
         void _sendLinkedList(const void *data);
 
         uint32_t *gpuListPtr = nullptr;
-        DMAChain *chain      = nullptr;
+        DMAChain *chain = nullptr;
         uint32_t *_allocatePacket(DMAChain *chain, int numCommands);
 
         void _enableDMA(bool state);
@@ -81,6 +81,8 @@ namespace System::PSX::GPU
 
         void _sendVRAMData(const void *data, int length, RectWH);
         int _uploadPalette(PSXTextureObject *ptObj);
+
+        void registerHaltScreen();
 
     public:
         PSXGPU();
@@ -144,6 +146,8 @@ namespace System::PSX::GPU
             return drawText(fObj, str, x, y, w, h, color, mode);
         }
         int drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override;
+
+        int setDefaultFont(Fonts::FontObject *fObj) override;
 
         Textures::TextureObject *createTexture(util::Hash objectID) override;
         Textures::TextureObject *createTexture(util::Hash objectID, const char *filePath) override;

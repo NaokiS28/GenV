@@ -18,9 +18,7 @@
 #include "genv_sys.hpp"
 
 #include "common/services/services.hpp"
-#include "common/services/storage/iface_storage.hpp"
-#include "common/services/storage/storeman.hpp"
-#include "system/iface_system.hpp"
+#include "system/system.hpp"
 #include "common/logger/log.hpp"
 #include "terminal/terminal.h"
 
@@ -28,9 +26,8 @@
 #include "audio/nullaudio.hpp"
 
 #include "hardware.hpp"
-#include "app/appmgr.hpp"
-#include "common/util/time.hpp"
-#include "app/builtin/errorscr/errorscr.hpp"
+
+#include "halt_screen/halt_screen.h"
 
 #ifdef GENV_COMPUTER
 #include <stdexcept>
@@ -63,15 +60,15 @@
     }
 
 constexpr const char failedToInitFmt[] = "%s failed to init with error: %X";
-constexpr const char badPointerStr[]   = "%s pointer is nullptr!";
+constexpr const char badPointerStr[] = "%s pointer is nullptr!";
 
 void GenvSystemClass::startup()
 {
     auto services = getServiceManager();
 
     System::ISystem *system = System::makeNewSystem();
-    Audio::IAudio *audio    = new Audio::NullAudio();
-    Video::IVideo *video    = new Video::NullVideo();
+    Audio::IAudio *audio = new Audio::NullAudio();
+    Video::IVideo *video = new Video::NullVideo();
 
     services->setAudio(adminKey, audio);
     services->setVideo(adminKey, video);
@@ -117,6 +114,7 @@ void GenvSystemClass::halt(int return_code)
     shutdown();
 #ifndef GENV_COMPUTER
     GENV_LOG("GenV has halted.");
+    genv_halt_screen_show("GenV has halted.");
     while (1)
     {
         __asm__ volatile("");

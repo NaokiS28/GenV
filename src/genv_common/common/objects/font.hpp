@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "fonts/font_glyph.h"
 #include "common/objects/object.hpp"
 #include "texture.hpp"
 #include "common/util/hash.hpp"
@@ -43,24 +44,18 @@ namespace Fonts
     static constexpr const uint32_t GENV_BITMAP_FONTSET_MAGIC = "GVBF"_c;
     static constexpr const uint32_t GENV_BITMAP_FONT_MAGIC = "GVFO"_c;
 
-    static constexpr size_t METRICS_CODE_POINT_BITS = 21;
-    static constexpr util::UTF8CodePoint FONT_INVALID_CHAR = 0xfffd;
     using CharacterSize = uint32_t;
 
-    class Glyph
+    class Glyph : public FontGlyph
     {
     public:
-        uint32_t c; // Unicode codepoint
-        uint8_t x, y;
-        uint8_t w, h;
-
         inline util::Hash getHash(void) const
         {
-            return c & ((1 << METRICS_CODE_POINT_BITS) - 1);
+            return glyph_getHash(this);
         }
         inline uint32_t getChained(void) const
         {
-            return c >> METRICS_CODE_POINT_BITS;
+            return glyph_getChained(this);
         }
     };
 
@@ -118,6 +113,7 @@ namespace Fonts
         int printf(const char *format, ...) const;
 
         const Glyph get(util::UTF8CodePoint id) const;
+        inline const FontGlyph *getTable() { return _table; }
 
         inline bool validateHeader() const { return _header->validateMagic(); }
         inline const FontHeader *getHeader() const { return _header; }

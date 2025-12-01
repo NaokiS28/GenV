@@ -34,6 +34,8 @@
 
 #include "../registers.hpp"
 #include "common/logger/log.hpp"
+#include "halt_screen/halt_screen.h"
+#include "psx/psx/video/halt/halt.h"
 #include "psx/psx/video/psxtex.hpp"
 #include "psx/psx/video/texmgr.hpp"
 
@@ -54,14 +56,23 @@ namespace System::PSX::GPU
 
     PSXGPU::PSXGPU() : _texmgr(PSX::GPU::VRAM_1MIB)
     {
+        registerHaltScreen();
     }
 
     PSXGPU::PSXGPU(uint8_t vram_size) : _texmgr(vram_size)
     {
+        registerHaltScreen();
     }
 
     PSXGPU::~PSXGPU()
     {
+    }
+
+    void PSXGPU::registerHaltScreen()
+    {
+        GenV_HaltScreenFuncs ops;
+        ops.show = &psx_gpu_halt_screen;
+        genv_halt_screen_register(&ops);
     }
 
     void PSXGPU::_directWrite(uint32_t cmd)
@@ -141,16 +152,16 @@ namespace System::PSX::GPU
                 result = V_RES_MODIFIED;
         }
 
-        _screen.res.width   = vidMode.width;
-        _screen.res.height  = vidMode.height;
-        _screen.refreshRate = (mode == GP1_MODE_NTSC ? 60 : 50); // Refresh rate is constant.
+        _screen.res.width = vidMode.width;
+        _screen.res.height = vidMode.height;
+        _screen.refreshRate = (gpuMode == GP1_MODE_NTSC ? 60 : 50); // Refresh rate is constant.
 
         // Set the resolution. The GPU provides a number of fixed horizontal (256,
         // 320, 368, 512, 640) and vertical (240-256, 480-512) resolutions to pick
         // from, which affect how fast pixels are output and thus how "stretched"
         // the framebuffer will appear.
-        GP1HorizontalRes horizontalRes = GP1HorizontalResList[mode % 5];
-        GP1VerticalRes verticalRes     = GP1VerticalResList[((mode & 0x7F) >= 10)]; // Either 256 or 512, no inbetween
+        GP1HorizontalRes horizontalRes = GP1HorizontalResList[mode & 0x05];
+        GP1VerticalRes verticalRes = GP1VerticalResList[(vidMode.height > 240)]; // Either 256 or 512, no inbetween
 
         // Set the number of displayed rows and columns. These values are in GPU
         // clock units rather than pixels, thus they are dependent on the selected
@@ -162,7 +173,7 @@ namespace System::PSX::GPU
         if (verticalRes != GP1_VRES_256)
         {
             _useDoubleBuffer = false;
-            interlace        = true;
+            interlace = true;
         }
 
         // Hand all parameters over to the GPU by sending GP1 commands.
@@ -250,7 +261,7 @@ namespace System::PSX::GPU
     {
         if (useDMA)
         {
-            chain             = &dmaChains[screenBufferPage];
+            chain = &dmaChains[screenBufferPage];
             chain->nextPacket = chain->data;
         }
 
@@ -306,7 +317,7 @@ namespace System::PSX::GPU
         {
             for (;;)
             {
-                auto status    = GPU_GP1;
+                auto status = GPU_GP1;
                 auto drawField = (status / GP1_STAT_DRAW_FIELD_ODD) & 1;
                 auto dispField = (status / GP1_STAT_DISP_FIELD_ODD) & 1;
 
@@ -353,14 +364,14 @@ namespace System::PSX::GPU
     {
         if (state)
         {
-            useDMA  = true;
+            useDMA = true;
             _GPUCMD = &PSXGPU::_addToDMAList;
             // DMA_DPCR |= DMA_DPCR_CH_ENABLE(DMA_GPU);
             // GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_GP0_WRITE);
         }
         else
         {
-            useDMA  = false;
+            useDMA = false;
             _GPUCMD = &PSXGPU::_directWrite;
             // DMA_DPCR = (DMA_DPCR & ~DMA_DPCR_CH_ENABLE(DMA_GPU));
             // GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_NONE);
@@ -448,7 +459,7 @@ namespace System::PSX::GPU
 
     PSXGPU::GraphicsData PSXGPU::allocate(size_t length)
     {
-        size_t _l    = getBufferSize(length);
+        size_t _l = getBufferSize(length);
         uint8_t *ptr = new uint8_t[_l];
         memset(ptr, 0, _l);
         return ptr;
@@ -488,7 +499,7 @@ namespace System::PSX::GPU
             __asm__ volatile("");
 
         DMA_MADR(DMA_GPU) = (uint32_t)data;
-        DMA_BCR(DMA_GPU)  = chunkSize | (numChunks << 16);
+        DMA_BCR(DMA_GPU) = chunkSize | (numChunks << 16);
         DMA_CHCR(DMA_GPU) = 0 | DMA_CHCR_WRITE | DMA_CHCR_MODE_SLICE | DMA_CHCR_ENABLE;
     }
 
@@ -550,7 +561,7 @@ namespace System::PSX::GPU
         if (list->resLength == 0 || list->resList == nullptr || list->refreshLength == 0 || list->refreshList == nullptr)
             return V_ERROR(V_RES_LIST_INVALID);
 
-        int bestIndex      = -1;
+        int bestIndex = -1;
         uint32_t bestScore = 0xFFFFFFFF; // lower score = better fit
 
         for (uint16_t i = 0; i < list->resLength; i++)
@@ -562,8 +573,8 @@ namespace System::PSX::GPU
                 continue;
 
             // Compute how well it fits: prioritize matching exactly, then closeness
-            uint16_t dw    = reqW - res.width;
-            uint16_t dh    = reqH - res.height;
+            uint16_t dw = reqW - res.width;
+            uint16_t dh = reqH - res.height;
             uint32_t score = (uint32_t)dw * dw + (uint32_t)dh * dh;
 
             // Prefer exact match if found
@@ -588,24 +599,24 @@ namespace System::PSX::GPU
             for (uint16_t i = 0; i < list->resLength; i++)
             {
                 const VideoResolution &res = list->resList[i];
-                uint32_t area              = (uint32_t)res.width * res.height;
+                uint32_t area = (uint32_t)res.width * res.height;
                 if (area > largestArea)
                 {
-                    bestIndex   = i;
+                    bestIndex = i;
                     largestArea = area;
                 }
             }
         }
 
         // Handle refresh rate similarly: pick the closest below or equal, else lowest available
-        int bestRefreshIndex     = -1;
+        int bestRefreshIndex = -1;
         uint16_t bestRefreshDiff = 0xFFFF;
         for (uint16_t i = 0; i < list->refreshLength; i++)
         {
             uint16_t diff = (reqR >= list->refreshList[i]) ? (reqR - list->refreshList[i]) : 0xFFFF;
             if (diff < bestRefreshDiff)
             {
-                bestRefreshDiff  = diff;
+                bestRefreshDiff = diff;
                 bestRefreshIndex = i;
             }
         }
@@ -770,11 +781,11 @@ namespace System::PSX::GPU
         auto *tObj = fObj->getTexture();
         if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
         PSXTextureObject *ptObj = reinterpret_cast<PSXTextureObject *>(tObj);
-        auto &fHeader           = *fObj->getHeader();
+        auto &fHeader = *fObj->getHeader();
 
         bool clutModified = false;
-        uint16_t c        = color.toBGR555();
-        size_t temp       = 0;
+        uint16_t c = color.toBGR555();
+        size_t temp = 0;
 
         uint16_t backupClut[2] = {
             ptObj->clutX, ptObj->clutY};
@@ -819,8 +830,8 @@ namespace System::PSX::GPU
                         fcTable->add(_cx, _cy, c);
 
                         uint16_t clut[MAX_COLORS_4BPP] = {0};
-                        clut[fHeader.foregroundIndex]  = c;
-                        clut[fHeader.shadowIndex]      = (Fonts::font_shadow.toBGR555() | (1 << 15));
+                        clut[fHeader.foregroundIndex] = c;
+                        clut[fHeader.shadowIndex] = (Fonts::font_shadow.toBGR555() | (1 << 15));
                         _sendVRAMData(&clut, sizeof(uint16_t) * MAX_COLORS_4BPP, {_cx, _cy, MAX_COLORS_4BPP, 1});
                         _waitForDMADone();
 
@@ -871,6 +882,27 @@ namespace System::PSX::GPU
         }
 
         return GV_OK;
+    }
+
+    int PSXGPU::setDefaultFont(Fonts::FontObject *fObj)
+    {
+        if (!fObj) return GV_ERR_INVALID_PARAM;
+        auto *tObj = fObj->getTexture();
+        if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
+        const PSXTextureObject *ptObj = reinterpret_cast<const PSXTextureObject *>(tObj);
+
+        static HaltScreenFont failFont = HaltScreenFont(
+            {ptObj->tpage.x, ptObj->tpage.y, ptObj->tpage.offsetX, ptObj->tpage.offsetY},
+            {ptObj->vramX, ptObj->vramY},
+            {ptObj->clutX, ptObj->clutY},
+            fObj->getHeader()->tabWidth,
+            fObj->getHeader()->spaceWidth,
+            fObj->getHeader()->fontSize,
+            fObj->getTable(),
+            fObj->getHeader()->numBuckets);
+
+        psx_gpu_register_font(&failFont);
+        return 0;
     }
 
     void PSXGPU::drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h)

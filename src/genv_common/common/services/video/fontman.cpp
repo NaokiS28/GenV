@@ -20,15 +20,14 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "common/formats/image_file.hpp"
 #include "common/logger/error_strings.hpp"
 #include "common/objects/font.hpp"
 #include "common/objects/fonts/spice.hpp"
-#include "common/objects/object.hpp"
 #include "common/objects/texture.hpp"
 #include "common/return_codes.hpp"
 #include "common/services/adminkey.hpp"
 #include "common/logger/log.hpp"
+#include "common/services/services.hpp"
 #include "common/util/hash.hpp"
 
 #define LOG_FONT(fmt, ...) LOG("fontmgr", fmt __VA_OPT__(, ) __VA_ARGS__)
@@ -43,7 +42,9 @@ namespace Fonts
     {
         LOG_FONT("Init FontManager.");
         if (loadFontsetFromMemory(spice_data, spice_len) == GV_OK) // TODO: Configure by header rather than hardcoded here
+        {
             setFont(spice_hash, 12);
+        }
         return GV_OK;
     }
 
@@ -144,7 +145,7 @@ namespace Fonts
                 return &_fontList[i]->fontAt(_currentFont.size);
         }
 
-        LOG_FONT(LogErrorStrings::GenvRemoveItemFailed,
+        LOG_FONT(LogErrorStrings::GenvLoadItemFailed,
                  ObjectStrings::FontObject,
                  LogReasonStrings::GenvItemNotFound);
         return nullptr;
@@ -194,6 +195,9 @@ namespace Fonts
                         // TODO: Unload texture from VRAM. It became too unpopular to be notable.
                     }
                     fObj.setParam(Textures::TextureUploaded, true);
+
+                    // TODO: TESTING ONLY
+                    getServiceManager()->getVideo()->setDefaultFont(&fObj);
                 }
                 else
                 {

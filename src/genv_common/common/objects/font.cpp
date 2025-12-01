@@ -21,8 +21,6 @@
 
 #include "common/formats/image_file.hpp"
 #include "common/logger/error_strings.hpp"
-#include "common/objects/data.hpp"
-#include "common/objects/file.hpp"
 #include "common/objects/object.hpp"
 #include "common/objects/texture.hpp"
 #include "common/return_codes.hpp"
@@ -142,7 +140,7 @@ namespace Fonts
         const uint8_t *offsetsBytes = base + pos;
         pos += offsetsSize;
 
-        FontObject **fontBlobs = new FontObject *[fsHeader->fontCount] {};
+        FontObject **fontBlobs = new FontObject *[fsHeader->fontCount]{};
         if (!fontBlobs) return nullptr;
 
         // Clear the allocated objects if any failures occur

@@ -39,7 +39,7 @@ namespace Logs
     char *LogBuffer::allocateLine(void)
     {
         size_t tail = _tail;
-        _tail       = (tail + 1) % MAX_LOG_LINES;
+        _tail = (tail + 1) % MAX_LOG_LINES;
 
         return _lines[tail];
     }
@@ -91,7 +91,7 @@ namespace Logs
         char t_str[20];
         memset(t_str, 0, sizeof(t_str));
 
-        System::getTime(time);
+        getServiceManager()->getSystem()->getTime(time);
         Time::getTimeString(time, t_str, sizeof(t_str));
         va_list ap;
 

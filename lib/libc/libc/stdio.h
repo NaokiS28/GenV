@@ -17,19 +17,20 @@
 #pragma once
 
 // Include printf() from the third-party library.
-#include "../vendor/printf.h"
+#include "../vendor/printf.h" // IWYU pragma: export
 
 #define puts _puts
 #define putchar _putchar
 #define getchar _getchar
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-int _puts(const char *str);
-void _putchar(char c);
-int _getchar();
+    int _puts(const char *str);
+    void _putchar(char c);
+    int _getchar();
 
 #ifdef __cplusplus
 }
