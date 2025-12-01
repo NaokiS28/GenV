@@ -1,5 +1,54 @@
 # Dev Blog for NaokiS
 
+### 1th December 2025
+
+It's storming, my windows are leaking and it turns out I've also been causing GVSS to be squished width wise. Take a look at the image here:
+
+![](assets/20251201_204806_image.png)
+
+You'll noticed that the image looks... off. A bit egg shaped. I have been using PCSX-Redux to debug the code and it always seemed to make things look strange on the output so I didn't think much of it. But it also looked off-centre too...
+
+![](assets/20251201_204945_image.png)
+
+This is the GPU driver initialising, which for debug reasons I show as being a blue screen, but yet there is a black bar to the right of it. Again, I thought it was just an artifact so I continued on and at some point ran it on the PS1 officially:
+
+![](assets/20251201_205224_IMG_0538.jpg)
+
+Ignore the messy desk, please! I was actually quite happy to see the logo rendering on the real hardware, really felt like progress! It even looks rounder still!... But.. I could tell, something wasn't right still. Why is the fill screen command not drawing a full screen's size? Well, to cut a long story short:
+
+```diff
+int PSXGPU::setResolution(int w, int h, bool updateWindow)
+    {
+         ...
+-        GP1HorizontalRes horizontalRes = GP1HorizontalResList[mode % 5];
+-        GP1VerticalRes verticalRes     = GP1VerticalResList[((mode & 0x7F) >= 10)]; 
++        GP1HorizontalRes horizontalRes = GP1HorizontalResList[mode & 0x05];
++        GP1VerticalRes verticalRes = GP1VerticalResList[(vidMode.height > 240)];
+         ...
+}
+```
+
+....yeah. It looked squished because of how I was setting the horizontal resolution. I'm not sure what I was thinking with the modulo operator when I wrote it. I guess my thinking was along the lines of making sure it was only in the range of 0-5... But completely forgetting that doing a modulo doesn't clamp the variable but has the result being the remainder after the operation. So yeah, thats a small but annoying bug. But now the logo is not only centred but also not egg shaped, which is nice:
+
+![](assets/20251201_210314_image.png)
+
+It still looks a bit funky, but this time I think it really *is* PCSX-Redux causing it. Oh, and the fill screen works properly too. And the funny thing is that the only reason I looked into it was because of the next minor change I made which *did* fill the screen correctly. I now present to you, a Blue Screen of Death (BSoD) for GenV on PS1:
+
+![](assets/20251201_210823_image.png)
+
+This is really quite simple and using inherited code from spicyjpeg's 573-in-1 tool for the exception handler to get the stack trace. But the reason I made it wasn't just for the laughs; whenever I would get an `assert` or `halt` or even an `exception`, I would often stare at Redux with a blank stare and wonder why the code isn't getting to my breakpoints. I do ofcourse use SIO1/UART debugging, but well, the way it's set up is that I have a python script to connect to Redux's SIO1 server, and sometimes it doesn't get focus. And yes, I could just give it focus but I often forget to. Besides, nothing says "error" like a BSoD. And now I won't have to guess why it hung. There's a similar one for assertions and any time the code will expect to hang.
+
+It was also pretty easy to implement the hooks for it. The "halt screen" is set up like [genv_terminal](../../src/genv_common/terminal/terminal.h) is, where there is a struct of function pointers that are called when an event happens, but in this case, it just passes a string to the halt screen function to draw and it is down to the system/gpu to draw it. Of course, when you encounter this severe of an error, you have to assume that nothing at all works. So [the PSX halt screen](../../src/genv_hw/psx/psx/video/halt/halt.c) completely reinit's the whole GPU and will draw it out in pure C code. The only shared thing (that is a TODO to change) is the font which is used. Really speaking there needs to be a hard coded font that is garunteed to be there and work but for a quick and dirty implementation, this'll work for now.
+
+(If you're curious, the halt screen above is a divide by 0 error)
+
+Any way, other than that I have been working on a lot more behind the systems, mainly the inputs and trying to animate the GVSS logo screen, but so far it's only at this point:
+
+![](assets/20251201_212950_011225.gif)
+
+
+Needs work. Obvs. But working on it 😜
+
 ### 4th November 2025
 
 Well, a day later and I managed to get some other parts working enough to show the generic error message screen. Why is this notable? Well it was written and coded for Windows! Well... ok. It was coded on Windows and when being coded GenV, or DXUX as it was called then, ran only on Windows. So this is technically the first "Application" that ran almost perfectly the first time I tried to run it, outside of back-end bugs. The only things that needed to be changed were some of the font alignment values since they were hard coded to look good at 800x600 with a different font. This is to say, it would have translated pretty well if I used the font sizing and spacing back then, but now I have to API to do so!
@@ -27,7 +76,6 @@ Anyway a small update but something more betterer than yesterdays images.
 Naoki
 
 ---
-
 
 ### 3rd November 2025
 
