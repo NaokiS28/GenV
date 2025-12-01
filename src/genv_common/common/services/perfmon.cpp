@@ -45,7 +45,8 @@ namespace System
             nextGraph.renderTime = renderTime;
             nextGraph.storageTime = storageUpdateTime;
             nextGraph.inputTime = inputUpdateTime;
-            nextGraph.idleTime = cycleTime - (systemExecTime + appExecTime + renderTime + storageUpdateTime + inputUpdateTime);
+            nextGraph.coroutineTime = coroutineUpdateTime;
+            nextGraph.idleTime = cycleTime - (systemExecTime + appExecTime + renderTime + storageUpdateTime + inputUpdateTime + coroutineUpdateTime);
             nextGraph.cycleTime = cycleTime;
             break;
         default:
@@ -56,7 +57,8 @@ namespace System
             nextGraph.renderTime = util::toPercent(renderTime, cycleTime);
             nextGraph.storageTime = util::toPercent(storageUpdateTime, cycleTime);
             nextGraph.inputTime = util::toPercent(inputUpdateTime, cycleTime);
-            nextGraph.idleTime = util::toPercent(cycleTime - (systemExecTime + appExecTime + renderTime + storageUpdateTime + inputUpdateTime), cycleTime);
+            nextGraph.coroutineTime = util::toPercent(coroutineUpdateTime, cycleTime);
+            nextGraph.idleTime = util::toPercent(cycleTime - (systemExecTime + appExecTime + renderTime + storageUpdateTime + inputUpdateTime + coroutineUpdateTime), cycleTime);
             nextGraph.cycleTime = cycleTime;
             break;
         }

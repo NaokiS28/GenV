@@ -23,8 +23,14 @@
 
 namespace System
 {
-    IWinVideo *video(){ return static_cast<IWinVideo *>(Services::getVideo()); }
-    IAudio *audio(){ return Services::getAudio(); }
+    IWinVideo *video()
+    {
+        return static_cast<IWinVideo *>(getServiceManager()->getVideo());
+    }
+    IAudio *audio()
+    {
+        return getServiceManager()->getAudio();
+    }
 
     bool WinSystem::init()
     {
@@ -73,7 +79,7 @@ namespace System
         if (!video())
             return false;
         sm_state = System::SM_RESIZE;
-        return         video()->setFullscreen(mode);
+        return video()->setFullscreen(mode);
     }
 
     bool WinSystem::toggleFullscreen()
@@ -94,7 +100,7 @@ namespace System
         if (!vDriver || !vDriver->init())
             return -2;
 
-        Services::setVideo(adminKey, vDriver);
+        getServiceManager()->setVideo(adminKey, vDriver);
         video()->setResolution(gpuWnd->size.w, gpuWnd->size.h);
         return 0;
     }
@@ -108,17 +114,17 @@ namespace System
         if (!aDriver || !aDriver->init())
             return -2;
 
-        Services::setVideo(adminKey, aDriver);
+        getServiceManager()->setVideo(adminKey, aDriver);
         return 0;
     }
 
     int WinSystem::initFiles()
     {
         storage.setWindow(gpuWnd);
-        if(!storage.init())
+        if (!storage.init())
             return -2;
 
-        Services::setVideo(adminKey, &storage);
+        getServiceManager()->setVideo(adminKey, &storage);
         return 0;
     }
 
@@ -164,18 +170,18 @@ namespace System
         WNDCLASSEX wcex;
         ZeroMemory(&wcex, sizeof(WNDCLASSEX));
 
-        wcex.cbSize = sizeof(WNDCLASSEX);
-        wcex.style = CS_HREDRAW | CS_VREDRAW;
-        wcex.lpfnWndProc = WinAPI::WndProc;
-        wcex.cbClsExtra = 0;
-        wcex.cbWndExtra = 0;
-        wcex.hInstance = hInst;
-        wcex.hIcon = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_GenVICON));
-        wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wcex.cbSize        = sizeof(WNDCLASSEX);
+        wcex.style         = CS_HREDRAW | CS_VREDRAW;
+        wcex.lpfnWndProc   = WinAPI::WndProc;
+        wcex.cbClsExtra    = 0;
+        wcex.cbWndExtra    = 0;
+        wcex.hInstance     = hInst;
+        wcex.hIcon         = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_GenVICON));
+        wcex.hCursor       = LoadCursor(NULL, IDC_ARROW);
         wcex.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
-        wcex.lpszMenuName = NULL;
+        wcex.lpszMenuName  = NULL;
         wcex.lpszClassName = szWindowClass;
-        wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_GenVICON));
+        wcex.hIconSm       = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_GenVICON));
 
         if (!RegisterClassEx(&wcex))
         {
@@ -188,4 +194,4 @@ namespace System
         }
         return true;
     }
-}
+} // namespace System

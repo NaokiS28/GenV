@@ -41,10 +41,10 @@
 typedef void (*AsyncServiceFunction)(void *arg);
 struct AsyncService
 {
-    const char *name          = nullptr;
+    const char *name = nullptr;
     AsyncServiceFunction func = nullptr;
-    void *arg                 = nullptr;
-    int listID                = -1;
+    void *arg = nullptr;
+    int listID = -1;
 };
 
 class ServiceManager
@@ -128,9 +128,7 @@ private:
     void shutdown();
 
     // pointers to service implementations
-    Audio::IAudio *s_audio;
-    Video::IVideo *s_video;
-    System::ISystem *s_system;
+
     void setSystem(System::ISystem (*sys)(void));
     void setVideo(Video::IVideo (*video)(void));
     void setAudio(Audio::IAudio (*audio)(void));
@@ -141,9 +139,12 @@ private:
     void destroyVideo();
     void destroyAudio();
 
-    Input::InputManager *s_input;
-    Fonts::FontManager *s_fonts;
-    Files::StorageManager *s_storage;
+    Audio::IAudio *s_audio = nullptr;
+    Video::IVideo *s_video = nullptr;
+    System::ISystem *s_system = nullptr;
+    Input::InputManager *s_input = nullptr;
+    Fonts::FontManager *s_fonts = nullptr;
+    Files::StorageManager *s_storage = nullptr;
     util::PointerList<AsyncService *, 10> s_service;
 };
 

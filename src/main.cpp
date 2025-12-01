@@ -24,11 +24,12 @@ GenvSystemClass genv;
 
 int main(int argc, char *argv[])
 {
-    genv.startup();
-    ServiceManager *serviceManager = getServiceManager();
+    genv.startup(); // This creates and inits the GenV engine session, core services etc.
 
-    Video::IVideo *video   = serviceManager->getVideo(); // It is assumed the System class will have init'd the I/O driver.
-    Apps::AppManager *apps = Apps::getAppManager();
+    ServiceManager *serviceManager = getServiceManager();
+    Video::IVideo *video = serviceManager->getVideo(); // It is assumed the System class will have init'd the I/O driver.
+    Apps::AppManager *apps = Apps::getAppManager();    // App manager lifecycle owned by main
+
     if (!apps)
         genv.halt();
 
@@ -52,6 +53,7 @@ int main(int argc, char *argv[])
 
         if (serviceManager->updateAsyncServices()) // These are run in a lower priority to vsync. If vsync happens, the update cycle pauses
             video->doWaitForVSync();               // If Service manager runs out of services to update, then we pause for next cycle
+        System::PerfMon.finishCoroutines();
     }
 
     apps->shutdown();

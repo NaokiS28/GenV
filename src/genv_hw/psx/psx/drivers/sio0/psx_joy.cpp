@@ -191,13 +191,13 @@ namespace System::PSX::IO
 
                     _padData[subport].type = static_cast<JoypadType>(resp.id8[0]);
                     if (pad.type != Input::DEVICE_TYPE_NULL)
-                        Services::dettachInputDevice(&pad);
+                        getServiceManager()->dettachInputDevice(&pad);
                     pad = addController(
                         resp, Input::DEVICE_PLAYER_1, subport,
                         &_padData[subport].digital,
                         _padData[subport].analog);
                     if (pad.type != Input::DEVICE_TYPE_NULL)
-                        Services::attachInputDevice(&pad);
+                        getServiceManager()->attachInputDevice(&pad);
                 }
                 break;
             case SIO0_NO_RESPONSE:
@@ -211,7 +211,7 @@ namespace System::PSX::IO
                             if (_tPad.type != DEVICE_TYPE_NULL)
                             {
                                 LOG("psxpad", "Controller disconnected on port %d:%c", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2), 'A' + _tPad.subBusID);
-                                Services::dettachInputDevice(&_tPad);
+                                getServiceManager()->dettachInputDevice(&_tPad);
                                 _padData[_tPad.subBusID] = PSX_PadData(); // Null it out
                                 _tPad                    = IInputDevice();
                             }
@@ -222,7 +222,7 @@ namespace System::PSX::IO
                     {
                         LOG("psxpad", "Controller disconnected on port %d:%c", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2), 'A' + subport);
                         if (pad.type != Input::DEVICE_TYPE_NULL)
-                            Services::dettachInputDevice(&pad);
+                            getServiceManager()->dettachInputDevice(&pad);
                         _padData[subport] = PSX_PadData(); // Null it out
                         pad               = IInputDevice();
                         if (subport == 0) psx_sio0.setMultitapState(_portNumber, MT_TEST_PRESENCE);
@@ -250,7 +250,7 @@ namespace System::PSX::IO
     {
         for (auto &pad : _padList)
         {
-            Services::dettachInputDevice(&pad);
+            getServiceManager()->dettachInputDevice(&pad);
             pad = IInputDevice(); // Null device
         }
         memset(_padData, 0, sizeof(PSX_PadData));

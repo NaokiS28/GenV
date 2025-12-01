@@ -49,7 +49,7 @@ namespace System::PSX
         _devs[2] = jamma(Input::DEVICE_ARCADE_CABINET, &_digital[2]);
         int err  = 0;
         for (auto &dev : _devs)
-            err += Services::attachInputDevice(&dev);
+            err += getServiceManager()->attachInputDevice(&dev);
         return err;
     }
 

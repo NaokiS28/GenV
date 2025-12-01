@@ -36,13 +36,14 @@ namespace System
 
     struct PerformanceGraph
     {
-        size_t systemTime  = 0;
+        size_t systemTime = 0;
         size_t storageTime = 0;
-        size_t inputTime   = 0;
-        size_t appTime     = 0;
-        size_t renderTime  = 0;
-        size_t idleTime    = 0;
-        size_t cycleTime   = 0;
+        size_t inputTime = 0;
+        size_t appTime = 0;
+        size_t renderTime = 0;
+        size_t idleTime = 0;
+        size_t cycleTime = 0;
+        size_t coroutineTime = 0;
 
         PerformanceGraphStyle style = PERFMON_GRAPH_PIE;
     };
@@ -50,14 +51,15 @@ namespace System
     class PerformanceMonitor
     {
     private:
-        size_t loopStartTime     = 0;
-        size_t systemExecTime    = 0;
-        size_t appExecTime       = 0;
-        size_t inputUpdateTime   = 0;
+        size_t loopStartTime = 0;
+        size_t systemExecTime = 0;
+        size_t appExecTime = 0;
+        size_t inputUpdateTime = 0;
         size_t storageUpdateTime = 0;
-        size_t renderTime        = 0;
-        size_t cycleTime         = 0;
-        size_t lastFrame         = 0;
+        size_t renderTime = 0;
+        size_t cycleTime = 0;
+        size_t lastFrame = 0;
+        size_t coroutineUpdateTime = 0;
 
         PerformanceGraph lastGraph;
         PerformanceGraph nextGraph;
@@ -69,6 +71,7 @@ namespace System
         inline void finishStorageUpdate() { storageUpdateTime = (System::millis() - loopStartTime); }
         inline void finishInputUpdate() { inputUpdateTime = (System::millis() - loopStartTime); }
         inline void loopStart() { loopStartTime = System::millis(); }
+        inline void finishCoroutines() { coroutineUpdateTime = System::millis(); }
 
         PerformanceGraph &getPerformanceGraph(PerformanceGraphStyle style);
     };

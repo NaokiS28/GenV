@@ -21,7 +21,6 @@
 #include "io.h"
 #include "psx/sys573/registers573.hpp"
 
-
 uint8_t sys573_ext_out_state = 0;
 
 void sys573_ext_out_set_state(uint8_t data)
