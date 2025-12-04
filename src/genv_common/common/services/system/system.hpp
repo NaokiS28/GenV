@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "arcade/iface_arcade.hpp"
 #include "common/services/services.hpp"
 #include "iface_system.hpp"
 
@@ -112,7 +111,6 @@ namespace System
     size_t random(size_t min, size_t max);
     bool getTime(tm &time);
     size_t getTime();
-    IArcadeSystem *GetArcadeInterface();
 
     class BaseSystem : public ISystem
     {
@@ -122,21 +120,7 @@ namespace System
 
     public:
         virtual ~BaseSystem() = default;
-        BaseSystem() : services(*getServiceManager()), adminKey(AdminClass_Key()) {};
+        BaseSystem();
     };
 
 } // namespace System
-
-// TODO: Is this macro of any real benefit now? GetArcadeInterface does the important thing.
-// This macro is a short hand to mean that this code should only be run if the system
-// is an arcade system. Otherwise it is skipped. Use Genv_Arcade to access arcade
-// system specific functions. Uses static_cast to avoid RTTI
-#define ArcadeFunc(action)                                                 \
-    do                                                                     \
-    {                                                                      \
-        System::IArcadeSystem *Genv_Arcade = System::GetArcadeInterface(); \
-        if (Genv_Arcade)                                                   \
-        {                                                                  \
-            action                                                         \
-        }                                                                  \
-    } while (0)

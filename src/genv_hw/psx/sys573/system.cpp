@@ -18,10 +18,14 @@
 #include "system.hpp"
 
 #include "psx/psx/system.hpp"
+#include "psx/psx/halt/halt.h"
+#include "psx/psx/system/sys.h"
+#include "psx/psx/video/gpucmd.h"
+#include "psx/psx/system/pcsxhw.h"
+
+#include "psx/sys573/halt/halt.h"
 
 #include "common/services/services.hpp"
-#include "psx/psx/system/pcsxhw.h"
-#include "psx/psx/system/sys.h"
 
 namespace System::PSX
 {
@@ -31,6 +35,9 @@ namespace System::PSX
 
     Sys573System::~Sys573System()
     {
+        psx_uninstallExceptionHandler();
+        if (clock)
+            delete clock;
     }
 
     int Sys573System::initCore()
@@ -39,7 +46,7 @@ namespace System::PSX
         {
             LOG_SYS(szRedux);
         }
-        _setupInterruptHandler();
+        setupInterruptHandler_();
         psx_enableInterrupts();
 
         // Enable PIO/573 read/writing with delay slots. These are based on Konami's values
@@ -90,10 +97,11 @@ namespace System::PSX
     int Sys573System::initVideo()
     {
         int error = 0;
-        gpu       = new GPU::PSXGPU;
-        error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
+        gpu = new GPU::PSXGPU(GP1_VRAM_2MB);
+        error = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
         if (!error) services.setVideo(adminKey, gpu);
+        psx_halt_append_func(sys573_halt_delay);
         return error;
     }
 
@@ -116,8 +124,8 @@ namespace System::PSX
 
 #ifndef NDEBUG
         int pcError = 0;
-        pcDriver    = new Storage::PSX_PCDrive();
-        pcError     = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
+        pcDriver = new Storage::PSX_PCDrive();
+        pcError = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
         if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
         if (!pcError) services.registerStorageDriver(pcDriver);
 #endif

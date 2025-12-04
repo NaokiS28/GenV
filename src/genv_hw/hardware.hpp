@@ -18,10 +18,12 @@
 // This file is used to include all hardware drives specific to the given platform.
 #pragma once
 
+#include "common/services/system/arcade/iface_arcade.hpp"
 #include "common/services/system/iface_system.hpp"
 
 namespace System
 {
     // System factory
     ISystem *makeNewSystem();
+    IArcadeSystem *getArcadeInterface();
 } // namespace System

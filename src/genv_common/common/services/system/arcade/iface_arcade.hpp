@@ -23,16 +23,15 @@
 
 namespace System
 {
-
     class IArcadeSystem
     {
     protected:
-        virtual uint8_t setPhysicalPlayers(uint8_t players)                  = 0;
-        virtual uint8_t setPhysicalCoinSlots(uint8_t slots)                  = 0;
-        virtual uint8_t getCoinCounterBuffer(int8_t slot = -1)               = 0;
-        virtual uint8_t addCoin(uint8_t slot, uint8_t amount)                = 0;
+        virtual uint8_t setPhysicalPlayers(uint8_t players) = 0;
+        virtual uint8_t setPhysicalCoinSlots(uint8_t slots) = 0;
+        virtual uint8_t getCoinCounterBuffer(int8_t slot = -1) = 0;
+        virtual uint8_t addCoin(uint8_t slot, uint8_t amount) = 0;
         virtual uint8_t addServiceCoin(uint8_t slot = 0, uint8_t amount = 1) = 0;
-        virtual uint8_t increaseCoinCounter(uint8_t counter)                 = 0;
+        virtual uint8_t increaseCoinCounter(uint8_t counter) = 0;
 
     public:
         virtual ~IArcadeSystem() = default;
@@ -119,5 +118,4 @@ namespace System
         // Note: Unlike digital outputs, analogOutputs will always be assigned to an output.
         virtual uint8_t writeAnalogueOut32(uint8_t analogOutput, uint32_t state) = 0;
     };
-
 } // namespace System

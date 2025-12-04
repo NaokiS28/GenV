@@ -19,11 +19,11 @@
 
 #include "app.hpp"
 #include "appmgr.hpp"
-#include "common/services/services.hpp"
 #include "common/logger/log.hpp"
 
 #include "builtin/gvss/gvss.hpp"
 #include "builtin/errorscr/errorscr.hpp"
+#include "common/services/system/arcade/arcade.hpp"
 
 #define APPMGR_LOG(fmt, ...) LOG("appmgr", fmt __VA_OPT__(, ) __VA_ARGS__)
 
@@ -170,9 +170,12 @@ namespace Apps
         APPMGR_LOG("Starting application manager...");
         if (!asys && firstRun)
         {
-            asys = System::GetArcadeInterface();
+            asys = System::getArcadeInterface();
             if (asys)
+            {
                 APPMGR_LOG("System is in arcade mode.");
+                asys->tickWatchdog();
+            }
         }
 
         appFactories.clearList();
@@ -202,6 +205,8 @@ namespace Apps
             return -1;
         }
 
+        ArcadeFunc(Genv_Arcade->tickWatchdog());
+
         if (loadScreenFactory)
         {
             loadingScreen = loadScreenFactory(this, foregroundApp);
@@ -219,6 +224,8 @@ namespace Apps
         enteredTestMode = ASYS_GAME_MODE;
         firstRun = false;
 
+        ArcadeFunc(Genv_Arcade->tickWatchdog());
+
         return 0;
     }
 
@@ -233,6 +240,7 @@ namespace Apps
         {
             if (asys->runTestMode() && enteredTestMode < ASYS_LOAD_TEST_APP)
             {
+                LOG_APP("Run Test Mode");
                 ArcadeTestApp *fgApp = getArcadeTestApp(foregroundApp);
                 ArcadeTestApp *bgApp = getArcadeTestApp(backgroundApp);
                 if (fgApp == nullptr && bgApp == nullptr)
@@ -244,6 +252,7 @@ namespace Apps
             }
             else if (!asys->runTestMode() && (enteredTestMode != ASYS_GAME_MODE && enteredTestMode != ASYS_LOAD_GAME_APP))
             {
+                LOG_APP("Transition to Game Mode");
                 quitApp(APP_FOREGROUND);
                 enteredTestMode = ASYS_LOAD_GAME_APP;
             }
@@ -272,6 +281,7 @@ namespace Apps
         {
             if (enteredTestMode == ASYS_CLOSE_GAME_APPS)
             {
+                LOG_APP("Load Test Mode");
                 // foregroundApp = new GenVTestApp;
                 if (foregroundApp != nullptr)
                 {
@@ -280,6 +290,7 @@ namespace Apps
             }
             else if (enteredTestMode == ASYS_TEST_MODE)
             {
+                LOG_APP("Start Game Mode");
                 init();
                 enteredTestMode = 0;
             }

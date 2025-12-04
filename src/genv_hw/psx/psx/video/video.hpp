@@ -19,15 +19,16 @@
 
 #include <stdint.h>
 
-#include "common/objects/font.hpp"
-#include "common/services/video/iface_video.hpp"
-
-#include "common/util/rect.h"
 #include "texmgr.hpp"
 #include "gpudef.hpp"
 #include "psxtex.hpp"
 
+#include "common/util/rect.h"
+#include "common/objects/font.hpp"
 #include "common/services/services.hpp"
+#include "common/services/video/iface_video.hpp"
+
+#include "psx/psx/video/gpucmd.h"
 
 namespace System::PSX
 {
@@ -51,13 +52,14 @@ namespace System::PSX::GPU
             uint32_t *nextPacket;
         } DMAChain;
 
-        TextureManager _texmgr;
-
         bool screenBufferPage = 0;
         uint16_t dmaPtrIdx = 0;
         DMAChain dmaChains[2];
         bool useDMA = false;
+
+        GP1VRAMSize vramSize = GP1_VRAM_1MB;
         GP1VideoMode gpuMode = GP1_MODE_NTSC;
+        TextureManager _texmgr;
 
         int frameX = 0;
         int frameY = 0;
@@ -86,7 +88,7 @@ namespace System::PSX::GPU
 
     public:
         PSXGPU();
-        PSXGPU(uint8_t vram_size);
+        PSXGPU(GP1VRAMSize vram_size);
         ~PSXGPU() override;
 
         bool init() override;

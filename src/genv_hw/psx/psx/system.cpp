@@ -16,6 +16,7 @@
  */
 
 #include <atomic>
+#include <cstdint>
 
 #include "system.hpp"
 #include "common/return_codes.hpp"
@@ -77,8 +78,8 @@ namespace System::PSX
     {
         psx_installExceptionHandler();
         GenV_TerminalFuncs ops;
-        ops.init  = &sio1_init;
-        ops.read  = &sio1_read;
+        ops.init = &sio1_init;
+        ops.read = &sio1_read;
         ops.write = &sio1_write;
         ops.flush = &sio1_flush;
         genv_tty_register(&ops);
@@ -99,7 +100,7 @@ namespace System::PSX
         {
             LOG_SYS(szRedux);
         }
-        _setupInterruptHandler();
+        setupInterruptHandler_();
         psx_enableInterrupts();
         return PSX_SYS_OK;
     }
@@ -116,8 +117,8 @@ namespace System::PSX
     int PSXSystem::initVideo()
     {
         int error = 0;
-        gpu       = new GPU::PSXGPU;
-        error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
+        gpu = new GPU::PSXGPU;
+        error = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
         if (!error) services.setVideo(adminKey, gpu);
         return error;
@@ -138,8 +139,8 @@ namespace System::PSX
     int PSXSystem::initStorage()
     {
         int error = 0; // TODO: How to handle multiple driver failures?
-        cdDriver  = new Storage::PSX_CDROM();
-        error     = ioTest(cdDriver, PSX_CDROM_DRIVE_STR, PSX_CREATE_STR);
+        cdDriver = new Storage::PSX_CDROM();
+        error = ioTest(cdDriver, PSX_CDROM_DRIVE_STR, PSX_CREATE_STR);
         if (!error) error = ioTest(cdDriver->init(), PSX_CDROM_DRIVE_STR, PSX_INIT_STR);
         if (!error) services.registerStorageDriver(cdDriver);
 
@@ -152,8 +153,8 @@ namespace System::PSX
 
 #ifndef NDEBUG
         int pcError = 0;
-        pcDriver    = new Storage::PSX_PCDrive();
-        pcError     = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
+        pcDriver = new Storage::PSX_PCDrive();
+        pcError = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
         if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
         if (!pcError) services.registerStorageDriver(pcDriver);
 #endif
@@ -175,7 +176,7 @@ namespace System::PSX
         psx_timer_reset(PSX_TIMER_2);
 
         int error = 0;
-        int port  = 1;
+        int port = 1;
         for (auto &joy : joyDriver)
         {
             error = ioTest(joy.init(), PSX_JOYPAD_STR, port++, PSX_INIT_STR);
@@ -185,34 +186,44 @@ namespace System::PSX
         return error;
     }
 
-    void PSXSystem::_setupInterruptHandler(void)
+    void PSXSystem::setupInterruptHandler_(void)
     {
         psx_setInterruptHandler(
             [](void *arg)
             {
                 auto app = reinterpret_cast<PSXSystem *>(arg);
-                app->_interruptHandler(); // etc.
+                app->interruptHandler_(); // etc.
             },
             this);
     }
 
-    void PSXSystem::_interruptHandler(void)
+    void PSXSystem::interruptHandler_(void)
+    {
+        uint32_t status = IRQ_STAT;
+        while (status)
+        {
+            uint32_t bit = status & -status; // extract lowest-set bit
+            switch (bit)
+            {
+            case IRQ_VSYNC: isr_vsync_(); break;
+            case IRQ_TIMER2: isr_timer2_(); break;
+            default: break;
+            }
+            IRQ_STAT = ~(bit);
+        }
+    }
+
+    void PSXSystem::isr_vsync_()
     {
         std::atomic_signal_fence(std::memory_order_acquire);
-        if (psx_acknowledgeInterrupt(IRQ_VSYNC))
-        {
-            gpu->_waitingForVsync = false;
-            gpu->_frameCount++;
-        }
-        else if (psx_acknowledgeInterrupt(IRQ_TIMER2))
-        {
-            _isr_timer2();
-        }
+        gpu->_waitingForVsync = false;
+        gpu->_frameCount++;
         std::atomic_signal_fence(std::memory_order_release);
     }
 
-    void PSXSystem::_isr_timer2()
+    void PSXSystem::isr_timer2_()
     {
+        std::atomic_signal_fence(std::memory_order_acquire);
         psx_timer_ack_irq(PSX_TIMER_2);
         // Timer 2 is used for millis/seconds but will drift out of sync
         //  as the timer is not a perfect division of time for seconds.
@@ -233,6 +244,7 @@ namespace System::PSX
             if (clock)
                 clock->tick();
         }
+        std::atomic_signal_fence(std::memory_order_release);
     }
 
     int PSXSystem::update()

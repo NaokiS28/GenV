@@ -16,19 +16,10 @@
  */
 
 #include "system.hpp"
-#include "arcade/arcade.hpp"
 #include "../services.hpp"
 
 namespace System
 {
-    IArcadeSystem *GetArcadeInterface()
-    {
-        ISystem *Genv_Sys = getServiceManager()->getSystem();
-        return (Genv_Sys && Genv_Sys->getSysInfo()->type == System::SYS_Arcade)
-                   ? reinterpret_cast<IArcadeSystem *>(Genv_Sys)
-                   : nullptr;
-    };
-
     size_t millis()
     {
         ISystem *sys = getServiceManager()->getSystem();
@@ -57,4 +48,7 @@ namespace System
     {
         return 0;
     }
+
+    BaseSystem::BaseSystem() : services(*getServiceManager()), adminKey(AdminClass_Key()) {}
+
 } // namespace System

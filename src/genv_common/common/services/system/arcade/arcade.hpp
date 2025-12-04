@@ -16,9 +16,9 @@
  */
 
 #pragma once
-#include "common/services/system/arcade/iface_arcade.hpp"
 #include "nvram.hpp"
-#include "errorcodes.hpp"
+#include "hardware.hpp" // IWYU pragma: export
+#include "common/services/system/arcade/iface_arcade.hpp"
 
 /*
  * GenV - Arcade Extenstions
@@ -41,13 +41,13 @@ namespace System
     {
         struct DIPSwitches
         {
-            uint8_t banks  = 0;
+            uint8_t banks = 0;
             uint8_t *array = nullptr;
         };
 
         struct CoinData
         {
-            uint8_t coinsIn      = 0;
+            uint8_t coinsIn = 0;
             uint8_t counterTicks = 0;
         };
     } // namespace ArcadeEnv
@@ -60,12 +60,12 @@ namespace System
         ArcadeEnv::CoinData *playerCoins = nullptr;
 
     protected:
-        uint8_t physicalPlayers   = 0;
+        uint8_t physicalPlayers = 0;
         uint8_t physicalCoinSlots = 0;
 
-        bool enableWatchdogTicking = true;  // ⚠️ WARNING ⚠️ Unless you are testWatchdog(), DONT TOUCH.
-        bool testSwitchLatching    = false; // If false, enableTestMode must be disabled by the Test Menu exiting. If true, test screen will exit when enableTestMode goes low,
-        bool enableTestMode        = false; // On systems with a switch, this will mirror the switch ON-OFF state. On push button systems, this will toggle on
+        bool enableWatchdogTicking = true; // ⚠️ WARNING ⚠️ Unless you are testWatchdog(), DONT TOUCH.
+        bool testSwitchLatching = false;   // If false, enableTestMode must be disabled by the Test Menu exiting. If true, test screen will exit when enableTestMode goes low,
+        bool enableTestMode = false;       // On systems with a switch, this will mirror the switch ON-OFF state. On push button systems, this will toggle on
 
         uint8_t setPhysicalPlayers(uint8_t players) override;
         uint8_t setPhysicalCoinSlots(uint8_t slots) override;
@@ -116,3 +116,27 @@ namespace System
         virtual uint8_t writeAnalogueOut32(uint8_t analogOutput, uint32_t state) override;
     };
 } // namespace System
+
+// TODO: Is this macro of any real benefit now? GetArcadeInterface does the important thing.
+// This macro is a short hand to mean that this code should only be run if the system
+// is an arcade system. Otherwise it is skipped. Use Genv_Arcade to access arcade
+// system specific functions. Uses static_cast to avoid RTTI
+#define ArcadeFunc(action)                                                 \
+    do                                                                     \
+    {                                                                      \
+        System::IArcadeSystem *Genv_Arcade = System::getArcadeInterface(); \
+        if (Genv_Arcade)                                                   \
+        {                                                                  \
+            action;                                                        \
+        }                                                                  \
+    } while (0)
+
+#define ArcadeWatchdogKick()                                               \
+    do                                                                     \
+    {                                                                      \
+        System::IArcadeSystem *Genv_Arcade = System::getArcadeInterface(); \
+        if (Genv_Arcade)                                                   \
+        {                                                                  \
+            Genv_Arcade->tickWatchdog();                                   \
+        }                                                                  \
+    } while (0)

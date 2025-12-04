@@ -86,33 +86,34 @@ namespace System
         class PSXSystem : public BaseSystem
         {
         protected:
-            Time::IRTC *clock;
-            uint8_t sm_state; // System Manager state for returning to main.cpp
+            Time::IRTC *clock; // Pointer so can be overidden
+            uint8_t sm_state;  // System Manager state for returning to main.cpp
 
-            void _setupInterruptHandler(void);
-            void _interruptHandler();
+            void setupInterruptHandler_(void);
+            void interruptHandler_();
 
-            void _isr_timer2();
+            void isr_vsync_();
+            void isr_timer2_();
 
             // Millis/Seconds tracking
-            const size_t err_numerator      = 307;
-            const size_t err_denominator    = 512;
+            const size_t err_numerator = 307;
+            const size_t err_denominator = 512;
             volatile size_t timer2_addcycle = 0;
-            volatile size_t timer2_count    = 0;
-            volatile size_t timer2_erracc   = 0; // Time sync Error accumulator
-            volatile size_t lastRTCTick     = 0;
+            volatile size_t timer2_count = 0;
+            volatile size_t timer2_erracc = 0; // Time sync Error accumulator
+            volatile size_t lastRTCTick = 0;
 
             SystemInfo siPS1 = {
-                .type  = SYS_Console,
-                .make  = szSony,
-                .name  = szPlaystation,
+                .type = SYS_Console,
+                .make = szSony,
+                .name = szPlaystation,
                 .flags = SYS_No_Window_Mode};
 
             // Pointers to control the life cycle of items. TODO: Do these strictly *need* to be pointers?
-            GPU::PSXGPU *gpu               = nullptr;    // GPU probably needs to stay as pointer for V1/V2 CPU differences
-            IO::PSX_Joypad joyDriver[2]    = {(1), (2)}; // <-| These are part of the CPU and thus can always be "present"
+            GPU::PSXGPU *gpu = nullptr;                  // GPU probably needs to stay as pointer for V1/V2 CPU differences
+            IO::PSX_Joypad joyDriver[2] = {(1), (2)};    // <-| These are part of the CPU and thus can always be "present"
             IO::PSX_MemoryCard mcDriver[2] = {(1), (2)}; // <-/
-            Storage::PSX_CDROM *cdDriver   = nullptr;    // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
+            Storage::PSX_CDROM *cdDriver = nullptr;      // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
             Storage::PSX_PCDrive *pcDriver = nullptr;    // Not always needed?
 
         public:
@@ -128,16 +129,11 @@ namespace System
             virtual int update() override;
             virtual bool shutdown() override;         // Prepare drivers and app for close
             virtual bool setResolution(int w, int h); // Sets window resolution (internal viewport)
-            bool setFullscreen(Video::FullscreenMode mode)
-            {
-                return false;
-            }
-            bool toggleFullscreen()
-            {
-                return false;
-            }
 
-            virtual const SystemInfo *getSysInfo() const override
+            inline bool setFullscreen(Video::FullscreenMode mode) { return false; }
+            inline bool toggleFullscreen() { return false; }
+
+            inline virtual const SystemInfo *getSysInfo() const override
             {
                 return &siPS1;
             }
@@ -146,7 +142,7 @@ namespace System
             {
                 std::atomic_signal_fence(std::memory_order_acquire);
                 constexpr int tmult = 5;
-                constexpr int tdiv  = 21168;
+                constexpr int tdiv = 21168;
                 static_assert(((TIMER2_FREQ * tmult) / tdiv) == 1000, "");
 
                 return (uint64_t(TIMER_VALUE(PSX_TIMER_2) | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);

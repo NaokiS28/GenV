@@ -18,14 +18,14 @@
 #include "genv_sys.hpp"
 
 #include "common/services/services.hpp"
+#include "hardware.hpp"
 #include "system/system.hpp"
+#include "system/arcade/arcade.hpp"
 #include "common/logger/log.hpp"
 #include "terminal/terminal.h"
 
 #include "video/nullvideo.hpp"
 #include "audio/nullaudio.hpp"
-
-#include "hardware.hpp"
 
 #include "halt_screen/halt_screen.h"
 
@@ -96,11 +96,13 @@ void GenvSystemClass::startup()
     abortIf(system, services->createManagers(), "Service managers");
     abortIf(system, system->initVideo(), "Video driver");
     abortIf(system, services->init(), "Service managers");
+    ArcadeFunc(Genv_Arcade->tickWatchdog());
 
     // Past this point, the most critical systems are running
     warnIf(system->initAudio(), "Audio driver");
     warnIf(system->initIO(), "IO driver");
     warnIf(system->initStorage(), "Storage driver");
+    ArcadeFunc(Genv_Arcade->tickWatchdog());
 }
 
 void GenvSystemClass::shutdown()

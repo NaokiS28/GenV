@@ -16,35 +16,57 @@
  */
 
 #include "hardware.hpp"
+#include "common/services/system/arcade/iface_arcade.hpp"
+#include "common/services/system/iface_system.hpp"
 
 #if defined(GENV_PSX)
 #if defined(GENV_SYS573)
 #include "psx/sys573/system.hpp"
-System::ISystem *System::makeNewSystem()
+#include "common/services/services.hpp"
+namespace System
 {
-    PSX::Sys573System *system = new PSX::Sys573System;
-    return system;
-}
+    ISystem *makeNewSystem()
+    {
+        PSX::Sys573System *system = new PSX::Sys573System;
+        return system;
+    }
+    IArcadeSystem *getArcadeInterface()
+    {
+        ISystem *sys = getServiceManager()->getSystem();
+        return reinterpret_cast<PSX::Sys573System *>(sys);
+    }
+} // namespace System
 #else
 #include "psx/psx/system.hpp"
-System::ISystem *System::makeNewSystem()
+namespace System
 {
-    PSX::PSXSystem *system = new PSX::PSXSystem;
-    return system;
-}
-
+    ISystem *makeNewSystem()
+    {
+        PSX::PSXSystem *system = new PSX::PSXSystem;
+        return system;
+    }
+    IArcadeSystem *getArcadeInterface()
+    {
+        return nullptr;
+    }
+} // namespace System
 #endif
 #elif defined(GENV_WIN32)
 // Windows Targets
 #include "win32/targetver.h"
 #include "win32/system.hpp"
-
-System::ISystem *System::makeNewSystem()
+namespace System
 {
-    WinSystem *system = new WinSystem();
-    return system;
-}
-
+    ISystem *makeNewSystem()
+    {
+        WinSystem *system = new WinSystem();
+        return system;
+    }
+    IArcadeSystem *getArcadeInterface()
+    {
+        return nullptr;
+    }
+} // namespace System
 #else
 #error "Either no system defined or system not supported. No ISystem class exists"
 #endif

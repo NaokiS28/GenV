@@ -152,7 +152,7 @@ namespace System::PSX::GPU
                 TMGR_FREE,
             };
 
-            int init(uint8_t _vram);
+            int init(GP1VRAMSize _vram);
 
             /* Mark a tile or block of tiles as in use/free. X/Y/W/H in tiles */
             inline bool mark_block(RectWH rect, bool state) { return mark_block(rect.x, rect.y, rect.w, rect.h, state); }
@@ -206,8 +206,8 @@ namespace System::PSX::GPU
 
         } _vramBitmap;
 
-        uint8_t _vramSize = 0;  // VRAM size in MiB
-        RectWH _frameBufferBox; // In px
+        GP1VRAMSize _vramSize = GP1_VRAM_1MB; // VRAM size in MiB
+        RectWH _frameBufferBox;               // In px
 
         // Finds a free space in the texture page where the requested block can go, or returns no space.
         // X,Y,W,H in tiles
@@ -226,7 +226,7 @@ namespace System::PSX::GPU
             bool dryRun);                                 // Does not modify anything if true
 
     public:
-        TextureManager(uint8_t vram_size) // vram_size in MiB
+        TextureManager(GP1VRAMSize vram_size) // vram_size in MiB
         {
             _vramSize = vram_size;
         }

@@ -35,7 +35,7 @@
 #include "../registers.hpp"
 #include "common/logger/log.hpp"
 #include "halt_screen/halt_screen.h"
-#include "psx/psx/video/halt/halt.h"
+#include "psx/psx/halt/halt.h"
 #include "psx/psx/video/psxtex.hpp"
 #include "psx/psx/video/texmgr.hpp"
 
@@ -54,12 +54,12 @@ namespace System::PSX::GPU
 
     constexpr const size_t PSX_GPU_VSYNC_TIMEOUT = 0x000FFFFF;
 
-    PSXGPU::PSXGPU() : _texmgr(PSX::GPU::VRAM_1MIB)
+    PSXGPU::PSXGPU() : _texmgr(vramSize)
     {
         registerHaltScreen();
     }
 
-    PSXGPU::PSXGPU(uint8_t vram_size) : _texmgr(vram_size)
+    PSXGPU::PSXGPU(GP1VRAMSize vram_size) : vramSize(vram_size), _texmgr(vram_size)
     {
         registerHaltScreen();
     }
@@ -71,7 +71,7 @@ namespace System::PSX::GPU
     void PSXGPU::registerHaltScreen()
     {
         GenV_HaltScreenFuncs ops;
-        ops.show = &psx_gpu_halt_screen;
+        ops.show = &psx_halt_screen_show;
         genv_halt_screen_register(&ops);
     }
 
@@ -102,6 +102,7 @@ namespace System::PSX::GPU
         _GPUC(gp0_fbOffset2(320 - 1, 240 - 1));
         _GPUC(gp0_fbOrigin(0, 0));
 
+        GPU_GP1 = gp1_vramSize(vramSize);
         GPU_GP1 = gp1_fbOffset(0, 0);
         GPU_GP1 = gp1_dispBlank(false);
 
@@ -306,8 +307,7 @@ namespace System::PSX::GPU
     void PSXGPU::_sendLinkedList(const void *data)
     {
         // Wait until the GPU's DMA unit has finished sending data and is ready.
-        while (DMA_CHCR(DMA_GPU) & DMA_CHCR_ENABLE)
-            __asm__ volatile("");
+        _waitForDMADone();
 
         // Make sure the pointer is aligned to 32 bits (4 bytes). The DMA engine is
         // not capable of reading unaligned data.
@@ -343,11 +343,16 @@ namespace System::PSX::GPU
     bool PSXGPU::beginRender()
     {
         _waitForGP0Ready();
-        _waitForDMADone();
-        //_waitForVSync();
+        LOG("psxgpu", "gp0");
         if (useDMA)
+        {
+            LOG("psxgpu", "dma");
             _sendLinkedList(chain->data);
+            LOG("psxgpu", "list");
+        }
+
         _swapFrameBuffer();
+        LOG("psxgpu", "frame");
         return true;
     }
 
@@ -901,7 +906,7 @@ namespace System::PSX::GPU
             fObj->getTable(),
             fObj->getHeader()->numBuckets);
 
-        psx_gpu_register_font(&failFont);
+        psx_halt_register_font(&failFont);
         return 0;
     }
 

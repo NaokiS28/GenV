@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "common/services/services.hpp"
 #include "common/services/system/system.hpp"
 #include "psx/psx/system.hpp"
 #include "psx/psx/video/video.hpp"
@@ -34,16 +33,16 @@ namespace System::PSX
     namespace KSYS573
     {
         constexpr const char *szSystemName = "System 573";
-        constexpr const char *szMakeName   = "KONAMI";
+        constexpr const char *szMakeName = "KONAMI";
     } // namespace KSYS573
 
     class Sys573System : public PSXSystem, public BaseArcadeSystem
     {
     private:
         SystemInfo si573 = {
-            .type  = SYS_Arcade,
-            .make  = KSYS573::szMakeName,
-            .name  = KSYS573::szSystemName,
+            .type = SYS_Arcade,
+            .make = KSYS573::szMakeName,
+            .name = KSYS573::szSystemName,
             .flags = SYS_No_Window_Mode};
 
         uint8_t outputBanks = 1;

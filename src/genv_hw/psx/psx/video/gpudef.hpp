@@ -53,11 +53,4 @@ namespace System::PSX::GPU
     constexpr const int iPSXDMAListSize = 1024;
     constexpr const uint8_t bPSXDMAChunkSize = 16;
 
-    enum : uint8_t
-    {
-        VRAM_1MIB = 1,
-        VRAM_2MIB = 2,
-        // Was higher amounts even possible?
-    };
-
 } // namespace System::PSX::GPU
