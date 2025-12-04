@@ -20,9 +20,9 @@
 #include <time.h>
 
 #include "log.hpp"
-#include "common/util/misc.hpp"
+#include "common/services/services.hpp"
+#include "common/services/system/iface_system.hpp"
 #include "common/util/time.hpp"
-#include "common/services/system/system.hpp"
 
 namespace Logs
 {
@@ -91,8 +91,9 @@ namespace Logs
         char t_str[20];
         memset(t_str, 0, sizeof(t_str));
 
-        getServiceManager()->getSystem()->getTime(time);
-        Time::getTimeString(time, t_str, sizeof(t_str));
+        static System::ISystem *sys = getServiceManager()->getSystem();
+        sys->getTime(time);
+        Time::getTimeStringMillis(time, sys->millis(), t_str, sizeof(t_str));
         va_list ap;
 
         snprintf(str, MAX_LOG_LINE_LENGTH, "<%s> %s,%s(%d): %s", t_str, type, func, linenum, format);

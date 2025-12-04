@@ -27,6 +27,7 @@ namespace Time
     void addSecond(tm &time);
     void addDay(tm &time);
     int getTimeString(tm &time, char *str, size_t len, bool seconds = true, bool amPm = false);
+    int getTimeStringMillis(tm &time, size_t millis, char *str, size_t len);
 
     inline bool timeValid(tm time)
     {
