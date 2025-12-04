@@ -20,25 +20,25 @@
 
 #include "halt.h"
 #include "psx/psx/registers.hpp"
+#include "psx/psx/system/sys.h"
 #include "psx/psx/video/gpucmd.h"
 #include <string.h>
 
-typedef struct
-{
-    uint16_t r;
-    uint16_t g;
-    uint16_t b;
-} Color;
-
-Color ColorRed = {160, 0, 0};
-Color ColorGreen = {0, 160, 0};
-Color ColorBlue = {0, 0, 160};
+const HaltColor ColorRed = {160, 0, 0};
+const HaltColor ColorGreen = {0, 160, 0};
+const HaltColor ColorBlue = {0, 0, 128};
 
 void psx_gpu_waitForGP0Ready(void)
 {
     // Block until the GPU reports to be ready to accept commands through its
     // status register (which has the same address as GP1 but is read-only).
     while (!(GPU_GP1 & GP1_STAT_CMD_READY))
+        __asm__ volatile("");
+}
+
+void psx_gpu_waitForDMADone(void)
+{
+    while (DMA_CHCR(DMA_GPU) & DMA_CHCR_ENABLE)
         __asm__ volatile("");
 }
 
@@ -75,12 +75,17 @@ void psx_gpu_setResolution(int mode, int width, int height)
         GP1_COLOR_16BPP);
 }
 
-void psx_gpu_fillScreen(Color color, uint16_t x, uint16_t y)
+void psx_gpu_rectangle(HaltColor color, uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
     psx_gpu_waitForGP0Ready();
     GPU_GP0 = (gp0_rgb(color.r, color.g, color.b) | gp0_vramFill());
     GPU_GP0 = (gp0_xy(x, y));
-    GPU_GP0 = (gp0_xy(320, 240));
+    GPU_GP0 = (gp0_xy(w, h));
+}
+
+void psx_gpu_fillScreen(HaltColor color, uint16_t x, uint16_t y)
+{
+    psx_gpu_rectangle(color, x, y, 320, 240);
 }
 
 void psx_gpu_init()
@@ -99,6 +104,10 @@ void psx_gpu_init()
 
     GPU_GP1 = gp1_fbOffset(0, 0);
     GPU_GP1 = gp1_dispBlank(false);
+
+    IRQ_MASK |= 1 << IRQ_VSYNC;
+    DMA_DPCR = (DMA_DPCR & ~DMA_DPCR_CH_ENABLE(DMA_GPU));
+    GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_NONE);
 }
 
 int psx_gpu_drawTextureObject(
@@ -120,11 +129,13 @@ int psx_gpu_drawText(HaltScreenFont *ptObj, const char *str, int x, int y, int w
 {
     if (!ptObj) return -1;
 
+    psx_gpu_waitForDMADone();
     psx_gpu_waitForGP0Ready();
     GPU_GP0 = (gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), true, false));
 
     // Print in selected color
     int startX = x;
+    int startY = y;
     int i = 0;
     bool drawText = true;
 
@@ -135,7 +146,7 @@ int psx_gpu_drawText(HaltScreenFont *ptObj, const char *str, int x, int y, int w
             x = startX;
             y += ptObj->fontSize;
         }
-        if (y + ptObj->fontSize >= h)
+        if ((y - startY) + ptObj->fontSize >= h)
         {
             drawText = false;
             break;
@@ -173,21 +184,36 @@ int psx_gpu_drawText(HaltScreenFont *ptObj, const char *str, int x, int y, int w
 }
 
 HaltScreenFont hsFont;
-void psx_gpu_register_font(HaltScreenFont *font)
+void psx_halt_register_font(HaltScreenFont *font)
 {
     memcpy(&hsFont, font, sizeof(HaltScreenFont));
 }
 
-void psx_gpu_halt_screen(const char *string)
+PostHaltFunc phFunc = NULL;
+void psx_halt_append_func(PostHaltFunc func)
 {
+    if (func) phFunc = func;
+}
+
+void psx_void_irq_handler(void *arg)
+{
+}
+
+void psx_halt_screen_show(const char *string)
+{
+    // Clear any previous handlers as it will be tied to now a dead system.
+    psx_setInterruptHandler(psx_void_irq_handler, NULL);
+
     // System has crashed/halted and is beyond recovery, reset GPU to known state
     psx_gpu_init();
 
-    // Draw blue background. We are not double buffering any more, so draw only once.
+    // Draw blue background. We are not double buffering any more.
     psx_gpu_fillScreen(ColorBlue, 0, 0);
 
     // Print the error screen with the default font file
     psx_gpu_drawText(&hsFont, string, 5, 5, 315, 235);
+
+    if (phFunc != NULL) phFunc(&hsFont);
 }
 
 #endif

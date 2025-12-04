@@ -57,8 +57,27 @@ extern "C"
         size_t numBuckets;
     } HaltScreenFont;
 
-    void psx_gpu_register_font(HaltScreenFont *font);
-    void psx_gpu_halt_screen(const char *string);
+    typedef struct
+    {
+        uint16_t r;
+        uint16_t g;
+        uint16_t b;
+    } HaltColor;
+
+    typedef void (*PostHaltFunc)(HaltScreenFont *font);
+
+    // Allows passing of a function that will be ran after the halt screen has been displayed.
+    void psx_halt_append_func(PostHaltFunc func);
+
+    // TODO: Replace this for embedded safe font
+    void psx_halt_register_font(HaltScreenFont *font);
+
+    // Reinits the GPU and shows the given string on screen.
+    void psx_halt_screen_show(const char *string);
+
+    int psx_gpu_drawText(HaltScreenFont *ptObj, const char *str, int x, int y, int w, int h);
+    void psx_gpu_rectangle(HaltColor color, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+    void psx_gpu_fillScreen(HaltColor color, uint16_t x, uint16_t y);
 
 #ifdef __cplusplus
 }

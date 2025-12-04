@@ -32,7 +32,7 @@ target_sources(genv_hw_psx PUBLIC
     video/video.cpp
     video/texmgr.cpp
     video/psxtex.cpp
-	video/halt/halt.c
+	halt/halt.c
 	drivers/sio0/psx_joy.cpp
 	drivers/sio0/psx_mc.cpp
 	drivers/sio0/psx_sio0.cpp

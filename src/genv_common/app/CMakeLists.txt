@@ -31,7 +31,7 @@ target_include_directories(genv_app_core PUBLIC
 add_library(genv_app_manager STATIC
 	appmgr.cpp
 )
-target_link_libraries(genv_app_manager PUBLIC game_code genv_builtin_apps genv_app_core genv_logger) 
+target_link_libraries(genv_app_manager PUBLIC game_code genv_services genv_builtin_apps genv_app_core genv_logger) 
 target_include_directories(genv_app_manager PUBLIC
     ${CMAKE_SOURCE_DIR}/src/genv_common
     ${CMAKE_SOURCE_DIR}/src/app

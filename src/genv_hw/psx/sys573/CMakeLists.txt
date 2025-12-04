@@ -20,6 +20,7 @@ target_sources(genv_hw_sys573 PRIVATE
 	#jvs/jvs.cpp
 	#aio/aio.cpp
 	#dio/dio.cpp
+	halt/halt.c
 )
 
 target_compile_definitions(
