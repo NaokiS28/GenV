@@ -90,3 +90,9 @@ This project has come about from the desire to dive into the world of game devel
 * spicyjpeg - [ps1-bare-metal](https://github.com/spicyjpeg/ps1-bare-metal), [573in1](https://github.com/spicyjpeg/573in1)
 * [psx-spx](https://psx-spx.consoledev.net/)
 * [PSX.Dev Discord](https://discord.gg/QByKPpH)
+
+## Notice of Non-Affiliation and Disclaimer
+GenV and this core is not in any way affiliated, associated, authorized, endorsed by, or in any way officially connected with the following companies or any of its subsidiaries or its affiliates. All names as well as related names, marks, emblems and images are registered trademarks of their respective owners.
+
+* Sony Computer Entertainment LLC
+* Konami Group Corporation
