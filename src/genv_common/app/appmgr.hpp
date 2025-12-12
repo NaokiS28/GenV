@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include "app.hpp"
+#include "common/services/adminkey.hpp"
 #include "iapp_host.hpp"
 #include "common/services/system/arcade/iface_arcade.hpp"
 
@@ -39,10 +40,6 @@ namespace Apps
     class AppManager : public IAppHost
     {
     private:
-        typedef Application *(*AppFactory)(IAppHost *host);
-        typedef LoadScreenApp *(*LoadScreenFactory)(IAppHost *host, Application *appToLoad);
-        typedef ErrorScreenApp *(*ErrorScreenFactory)(IAppHost *host, ErrorScreenMessage *msg);
-
         enum AppTestmodeSetup : uint8_t
         {
             ASYS_GAME_MODE,
@@ -52,8 +49,9 @@ namespace Apps
             ASYS_LOAD_GAME_APP
         };
 
-        struct AppFactoryList
+        class AppFactoryList
         {
+        public:
             struct AppFactoryEntry
             {
                 const AppInfo *info;
@@ -109,6 +107,9 @@ namespace Apps
         LoadScreenFactory loadScreenFactory = nullptr;
         const AppInfo *loadScreenInfo = nullptr;
 
+        ArcadeTestApp *systemTestModeFactory = nullptr;
+        ArcadeTestApp *gameTestModeFactory = nullptr;
+
         bool m_hasPending = false;
         AppID m_pendingId = 0;
         uint32_t m_pendingFlags = 0;
@@ -157,8 +158,10 @@ namespace Apps
         // App factory registry
         void removeApplicationFactory(AppID id) override;
         void registerApplicationFactory(Application *(*factory)(IAppHost *host), const AppInfo *info, AppScreenType type) override;
-        void registerErrorScreenFactory(ErrorScreenApp *(*factory)(IAppHost *host, ErrorScreenMessage *msg), const AppInfo *info) override;
-        void registerLoadingScreenFactory(LoadScreenApp *(*factory)(IAppHost *host, Application *appToLoad), const AppInfo *info) override;
+        void registerErrorScreenFactory(ErrorScreenFactory factory, const AppInfo *info) override;
+        void registerLoadingScreenFactory(LoadScreenFactory factory, const AppInfo *info) override;
+        void registerGameTestModeFactory(ArcadeTestScreenFactory factory, const AppInfo *info) override;
+        void registerSystemTestModeFactory(AdminClass_Key key, ArcadeTestScreenFactory factory, const AppInfo *info) override;
     };
 
     AppManager *getAppManager();

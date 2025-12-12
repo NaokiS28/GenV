@@ -19,6 +19,7 @@
 
 #include "app.hpp"
 #include "appmgr.hpp"
+#include "app/iapp_host.hpp"
 #include "common/logger/log.hpp"
 
 #include "builtin/gvss/gvss.hpp"
@@ -204,8 +205,6 @@ namespace Apps
                             EM_ICON_CRITICAL_ERROR);
             return -1;
         }
-
-        ArcadeFunc(Genv_Arcade->tickWatchdog());
 
         if (loadScreenFactory)
         {
@@ -476,6 +475,14 @@ namespace Apps
         errorScreenInfo = info;
     }
 
+    void AppManager::registerGameTestModeFactory(ArcadeTestScreenFactory factory, const AppInfo *info)
+    {
+    }
+
+    void AppManager::registerSystemTestModeFactory(AdminClass_Key key, ArcadeTestScreenFactory factory, const AppInfo *info)
+    {
+    }
+
     void AppManager::requestSwitch(AppScreenType type, uint32_t flags)
     {
         // Defer graph mutation to the end of the frame.
@@ -647,7 +654,7 @@ namespace Apps
         listCount = 0;
     }
 
-    AppManager::AppFactory AppManager::AppFactoryList::getFactory(AppID id)
+    AppFactory AppManager::AppFactoryList::getFactory(AppID id)
     {
         for (int c = 0; c < listSize; ++c)
         {
