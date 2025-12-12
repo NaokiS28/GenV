@@ -25,7 +25,7 @@
 namespace Apps
 {
     constexpr const int iTimeToShow = 4000;
-    constexpr const int iFadeTime   = 500;
+    constexpr const int iFadeTime = 500;
 
     class GVSS : public LoadScreenApp
     {
@@ -58,7 +58,7 @@ namespace Apps
         Util::Tween<uint16_t, Util::QuadInOutEasing> logoMove;
 
         Sprites::SpriteObject *logo_ring = nullptr;
-        Sprites::SpriteObject *logo_v    = nullptr;
+        Sprites::SpriteObject *logo_v = nullptr;
 
         const char *GVSSText = "CREATED WITH\n\rOR RUNNING UNDER\n\rGEN-V MULTIPLATFORM ENGINE.";
 
@@ -67,6 +67,8 @@ namespace Apps
         RectWH linePos;
         RectWH textPos;
         RectWH vBoxPos;
+
+        bool drawLine = true;
 
         uint16_t lineStop = 0;
         size_t vStep = 0, pStep = 0;

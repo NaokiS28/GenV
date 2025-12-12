@@ -23,7 +23,6 @@
 #include "common/objects/file.hpp"
 #include "common/objects/texture.hpp"
 #include "common/services/services.hpp"
-#include "common/services/video/iface_video.hpp"
 #include "common/services/video/color.hpp"
 #include "common/util/hash.hpp"
 
@@ -47,9 +46,9 @@ namespace Textures
         ecImageFormat format;
     };
 
-    constexpr const ImageFileFormat ifPngFile         = {".png", ecImageFormat::IF_PNG};
-    constexpr const ImageFileFormat ifBmpFile         = {".bmp", ecImageFormat::IF_BMP};
-    constexpr const ImageFileFormat ifGifFile         = {".gif", ecImageFormat::IF_GIF};
+    constexpr const ImageFileFormat ifPngFile = {".png", ecImageFormat::IF_PNG};
+    constexpr const ImageFileFormat ifBmpFile = {".bmp", ecImageFormat::IF_BMP};
+    constexpr const ImageFileFormat ifGifFile = {".gif", ecImageFormat::IF_GIF};
     constexpr const ImageFileFormat ImageFormatList[] = {
         ifPngFile, ifBmpFile, ifGifFile};
 
@@ -96,21 +95,21 @@ namespace Textures
 
             for (unsigned i = 0; i < pal->palettesize; i++)
             {
-                uint8_t r        = pal->palette[i * 4 + 0];
-                uint8_t g        = pal->palette[i * 4 + 1];
-                uint8_t b        = pal->palette[i * 4 + 2];
-                uint8_t a        = pal->palette[i * 4 + 3];
+                uint8_t r = pal->palette[i * 4 + 0];
+                uint8_t g = pal->palette[i * 4 + 1];
+                uint8_t b = pal->palette[i * 4 + 2];
+                uint8_t a = pal->palette[i * 4 + 3];
                 paletteBuffer[i] = {
                     a, r, g, b};
             }
 
-            tObj->bpp           = state.info_raw.bitdepth;
-            tObj->palette       = paletteBuffer;
+            tObj->bpp = state.info_raw.bitdepth;
+            tObj->palette = paletteBuffer;
             tObj->paletteLength = pal->palettesize;
 
             // TODO: Dont do this
             tObj->bitmapLength = services.gfx_size(w * h);
-            uint8_t *dst       = (uint8_t *)services.gfx_alloc(w * h);
+            uint8_t *dst = (uint8_t *)services.gfx_alloc(w * h);
             memcpy(dst, bitmap, tObj->bitmapLength);
             delete[] bitmap;
             // Seriously
@@ -121,7 +120,7 @@ namespace Textures
         {
             // TODO: Dont do this
             int bitmapLen = services.gfx_size(w * h * 2);
-            uint8_t *dst  = (uint8_t *)services.gfx_alloc(w * h * 2);
+            uint8_t *dst = (uint8_t *)services.gfx_alloc(w * h * 2);
             if (!dst)
                 return fail(4);
 
@@ -135,7 +134,7 @@ namespace Textures
                 uint8_t a = bitmap[i * 4 + 3];
 
                 // Alpha bit only for semi-transparent
-                uint16_t px    = ((a < 127 ? 0x8000 : 0) |
+                uint16_t px = ((a < 127 ? 0x8000 : 0) |
                                ((r & 0xF8) << 7) |
                                ((g & 0xF8) << 2) |
                                ((b & 0xF8) >> 3));
@@ -145,12 +144,12 @@ namespace Textures
             delete[] bitmap;
             bitmap = dst;
 
-            tObj->bitmap       = bitmap;
+            tObj->bitmap = bitmap;
             tObj->bitmapLength = bitmapLen;
-            tObj->bpp          = 16;
+            tObj->bpp = 16;
         }
 
-        tObj->width  = w;
+        tObj->width = w;
         tObj->height = h;
 
         lodepng_state_cleanup(&state);
@@ -183,7 +182,7 @@ namespace Textures
         }
 
         // Allocate palette buffers
-        uint32_t *palette_u32   = gifn_color_table_as_u32(gif.header.gct, gif.header.gctSize, false);
+        uint32_t *palette_u32 = gifn_color_table_as_u32(gif.header.gct, gif.header.gctSize, false);
         Video::Color *vcPalette = new Video::Color[gif.header.gctSize];
         if (!vcPalette || !palette_u32 || !gif.header.gctSize)
         {
@@ -209,7 +208,7 @@ namespace Textures
         if (bits < 4)
         {
             // Upconvert to 4bpp
-            size_t nPx     = (numPix / 2);
+            size_t nPx = (numPix / 2);
             size_t padding = (16 - ((nPx / 4) % 16));
             nPx += padding * 4;
             uint8_t *expanded = new uint8_t[nPx];
@@ -224,16 +223,16 @@ namespace Textures
 
             memset(expanded, 0, nPx);
             bool hp = false; // upper pixel nibble
-            int b   = 0;
+            int b = 0;
             for (int i = 0; i < numPix; i++)
             {
                 expanded[b] |= ((gif.frames[0].indices[i] & 0xF) << (4 * hp));
                 hp = !hp;
                 if (!hp) b++;
             }
-            numPix     = nPx;
+            numPix = nPx;
             workBuffer = expanded;
-            bits       = 4;
+            bits = 4;
         }
         else
         {
@@ -248,7 +247,7 @@ namespace Textures
         }
 
         tObj->height = gif.header.height;
-        tObj->width  = gif.header.width;
+        tObj->width = gif.header.width;
         tObj->loadTextureFromMem(
             workBuffer,
             numPix,

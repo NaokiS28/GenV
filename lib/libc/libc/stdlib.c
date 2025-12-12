@@ -26,7 +26,7 @@ int genv_halt_screen_show(const char *string);
 void _assertAbort(const char *file, int line, const char *expr)
 {
     char str[256] = {0};
-    snprintf(str, 256, "CRITICAL PROCESS ERROR\r\n\r\n%s:%d: assert(%s)\n", file, line, expr);
+    snprintf(str, 256, "CRITICAL PROCESS ERROR\r\n\r\n%s:%d: Assert failed validation:\r\n\r\nassert(%s)\n", file, line, expr);
 #ifndef NDEBUG
     puts(str);
 #endif
@@ -38,7 +38,7 @@ void _assertAbort(const char *file, int line, const char *expr)
 void abort(void)
 {
     char str[256] = {0};
-    snprintf(str, 256, "CRITICAL PROCESS ERROR\r\n\r\nabort()\n");
+    snprintf(str, 256, "CRITICAL PROCESS ERROR\r\n\r\nAbort function was called (abort()).");
 #ifndef NDEBUG
     puts(str);
 #endif
@@ -51,7 +51,7 @@ void abort(void)
 void __cxa_pure_virtual(void)
 {
     char str[256] = {0};
-    snprintf(str, 256, "CRITICAL PROCESS ERROR\r\n\r\n__cxa_pure_virtual()");
+    snprintf(str, 256, "CRITICAL PROCESS ERROR\r\n\r\nPure virtual function was called (__cxa_pure_virtual()).");
 #ifndef NDEBUG
     puts(str);
 #endif

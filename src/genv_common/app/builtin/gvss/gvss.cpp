@@ -86,11 +86,11 @@ namespace Apps
         if (getState() == APP_STATE_ERROR) return;
         gpu->fillScreen(Video::Colors::Black);
         // logo_ring->draw(logoPos.x, logoPos.y);
-        if (linePos.w) gpu->drawRect(linePos, Video::Colors::White);
+        if (drawLine) gpu->drawRect(linePos, Video::Colors::White);
         logo_v->draw(logoVPos.x, logoVPos.y);
         if (vBoxPos.w > 0) gpu->drawRect(vBoxPos, Video::Colors::Black);
-        if (ringAlpha) logo_ring->draw(logoRPos.x, logoRPos.y);
-        if (textAlpha) gpu->drawText(GVSSText, textPos.x, textPos.y, textPos.w, textPos.h);
+        if (ringAlpha > 0) logo_ring->draw(logoRPos.x, logoRPos.y);
+        if (textAlpha > 0) gpu->drawText(GVSSText, textPos.x, textPos.y, textPos.w, textPos.h);
         vStep++;
     }
 
@@ -126,7 +126,7 @@ namespace Apps
         switch (GVSSAnimStep)
         {
         case GVSS_Init:
-            lineStop     = logoVPos.x;
+            lineStop = logoVPos.x;
             GVSSAnimStep = GVSS_Line1;
             break;
         case GVSS_Line1:
@@ -141,11 +141,14 @@ namespace Apps
             }
             break;
         case GVSS_VReveal:
-            if (linePos.w > 0)
+            if (linePos.w >= 4)
             {
                 linePos.x += 4;
                 linePos.w -= 4;
             }
+            else
+                drawLine = false;
+
             if (vBoxPos.w > 0)
             {
                 vBoxPos.x += 4;
@@ -153,12 +156,13 @@ namespace Apps
             }
             else
             {
-                linePos.x    = logoVPos.x + logoVPos.w;
-                linePos.w    = 1;
+                linePos.x = logoVPos.x + logoVPos.w;
+                linePos.w = 1;
                 GVSSAnimStep = GVSS_Line2;
             }
             break;
         case GVSS_Line2:
+            if (!drawLine) drawLine = true;
             if (linePos.w < line_width)
                 linePos.w += 4;
             else

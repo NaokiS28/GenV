@@ -63,7 +63,7 @@ namespace System::PSX
         clock = &_rtc;
 
         testSwitchLatching = false; // Test switch is push button
-
+        tickWatchdog();
         return GV_OK;
     }
 
@@ -102,6 +102,7 @@ namespace System::PSX
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
         if (!error) services.setVideo(adminKey, gpu);
         psx_halt_append_func(sys573_halt_delay);
+        tickWatchdog();
         return error;
     }
 
