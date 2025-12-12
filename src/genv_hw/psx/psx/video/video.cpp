@@ -118,10 +118,9 @@ namespace System::PSX::GPU
         fillScreen(Colors::Blue);
         _swapFrameBuffer();
 #endif
-
         _enableDMA(true);
         IRQ_MASK |= 1 << IRQ_VSYNC;
-        return 0;
+        return GV_OK;
     }
 
     int PSXGPU::setResolution(int w, int h, bool updateWindow)
@@ -280,7 +279,7 @@ namespace System::PSX::GPU
         _GPUC(gp0_fbOffset1(frameX, frameY));
         _GPUC(gp0_fbOffset2(
             frameX + _screen.res.width - 1,
-            frameY + _screen.res.height - 2));
+            frameY + _screen.res.height - 1));
     }
 
     uint32_t *PSXGPU::_allocatePacket(DMAChain *chain, int numCommands)
@@ -312,6 +311,7 @@ namespace System::PSX::GPU
         // Make sure the pointer is aligned to 32 bits (4 bytes). The DMA engine is
         // not capable of reading unaligned data.
         assert(!((uint32_t)data % 4));
+        assert(data);
 
         if (GPU_GP1 & GP1_STAT_FB_INTERLACE)
         {
@@ -343,16 +343,8 @@ namespace System::PSX::GPU
     bool PSXGPU::beginRender()
     {
         _waitForGP0Ready();
-        LOG("psxgpu", "gp0");
-        if (useDMA)
-        {
-            LOG("psxgpu", "dma");
-            _sendLinkedList(chain->data);
-            LOG("psxgpu", "list");
-        }
-
+        if (useDMA && chain) _sendLinkedList(chain->data);
         _swapFrameBuffer();
-        LOG("psxgpu", "frame");
         return true;
     }
 

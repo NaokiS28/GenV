@@ -23,6 +23,7 @@
 #include "common/services/services.hpp"
 #include "common/services/system/rtc/soft_rtc.hpp"
 
+#include "psx/psx/video/gpucmd.h"
 #include "psx_strings.hpp"
 #include "system/pcsxhw.h"
 #include "system/sys.h"
@@ -117,7 +118,7 @@ namespace System::PSX
     int PSXSystem::initVideo()
     {
         int error = 0;
-        gpu = new GPU::PSXGPU;
+        gpu = new GPU::PSXGPU();
         error = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
         if (!error) services.setVideo(adminKey, gpu);
@@ -199,18 +200,8 @@ namespace System::PSX
 
     void PSXSystem::interruptHandler_(void)
     {
-        uint32_t status = IRQ_STAT;
-        while (status)
-        {
-            uint32_t bit = status & -status; // extract lowest-set bit
-            switch (bit)
-            {
-            case IRQ_VSYNC: isr_vsync_(); break;
-            case IRQ_TIMER2: isr_timer2_(); break;
-            default: break;
-            }
-            IRQ_STAT = ~(bit);
-        }
+        if (psx_acknowledgeInterrupt(IRQ_VSYNC)) isr_vsync_();
+        if (psx_acknowledgeInterrupt(IRQ_TIMER2)) isr_timer2_();
     }
 
     void PSXSystem::isr_vsync_()

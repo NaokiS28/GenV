@@ -48,7 +48,7 @@ namespace System::PSX::GPU
     protected:
         typedef struct
         {
-            uint32_t data[iPSXDMAListSize];
+            uint32_t data[iPSXDMAListSize] = {0};
             uint32_t *nextPacket;
         } DMAChain;
 
