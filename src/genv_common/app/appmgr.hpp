@@ -92,23 +92,25 @@ namespace Apps
             AppID getTypeID(AppScreenType type);
         } appFactories;
 
+        // arcade specific
         bool firstRun = true;
-        uint8_t enteredTestMode = 0; // arcade specific
+        uint8_t enteredTestMode = 0;
+        System::IArcadeSystem *asys = nullptr;
+        ArcadeTestApp *gameTestModeFactory = nullptr;
+        ArcadeTestApp *systemTestModeFactory = nullptr;
 
         Application *foregroundApp = nullptr;
+        const AppInfo *foregroundAppInfo = nullptr;
+
         Application *backgroundApp = nullptr;
-        LoadScreenApp *loadingScreen = nullptr;
+
         ErrorScreenApp *errorScreen = nullptr;
-
-        System::IArcadeSystem *asys = nullptr;
-
         ErrorScreenFactory errorScreenFactory = nullptr;
         const AppInfo *errorScreenInfo = nullptr;
+
+        LoadScreenApp *loadingScreen = nullptr;
         LoadScreenFactory loadScreenFactory = nullptr;
         const AppInfo *loadScreenInfo = nullptr;
-
-        ArcadeTestApp *systemTestModeFactory = nullptr;
-        ArcadeTestApp *gameTestModeFactory = nullptr;
 
         bool m_hasPending = false;
         AppID m_pendingId = 0;

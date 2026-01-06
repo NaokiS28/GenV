@@ -22,13 +22,10 @@
  */
 
 #pragma once
-#include <string.h>
 #include "app/app.hpp"
 #include "app/iapp_host.hpp"
 #include "common/util/rect.h"
 #include "common/util/tween.hpp"
-#include "common/objects/sound.hpp"
-#include "common/formats/wav.hpp"
 
 using namespace Apps;
 

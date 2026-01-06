@@ -75,8 +75,8 @@ public:
 
     void render() override
     {
-        char timeStr[20];
-        char padStr[16];
+        char timeStr[20] = {'\0'};
+        char padStr[16] = {'\0'};
         char padNameStr[35 * 8] = {0};
         tm time;
         System::getTime(time);
