@@ -18,8 +18,8 @@
 #pragma once
 
 #include "common/services/system/system.hpp"
-#include "psx/psx/system.hpp"
-#include "psx/psx/video/video.hpp"
+#include "psx/common/system.hpp"
+#include "psx/common/drivers/video/video.hpp"
 
 #include "psx/sys573/io/io.h"
 #include "rtc.hpp"
@@ -27,6 +27,8 @@
 #include "common/services/system/arcade/arcade.hpp"
 
 #include "jamma/jamma.hpp"
+
+#include "psx/common/drivers/psx_pcdrv.hpp"
 
 namespace System::PSX
 {
@@ -36,7 +38,7 @@ namespace System::PSX
         constexpr const char *szMakeName = "KONAMI";
     } // namespace KSYS573
 
-    class Sys573System : public PSXSystem, public BaseArcadeSystem
+    class Sys573System : public BasePSXSystem, public BaseArcadeSystem
     {
     private:
         SystemInfo si573 = {

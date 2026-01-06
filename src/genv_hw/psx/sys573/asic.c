@@ -20,7 +20,7 @@
 
 #include "asic.h"
 
-#include "psx/psx/system/sys.h"
+#include "psx/common/system/sys.h"
 #include "psx/sys573/registers573.hpp"
 
 #define OUTPUT_PULSE_TIME 20

@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 ## Konami System 573 Library
-add_subdirectory(../psx ../psx)
+add_subdirectory(../common ../common)
 
 add_library(genv_hw_sys573 STATIC)
 
@@ -35,4 +35,4 @@ target_include_directories(
 	${LIBC_INCLUDE}
 )
 
-target_link_libraries(genv_hw_sys573 PRIVATE genv_hw_psx genv_common genv_util genv_terminal)
+target_link_libraries(genv_hw_sys573 PRIVATE genv_psx_core genv_common genv_util genv_terminal)

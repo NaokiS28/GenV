@@ -24,11 +24,11 @@
 #include "common/services/io/iface_input.hpp"
 #include "common/services/services.hpp"
 
-#include "psx/psx/drivers/sio0/psx_pads.hpp"
-#include "psx/psx/drivers/sio0/psx_sio0.hpp"
-#include "psx/psx/psx_strings.hpp"
-#include "psx/psx/registers.hpp"
-#include "psx/psx/system/sys.h"
+#include "psx/common/drivers/sio0/psx_pads.hpp"
+#include "psx/common/drivers/sio0/psx_sio0.hpp"
+#include "psx/common/psx_strings.hpp"
+#include "psx/common/registers.hpp"
+#include "psx/common/system/sys.h"
 
 #define LOG_JOY(fmt, ...) LOG("psx_joy", fmt __VA_OPT__(, ) __VA_ARGS__)
 #define START(addr, port)                                   \
@@ -145,7 +145,7 @@ namespace System::PSX::IO
     {
         psx_sio0.update(); // Mouse ack checking
 
-        int fr      = GV_OK;
+        int fr = GV_OK;
         int subport = 0;
         ControllerReadResponse resp;
         // Will always do the first subport (assuming multitap is connected, else just first port)
@@ -213,7 +213,7 @@ namespace System::PSX::IO
                                 LOG("psxpad", "Controller disconnected on port %d:%c", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2), 'A' + _tPad.subBusID);
                                 getServiceManager()->dettachInputDevice(&_tPad);
                                 _padData[_tPad.subBusID] = PSX_PadData(); // Null it out
-                                _tPad                    = IInputDevice();
+                                _tPad = IInputDevice();
                             }
                         }
                         psx_sio0.setMultitapState(_portNumber, MT_TEST_PRESENCE);
@@ -224,7 +224,7 @@ namespace System::PSX::IO
                         if (pad.type != Input::DEVICE_TYPE_NULL)
                             getServiceManager()->dettachInputDevice(&pad);
                         _padData[subport] = PSX_PadData(); // Null it out
-                        pad               = IInputDevice();
+                        pad = IInputDevice();
                         if (subport == 0) psx_sio0.setMultitapState(_portNumber, MT_TEST_PRESENCE);
                     }
                 }
@@ -349,7 +349,7 @@ namespace System::PSX::IO
         uint8_t request[4]{CMD_POLL, test, 0, 0};
         alignas(ControllerReadResponse) uint8_t response[(2 + ((2 * 4) * 4))] = {0}; // 2 ID bits, 4 'half-words (uint16_t)' of controller data, 4 contollers
 
-        uint8_t pass      = 0;
+        uint8_t pass = 0;
         size_t respLength = 0;
         // Multitap jank - Issuing a request above wont always result in the multitap being ready
         // So if we're testing, send two commands. First a dummy poll with the test bit, then

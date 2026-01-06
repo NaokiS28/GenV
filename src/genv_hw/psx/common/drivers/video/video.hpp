@@ -28,11 +28,11 @@
 #include "common/services/services.hpp"
 #include "common/services/video/iface_video.hpp"
 
-#include "psx/psx/video/gpucmd.h"
+#include "psx/common/system/gpucmd.h"
 
 namespace System::PSX
 {
-    class PSXSystem;
+    class BasePSXSystem;
 }
 
 namespace System::PSX::GPU
@@ -43,10 +43,10 @@ namespace System::PSX::GPU
 
     class PSXGPU : public IVideo
     {
-        friend class System::PSX::PSXSystem;
+        friend class System::PSX::BasePSXSystem;
 
     protected:
-        typedef struct
+        typedef struct DMAChain
         {
             uint32_t data[iPSXDMAListSize] = {0};
             uint32_t *nextPacket;

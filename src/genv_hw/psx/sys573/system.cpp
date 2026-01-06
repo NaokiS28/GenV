@@ -17,11 +17,11 @@
 
 #include "system.hpp"
 
-#include "psx/psx/system.hpp"
-#include "psx/psx/halt/halt.h"
-#include "psx/psx/system/sys.h"
-#include "psx/psx/video/gpucmd.h"
-#include "psx/psx/system/pcsxhw.h"
+#include "psx/common/system.hpp"
+#include "psx/common/halt/halt.h"
+#include "psx/common/system/sys.h"
+#include "psx/common/system/gpucmd.h"
+#include "psx/common/system/pcsxhw.h"
 
 #include "psx/sys573/halt/halt.h"
 
@@ -29,7 +29,7 @@
 
 namespace System::PSX
 {
-    Sys573System::Sys573System() : PSXSystem()
+    Sys573System::Sys573System() : BasePSXSystem()
     {
     }
 
@@ -124,18 +124,18 @@ namespace System::PSX
         }
 
 #ifndef NDEBUG
-        int pcError = 0;
-        pcDriver = new Storage::PSX_PCDrive();
-        pcError = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
-        if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
-        if (!pcError) services.registerStorageDriver(pcDriver);
+        // int pcError = 0;
+        // pcDriver = new Storage::PSX_PCDrive();
+        // pcError = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
+        // if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
+        // if (!pcError) services.registerStorageDriver(pcDriver);
 #endif
         return 0;
     }
 
     int Sys573System::initIO()
     {
-        PSXSystem::initIO();
+        BasePSXSystem::initIO();
         services.registerInputDriver(&_jamma);
 
         return 0;

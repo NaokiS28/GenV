@@ -19,9 +19,9 @@
 #include <stdio.h>
 
 #include "halt.h"
-#include "psx/psx/halt/halt.h"
-#include "psx/psx/registers.hpp"
-#include "psx/psx/system/sys.h"
+#include "psx/common/halt/halt.h"
+#include "psx/common/registers.hpp"
+#include "psx/common/system/sys.h"
 #include "psx/sys573/registers573.hpp"
 
 extern HaltColor ColorBlue;

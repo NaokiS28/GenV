@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "psx/psx/psx_strings.hpp"
+#include "psx/common/psx_strings.hpp"
 
 #include "common/services/io/iface_input.hpp"
 #include "common/util/hash.hpp"
@@ -29,18 +29,18 @@ namespace System::PSX::IO
 {
     using namespace Input;
 
-    constexpr const util::Hash PSX_PAD_HASH        = "PSXPAD"_h;
-    constexpr const util::Hash PSX_DIGITAL_HASH    = "PSXDIGITAL"_h;
-    constexpr const util::Hash PSX_ANALOG_HASH     = "PSXANALOG"_h;
-    constexpr const util::Hash PSX_DUALSHOCK_HASH  = "PSXDUALSHOCK"_h;
+    constexpr const util::Hash PSX_PAD_HASH = "PSXPAD"_h;
+    constexpr const util::Hash PSX_DIGITAL_HASH = "PSXDIGITAL"_h;
+    constexpr const util::Hash PSX_ANALOG_HASH = "PSXANALOG"_h;
+    constexpr const util::Hash PSX_DUALSHOCK_HASH = "PSXDUALSHOCK"_h;
     constexpr const util::Hash PSX_DUALSHOCK2_HASH = "PSXDUALSHOCK2"_h;
-    constexpr const util::Hash PSX_GUNCON_HASH     = "PSXGUNCON"_h;
-    constexpr const util::Hash PSX_TWINSTICK_HASH  = "PSXTWINSTICK"_h;
-    constexpr const util::Hash PSX_JUSTIFIER_HASH  = "PSXJUSTIFIER"_h;
-    constexpr const util::Hash PSX_MOUSE_HASH      = "PSXMOUSE"_h;
-    constexpr const util::Hash PSX_KEYBOARD_HASH   = "PSXKEYBOARD"_h;
-    constexpr const util::Hash PSX_NEGCON_HASH     = "PSXNEGCON"_h;
-    constexpr const util::Hash PSX_JOGCON_HASH     = "PSXJOGCON"_h;
+    constexpr const util::Hash PSX_GUNCON_HASH = "PSXGUNCON"_h;
+    constexpr const util::Hash PSX_TWINSTICK_HASH = "PSXTWINSTICK"_h;
+    constexpr const util::Hash PSX_JUSTIFIER_HASH = "PSXJUSTIFIER"_h;
+    constexpr const util::Hash PSX_MOUSE_HASH = "PSXMOUSE"_h;
+    constexpr const util::Hash PSX_KEYBOARD_HASH = "PSXKEYBOARD"_h;
+    constexpr const util::Hash PSX_NEGCON_HASH = "PSXNEGCON"_h;
+    constexpr const util::Hash PSX_JOGCON_HASH = "PSXJOGCON"_h;
 
     constexpr IInputDevice psxPad(
         const char *name, util::Hash type, PlayerSuggestion player, uint8_t subport,

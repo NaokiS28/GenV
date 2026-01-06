@@ -19,7 +19,7 @@
 #ifndef GENV_573_HALT_H
 #define GENV_573_HALT_H
 
-#include "psx/psx/halt/halt.h"
+#include "psx/common/halt/halt.h"
 
 #ifdef __cplusplus
 extern "C"

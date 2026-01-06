@@ -27,8 +27,8 @@
 #include "common/services/services.hpp"
 #include "common/util/templates.hpp"
 #include "psx_sio0.hpp"
-#include "psx/psx/psx_strings.hpp"
-#include "psx/psx/registers.hpp"
+#include "psx/common/psx_strings.hpp"
+#include "psx/common/registers.hpp"
 
 namespace System::PSX
 {
@@ -41,21 +41,21 @@ namespace System::PSX::IO
 
     enum JoypadType : uint8_t
     {
-        PAD_ERROR        = 0x00,
+        PAD_ERROR = 0x00,
         PAD_DISCONNECTED = 0xFF,
-        PAD_MOUSE        = 0x12,
-        PAD_NEGCON       = 0x23,
-        PAD_KONAMI_GUN   = 0x31,
-        PAD_DIGITAL      = 0x41,
-        PAD_TWINSTICK    = 0x53,
-        PAD_GUNCON       = 0x63,
-        PAD_ANALOG       = 0x73,
-        PAD_DVD_REMOTE   = 0x12,
-        PAD_DUALSHOCK2   = 0x79,
-        PAD_MULTITAP     = 0x80,
-        PAD_KEYBOARD     = 0x96,
-        PAD_JOGCON       = 0xE3,
-        PAD_CONFIG       = 0xF3,
+        PAD_MOUSE = 0x12,
+        PAD_NEGCON = 0x23,
+        PAD_KONAMI_GUN = 0x31,
+        PAD_DIGITAL = 0x41,
+        PAD_TWINSTICK = 0x53,
+        PAD_GUNCON = 0x63,
+        PAD_ANALOG = 0x73,
+        PAD_DVD_REMOTE = 0x12,
+        PAD_DUALSHOCK2 = 0x79,
+        PAD_MULTITAP = 0x80,
+        PAD_KEYBOARD = 0x96,
+        PAD_JOGCON = 0xE3,
+        PAD_CONFIG = 0xF3,
     };
 
     enum FeedbackType : uint8_t
@@ -69,45 +69,45 @@ namespace System::PSX::IO
     enum ControllerButton : uint16_t
     {
         // Standard controllers
-        BTN_SELECT   = 1 << 0,
-        BTN_L3       = 1 << 1,
-        BTN_R3       = 1 << 2,
-        BTN_START    = 1 << 3,
-        BTN_UP       = 1 << 4,
-        BTN_RIGHT    = 1 << 5,
-        BTN_DOWN     = 1 << 6,
-        BTN_LEFT     = 1 << 7,
-        BTN_L2       = 1 << 8,
-        BTN_R2       = 1 << 9,
-        BTN_L1       = 1 << 10,
-        BTN_R1       = 1 << 11,
+        BTN_SELECT = 1 << 0,
+        BTN_L3 = 1 << 1,
+        BTN_R3 = 1 << 2,
+        BTN_START = 1 << 3,
+        BTN_UP = 1 << 4,
+        BTN_RIGHT = 1 << 5,
+        BTN_DOWN = 1 << 6,
+        BTN_LEFT = 1 << 7,
+        BTN_L2 = 1 << 8,
+        BTN_R2 = 1 << 9,
+        BTN_L1 = 1 << 10,
+        BTN_R1 = 1 << 11,
         BTN_TRIANGLE = 1 << 12,
-        BTN_CIRCLE   = 1 << 13,
-        BTN_CROSS    = 1 << 14,
-        BTN_SQUARE   = 1 << 15,
+        BTN_CIRCLE = 1 << 13,
+        BTN_CROSS = 1 << 14,
+        BTN_SQUARE = 1 << 15,
 
         // Mouse
         BTN_MOUSE_RIGHT = 1 << 10,
-        BTN_MOUSE_LEFT  = 1 << 11,
+        BTN_MOUSE_LEFT = 1 << 11,
 
         // neGcon
         BTN_NEGCON_START = 1 << 3,
-        BTN_NEGCON_UP    = 1 << 4,
+        BTN_NEGCON_UP = 1 << 4,
         BTN_NEGCON_RIGHT = 1 << 5,
-        BTN_NEGCON_DOWN  = 1 << 6,
-        BTN_NEGCON_LEFT  = 1 << 7,
-        BTN_NEGCON_R     = 1 << 11,
-        BTN_NEGCON_B     = 1 << 12,
-        BTN_NEGCON_A     = 1 << 13,
+        BTN_NEGCON_DOWN = 1 << 6,
+        BTN_NEGCON_LEFT = 1 << 7,
+        BTN_NEGCON_R = 1 << 11,
+        BTN_NEGCON_B = 1 << 12,
+        BTN_NEGCON_A = 1 << 13,
 
         // Guncon
-        BTN_GUNCON_A       = 1 << 3,
+        BTN_GUNCON_A = 1 << 3,
         BTN_GUNCON_TRIGGER = 1 << 13,
-        BTN_GUNCON_B       = 1 << 14,
+        BTN_GUNCON_B = 1 << 14,
 
         // IRQ10 lightgun
-        BTN_IRQ10_GUN_START   = 1 << 3,
-        BTN_IRQ10_GUN_BACK    = 1 << 14,
+        BTN_IRQ10_GUN_START = 1 << 3,
+        BTN_IRQ10_GUN_BACK = 1 << 14,
         BTN_IRQ10_GUN_TRIGGER = 1 << 15
     };
 
@@ -128,12 +128,12 @@ namespace System::PSX::IO
         ControllerReadResponse(const uint8_t *rsp, size_t len)
         {
             assert(len >= 4);
-            id    = (uint16_t)((rsp[1] << 8) | rsp[0]);
+            id = (uint16_t)((rsp[1] << 8) | rsp[0]);
             input = (uint16_t)((rsp[3] << 8) | rsp[2]);
             if (len > 4)
             {
-                left.x  = rsp[4];
-                left.y  = rsp[5];
+                left.x = rsp[4];
+                left.y = rsp[5];
                 right.x = rsp[6];
                 right.y = rsp[7];
             }
@@ -157,11 +157,11 @@ namespace System::PSX::IO
 
         struct PSX_PadData
         {
-            uint32_t digital         = 0;
-            int16_t analog[10]       = {0};
+            uint32_t digital = 0;
+            int16_t analog[10] = {0};
             uint8_t motorStrength[2] = {0};
-            JoypadType type          = PAD_DISCONNECTED;
-            bool doDSTest            = true;
+            JoypadType type = PAD_DISCONNECTED;
+            bool doDSTest = true;
         } _padData[4];
 
         IInputDevice _padList[4];

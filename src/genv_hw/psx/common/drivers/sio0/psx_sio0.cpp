@@ -22,8 +22,8 @@
 #include "psx_sio0.hpp"
 #include "common/logger/log.hpp"
 #include "common/services/services.hpp"
-#include "psx/psx/registers.hpp"
-#include "psx/psx/system/sys.h"
+#include "psx/common/registers.hpp"
+#include "psx/common/system/sys.h"
 
 namespace System::PSX
 {
@@ -33,8 +33,8 @@ namespace System::PSX
 namespace System::PSX::IO
 {
     static constexpr int _SIO0_BAUD_RATE = 250000;
-    static constexpr int _ACK_TIMEOUT    = 120;
-    static constexpr int _CS_DELAY       = 60;
+    static constexpr int _ACK_TIMEOUT = 120;
+    static constexpr int _CS_DELAY = 60;
 
     int PSX_SIO0::init()
     {
@@ -134,7 +134,7 @@ namespace System::PSX::IO
         SIO_CTRL(0) = port | SIO_CTRL_DTR | SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE | SIO_CTRL_ACKNOWLEDGE;
         psx_delayMicrosecondsBusy(_CS_DELAY);
 
-        IRQ_STAT    = ~(1 << IRQ_SIO0);
+        IRQ_STAT = ~(1 << IRQ_SIO0);
         SIO_DATA(0) = address;
 
         // The controller only pulses /ACK for a brief period of time and the DSR
@@ -154,7 +154,7 @@ namespace System::PSX::IO
     {
         psx_delayMicrosecondsBusy(_CS_DELAY);
         SIO_CTRL(0) = SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE;
-        _inUse      = false;
+        _inUse = false;
     }
 
     PSX_SIO0 psx_sio0;

@@ -19,9 +19,9 @@
 #define GENV_PSX_HALT_C
 
 #include "halt.h"
-#include "psx/psx/registers.hpp"
-#include "psx/psx/system/sys.h"
-#include "psx/psx/video/gpucmd.h"
+#include "psx/common/registers.hpp"
+#include "psx/common/system/sys.h"
+#include "psx/common/system/gpucmd.h"
 #include <string.h>
 
 const HaltColor ColorRed = {160, 0, 0};

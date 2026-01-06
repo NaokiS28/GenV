@@ -13,24 +13,34 @@
 # You should have received a copy of the GNU General Public License along with
 # GenV. If not, see <https://www.gnu.org/licenses/>.
 
-add_subdirectory(../common ../common)
-
-add_library(genv_hw_psx STATIC)
-
-target_sources(genv_hw_psx PUBLIC
+## PSX Core Library
+add_library(genv_psx_core STATIC)
+target_sources(genv_psx_core PUBLIC
     system.cpp
-)
-
-target_compile_definitions(
-	genv_hw_psx PRIVATE
-	GENV_PSX_VRAM_SIZE=1	# I know this is a problem as the 573 overwrites it or tries to.
+	#file/file.cpp
+	cpu/cache.s
+	system/sys.c
+	system/sys.s
+	system/unhandledexc.c
+	system/serial.c
+	system/timer.c
+	system/pcdrv.s
+	halt/halt.c
+    drivers/video/video.cpp
+    drivers/video/texmgr.cpp
+    drivers/video/psxtex.cpp
+	drivers/spu.cpp
+	drivers/sio0/memcard.cpp
+	drivers/sio0/psx_joy.cpp
+	drivers/sio0/psx_mc.cpp
+	drivers/sio0/psx_sio0.cpp
+	drivers/psx_cdrom.cpp
+	drivers/psx_pcdrv.cpp
 )
 
 target_include_directories(
-    genv_hw_psx PUBLIC
-	${CMAKE_SOURCE_DIR}/src/hw/psx/psx
+    genv_psx_core PUBLIC
+	${CMAKE_SOURCE_DIR}/src/genv_hw
 	${CMAKE_SOURCE_DIR}/src/genv_common
 	${LIBC_INCLUDE}
 )
-
-target_link_libraries(genv_hw_psx PRIVATE genv_psx_core genv_common genv_util genv_terminal genv_halt_screen genv_font_glyph)

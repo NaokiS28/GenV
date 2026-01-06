@@ -26,7 +26,7 @@
 #include "common/util/rect.h"
 #include "common/logger/log.hpp"
 
-#include "gpucmd.h"
+#include "psx/common/system/gpucmd.h"
 #include "psxtex.hpp"
 #include "gpudef.hpp"
 

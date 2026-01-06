@@ -22,8 +22,8 @@
 #include <string.h>
 #include "texmgr.hpp"
 #include "common/util/rect.h"
-#include "psx/psx/video/gpucmd.h"
-#include "psx/psx/video/gpudef.hpp" // IWYU pragma: export
+#include "psx/common/system/gpucmd.h"
+#include "psx/common/drivers/video/gpudef.hpp" // IWYU pragma: export
 #include "common/return_codes.hpp"
 
 namespace System::PSX::GPU

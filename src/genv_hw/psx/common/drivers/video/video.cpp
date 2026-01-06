@@ -30,14 +30,13 @@
 #include "common/services/video/video.hpp"
 #include "common/util/hash.hpp"
 #include "common/util/rect.h"
-#include "gpucmd.h"
 
-#include "../registers.hpp"
+#include "psx/common/registers.hpp"
 #include "common/logger/log.hpp"
 #include "halt_screen/halt_screen.h"
-#include "psx/psx/halt/halt.h"
-#include "psx/psx/video/psxtex.hpp"
-#include "psx/psx/video/texmgr.hpp"
+#include "psx/common/halt/halt.h"
+#include "psxtex.hpp"
+#include "texmgr.hpp"
 
 namespace System::PSX::GPU
 {

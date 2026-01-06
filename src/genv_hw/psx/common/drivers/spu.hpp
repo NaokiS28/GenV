@@ -18,7 +18,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "../registers.hpp"
+#include "psx/common/registers.hpp"
 
 namespace spu
 {
@@ -84,4 +84,4 @@ namespace spu
         Channel play(uint16_t left, uint16_t right, Channel ch) const;
     };
 
-}
+} // namespace spu
