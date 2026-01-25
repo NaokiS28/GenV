@@ -87,7 +87,7 @@ def main():
         for file in sorted(todos):
             f.write(f"#### [{file}]({file})\n\n")
             for lineno, text in todos[file]:
-                f.write(f"- [{lineno}]({file}#{lineno}): {text}\n")
+                f.write(f"- [{lineno}]({file}?plain=1#L{lineno}): {text}\n")
             f.write("\n")
 
     print(f"Wrote {output_file}")
