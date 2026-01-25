@@ -54,16 +54,16 @@ More platforms can be supported with a dedicated abstraction layer, however plaf
 
 ## Contributing
 
-Pull requests are welcome. If you wish to add functionality feel free to do so,
-however please stick to the following guidelines:
+Pull requests are welcome!
+The easiest way to help is to take a look at the [TODO list](TODO.md) to see if there's any outstanding issues that can be resolved.
+
+If you wish to add functionality, please feel free to do so, however please stick to the following guidelines:
 
 - Do not include any code lifted as-is or minimally modified from a game disassembly. Rewritten and properly explained/commented code is fine.
 - Adding a section to the documentation covering usage of the newly added functionality is not required, but would be highly appreciated.
 - If you are adding a new system, please make sure you include a TODO list if features are not yet implemented so that maintainers can keep a track of platform support.
 
-If you have any questions or doubts, or want to propose new features, feel free
-to reach out to the authors by opening an issue or through one of the Discord
-servers linked at the end of the page.
+If you have any questions or doubts, or want to propose new features, feel free to reach out to the authors by opening an issue or through one of the Discord servers linked at the end of the page.
 
 ## License
 [Marco Paland's printf library](https://github.com/mpaland/printf), [spicyjpeg's ps1-bare-metal](https://github.com/spicyjpeg/ps1-bare-metal) and parts of [spicjpeg's 573in1](https://github.com/spicyjpeg/573in1) used in this repository is licensed under the MIT license. The only "hard" requirements are attribution and preserving the license notice; you may otherwise freely use any of the code for both non-commercial and commercial purposes (such as a paid homebrew game or a book or course).
