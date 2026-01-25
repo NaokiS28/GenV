@@ -28,6 +28,8 @@ project(
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
 
+set(TODO_OUTPUT_DIR ${CMAKE_SOURCE_DIR})
+
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -132,3 +134,14 @@ if (DOT_EXECUTABLE)
     )
     message(STATUS "Generated build_graph.dot and build_graph.png in ${CMAKE_BINARY_DIR}")
 endif()
+
+add_custom_target(generate_todos ALL
+    COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_SOURCE_DIR}/tools/generate_todos.py 
+			--ignore "lib/" 
+			--ignore "tools/" 
+			--ignore "TODO.md"
+			${TODO_OUTPUT_DIR}/TODO.md
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	COMMENT "Compiling TODO list to ${TODO_OUTPUT_DIR}/TODO.md"
+)
