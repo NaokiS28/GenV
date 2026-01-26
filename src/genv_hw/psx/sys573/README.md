@@ -12,8 +12,8 @@ The KONAMI System 573 is an arcade board which is heavily based on the PS1, whic
 GenV Status:
 <table>
 	<tr>
-		<td> PS1 Core </td>
-		<td> CPU & GPU & SPU are identical to retail units. See core PS1 implementation details. </td>
+		<td> PSX Core </td>
+		<td> Please check the <a href="../common/README.md">hardware core README</a> to see for implementation status. </td>
 	</tr>
 	<tr>
 		<td> IDE CD-ROM </td>
@@ -24,11 +24,23 @@ GenV Status:
 		<td> IDE HDD support is comletely unimplemented.</td>
 	</tr>
 	<tr>
+		<td> Flash </td>
+		<td> Internal 16MiB flash support is comletely unimplemented.</td>
+	</tr>
+	<tr>
+		<td> PCMCIA </td>
+		<td> 
+			<p>Warning: PCMCIA IO cards cannot be used without modification to the motherboard. Only memory mapped cards can be used.
+			<p>PCMCIA support is comletely unimplemented.
+		</td>
+	</tr>
+	<tr>
 		<td> IO </td>
 		<td> 
-			JAMMA is partially implemented, but require advancements in the core input management system.<p>
-			JVS suport is skeleton.<p>
-			Security cart is completely unimplemented.<p>
+			<p>JAMMA is partially implemented, but require advancements in the core input management system.
+			<p>JVS support is skeleton.
+			<p>Security cart is completely unimplemented.
+			<p>Expansion bus is completely unimplemented.
 		</td>
 	</tr>
 </table>

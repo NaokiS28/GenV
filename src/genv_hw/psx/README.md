@@ -44,8 +44,9 @@ The Sony PlayStation (herein reffered to by the names of PS1 or PSX in subsequen
 
 ## Platforms supported
 
-* [Sony PlayStation](psx/) - Base driver.
-* [KONAMI System 573](sys573/) - Derrived from PSX.
+* [PlayStation Hardware Core](common/) - Base driver.
+* [Sony PlayStation](psx/) - Retail PS1 driver. Differences from the common core is wiring up the 2x CD-ROM drive and the SPU.
+* [KONAMI System 573](sys573/) - Derrived from the common core. Differences include adding an IDE CD-ROM (optionally ATA devices), JVS, JAMMA and Analog IO support.
 
 ## Notice of Non-Affiliation and Disclaimer
 
