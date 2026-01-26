@@ -21,32 +21,40 @@ Currently the engine is in active development and the core API is subject to cha
 If you would like to contribute, please see [Contributing](#contributing).
 
 ### Supported platforms:
+Click on a system or category to learn more about their current status within GenV.
 <table><thead>
   <tr>
     <th>Category</th>
     <th>Platform</th>
+    <th>Status</th>
   </tr></thead>
 <tbody>
-  <tr>
-    <td>Computers</td>
-    <td>
-	<img src="https://img.shields.io/badge/Windows-Preliminary-red?style=for-the-badge&labelColor=grey"><br>
-	<img src="https://img.shields.io/badge/-Planned-darkred?style=for-the-badge&logo=macos&logoSize=auto&logoColor=white&labelColor=grey"><br>
-	<img src="https://img.shields.io/badge/Linux-Planned-darkred?style=for-the-badge&logo=linux&logoSize=auto&logoColor=white&labelColor=grey"><br>
-	</td>
-  </tr>
-  <tr>
-    <td>Consoles</td>
-    <td> 
-	<img src="https://img.shields.io/badge/PS1-Preliminary-red?style=for-the-badge&logo=playstation&logoSize=auto&logoColor=white&labelColor=grey"><br>
-	</td>
-  </tr>
-  <tr>
-    <td>Arcade</td>
-    <td> 
-	<img src="https://img.shields.io/badge/SYSTEM_573-Preliminary-red?style=for-the-badge&labelColor=grey"><br>
-	</td>
-  </tr>
+  	<tr>
+		<td rowspan=3> Computers </td>
+		<td> <a href="src/genv_hw/win32/README.md">Windows:</a> </td>
+		<td> <img src="https://img.shields.io/badge/Preliminary-red?style=for-the-badge"> </td>
+	</tr>
+	<tr>
+		<td> MacOS: </td>
+		<td> <img src="https://img.shields.io/badge/Unimplemented-darkred?style=for-the-badge"> </td>
+	</tr>
+	<tr>
+		<td> Linux: </td>
+		 <td> <img src="https://img.shields.io/badge/Unimplemented-darkred?style=for-the-badge"> </td>
+	</tr>
+	<tr>
+		<td rowspan=3> <a href="src/genv_hw/psx/">PSX Based</a> </td>
+		<td> <a href="src/genv_hw/psx/common/README.md">Core:</a> </td>
+		<td> <img src="https://img.shields.io/badge/Preliminary-red?style=for-the-badge"> 
+	</tr>
+	<tr>
+		<td> <a href="src/genv_hw/psx/psx/README.md">PlayStation:</a> </td>
+		<td> <img src="https://img.shields.io/badge/Preliminary-red?style=for-the-badge"> 
+	</tr>
+	<tr>
+		<td> <a href="src/genv_hw/psx/sys573/README.md">System 573:</a></td>
+		<td> <img src="https://img.shields.io/badge/Preliminary-red?style=for-the-badge"> 
+	</tr>
 </tbody>
 </table>
 
