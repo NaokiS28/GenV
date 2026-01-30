@@ -32,11 +32,13 @@
 
 namespace Textures
 {
+    // Identifies the image type in code
     enum class ecImageFormat
     {
-        IF_PNG,
-        IF_BMP,
-        IF_GIF,
+        IF_RAW, // RAW format, assume target native format
+        IF_PNG, // PNG image
+        IF_BMP, // Windows style Bitmap image
+        IF_GIF, // GIF image (indexed + animation)
         IF_END
     };
 
@@ -46,11 +48,12 @@ namespace Textures
         ecImageFormat format;
     };
 
+    constexpr const ImageFileFormat ifRawFile = {".raw", ecImageFormat::IF_RAW};
     constexpr const ImageFileFormat ifPngFile = {".png", ecImageFormat::IF_PNG};
     constexpr const ImageFileFormat ifBmpFile = {".bmp", ecImageFormat::IF_BMP};
     constexpr const ImageFileFormat ifGifFile = {".gif", ecImageFormat::IF_GIF};
     constexpr const ImageFileFormat ImageFormatList[] = {
-        ifPngFile, ifBmpFile, ifGifFile};
+        ifRawFile, ifPngFile, ifBmpFile, ifGifFile};
 
     Textures::TextureObject *loadPNG_memory(util::Hash objectID, const uint8_t *data, size_t length)
     {
@@ -282,7 +285,6 @@ namespace Textures
                         objectID,
                         fObj->getRawData(),
                         fObj->size());
-                    break;
                 case ecImageFormat::IF_BMP:
                     break;
                 case ecImageFormat::IF_GIF:
@@ -290,10 +292,8 @@ namespace Textures
                         objectID,
                         fObj->getRawData(),
                         fObj->size());
-                    break;
                 default:
                     return nullptr;
-                    break;
                 }
             }
         }
@@ -308,8 +308,9 @@ namespace Textures
 
         switch (type)
         {
-        case Genv_PNG_type: return loadPNG_memory(objectID, data, length);
-        case Genv_GIF_type: return loadGIF_memory(objectID, data, length);
+        // case Genv_RAW_type: return loadRAW_memory(objectID, data, length);	// TODO: Implement raw format loading (asks GPU core to handle this)
+        case Genv_PNG_Image_type: return loadPNG_memory(objectID, data, length);
+        case Genv_GIF_Image_type: return loadGIF_memory(objectID, data, length);
         default: return nullptr;
         }
     }

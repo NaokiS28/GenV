@@ -30,7 +30,6 @@
 
 #include "drivers/sio0/psx_joy.hpp"
 #include "drivers/sio0/psx_mc.hpp"
-#include "drivers/psx_cdrom.hpp"
 #include "drivers/psx_pcdrv.hpp"
 
 #include "psx_strings.hpp"

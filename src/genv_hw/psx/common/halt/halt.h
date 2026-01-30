@@ -17,7 +17,8 @@
 
 // Very basic GPU driver designed to reset the GPU and use bare C to draw out
 // an error screen.
-// TODO: Currently relies on a existing font from GenV, but trying to assume the worst case scenario, we shouldnt trust a font to be uploaded.
+// TODO: Currently relies on a existing font from GenV, but trying to assume
+// the worst case scenario, we shouldnt trust a font to be uploaded.
 
 #pragma once
 #ifndef GENV_PSX_HALT_H
@@ -68,9 +69,6 @@ extern "C"
 
     // Allows passing of a function that will be ran after the halt screen has been displayed.
     void psx_halt_append_func(PostHaltFunc func);
-
-    // TODO: Replace this for embedded safe font
-    void psx_halt_register_font(HaltScreenFont *font);
 
     // Reinits the GPU and shows the given string on screen.
     void psx_halt_screen_show(const char *string);

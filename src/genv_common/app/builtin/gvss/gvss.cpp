@@ -41,7 +41,7 @@ namespace Apps
             GENV_LOGO_V_HASH,
             Textures::openImageMemory(
                 GENV_LOGO_V_HASH,
-                Genv_PNG_type,
+                Genv_PNG_Image_type,
                 genv_v_data,
                 genv_v_length));
 
@@ -49,7 +49,7 @@ namespace Apps
             GENV_LOGO_R_HASH,
             Textures::openImageMemory(
                 GENV_LOGO_R_HASH,
-                Genv_PNG_type,
+                Genv_PNG_Image_type,
                 genv_ring_data,
                 genv_ring_length));
 

@@ -50,7 +50,7 @@ namespace System::PSX
         psx_enableInterrupts();
 
         // Enable PIO/573 read/writing with delay slots. These are based on Konami's values
-        // This needs to be done first else the RTC is inacessible
+        // This needs to be done first else the RTC is inacessible - In theory already setup, but just in case.
         BIU_DEV0_ADDR = 0x1F000000;
         BIU_DEV0_CTRL = 0x24173f47;
 

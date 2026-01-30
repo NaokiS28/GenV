@@ -28,6 +28,8 @@
 
 #define FM_ERROR(code) GV_ERROR(GV_SERVICE_VIDEO, "FontManager"_h, code)
 
+// TODO: Support loading from raw data - We need to have a safe-fall back font.
+
 namespace Fonts
 {
     class FontManager

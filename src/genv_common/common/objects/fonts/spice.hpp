@@ -16,8 +16,9 @@
  */
 
 #include <stdint.h>
-#include "common/objects/font.hpp"
 #include "common/util/hash.hpp"
+
+// GVF format - Change to external linkage
 
 namespace Fonts
 {

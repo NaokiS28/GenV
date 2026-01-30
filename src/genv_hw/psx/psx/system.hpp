@@ -17,22 +17,14 @@
 
 #pragma once
 
-#include <cstdint>
 #include <stdbool.h>
-#include <atomic>
 
-#include "common/services/system/timer.hpp"
-#include "common/services/system/rtc/iface_rtc.hpp"
 #include "common/services/system/system.hpp"
-
 #include "psx/common/drivers/sio0/psx_joy.hpp"
-#include "psx/common/drivers//sio0/psx_mc.hpp"
-#include "psx/common/drivers//psx_cdrom.hpp"
-#include "psx/common/drivers//psx_pcdrv.hpp"
-
+#include "psx/common/drivers/psx_pcdrv.hpp"
 #include "psx/common/psx_strings.hpp"
-#include "psx/common/registers.hpp"
 #include "psx/common/system.hpp"
+#include "psx_cdrom.hpp"
 
 namespace System
 {

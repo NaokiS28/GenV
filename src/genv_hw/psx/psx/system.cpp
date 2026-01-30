@@ -15,23 +15,10 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <atomic>
-#include <cstdint>
-
 #include "system.hpp"
-#include "common/return_codes.hpp"
-#include "common/services/services.hpp"
-#include "common/services/system/rtc/soft_rtc.hpp"
 
 #include "psx/common/system.hpp"
 #include "psx/common/psx_strings.hpp"
-#include "psx/common/system/pcsxhw.h"
-#include "psx/common/system/sys.h"
-#include "psx/common/system/timer.h"
-#include "psx/common/registers.hpp"
-
-#include "psx/common/system/serial.h"
-#include "terminal/terminal.h"
 
 namespace System::PSX
 {

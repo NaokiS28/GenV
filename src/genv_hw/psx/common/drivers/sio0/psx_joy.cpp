@@ -149,6 +149,7 @@ namespace System::PSX::IO
         int subport = 0;
         ControllerReadResponse resp;
         // Will always do the first subport (assuming multitap is connected, else just first port)
+        // TODO: Make PSX Joypad driver async
         for (auto &pad : _padList)
         {
             switch (poll(resp, subport))

@@ -19,7 +19,8 @@
 
 #include "common/util/templates.hpp"
 
-constexpr const uint32_t Genv_GIF_type = "GIFI"_c;
-constexpr const uint32_t Genv_PNG_type = "PNGI"_c;
-constexpr const uint32_t Genv_BMP_type = "BMPI"_c;
-constexpr const uint32_t Genv_WAV_type = "WAVE"_c;
+constexpr const uint32_t Genv_RAW_Image_type = "RAWI"_c;
+constexpr const uint32_t Genv_GIF_Image_type = "GIFI"_c;
+constexpr const uint32_t Genv_PNG_Image_type = "PNGI"_c;
+constexpr const uint32_t Genv_BMP_Image_type = "BMPI"_c;
+constexpr const uint32_t Genv_Wave_Sound_type = "WAVS"_c;
