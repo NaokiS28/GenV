@@ -22,6 +22,7 @@
 
 namespace Input
 {
+    constexpr util::Hash idNull = 0;
     const char szNullInputDevice[]    = "Null input device";
     const char szGenericInputDevice[] = "Generic input device";
 
@@ -95,8 +96,8 @@ namespace Input
     struct IInputDevice
     {
         const char *name           = szNullInputDevice;   // Friendly printable name
-        util::Hash id              = "NULL"_h;            // Device ID - Usage is defined by the driver implementation
-        util::Hash subid           = "NULL"_h;            // Device SubID - Usage is defined by the driver implementation
+        util::Hash id              = idNull;            // Device ID - Usage is defined by the driver implementation
+        util::Hash subid           = idNull;            // Device SubID - Usage is defined by the driver implementation
         InputDeviceType type       = DEVICE_TYPE_NULL;    // Device Type - Tells the input mapper what class the device is
         InputDeviceSubType subtype = DEVICE_SUBTYPE_NULL; // Device Subtype - Not presently used
         uint8_t subBusID           = 0;                   // Sub Bus ID - Usage is defined by the driver implementation
