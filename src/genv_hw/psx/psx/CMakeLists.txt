@@ -19,6 +19,7 @@ add_library(genv_hw_psx STATIC)
 
 target_sources(genv_hw_psx PUBLIC
     system.cpp
+	psx_cdrom.cpp
 )
 
 target_compile_definitions(
