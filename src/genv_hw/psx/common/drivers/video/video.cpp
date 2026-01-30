@@ -780,7 +780,7 @@ namespace System::PSX::GPU
         auto &fHeader = *fObj->getHeader();
 
         bool clutModified = false;
-        uint16_t c = color.toBGR555();
+        uint16_t forground = color.toBGR555();
         size_t temp = 0;
 
         uint16_t backupClut[2] = {
@@ -791,7 +791,7 @@ namespace System::PSX::GPU
 
         // If the color isnt the font default of white, then try to pick the colour.
         // Defaults to white if for whatever reason it cannot setup the right colour
-        if (c != Colors::White.toBGR555())
+        if (forground != Colors::White.toBGR555())
         {
             // Get the color table, if it exists
             FontColorTable *fcTable = nullptr;
@@ -810,7 +810,7 @@ namespace System::PSX::GPU
             if (fcTable)
             {
                 FontPaletteEntry *fpEntry = nullptr;
-                if (fcTable->find(c, &fpEntry))
+                if (fcTable->find(forground, &fpEntry))
                 {
                     // Print in color
                     ptObj->clutX = fpEntry->vramX;
@@ -823,10 +823,10 @@ namespace System::PSX::GPU
                     uint16_t _cx = 0, _cy = 0;
                     if (_texmgr.allocateCLUT(Textures::BPP_4BIT, _cx, _cy) == GV_OK)
                     {
-                        fcTable->add(_cx, _cy, c);
+                        fcTable->add(_cx, _cy, forground);
 
                         uint16_t clut[MAX_COLORS_4BPP] = {0};
-                        clut[fHeader.foregroundIndex] = c;
+                        clut[fHeader.foregroundIndex] = forground;
                         clut[fHeader.shadowIndex] = (Fonts::font_shadow.toBGR555() | (1 << 15));
                         _sendVRAMData(&clut, sizeof(uint16_t) * MAX_COLORS_4BPP, {_cx, _cy, MAX_COLORS_4BPP, 1});
                         _waitForDMADone();
@@ -882,6 +882,7 @@ namespace System::PSX::GPU
 
     int PSXGPU::setDefaultFont(Fonts::FontObject *fObj)
     {
+        /*
         if (!fObj) return GV_ERR_INVALID_PARAM;
         auto *tObj = fObj->getTexture();
         if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
@@ -898,6 +899,7 @@ namespace System::PSX::GPU
             fObj->getHeader()->numBuckets);
 
         psx_halt_register_font(&failFont);
+        */
         return 0;
     }
 
