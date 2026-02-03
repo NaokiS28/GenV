@@ -82,6 +82,8 @@ target_link_options(
 		"-T${CMAKE_CURRENT_LIST_DIR}/executable.ld"
 )
 
+add_compile_definitions(GENV_NO_FLOAT)
+
 # Define a helper function to embed binary data into executables and libraries.
 function(addBinaryFile target name path)
 	set(asmFile "${PROJECT_BINARY_DIR}/includes/${target}_${name}.s")
