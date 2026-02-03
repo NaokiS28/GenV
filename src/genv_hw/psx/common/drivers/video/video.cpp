@@ -932,7 +932,7 @@ namespace System::PSX::GPU
         _GP0RDY(4);
         _GPUC(gp0_rgb(255, 255, 255) | gp0_rectangle(true, true, false));
         _GPUC(gp0_xy(x, y));
-        _GPUC(gp0_uv(ptObj->tpage.offsetX + u1, ptObj->tpage.offsetY + v1, gp0_clut((ptObj->clutX / 16), ptObj->clutY)));
+        _GPUC(gp0_uv(ptObj->tpage.offsetX + (size_t)(int)u1, ptObj->tpage.offsetY + (size_t)(int)v1, gp0_clut((ptObj->clutX / 16), ptObj->clutY)));
         _GPUC(gp0_xy(w, h));
         return GV_OK;
     }

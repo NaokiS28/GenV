@@ -47,7 +47,7 @@ namespace Sprites
 
     int TileObject::repeat(int x, int y, uint16_t w, uint16_t h)
     {
-        int r   = 0;
+        int r = 0;
         int tx1 = 0, ty1 = 0, tx2 = 0, ty2 = 0, tw = 0, th = 0;
         int ih2 = 0;
         _getTransformedSize(tw, th);
@@ -111,8 +111,8 @@ namespace Sprites
 
         for (int i = 0; i < 4; i++)
         {
-            vertex[i].tex.u = intToiFloat(vertex[i].tex.u, texture->width);
-            vertex[i].tex.v = intToiFloat(vertex[i].tex.v, texture->height);
+            vertex[i].tex.u = intToiFloat((int)vertex[i].tex.u, texture->width);
+            vertex[i].tex.v = intToiFloat((int)vertex[i].tex.v, texture->height);
         };
 
         return *this;
@@ -136,7 +136,7 @@ namespace Sprites
 
     int TileObject::loadTextureFromFile(const char *filePath)
     {
-        int r        = texture->loadTextureFromFile(filePath);
+        int r = texture->loadTextureFromFile(filePath);
         this->meta.w = texture->width;
         this->meta.h = texture->height;
         resetTransform();
@@ -182,7 +182,7 @@ namespace Sprites
         meta.cropArea.y = y;
         meta.cropArea.w = w;
         meta.cropArea.h = h;
-        meta.cropped    = true;
+        meta.cropped = true;
 
         // Get the absolute tile coord and box
         RectWH tile = {
@@ -203,8 +203,8 @@ namespace Sprites
 
         for (int i = 0; i < 4; i++)
         {
-            vertex[i].tex.u = intToiFloat(vertex[i].tex.u, texture->width);
-            vertex[i].tex.v = intToiFloat(vertex[i].tex.v, texture->height);
+            vertex[i].tex.u = intToiFloat((int)vertex[i].tex.u, texture->width);
+            vertex[i].tex.v = intToiFloat((int)vertex[i].tex.v, texture->height);
         };
 
         return *this;
@@ -236,14 +236,14 @@ namespace Sprites
             if (symmetric)
             {
                 // Scale around the center
-                x = centerX + (x - centerX) * scaleX;
-                y = centerY + (y - centerY) * scaleY;
+                x = (int)centerX + (x - (int)centerX) * (int)scaleX;
+                y = (int)centerY + (y - (int)centerY) * (int)scaleY;
             }
             else
             {
                 // Scale relative to top-left vertex (vertex[0])
-                x = vertex[0].pos.x + (x - vertex[0].pos.x) * scaleX;
-                y = vertex[0].pos.y + (y - vertex[0].pos.y) * scaleY;
+                x = (int)vertex[0].pos.x + (x - (int)vertex[0].pos.x) * (int)scaleX;
+                y = (int)vertex[0].pos.y + (y - (int)vertex[0].pos.y) * (int)scaleY;
             }
         }
 
@@ -304,12 +304,12 @@ namespace Sprites
 
     void TileObject::resetTransform()
     {
-        vertex[0]     = Vertex();                                                         // Top left
-        vertex[1]     = Vertex(meta.w, 0, 0, 1, intToiFloat(meta.w, texture->width), 0);  // Top right
-        vertex[2]     = Vertex(0, meta.h, 0, 1, 0, intToiFloat(meta.h, texture->height)); // Bottom left
-        vertex[3]     = Vertex(meta.w, meta.h, 0, 1,
-                               intToiFloat(meta.w, texture->width), intToiFloat(meta.h, texture->height)); // Bottom right
-        meta.cropped  = false;
+        vertex[0] = Vertex();                                                         // Top left
+        vertex[1] = Vertex(meta.w, 0, 0, 1, intToiFloat(meta.w, texture->width), 0);  // Top right
+        vertex[2] = Vertex(0, meta.h, 0, 1, 0, intToiFloat(meta.h, texture->height)); // Bottom left
+        vertex[3] = Vertex(meta.w, meta.h, 0, 1,
+                           intToiFloat(meta.w, texture->width), intToiFloat(meta.h, texture->height)); // Bottom right
+        meta.cropped = false;
         meta.cropArea = RectWH();
     }
 

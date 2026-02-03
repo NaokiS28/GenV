@@ -219,7 +219,7 @@ namespace Video
         {
             Sprites::SpritePosition pos = sObj->getPosition();
             Textures::TextureObject *tex = sObj->getTexture();
-            drawSpriteObject(sObj, pos.x, pos.y, tex->width, tex->height);
+            drawSpriteObject(sObj, (int)pos.x, (int)pos.y, tex->width, tex->height);
         }
         inline void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y)
         {

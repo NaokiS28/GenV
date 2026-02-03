@@ -17,6 +17,7 @@
 
 #pragma once
 #include <stdint.h>
+#include <stddef.h>
 #include <assert.h>
 
 /*
@@ -25,6 +26,10 @@
 #ifdef GENV_NO_FLOAT
 struct ifloat
 {
+private:
+    explicit constexpr ifloat(int32_t raw, bool) noexcept : v(raw) {}
+
+public:
     static constexpr int FRAC_BITS = 16;
     static constexpr int32_t SCALE = 1 << FRAC_BITS;
 
@@ -32,24 +37,30 @@ struct ifloat
 
     // constructors
     constexpr ifloat() noexcept : v(0) {}
+
     // from integer (scaled)
     constexpr ifloat(int i) noexcept : v(i * SCALE) {}
 
     // from hardware float
-    explicit ifloat(float f) noexcept : v(static_cast<int32_t>(f * SCALE)) {}
+    explicit constexpr ifloat(float f) noexcept : v(static_cast<int32_t>(f * SCALE)) {}
+
+    // from size_t
+    explicit constexpr ifloat(size_t i) noexcept : v(static_cast<int32_t>(i) * SCALE) {}
 
     // convert back
-    float toFloat() const noexcept
+    constexpr float toFloat() const noexcept
     {
         return static_cast<float>(v) / SCALE;
     }
-    // allow implicit use where a float is needed
-    explicit operator float() const noexcept { return toFloat(); }
+
+    // allow implicit use where needed
+    explicit constexpr operator float() const noexcept { return toFloat(); }
+    explicit constexpr operator int() const noexcept { return v >> FRAC_BITS; } // truncates toward zero
 
     // raw‑value factory
     static constexpr ifloat fromRaw(int32_t raw) noexcept
     {
-        return ifloat(raw);
+        return ifloat(raw, true);
     }
 
     // assignment from hardware float
@@ -100,12 +111,6 @@ struct ifloat
         return fromRaw(static_cast<int32_t>(tmp));
     }
 
-    // mixed‑type convenience
-    ifloat operator+(float f) const noexcept { return *this + ifloat(f); }
-    ifloat operator-(float f) const noexcept { return *this - ifloat(f); }
-    ifloat operator*(float f) const noexcept { return *this * ifloat(f); }
-    ifloat operator/(float f) const noexcept { return *this / ifloat(f); }
-
     // compound assignment (ifloat)
     ifloat &operator+=(ifloat o) noexcept
     {
@@ -140,6 +145,16 @@ struct ifloat
     ifloat &operator*=(float f) noexcept { return *this *= ifloat(f); }
     ifloat &operator/=(float f) noexcept { return *this /= ifloat(f); }
 
+    // compound assignment (int)
+    ifloat &operator+=(int i) noexcept { return *this += ifloat(i); }
+    ifloat &operator-=(int i) noexcept { return *this -= ifloat(i); }
+    ifloat &operator*=(int i) noexcept { return *this *= ifloat(i); }
+    ifloat &operator/=(int i) noexcept
+    {
+        assert(i != 0 && "division by zero");
+        return *this /= ifloat(i);
+    }
+
     // comparisons
     constexpr bool operator<(ifloat o) const noexcept { return v < o.v; }
     constexpr bool operator<=(ifloat o) const noexcept { return v <= o.v; }
@@ -148,6 +163,60 @@ struct ifloat
     constexpr bool operator==(ifloat o) const noexcept { return v == o.v; }
     constexpr bool operator!=(ifloat o) const noexcept { return v != o.v; }
 };
+
+// int on LHS
+inline ifloat operator+(int i, ifloat f) noexcept
+{
+    return ifloat(i) + f;
+}
+inline ifloat operator-(int i, ifloat f) noexcept
+{
+    return ifloat(i) - f;
+}
+inline ifloat operator*(int i, ifloat f) noexcept
+{
+    return ifloat(i) * f;
+}
+inline ifloat operator/(int i, ifloat f) noexcept
+{
+    return ifloat(i) / f;
+}
+
+// unsigned / size_t on LHS (explicit narrowing)
+inline ifloat operator+(unsigned i, ifloat f) noexcept
+{
+    return ifloat((int)i) + f;
+}
+inline ifloat operator-(unsigned i, ifloat f) noexcept
+{
+    return ifloat((int)i) - f;
+}
+inline ifloat operator*(unsigned i, ifloat f) noexcept
+{
+    return ifloat((int)i) * f;
+}
+inline ifloat operator/(unsigned i, ifloat f) noexcept
+{
+    return ifloat((int)i) / f;
+}
+
+// uint8_t / small ints
+inline ifloat operator+(uint8_t i, ifloat f) noexcept
+{
+    return ifloat((int)i) + f;
+}
+inline ifloat operator-(uint8_t i, ifloat f) noexcept
+{
+    return ifloat((int)i) - f;
+}
+inline ifloat operator*(uint8_t i, ifloat f) noexcept
+{
+    return ifloat((int)i) * f;
+}
+inline ifloat operator/(uint8_t i, ifloat f) noexcept
+{
+    return ifloat((int)i) / f;
+}
 
 #else
 using ifloat = float;

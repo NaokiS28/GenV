@@ -61,7 +61,7 @@ namespace Sprites
 
         inline void draw()
         {
-            draw(pos.x, pos.y, texture->width, texture->height);
+            draw((int)pos.x, (int)pos.y, texture->width, texture->height);
         }
         inline void draw(int x, int y)
         {
@@ -74,8 +74,8 @@ namespace Sprites
             if (sW > 100) sW = 100;
             if (sH > 100) sH = 100;
             draw(
-                pos.x,
-                pos.y,
+                (int)pos.x,
+                (int)pos.y,
                 util::percentOf(sW, texture->width),
                 util::percentOf(sH, texture->height));
         }

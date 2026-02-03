@@ -259,7 +259,7 @@ namespace util
 
     static constexpr inline ifloat scaleF(ifloat factor, size_t val)
     {
-        size_t percent = factor * 100;
+        size_t percent = (size_t)(int)factor * 100;
         return scaleP(percent, val);
     }
 
@@ -299,7 +299,7 @@ namespace util
             if (ptr)
                 delete[] as<uint8_t>();
 
-            ptr    = _length ? (new uint8_t[_length]) : nullptr;
+            ptr = _length ? (new uint8_t[_length]) : nullptr;
             length = _length;
 
             return ptr;
@@ -319,10 +319,10 @@ namespace util
     class PointerList
     {
     private:
-        T *_list           = nullptr;
-        size_t _listSize   = 0;
+        T *_list = nullptr;
+        size_t _listSize = 0;
         size_t _listLength = 0;
-        bool _ready        = false;
+        bool _ready = false;
 
     public:
         PointerList() { _ready = (init() == 0); }
@@ -451,7 +451,7 @@ namespace util
                 return nullptr;
 
             auto i = _tail;
-            _tail  = (i + 1) % N;
+            _tail = (i + 1) % N;
             length++;
 
             return &_items[i];
@@ -462,7 +462,7 @@ namespace util
                 return nullptr;
 
             auto i = _head;
-            _head  = (i + 1) % N;
+            _head = (i + 1) % N;
             length--;
 
             return &_items[i];
@@ -527,7 +527,7 @@ namespace util
                 {
                     if (idx < _top)
                     {
-                        _items[idx]     = _items[idx + 1];
+                        _items[idx] = _items[idx + 1];
                         _items[idx + 1] = item;
                     }
                     return;
@@ -550,7 +550,7 @@ namespace util
                 {
                     if (idx < _top)
                     {
-                        _items[idx]     = _items[idx - 1];
+                        _items[idx] = _items[idx - 1];
                         _items[idx - 1] = item;
                     }
                     return;
@@ -588,7 +588,7 @@ namespace util
             if (!length)
                 return {};
 
-            int idx    = 0;
+            int idx = 0;
             bool found = false;
             for (auto entry : _items)
             {
