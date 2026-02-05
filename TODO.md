@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-01-25 23:47:51.754224_
+_Generated on 2026-02-05 15:42:42.516217_
 
 #### [src/genv_common/app/appmgr.cpp](src/genv_common/app/appmgr.cpp)
 
@@ -14,10 +14,11 @@ _Generated on 2026-01-25 23:47:51.754224_
 
 #### [src/genv_common/common/formats/image_file.cpp](src/genv_common/common/formats/image_file.cpp)
 
-- [85](src/genv_common/common/formats/image_file.cpp?plain=1#L85): Pallete loading might be borked.
-- [110](src/genv_common/common/formats/image_file.cpp?plain=1#L110): Dont do this
-- [121](src/genv_common/common/formats/image_file.cpp?plain=1#L121): Dont do this
-- [172](src/genv_common/common/formats/image_file.cpp?plain=1#L172): Animated image support
+- [88](src/genv_common/common/formats/image_file.cpp?plain=1#L88): Pallete loading might be borked.
+- [113](src/genv_common/common/formats/image_file.cpp?plain=1#L113): Dont do this
+- [124](src/genv_common/common/formats/image_file.cpp?plain=1#L124): Dont do this
+- [175](src/genv_common/common/formats/image_file.cpp?plain=1#L175): Animated image support
+- [311](src/genv_common/common/formats/image_file.cpp?plain=1#L311): // case Genv_RAW_type: return loadRAW_memory(objectID, data, length);	Implement raw format loading (asks GPU core to handle this)
 
 #### [src/genv_common/common/formats/wav.cpp](src/genv_common/common/formats/wav.cpp)
 
@@ -60,6 +61,10 @@ _Generated on 2026-01-25 23:47:51.754224_
 
 - [41](src/genv_common/common/util/misc.hpp?plain=1#L41): implement
 - [45](src/genv_common/common/util/misc.hpp?plain=1#L45): implement
+
+#### [src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp)
+
+- [152](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L152): Make PSX Joypad driver async
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp](src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp)
 
@@ -104,7 +109,11 @@ _Generated on 2026-01-25 23:47:51.754224_
 
 #### [src/genv_hw/psx/psx/system.cpp](src/genv_hw/psx/psx/system.cpp)
 
-- [63](src/genv_hw/psx/psx/system.cpp?plain=1#L63): int error = 0; How to handle multiple driver failures?
+- [50](src/genv_hw/psx/psx/system.cpp?plain=1#L50): int error = 0; How to handle multiple driver failures?
+
+#### [src/genv_hw/win32/README.md](src/genv_hw/win32/README.md)
+
+- [4](src/genv_hw/win32/README.md?plain=1#L4): Add documentation and support status
 
 #### [src/genv_hw/win32/system.cpp](src/genv_hw/win32/system.cpp)
 
