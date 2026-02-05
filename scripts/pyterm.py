@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# DONT USE THIS - Is currently broken.
-
 # GenV - Copyright (C) 2025 NaokiS, spicyjpeg
 # pyterm.py - Created on 24-08-2025
 # 
@@ -29,11 +27,13 @@ import socket
 import sys
 import threading
 
+stop_event = threading.Event()
+remote_closed_event = threading.Event()
+
 # ---------- Windows ANSI + raw-ish input helpers ----------
 def _win_enable_vt():
-    """Enable ANSI escape processing on Windows 10+ consoles."""
     try:
-        import msvcrt, ctypes
+        import ctypes
         kernel32 = ctypes.windll.kernel32
         hOut = kernel32.GetStdHandle(-11)  # STD_OUTPUT_HANDLE
         hIn  = kernel32.GetStdHandle(-10)  # STD_INPUT_HANDLE
@@ -54,7 +54,7 @@ def _win_input_loop(sock):
     """Read keypresses with msvcrt (non-blocking) and send bytes."""
     import msvcrt
     try:
-        while True:
+        while not stop_event.is_set():
             if msvcrt.kbhit():
                 ch = msvcrt.getwch()
                 # Convert Python str (UTF-16 code unit) into UTF-8 bytes
@@ -63,6 +63,8 @@ def _win_input_loop(sock):
             import time; time.sleep(0.001)
     except Exception:
         pass
+    finally:
+        stop_event.set()
 
 # ---------- POSIX raw mode helpers ----------
 class _PosixTTY:
@@ -83,7 +85,7 @@ def _posix_input_loop(sock):
     """Read raw bytes from stdin and forward to socket."""
     import select
     try:
-        while True:
+        while not stop_event.is_set():
             r, _, _ = select.select([sys.stdin], [], [], 0.05)
             if sys.stdin in r:
                 data = os.read(sys.stdin.fileno(), 4096)
@@ -92,22 +94,27 @@ def _posix_input_loop(sock):
                 sock.sendall(data)
     except Exception:
         pass
+    finally:
+        stop_event.set()
 
 # ---------- Receiver ----------
 def recv_loop(sock):
     """Receive from socket and write to stdout (ANSI passthrough)."""
     try:
-        while True:
+        while not stop_event.is_set():
             data = sock.recv(4096)
             if not data:
                 # Remote closed
                 sys.stdout.write("\r\n[remote closed]\r\n")
                 sys.stdout.flush()
+                remote_closed_event.set()
                 break
             sys.stdout.buffer.write(data)
             sys.stdout.flush()
     except Exception:
         pass
+    finally:
+        stop_event.set()
 
 def main():
     p = argparse.ArgumentParser(description="Minimal TCP terminal client with ANSI passthrough")
@@ -115,42 +122,46 @@ def main():
     p.add_argument("-port", type=int, default=6699, help="Port (default: 6699)")
     args = p.parse_args()
 
-    # Connect
+    # ---------- Connect ----------
     try:
         sock = socket.create_connection((args.url, args.port))
-    except Exception as e:
+    except (ConnectionRefusedError, TimeoutError, OSError) as e:
         print(f"Failed to connect to {args.url}:{args.port} -> {e}")
-        return
+        return 1  # connection error
+
     print(f"[connected to {args.url}:{args.port}]\r")
 
-    # Start receiver
+    # ---------- Receiver thread ----------
     t_recv = threading.Thread(target=recv_loop, args=(sock,), daemon=True)
     t_recv.start()
 
-    # Platform-specific input mode
-    if os.name == "nt":
-        _win_enable_vt()
-        try:
+    # ---------- Input handling ----------
+    try:
+        if os.name == "nt":
+            _win_enable_vt()
             _win_input_loop(sock)
-        except KeyboardInterrupt:
-            pass
-        finally:
-            try: sock.shutdown(socket.SHUT_WR)
-            except Exception: pass
-            sock.close()
-    else:
-        try:
+        else:
             with _PosixTTY():
                 _posix_input_loop(sock)
-        except KeyboardInterrupt:
+    except KeyboardInterrupt:
+        pass
+    finally:
+        stop_event.set()
+        try:
+            sock.shutdown(socket.SHUT_RDWR)
+        except Exception:
             pass
-        finally:
-            try: sock.shutdown(socket.SHUT_WR)
-            except Exception: pass
-            sock.close()
-            # Restore a sane line after raw mode
-            sys.stdout.write("\r\n")
-            sys.stdout.flush()
+        sock.close()
+        t_recv.join(timeout=1.0)
+        # Restore a sane line after raw mode
+        sys.stdout.write("\r\n")
+        sys.stdout.flush()
+
+    # ---------- Exit code ----------
+    if remote_closed_event.is_set():
+        return 0  # clean remote close after connection
+
+    return 0  # user exit after successful connection
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
