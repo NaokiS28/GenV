@@ -73,6 +73,9 @@ namespace System::PSX::GPU
 
         uint32_t *gpuListPtr = nullptr;
         DMAChain *chain = nullptr;
+        // NOTE: Set true when the DMA chain is full. Draw calls become no-ops
+        // until the next frame when _swapFrameBuffer resets it.
+        bool _dmaOverflow = false;
         uint32_t *_allocatePacket(DMAChain *chain, int numCommands);
 
         void _enableDMA(bool state);

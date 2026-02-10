@@ -50,7 +50,9 @@ namespace System::PSX::GPU
         .refreshLength = 2,
         .refreshList = PSX_Refresh_Rates};
 
-    constexpr const int iPSXDMAListSize = 1024;
+    // NOTE: 4096 words (16KB per chain, 32KB total for double-buffer). Increased
+    // from 1024 to support heavy text rendering (e.g. 8 controllers on screen).
+    constexpr const int iPSXDMAListSize = 4096;
     constexpr const uint8_t bPSXDMAChunkSize = 16;
 
 } // namespace System::PSX::GPU

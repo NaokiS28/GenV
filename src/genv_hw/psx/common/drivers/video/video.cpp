@@ -81,6 +81,9 @@ namespace System::PSX::GPU
 
     void PSXGPU::_addToDMAList(uint32_t cmd)
     {
+        // NOTE: Skip writes when the DMA chain has overflowed. _allocatePacket
+        // returns nullptr on overflow, so gpuListPtr is null — guard against it.
+        if (_dmaOverflow) return;
         gpuListPtr[dmaPtrIdx++] = cmd;
     }
 
@@ -262,6 +265,8 @@ namespace System::PSX::GPU
         {
             chain = &dmaChains[screenBufferPage];
             chain->nextPacket = chain->data;
+            // NOTE: Reset overflow flag for the new frame so draw calls resume.
+            _dmaOverflow = false;
         }
 
         if (_useDoubleBuffer)
@@ -283,6 +288,20 @@ namespace System::PSX::GPU
 
     uint32_t *PSXGPU::_allocatePacket(DMAChain *chain, int numCommands)
     {
+        // NOTE: Overflow protection — if the requested allocation would exceed
+        // the DMA chain buffer, set the overflow flag and return nullptr. Draw
+        // calls become no-ops for the rest of the frame. Warn once per overflow.
+        uint32_t *end = &(chain->data)[iPSXDMAListSize];
+        if (chain->nextPacket + numCommands + 1 >= end)
+        {
+            if (!_dmaOverflow)
+            {
+                LOG("psxgpu", "WARNING: DMA chain overflow, dropping draw calls until next frame.");
+                _dmaOverflow = true;
+            }
+            return nullptr;
+        }
+
         // Grab the current pointer to the next packet then increment it to allocate
         // a new packet. We have to allocate an extra word for the packet's header,
         // which will contain the number of GP0 commands the packet is made up of as
@@ -295,9 +314,6 @@ namespace System::PSX::GPU
         // will be allocated in the buffer.
         *ptr = gp0_tag(numCommands, chain->nextPacket);
 
-        // Make sure we haven't yet run out of space for future packets or a linked
-        // list terminator, then return a pointer to the packet's first GP0 command.
-        assert(chain->nextPacket < &(chain->data)[iPSXDMAListSize]);
         dmaPtrIdx = 0;
         return &ptr[1];
     }
