@@ -432,47 +432,58 @@ namespace util
 
     /* Simple ring buffer */
 
-    template <typename T, size_t N>
+    template <typename T, int N>
     class RingBuffer
     {
     private:
-        T _items[N];
-        size_t _head, _tail;
+        T items[N] = {0};
+        T head, tail, length;
 
     public:
-        size_t length;
+        RingBuffer(void) : head(0), tail(0), length(0) {}
 
-        inline RingBuffer(void)
-            : _head(0), _tail(0), length(0) {}
-
-        inline T *pushItem(void)
+        inline void pushItem(T data) volatile
         {
-            if (length >= N)
-                return nullptr;
-
-            auto i = _tail;
-            _tail = (i + 1) % N;
+            items[tail++] = data;
+            tail %= N;
             length++;
-
-            return &_items[i];
         }
-        inline T *popItem(void)
-        {
-            if (!length)
-                return nullptr;
 
-            auto i = _head;
-            _head = (i + 1) % N;
+        inline void pushItem16(uint16_t data) volatile
+        {
+            items[tail++] = (data & 0xFF);
+            tail %= N;
+            items[tail++] = ((data & 0xFF00) >> 8);
+            tail %= N;
+            length += 2;
+        }
+
+        inline T popItem(void) volatile
+        {
+            if (length == 0) return 0xFF;
+
+            auto i = head++;
+            head %= N;
             length--;
-
-            return &_items[i];
+            return items[i];
         }
-        inline T *peekItem(void) const
+
+        T peekItem(void) const volatile
         {
             if (!length)
-                return nullptr;
+                return 0xFF;
+            return items[head];
+        }
 
-            return &_items[_head];
+        inline bool available() volatile { return length != 0; }
+        inline int count() volatile { return length; }
+        inline void erase() volatile
+        {
+            for (auto &i : items)
+                i = 0xFF;
+            head = 0;
+            tail = 0;
+            length = 0;
         }
     };
 

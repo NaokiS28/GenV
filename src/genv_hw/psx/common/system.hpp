@@ -17,11 +17,12 @@
 
 #pragma once
 
-#include <cstdint>
 #include <stdbool.h>
 #include <atomic>
 
+#include "common/services/system/iface_system.hpp"
 #include "drivers/video/video.hpp"
+#include "psx/common/drivers/sio0/psx_sio0.hpp"
 #include "system/timer.h"
 
 #include "common/services/system/timer.hpp"
@@ -30,7 +31,6 @@
 
 #include "drivers/sio0/psx_joy.hpp"
 #include "drivers/sio0/psx_mc.hpp"
-#include "drivers/psx_pcdrv.hpp"
 
 #include "psx_strings.hpp"
 #include "registers.hpp"
@@ -49,7 +49,7 @@ namespace System
             PSX_SYS_IO_INIT_FAIL,
         };
 
-        typedef void (*PSX_SystemCallback)();
+        constexpr int maxRegisteredISRs = 5;
 
         // Test input parameter as an if statment, and if the process fails the test,
         // print an error string and associated error code.
@@ -94,6 +94,8 @@ namespace System
             void isr_vsync_();
             void isr_timer2_();
 
+            Callback isr_sio0;
+
             // Millis/Seconds tracking
             const size_t err_numerator = 307;
             const size_t err_denominator = 512;
@@ -109,9 +111,9 @@ namespace System
                 .flags = SYS_No_Window_Mode};
 
             // Pointers to control the life cycle of items. TODO: Do these strictly *need* to be pointers?
-            GPU::PSXGPU *gpu = nullptr;                  // GPU probably needs to stay as pointer for V1/V2 CPU differences
-            IO::PSX_Joypad joyDriver[2] = {(1), (2)};    // <-| These are part of the CPU and thus can always be "present"
-            IO::PSX_MemoryCard mcDriver[2] = {(1), (2)}; // <-/
+            GPU::PSXGPU *gpu = nullptr;                                                     // GPU probably needs to stay as pointer for V1/V2 CPU differences
+            IO::PSX_Joypad joyDriver[2] = {(IO::SIO0_Port::PORT1), (IO::SIO0_Port::PORT2)}; // <-| These are part of the CPU and thus can always be "present"
+            IO::PSX_MemoryCard mcDriver[2] = {(1), (2)};                                    // <-/
 
         public:
             BasePSXSystem();
@@ -167,6 +169,8 @@ namespace System
                 // return sysTimer.unregisterFunction(func);
                 return false;
             }
+
+            IRQChannel registerISR(System::Callback callback, IRQChannel irq);
         };
 
     } // namespace PSX

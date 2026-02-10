@@ -16,14 +16,12 @@
  */
 
 #include <atomic>
-#include <cstdint>
 
 #include "system.hpp"
 #include "common/return_codes.hpp"
 #include "common/services/services.hpp"
 #include "common/services/system/rtc/soft_rtc.hpp"
 
-#include "system/gpucmd.h"
 #include "psx_strings.hpp"
 #include "system/pcsxhw.h"
 #include "system/sys.h"
@@ -153,6 +151,7 @@ namespace System::PSX
 
     int BasePSXSystem::initIO()
     {
+        // TODO: Allow setting custom startup baud
         sio1_init(115200);
         psx_timer_set_params(PSX_TIMER_0, PSX_TMR0_CLK_SRC_SYSTEM);
         psx_timer_set_params(PSX_TIMER_1, PSX_TMR2_CLK_SRC_SYSTEM);
@@ -191,6 +190,7 @@ namespace System::PSX
     {
         if (psx_acknowledgeInterrupt(IRQ_VSYNC)) isr_vsync_();
         if (psx_acknowledgeInterrupt(IRQ_TIMER2)) isr_timer2_();
+        if (isr_sio0.isValid() && psx_acknowledgeInterrupt(IRQ_SIO0)) isr_sio0.call();
     }
 
     void BasePSXSystem::isr_vsync_()
@@ -243,6 +243,15 @@ namespace System::PSX
     {
         // Figure out how to get a path which the program started at, more often than not ODD0:
         return nullptr;
+    }
+
+    IRQChannel BasePSXSystem::registerISR(System::Callback callback, IRQChannel irq)
+    {
+        switch (irq)
+        {
+        case IRQ_SIO0: isr_sio0 = callback; return (callback.isValid() ? irq : IRQ_INVALID);
+        default: return IRQ_INVALID;
+        }
     }
 
 } // namespace System::PSX

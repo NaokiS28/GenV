@@ -27,17 +27,17 @@
 
 #define LOG_SVC(fmt, ...) LOG("services", fmt __VA_OPT__(, ) __VA_ARGS__)
 
-constexpr const char szManagerNullptr[]     = "Failed to create %s.";
-constexpr const char szManagerInitError[]   = "Failed to init %s, reported error code: %i";
+constexpr const char szManagerNullptr[] = "Failed to create %s.";
+constexpr const char szManagerInitError[] = "Failed to init %s, reported error code: %i";
 constexpr const char szChangeServiceError[] = "Failed to change to new %s: %i";
-constexpr const char szUnkownError[]        = "Unknown error reported from %s: %i";
+constexpr const char szUnkownError[] = "Unknown error reported from %s: %i";
 
-constexpr const char szSystem[]  = "system service";
-constexpr const char szVideo[]   = "video service";
-constexpr const char szAudio[]   = "audio service";
+constexpr const char szSystem[] = "system service";
+constexpr const char szVideo[] = "video service";
+constexpr const char szAudio[] = "audio service";
 constexpr const char szStorage[] = "storage manager";
-constexpr const char szInput[]   = "input manager";
-constexpr const char szFont[]    = "font manager";
+constexpr const char szInput[] = "input manager";
+constexpr const char szFont[] = "font manager";
 constexpr const char szUnknown[] = "unknown";
 
 enum ServiceError
@@ -133,7 +133,7 @@ int ServiceManager::init()
 int ServiceManager::update()
 {
     int r = System::SM_NORMAL;
-    r     = s_system->update();
+    r = s_system->update();
     System::PerfMon.finishSystemExec();
 
     // It's unlikely these would ever be null at this point
@@ -275,50 +275,33 @@ void ServiceManager::destroyAudio()
     s_audio = nullptr;
 }
 
-int ServiceManager::updateAsyncServices()
+int ServiceManager::updateCoroutines()
 {
-    for (auto service : s_service)
+    for (auto coroutine : s_coroutines)
     {
         if (s_video->waitingForVSync()) // Only run updates whilst waiting for vsync.
-            service->func(service->arg);
+            coroutine->resume();
         else
             return GV_OK;
     }
     return 1;
 }
 
-int ServiceManager::registerAsyncService(AsyncService &service, void *arg)
+int ServiceManager::registerCoroutine(ICoroutine &coroutine)
 {
-    if (service.func == nullptr)
+    if (s_coroutines.ready())
     {
-        LOG_SVC("Could not register async service %s: Function pointer is null.", service.name);
-        return 1;
-    }
-    auto position = s_service.append(&service);
-    if (position == -1)
-    {
-        LOG_SVC("Could not register async service %s: Unknown error occured.", service.name);
-    }
-    service.listID = position;
-    service.arg    = arg;
-    LOG_SVC("Registered %s service.", service.name);
-    return GV_OK;
-}
+        auto position = s_coroutines.append(&coroutine);
+        if (position == -1)
+            LOG_SVC("Could not register coroutine %s: Unknown error occured.", coroutine.name());
 
-int ServiceManager::unregisterAsyncService(AsyncService &service)
-{
-    if (service.listID == -1)
-    {
-        LOG_SVC("Could not unregister async service %s: Entry position is invalid.", service.name);
-        return 1;
+        coroutine.listID = position;
+        // service.arg = arg;
+        LOG_SVC("Registered %s service.", coroutine.name());
+        return GV_OK;
     }
-    if (s_service.remove(service.listID))
-    {
-        LOG_SVC("Could not register async service %s: Entry position not found.", service.name);
-        return 1;
-    }
-    LOG_SVC("Unregistered %s service.", service.name);
-    return GV_OK;
+    LOG_SVC("Could not register coroutine %s: Internal list error.", coroutine.name());
+    return 1;
 }
 
 // --- ServiceManager ------------------------------------------------------------

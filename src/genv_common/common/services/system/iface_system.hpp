@@ -23,22 +23,51 @@
 
 #include "timer.hpp"
 
+#define SYSTEM_CALLBACK(name, type, func)                 \
+    {                                                     \
+        name,                                             \
+        [](void *arg)                                     \
+        {                                                 \
+            auto service = reinterpret_cast<type *>(arg); \
+            service->func();                              \
+        },                                                \
+        this}
+
 namespace System
 {
     struct SystemInfo;
+
+    typedef void (*CallbackFunction)(void *arg);
+    class Callback
+    {
+    private:
+        const char *m_name = nullptr;
+        CallbackFunction m_func = nullptr;
+        void *m_arg = nullptr;
+
+    public:
+        Callback() {}
+        Callback(const char *name, CallbackFunction func, void *arg) : m_name(name), m_func(func), m_arg(arg) {}
+        inline const char *const name() { return m_name; }
+        inline bool isValid() { return m_func != nullptr; }
+        inline void call()
+        {
+            if (isValid()) m_func(m_arg);
+        }
+    };
 
     class ISystem
     {
     public:
         virtual ~ISystem() = default;
 
-        virtual int initCore()    = 0; // Init system core
-        virtual int initVideo()   = 0;
-        virtual int initAudio()   = 0;
-        virtual int initIO()      = 0;
+        virtual int initCore() = 0; // Init system core
+        virtual int initVideo() = 0;
+        virtual int initAudio() = 0;
+        virtual int initIO() = 0;
         virtual int initStorage() = 0;
 
-        virtual int update()    = 0; // Update system manager
+        virtual int update() = 0;    // Update system manager
         virtual bool shutdown() = 0; // Prepare for app shutdow
 
         virtual const SystemInfo *getSysInfo() const = 0;
@@ -53,6 +82,6 @@ namespace System
         virtual const char *getWorkingDirectory() = 0;
 
         virtual bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq) = 0;
-        virtual bool unregisterTimerFunc(TFunc func, TChannel timer)             = 0;
+        virtual bool unregisterTimerFunc(TFunc func, TChannel timer) = 0;
     };
 } // namespace System

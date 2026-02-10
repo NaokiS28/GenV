@@ -18,6 +18,7 @@
 #pragma once
 
 #include "adminkey.hpp"
+#include "common/services/system/iface_coroutine.hpp"
 #include "common/util/templates.hpp"
 #include "genv_sys.hpp"
 
@@ -38,15 +39,6 @@
 // on bare-metal platforms like PS1. This is the same reason why all the managers are pointers,
 // so we control the lifecycle to avoid this.
 
-typedef void (*AsyncServiceFunction)(void *arg);
-struct AsyncService
-{
-    const char *name = nullptr;
-    AsyncServiceFunction func = nullptr;
-    void *arg = nullptr;
-    int listID = -1;
-};
-
 class ServiceManager
 {
     friend class GenvSystemClass;
@@ -59,7 +51,7 @@ public:
     inline Video::IVideo *getVideo(void) { return s_video; }
     inline System::ISystem *getSystem(void) { return s_system; }
     inline Fonts::FontManager *fontManager(void) { return s_fonts; }
-    inline Input::InputManager *inputManager(void) { return s_input; }
+    inline Input::InputManager *getInputs(void) { return s_input; }
 
     inline void setSystem(AdminClass_Key key, System::ISystem (*sys)(void)) { setSystem(sys); }
     inline void setVideo(AdminClass_Key key, Video::IVideo (*video)(void)) { setVideo(video); }
@@ -81,10 +73,10 @@ public:
         return s_input->unregisterDriver(dev);
     }
 
-    inline bool attachInputDevice(Input::IInputDevice *dev)
+    inline bool attachInputDevice(Input::IInputDevice *dev, Input::Player player = Input::Player::ANY)
     {
         if (!s_input || !dev) return false;
-        return s_input->attachDevice(dev);
+        return s_input->attachDevice(dev, player);
     }
     inline bool dettachInputDevice(Input::IInputDevice *dev)
     {
@@ -114,13 +106,12 @@ public:
         return s_storage->detachDevice(dev);
     }
     int update();
-    int updateAsyncServices(); // This runs until either vsync occurs or all services are finished
+    int updateCoroutines(); // This runs until either vsync occurs or all services are finished
 
     inline size_t gfx_size(size_t size) { return (s_video ? s_video->getBufferSize(size) : 0); }
     inline void *gfx_alloc(size_t size) { return (s_video ? s_video->allocate(size) : nullptr); }
 
-    int registerAsyncService(AsyncService &service, void *arg);
-    int unregisterAsyncService(AsyncService &service);
+    int registerCoroutine(ICoroutine &coroutine);
 
 private:
     int createManagers();
@@ -145,7 +136,12 @@ private:
     Input::InputManager *s_input = nullptr;
     Fonts::FontManager *s_fonts = nullptr;
     Files::StorageManager *s_storage = nullptr;
-    util::PointerList<AsyncService *, 10> s_service;
+    util::PointerList<ICoroutine *, 10> s_coroutines;
 };
 
 ServiceManager *getServiceManager();
+
+inline System::ISystem *getSystem()
+{
+    return getServiceManager()->getSystem();
+}

@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
             video->endRender();
         }
 
-        if (serviceManager->updateAsyncServices()) // These are run in a lower priority to vsync. If vsync happens, the update cycle pauses
-            video->doWaitForVSync();               // If Service manager runs out of services to update, then we pause for next cycle
+        if (serviceManager->updateCoroutines()) // These are run in a lower priority to vsync. If vsync happens, the update cycle pauses
+            video->doWaitForVSync();            // If Service manager runs out of services to update, then we pause for next cycle
         System::PerfMon.finishCoroutines();
     }
 
