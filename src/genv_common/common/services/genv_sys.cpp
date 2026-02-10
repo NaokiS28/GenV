@@ -74,6 +74,7 @@ void GenvSystemClass::startup()
     services->setVideo(adminKey, video);
     services->setSystem(adminKey, system);
 
+    // TODO: Allow setting custom startup baud
     genv_tty_init(115200);
     GENV_LOG("GenV (" GENV_VERSION ") - Build: " GENV_BUILD);
     GENV_LOG("Genv build date: " GENV_BDATE);

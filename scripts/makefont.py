@@ -62,7 +62,7 @@ def _detect_bitmap_type(path: Path) -> tuple[int,int,bytes]:
 	"""
 	Return (bitmapType, bpp, raw_bytes)
 	bitmapType encodes ascii of magic:
-	  'PNGI' for PNG and 'GIFI' for GIF
+	  'PNGI' for PNG and 'GIFI' for GIF and 'BMPI' for BMP.
 	If unknown, type=0, bpp=32.
 	"""
 	raw = path.read_bytes()
@@ -70,6 +70,8 @@ def _detect_bitmap_type(path: Path) -> tuple[int,int,bytes]:
 		return (b"PNGI", 8, raw) 
 	if raw.startswith(b"GIF87a") or raw.startswith(b"GIF89a"):
 		return (b"GIFI", 8, raw)
+	if raw.startswith(b"BM"):
+		return (b"BMPI", 8, raw)
 	return (0, 32, raw)
 
 def _clamp(v:int, lo:int, hi:int) -> int:
