@@ -2,8 +2,12 @@
     "recommendations": [
         "psioniq.psi-header",
         "ms-vscode.cmake-tools",
-        "ms-vscode.cpptools",
+        "llvm-vs-code-extensions.vscode-clangd",
+		"kdarkhan.mips",
         "ms-python.python",
         "webfreak.debug"
-    ]
+    ],
+	"unwantedRecommendations": [
+		"ms-vscode.cpptools"
+	]
 }

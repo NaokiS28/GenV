@@ -12,7 +12,7 @@
 			"gdbpath": "/opt/homebrew/bin/gdb",
 			"preLaunchTask": "CMake: build",
 			"windows": {
-				"gdbpath": "C:/gdb-multiarch/bin/gdb.exe",
+				"gdbpath": "gdb-multiarch.exe",
 			},
 			"cwd": "${workspaceRoot}",
 			"autorun": [
@@ -35,7 +35,7 @@
 			"gdbpath": "/opt/homebrew/bin/gdb",
 			"preLaunchTask": "CMake: build",
 			"windows": {
-				"gdbpath": "C:/gdb-multiarch/bin/gdb.exe",
+				"gdbpath": "gdb-multiarch.exe",
 			},
 			"cwd": "${workspaceRoot}",
 			"autorun": [
