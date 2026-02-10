@@ -19,21 +19,6 @@
 #include "psx/common/drivers/sio0/memcard.hpp"
 #include "psx_sio0.hpp"
 
-#define START(addr, port)                                   \
-    {                                                       \
-        int r = 0;                                          \
-        if (r = psx_sio0.start(addr, port), r != SIO0_OKAY) \
-        {                                                   \
-            switch (r)                                      \
-            {                                               \
-            case SIO0_IN_USE: return 3;                     \
-            case SIO0_NO_RESPONSE: return 1;                \
-            }                                               \
-        }                                                   \
-    }
-
-#define END() psx_sio0.stop()
-
 namespace System::PSX::IO
 {
     uint8_t PSX_MemoryCard::driverCount = 0;
@@ -119,7 +104,7 @@ namespace System::PSX::IO
         if (!data || !length || address > 0x3FFF)
             return 1;
 
-        START(ADDR_MEMORY_CARD, _portNumber);
+        BUS_START(m_bus, ADDR_MEMORY_CARD, _portNumber);
 
         uint8_t aHi = (address & 0xff00) >> 8;
         uint8_t aLo = (address & 0xff);
@@ -127,12 +112,13 @@ namespace System::PSX::IO
 
         Memcard_SectorRead response;
 
-        size_t respLength = psx_sio0.exchangeBytes(
+        size_t respLength = m_bus->exchangeBytes(
             request,
             response.asBytes(),
             sizeof(request),
             sizeof(response));
-        END();
+
+        m_bus->stop();
 
         if (response.validate())
             return 5;
@@ -149,14 +135,14 @@ namespace System::PSX::IO
 
         Memcard_SectorWrite request(address, data, length);
 
-        START(ADDR_MEMORY_CARD, _portNumber);
+        BUS_START(m_bus, ADDR_MEMORY_CARD, _portNumber);
         uint8_t response[sizeof(request) + 3]; // Ack + endbyte
-        size_t respLength = psx_sio0.exchangeBytes(
+        size_t respLength = m_bus->exchangeBytes(
             request.asBytes(),
             response,
             sizeof(request),
             sizeof(response));
-        END();
+        m_bus->stop();
 
         if (respLength < sizeof(request) + 3)
             return 1;
@@ -175,13 +161,13 @@ namespace System::PSX::IO
         uint8_t request[]{CMD_IDENTIFY_CARD, 0, 0, 0};
         uint8_t response[8];
 
-        START(ADDR_MEMORY_CARD, _portNumber);
-        size_t respLength = psx_sio0.exchangeBytes(
+        BUS_START(m_bus, ADDR_MEMORY_CARD, _portNumber);
+        size_t respLength = m_bus->exchangeBytes(
             request,
             response,
             sizeof(request),
             sizeof(response));
-        END();
+        m_bus->stop();
 
         if (respLength < 9)
             return 3;

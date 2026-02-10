@@ -24,32 +24,30 @@
 namespace System::PSX
 {
 
-    constexpr IInputDevice jamma(PlayerSuggestion player, uint32_t *digital, int16_t *analog = nullptr)
+    constexpr IInputDevice jamma(uint32_t *digital, uint8_t numAnalog = 0, int16_t *analog = nullptr)
     {
         return {
             GX700_JAMMA_NAME,
             "SYS573JAMMA"_h,
             0,
             Input::DEVICE_TYPE_CONTROLLER,
-            Input::DEVICE_SUBTYPE_STANDARD,
             0,
-            player,
-            {10,
-             (player == Input::DEVICE_PLAYER_1 ? GX700_ANALOG_COUNT : static_cast<uint8_t>(0)),
-             0,
-             0},
-            {digital,
-             analog}};
+            10,
+            digital,
+            numAnalog,
+            analog};
     };
 
     int Sys573Jamma::init()
     {
-        _devs[0] = jamma(Input::DEVICE_PLAYER_1, &_digital[0], _analog);
-        _devs[1] = jamma(Input::DEVICE_PLAYER_2, &_digital[1]);
-        _devs[2] = jamma(Input::DEVICE_ARCADE_CABINET, &_digital[2]);
-        int err  = 0;
-        for (auto &dev : _devs)
-            err += getServiceManager()->attachInputDevice(&dev);
+        _devs[0] = jamma(&_digital[0], GX700_ANALOG_COUNT, _analog);
+        _devs[1] = jamma(&_digital[1]);
+        _devs[2] = jamma(&_digital[2]);
+
+        int err = 0;
+        err += getServiceManager()->attachInputDevice(&_devs[0], Input::Player::PLAYER_1);
+        err += getServiceManager()->attachInputDevice(&_devs[1], Input::Player::PLAYER_2);
+        err += getServiceManager()->attachInputDevice(&_devs[2], Input::Player::ARCADE_CABINET);
         return err;
     }
 
@@ -73,7 +71,7 @@ namespace System::PSX
         uint32_t ud = (inputs[0] & 0x000C000C) >> 2;
         uint32_t st = (inputs[0] & 0x80008000) >> 3;
         uint32_t bt = (inputs[0] & 0x70007000) << 1;
-        inputs[0]   = (ud | lr | st | bt);
+        inputs[0] = (ud | lr | st | bt);
 
         _digital[0] = ((inputs[0] & 0xFF00) >> 8) | (inputs[1] & 0x0B);    // Player 1
         _digital[1] = (inputs[0] & 0x00FF) | (inputs[2] & 0x0B);           // Player 2

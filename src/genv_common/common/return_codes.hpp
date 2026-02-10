@@ -52,6 +52,7 @@ enum GVE_Systems
     GV_SERVICE_GENERIC,
     GV_SERVICE_VIDEO,
     GV_SERVICE_AUDIO,
+    GV_SERVICE_INPUT,
     GV_SERVICE_FILESYSTEM,
     GV_SERVICE_NETWORK,
     GV_SERVICE_MEMORY,
@@ -73,6 +74,7 @@ enum GVE_UniversalResults
     GV_ERR_RESOURCE_BUSY,     // Resource is currently in use
     GV_ERR_RESOURCE_LOCKED,   // Could not acquire lock
     GV_ERR_LIST_EMPTY,        // List or collection empty
+    GV_ERR_LIST_FULL,         // List or collection full
 
     // Filesystem errors
     GV_ERR_DEVICE_NOT_READY,

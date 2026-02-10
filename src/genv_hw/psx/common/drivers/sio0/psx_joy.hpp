@@ -17,18 +17,16 @@
 
 #pragma once
 
-#include <cstdint>
 #include <stddef.h>
 #include <assert.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "common/services/io/iface_input.hpp"
 
-#include "common/services/services.hpp"
 #include "common/util/templates.hpp"
+#include "psx/common/drivers/sio0/psx_pads.hpp"
 #include "psx_sio0.hpp"
-#include "psx/common/psx_strings.hpp"
-#include "psx/common/registers.hpp"
 
 namespace System::PSX
 {
@@ -39,76 +37,12 @@ namespace System::PSX::IO
 {
     using namespace ::Input;
 
-    enum JoypadType : uint8_t
-    {
-        PAD_ERROR = 0x00,
-        PAD_DISCONNECTED = 0xFF,
-        PAD_MOUSE = 0x12,
-        PAD_NEGCON = 0x23,
-        PAD_KONAMI_GUN = 0x31,
-        PAD_DIGITAL = 0x41,
-        PAD_TWINSTICK = 0x53,
-        PAD_GUNCON = 0x63,
-        PAD_ANALOG = 0x73,
-        PAD_DVD_REMOTE = 0x12,
-        PAD_DUALSHOCK2 = 0x79,
-        PAD_MULTITAP = 0x80,
-        PAD_KEYBOARD = 0x96,
-        PAD_JOGCON = 0xE3,
-        PAD_CONFIG = 0xF3,
-    };
-
     enum FeedbackType : uint8_t
     {
         FEEDBACK_NONE = 0,
         FEEDBACK_MOTOR,
         FEEDBACK_DUALMOTOR,
         FEEDBACK_WHEEL,
-    };
-
-    enum ControllerButton : uint16_t
-    {
-        // Standard controllers
-        BTN_SELECT = 1 << 0,
-        BTN_L3 = 1 << 1,
-        BTN_R3 = 1 << 2,
-        BTN_START = 1 << 3,
-        BTN_UP = 1 << 4,
-        BTN_RIGHT = 1 << 5,
-        BTN_DOWN = 1 << 6,
-        BTN_LEFT = 1 << 7,
-        BTN_L2 = 1 << 8,
-        BTN_R2 = 1 << 9,
-        BTN_L1 = 1 << 10,
-        BTN_R1 = 1 << 11,
-        BTN_TRIANGLE = 1 << 12,
-        BTN_CIRCLE = 1 << 13,
-        BTN_CROSS = 1 << 14,
-        BTN_SQUARE = 1 << 15,
-
-        // Mouse
-        BTN_MOUSE_RIGHT = 1 << 10,
-        BTN_MOUSE_LEFT = 1 << 11,
-
-        // neGcon
-        BTN_NEGCON_START = 1 << 3,
-        BTN_NEGCON_UP = 1 << 4,
-        BTN_NEGCON_RIGHT = 1 << 5,
-        BTN_NEGCON_DOWN = 1 << 6,
-        BTN_NEGCON_LEFT = 1 << 7,
-        BTN_NEGCON_R = 1 << 11,
-        BTN_NEGCON_B = 1 << 12,
-        BTN_NEGCON_A = 1 << 13,
-
-        // Guncon
-        BTN_GUNCON_A = 1 << 3,
-        BTN_GUNCON_TRIGGER = 1 << 13,
-        BTN_GUNCON_B = 1 << 14,
-
-        // IRQ10 lightgun
-        BTN_IRQ10_GUN_START = 1 << 3,
-        BTN_IRQ10_GUN_BACK = 1 << 14,
-        BTN_IRQ10_GUN_TRIGGER = 1 << 15
     };
 
     struct ControllerReadResponse
@@ -121,7 +55,12 @@ namespace System::PSX::IO
         uint16_t input = 0;
         struct AnalogInput
         {
-            uint8_t x = 0, y = 0;
+            union
+            {
+                uint8_t x;
+                uint8_t y;
+                int16_t val16 = 0;
+            };
         } left, right;
 
         ControllerReadResponse() {}
@@ -132,57 +71,62 @@ namespace System::PSX::IO
             input = (uint16_t)((rsp[3] << 8) | rsp[2]);
             if (len > 4)
             {
-                left.x = rsp[4];
-                left.y = rsp[5];
-                right.x = rsp[6];
-                right.y = rsp[7];
+                left.x = rsp[6];
+                left.y = rsp[7];
+                right.x = rsp[4];
+                right.y = rsp[5];
             }
         }
+    };
+
+    enum PSX_Joypad_Init_Sequence : uint8_t
+    {
     };
 
     class PSX_Joypad : public IInputDriver
     {
     private:
-        static uint8_t driverCount;
-        const SIOControlFlag _portNumber;
+        SIO0_Bus *m_bus;
+        static uint8_t m_driverCount;
 
-        AsyncService _psxJoyService = {
-            "PlayStation Joypad",
-            [](void *arg)
-            {
-                auto service = reinterpret_cast<PSX_Joypad *>(arg);
-                service->processPackets_();
-            },
-            this};
+        const SIO0_Port m_portNumber;
 
         struct PSX_PadData
         {
             uint32_t digital = 0;
             int16_t analog[10] = {0};
+            int16_t rotary[2] = {0};
             uint8_t motorStrength[2] = {0};
             JoypadType type = PAD_DISCONNECTED;
             bool doDSTest = true;
-        } _padData[4];
+        } m_padData[4];
 
-        IInputDevice _padList[4];
+        IInputDevice m_padList[4];
 
-        util::RingBuffer<uint8_t, 64> _packetBuffer;
+        util::RingBuffer<uint8_t, 16> m_pad_tx;
+        util::RingBuffer<uint8_t, 16> m_pad_rx;
+        int m_packetSent = 0;
 
-        int configMode_(bool state, uint8_t subport = 0);
-        int setAnalog_(bool state = true, bool lock = true, uint8_t subport = 0);
-        int setDualshock_(bool state = true, uint8_t subport = 0);
-        int setDS2Analog_(uint32_t bitmask = 0x3FFFF, uint8_t subport = 0);
+        int m_configMode(bool state, uint8_t subport = 0);
+        int m_setAnalog(bool state = true, bool lock = true, uint8_t subport = 0);
+        int m_setDualshock(bool state = true, uint8_t subport = 0);
+        int m_setDS2Analog(uint32_t bitmask = 0x3FFFF, uint8_t subport = 0);
 
-        void processPackets_();
+        void m_padChange(IInputDevice &pad, const ControllerReadResponse &resp, const Multitap_Port subport);
+        void m_padDisconnect(IInputDevice &pad, const ControllerReadResponse &resp, const Multitap_Port subport);
+
+        void m_processPackets();
 
     public:
-        inline PSX_Joypad(uint8_t port) : _portNumber((port % 2) ? SIO_CTRL_CS_PORT_1 : SIO_CTRL_CS_PORT_2)
+        inline PSX_Joypad(SIO0_Port port)
+            : m_portNumber(port)
         {
-            assert(driverCount < 2 && port <= 2);
+            assert(m_driverCount < 2);
             _name = PSX_PS_CONTROLLER_STR;
+            m_bus = getSIO0_Bus();
         };
 
-        int poll(ControllerReadResponse &resp, uint8_t subport = 0);
+        int poll(ControllerReadResponse &resp, Multitap_Port subport);
 
         int init() override;
         int update() override;

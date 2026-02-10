@@ -25,14 +25,14 @@
 namespace Input
 {
     const char szInputFailedFmt[] = "%s %s failed to %s: %s";
-    const char szInputFmt[]       = "%s %s %sed.";
-    const char szAttach[]         = "attach";
-    const char szDetach[]         = "detach";
-    const char szRegister[]       = "register";
-    const char szUnregister[]     = "unregister";
-    const char szInput[]          = "Input";
-    const char szDriver[]         = "driver";
-    const char szDevice[]         = "device";
+    const char szInputFmt[] = "%s %s %sed.";
+    const char szAttach[] = "attach";
+    const char szDetach[] = "detach";
+    const char szRegister[] = "register";
+    const char szUnregister[] = "unregister";
+    const char szInput[] = "Input";
+    const char szDriver[] = "driver";
+    const char szDevice[] = "device";
 
     const char szDeviceNull[] = "device pointer is null.";
 
@@ -69,7 +69,7 @@ namespace Input
             if (driver) driver->shutdown();
     }
 
-    int InputManager::attachDevice(const Input::IInputDevice *dev)
+    int InputManager::attachDevice(Input::IInputDevice *dev, Input::Player player)
     {
         if (!dev || dev->type == DEVICE_TYPE_NULL)
         {
@@ -77,11 +77,12 @@ namespace Input
             return false;
         }
         _devList.append(dev);
+        vpad.m_registerDevice(dev, player);
         ILOG(szInputFmt, dev->name, szDevice, szAttach);
         return 0;
     }
 
-    int InputManager::detachDevice(const Input::IInputDevice *dev)
+    int InputManager::detachDevice(Input::IInputDevice *dev)
     {
         if (!dev)
         {
@@ -89,6 +90,7 @@ namespace Input
             return false;
         }
         _devList.remove(dev);
+        vpad.m_unregisterDevice(dev);
         ILOG(szInputFmt, dev->name, szDevice, szDetach, szDeviceNull);
         return 0;
     }
@@ -121,5 +123,11 @@ namespace Input
     {
         if (idx >= _devList.length()) return nullptr;
         return _devList.at(idx)->name;
+    }
+
+    const int InputManager::devicePlayer(size_t idx)
+    {
+        if (idx >= _devList.length()) return 255;
+        return static_cast<int>(_devList.at(idx)->player) + 1;
     }
 } // namespace Input

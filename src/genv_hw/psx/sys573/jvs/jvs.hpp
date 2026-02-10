@@ -29,15 +29,6 @@ namespace System::PSX
     class Sys573JVS : public IInputDriver
     {
     private:
-        AsyncService _sys573JVSService = {
-            "System 573 JVS",
-            [](void *arg)
-            {
-                auto service = reinterpret_cast<Sys573JVS *>(arg);
-                service->processPackets_();
-            },
-            this};
-
         void processPackets_();
 
         IInputDevice _devs[4];

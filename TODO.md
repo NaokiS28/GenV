@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-02-05 15:42:42.516217_
+_Generated on 2026-02-10 23:05:53.192934_
 
 #### [src/genv_common/app/appmgr.cpp](src/genv_common/app/appmgr.cpp)
 
@@ -31,6 +31,10 @@ _Generated on 2026-02-05 15:42:42.516217_
 #### [src/genv_common/common/objects/tile.cpp](src/genv_common/common/objects/tile.cpp)
 
 - [121](src/genv_common/common/objects/tile.cpp?plain=1#L121): This just assumes you're using a 2D array.
+
+#### [src/genv_common/common/services/genv_sys.cpp](src/genv_common/common/services/genv_sys.cpp)
+
+- [77](src/genv_common/common/services/genv_sys.cpp?plain=1#L77): Allow setting custom startup baud
 
 #### [src/genv_common/common/services/system/arcade/arcade.cpp](src/genv_common/common/services/system/arcade/arcade.cpp)
 
@@ -64,11 +68,17 @@ _Generated on 2026-02-05 15:42:42.516217_
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp)
 
-- [152](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L152): Make PSX Joypad driver async
+- [226](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L226): Trim pad polling code down and use per-frame pacing
+- [227](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L227): If controller in multitap with controller 1:B is connected whilst Port 2:A also connected to a controller prior, both are assigned player 2. Does not happen in reverse
+- [265](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L265): Mouse "button" bits 8&9 are signs for rotary?
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp](src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp)
 
 - [30](src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp?plain=1#L30): Implement memory card as a virtual file system complete with directory listing.
+
+#### [src/genv_hw/psx/common/drivers/video/gpudef.hpp](src/genv_hw/psx/common/drivers/video/gpudef.hpp)
+
+- [53](src/genv_hw/psx/common/drivers/video/gpudef.hpp?plain=1#L53): 4096 words (16KB per chain, 32KB total for double-buffer). Increased
 
 #### [src/genv_hw/psx/common/drivers/video/psxtex.hpp](src/genv_hw/psx/common/drivers/video/psxtex.hpp)
 
@@ -87,8 +97,15 @@ _Generated on 2026-02-05 15:42:42.516217_
 
 #### [src/genv_hw/psx/common/drivers/video/video.cpp](src/genv_hw/psx/common/drivers/video/video.cpp)
 
-- [439](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L439): Cleanup?
-- [865](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L865): Somewhere, somehow, font height is not being stored in the font file correctly
+- [455](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L455): Cleanup?
+- [881](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L881): Somewhere, somehow, font height is not being stored in the font file correctly
+- [84](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L84): Skip writes when the DMA chain has overflowed. _allocatePacket
+- [268](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L268): Reset overflow flag for the new frame so draw calls resume.
+- [291](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L291): Overflow protection — if the requested allocation would exceed
+
+#### [src/genv_hw/psx/common/drivers/video/video.hpp](src/genv_hw/psx/common/drivers/video/video.hpp)
+
+- [76](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L76): Set true when the DMA chain is full. Draw calls become no-ops
 
 #### [src/genv_hw/psx/common/halt/halt.c](src/genv_hw/psx/common/halt/halt.c)
 
@@ -101,7 +118,8 @@ _Generated on 2026-02-05 15:42:42.516217_
 
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
-- [142](src/genv_hw/psx/common/system.cpp?plain=1#L142): int error = 0; How to handle multiple driver failures?
+- [140](src/genv_hw/psx/common/system.cpp?plain=1#L140): int error = 0; How to handle multiple driver failures?
+- [154](src/genv_hw/psx/common/system.cpp?plain=1#L154): Allow setting custom startup baud
 
 #### [src/genv_hw/psx/common/system/sys.h](src/genv_hw/psx/common/system/sys.h)
 

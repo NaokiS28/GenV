@@ -34,25 +34,26 @@ namespace System::PSX::IO
     class PSX_MemoryCard : public Files::IStorageDriver
     {
     private:
+        SIO0_Bus *m_bus;
         static uint8_t driverCount;
-        const SIOControlFlag _portNumber;
+        const SIO0_Port _portNumber;
 
     public:
-        inline PSX_MemoryCard(uint8_t port) : _portNumber((port % 2) ? SIO_CTRL_CS_PORT_1 : SIO_CTRL_CS_PORT_2)
+        inline PSX_MemoryCard(uint8_t port) : _portNumber((port % 2) ? SIO0_Port::PORT1 : SIO0_Port::PORT2)
         {
             assert(driverCount < 2 && port <= 2);
             name = PSX_PS_MEMCARD_STR;
+            m_bus = getSIO0_Bus();
         };
 
         int init() override
         {
-            LOG("psxmcd", "Init PlayStation Memory Card driver on port %d", (_portNumber == SIO_CTRL_CS_PORT_1 ? 1 : 2));
+            LOG("psxmcd", "Init PlayStation Memory Card driver on port %d", (_portNumber == SIO0_Port::PORT1 ? 1 : 2));
             return 0;
         }
 
         void update() override
         {
-            psx_sio0.update(); // Mouse ack checking
             return;
         }
         bool reset() override { return false; }

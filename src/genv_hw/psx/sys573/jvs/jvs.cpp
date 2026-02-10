@@ -22,22 +22,18 @@
 namespace System::PSX
 {
 
-    constexpr IInputDevice jvs(PlayerSuggestion player, uint32_t *digital, int16_t *analog = nullptr)
+    constexpr IInputDevice jvs(uint32_t *digital, int16_t *analog = nullptr)
     {
         return {
             GX700_JVS_NAME,
             "SYS573JVS"_h,
             0,
             Input::DEVICE_TYPE_CONTROLLER,
-            Input::DEVICE_SUBTYPE_STANDARD,
             0,
-            player,
-            {0,
-             0,
-             0,
-             0},
-            {digital,
-             analog}};
+            0,
+            digital,
+            0,
+            analog};
     };
 
     int Sys573JVS::init()
@@ -52,7 +48,7 @@ namespace System::PSX
 
     void Sys573JVS::processPackets_()
     {
-        if (_packetBuffer.length)
+        if (_packetBuffer.available())
         {
         }
     }

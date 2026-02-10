@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "common/services/io/inputman.hpp"
+#include "common/services/io/vpad.hpp"
 #include "common/util/templates.hpp"
 #include "iface_input.hpp"
 #include "common/services/adminkey.hpp"
@@ -24,16 +26,12 @@
 
 namespace Input
 {
-    static constexpr const int initialDrivers     = 10;
-    static constexpr const int initialControllers = 12;
-    static constexpr const int initialKeyboards   = 6;
-    static constexpr const int initialMice        = 6;
+    static constexpr const int initialDrivers = 4;
+    static constexpr const int initialControllers = 8;
+    static constexpr const int initialKeyboards = 2;
+    static constexpr const int initialMice = 4;
 
     // Placeholders - VKey and VMouse will provide a universal inteface to the app
-    class VPad
-    {
-    };
-
     class VKeyboard
     {
     };
@@ -52,6 +50,8 @@ namespace Input
         inline InputManager(AdminClass_Key key) {};
         ~InputManager();
 
+        VPad vpad;
+
         int init();
         void update();
         void reset();
@@ -60,10 +60,11 @@ namespace Input
         int registerDriver(Input::IInputDriver *device);
         int unregisterDriver(Input::IInputDriver *device);
 
-        int attachDevice(const Input::IInputDevice *driver);
-        int detachDevice(const Input::IInputDevice *driver);
+        int attachDevice(Input::IInputDevice *driver, Input::Player player);
+        int detachDevice(Input::IInputDevice *driver);
 
         const char *deviceName(size_t idx);
+        const int devicePlayer(size_t idx);
 
         inline size_t deviceCount() { return _devList.length(); }
     };

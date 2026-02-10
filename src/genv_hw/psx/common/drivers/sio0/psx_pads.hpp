@@ -22,12 +22,28 @@
 
 #include "psx/common/psx_strings.hpp"
 
-#include "common/services/io/iface_input.hpp"
 #include "common/util/hash.hpp"
 
 namespace System::PSX::IO
 {
-    using namespace Input;
+    enum JoypadType : uint8_t
+    {
+        PAD_ERROR = 0x00,
+        PAD_DISCONNECTED = 0xFF,
+        PAD_MOUSE = 0x12,
+        PAD_NEGCON = 0x23,
+        PAD_KONAMI_GUN = 0x31,
+        PAD_DIGITAL = 0x41,
+        PAD_TWINSTICK = 0x53,
+        PAD_GUNCON = 0x63,
+        PAD_ANALOG = 0x73,
+        PAD_DVD_REMOTE = 0x12,
+        PAD_DUALSHOCK2 = 0x79,
+        PAD_MULTITAP = 0x80,
+        PAD_KEYBOARD = 0x96,
+        PAD_JOGCON = 0xE3,
+        PAD_CONFIG = 0xF3,
+    };
 
     constexpr const util::Hash PSX_PAD_HASH = "PSXPAD"_h;
     constexpr const util::Hash PSX_DIGITAL_HASH = "PSXDIGITAL"_h;
@@ -42,51 +58,22 @@ namespace System::PSX::IO
     constexpr const util::Hash PSX_NEGCON_HASH = "PSXNEGCON"_h;
     constexpr const util::Hash PSX_JOGCON_HASH = "PSXJOGCON"_h;
 
-    constexpr IInputDevice psxPad(
-        const char *name, util::Hash type, PlayerSuggestion player, uint8_t subport,
-        uint32_t *digital, uint8_t numDig = 14,
-        int16_t *analog = nullptr, uint8_t numAnalog = 0)
+    constexpr const char *getPadName(uint16_t id)
     {
-        return {
-            name,
-            PSX_PAD_HASH,
-            type,
-            Input::DEVICE_TYPE_CONTROLLER,
-            Input::DEVICE_SUBTYPE_STANDARD,
-            subport,
-            player,
-            {numDig, numAnalog},
-            {digital, analog, nullptr}};
-    }
-
-    constexpr IInputDevice psxGun(
-        const char *name, util::Hash type, PlayerSuggestion player, uint8_t subport,
-        uint32_t *digital, int16_t *analog)
-    {
-        return {
-            name,
-            PSX_PAD_HASH,
-            type,
-            Input::DEVICE_TYPE_LIGHTGUN,
-            Input::DEVICE_SUBTYPE_STANDARD,
-            subport,
-            player,
-            {3, 2}, // Normally I'd say not to hard code the digital button count but conveniently the only two PSX guns are 3.
-            {digital, analog, nullptr}};
-    }
-
-    constexpr IInputDevice devMouse(PlayerSuggestion player, uint8_t subport, uint32_t *digital, int16_t *delta)
-    {
-        return {
-            PSX_MOUSE_STR,
-            PSX_PAD_HASH,
-            PSX_MOUSE_HASH,
-            Input::DEVICE_TYPE_MOUSE,
-            Input::DEVICE_SUBTYPE_STANDARD,
-            subport,
-            player,
-            {2, 0, 2},
-            {digital, nullptr, delta}};
+        switch (id & 0xFF)
+        {
+        case PAD_DIGITAL: return PSX_DIGITAL_STR;
+        case PAD_ANALOG: return PSX_ANALOG_STR;
+        case PAD_DUALSHOCK2: return PSX_DUALSHOCK2_STR;
+        case PAD_TWINSTICK: return PSX_TWINSTICK_STR;
+        case PAD_GUNCON: return PSX_GUNCON_STR;
+        case PAD_KONAMI_GUN: return PSX_JUSTIFIER_STR;
+        case PAD_MOUSE: return PSX_MOUSE_STR;
+        // case PAD_KEYBOARD: return PSX_KEYBOARD_STR;
+        case PAD_NEGCON: return PSX_NEGCON_STR;
+        // case PAD_JOGCON: return PSX_JOGCON_STR;
+        default: return "Unsupported controller";
+        }
     }
 
 } // namespace System::PSX::IO

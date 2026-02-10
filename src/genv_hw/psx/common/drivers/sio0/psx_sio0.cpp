@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * psx_sio0.cpp - Created on 09-11-2025
+ * SIO0_Bus.cpp - Created on 09-11-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -17,11 +17,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <assert.h>
 
 #include "psx_sio0.hpp"
 #include "common/logger/log.hpp"
-#include "common/services/services.hpp"
 #include "psx/common/registers.hpp"
 #include "psx/common/system/sys.h"
 
@@ -36,7 +34,17 @@ namespace System::PSX::IO
     static constexpr int _ACK_TIMEOUT = 120;
     static constexpr int _CS_DELAY = 60;
 
-    int PSX_SIO0::init()
+    SIO0_Bus *getSIO0_Bus()
+    {
+        static SIO0_Bus *sioPtr = nullptr;
+        if (!sioPtr)
+        {
+            sioPtr = new SIO0_Bus();
+        }
+        return sioPtr;
+    }
+
+    int SIO0_Bus::init()
     {
         if (_initialised)
             return 0;
@@ -48,6 +56,8 @@ namespace System::PSX::IO
         mouseFix();
         _initialised = true;
 
+        // static_cast<System::PSX::BasePSXSystem *>(getSystem())->registerISR(SYSTEM_CALLBACK("SIO0 ISR", SIO0_Bus, m_sioISR), IRQ_SIO0);
+
         _initResult = 0;
         return _initResult;
     }
@@ -56,7 +66,7 @@ namespace System::PSX::IO
     // lock up the bus. It's probably not required but none the less. Because both the Joypad and
     // memory card drivers will ping this, we have to take any expected max time out and multiply
     // by 4 since there's two instances of PSXJoy and PSXMemCard. 4 frames * 4 = 16 outta be plenty.
-    void PSX_SIO0::update()
+    void SIO0_Bus::update()
     {
         static int ackCount = 0;
         if (IRQ_STAT & (1 << IRQ_SIO0))
@@ -73,15 +83,15 @@ namespace System::PSX::IO
     }
 
     // To help with PSX mouse when /ACK is stuck low
-    void PSX_SIO0::mouseFix()
+    void SIO0_Bus::mouseFix()
     {
-        start(ADDR_CONTROLLER, SIO_CTRL_CS_PORT_1);
+        start(ADDR_CONTROLLER, SIO0_Port::PORT1);
         stop();
-        start(ADDR_CONTROLLER, SIO_CTRL_CS_PORT_2);
+        start(ADDR_CONTROLLER, SIO0_Port::PORT2);
         stop();
     }
 
-    uint8_t PSX_SIO0::exchangeByte(uint8_t value)
+    uint8_t SIO0_Bus::exchangeByte(uint8_t value)
     {
         while (!(SIO_STAT(0) & SIO_STAT_TX_NOT_FULL))
             __asm__ volatile("");
@@ -95,7 +105,7 @@ namespace System::PSX::IO
         return SIO_DATA(0);
     }
 
-    size_t PSX_SIO0::exchangeBytes(
+    size_t SIO0_Bus::exchangeBytes(
         const uint8_t *request,
         uint8_t *response,
         size_t reqLength,
@@ -126,12 +136,13 @@ namespace System::PSX::IO
         return respLength;
     }
 
-    int PSX_SIO0::start(uint8_t address, SIOControlFlag port)
+    int SIO0_Bus::start(uint8_t address, SIO0_Port port)
     {
         if (_inUse)
             return SIO0_IN_USE;
 
-        SIO_CTRL(0) = port | SIO_CTRL_DTR | SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE | SIO_CTRL_ACKNOWLEDGE;
+        SIOControlFlag cs = (port == SIO0_Port::PORT1 ? SIO_CTRL_CS_PORT_1 : SIO_CTRL_CS_PORT_2);
+        SIO_CTRL(0) = cs | SIO_CTRL_DTR | SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE | SIO_CTRL_ACKNOWLEDGE;
         psx_delayMicrosecondsBusy(_CS_DELAY);
 
         IRQ_STAT = ~(1 << IRQ_SIO0);
@@ -150,12 +161,60 @@ namespace System::PSX::IO
         return SIO0_OKAY;
     }
 
-    void PSX_SIO0::stop(void)
+    void SIO0_Bus::stop(void)
     {
         psx_delayMicrosecondsBusy(_CS_DELAY);
         SIO_CTRL(0) = SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE;
         _inUse = false;
     }
 
-    PSX_SIO0 psx_sio0;
+    void SIO0_Bus::m_sioISR()
+    {
+        return;
+        if (awaiting_ack)
+        {
+            awaiting_ack = false;
+            ack_received = true;
+        }
+    }
+
+    Input::Player SIO0_Bus::psxPlayerSelect(SIO0_Port port, Multitap_Port subport)
+    {
+        if (port == SIO0_Port::PORT1)
+        {
+            switch (subport)
+            {
+            default:
+            case Multitap_Port::PORTA: return Input::Player::PLAYER_1;
+            case Multitap_Port::PORTB: return Input::Player::PLAYER_2;
+            case Multitap_Port::PORTC: return Input::Player::PLAYER_3;
+            case Multitap_Port::PORTD: return Input::Player::PLAYER_4;
+            }
+        }
+        else
+        {
+            if (getMultitapState(SIO0_Port::PORT1) == MT_IS_PRESENT)
+            {
+                switch (subport)
+                {
+                default:
+                case Multitap_Port::PORTA: return Input::Player::PLAYER_5;
+                case Multitap_Port::PORTB: return Input::Player::PLAYER_6;
+                case Multitap_Port::PORTC: return Input::Player::PLAYER_7;
+                case Multitap_Port::PORTD: return Input::Player::PLAYER_8;
+                }
+            }
+            else
+            {
+                switch (subport)
+                {
+                default:
+                case Multitap_Port::PORTA: return Input::Player::PLAYER_2;
+                case Multitap_Port::PORTB: return Input::Player::PLAYER_3;
+                case Multitap_Port::PORTC: return Input::Player::PLAYER_4;
+                case Multitap_Port::PORTD: return Input::Player::PLAYER_5;
+                }
+            }
+        }
+    }
 } // namespace System::PSX::IO

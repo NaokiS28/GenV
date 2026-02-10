@@ -19,46 +19,64 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "../../registers.hpp"
+#include "common/services/io/iface_input.hpp"
+
+#define BUS_START(bus, addr, port)                      \
+    {                                                   \
+        int r = 0;                                      \
+        if (r = bus->start(addr, port), r != SIO0_OKAY) \
+        {                                               \
+            bus->stop();                                \
+            return r;                                   \
+        }                                               \
+    }
+
+#define BUS_END(bus, data, rspLen, prefix) \
+    {                                      \
+        bus->stop();                       \
+        if (rspLen < 4) return 1;          \
+        if (data[1] != prefix)             \
+            return 2;                      \
+    }
 
 namespace System::PSX::IO
 {
-    enum Address : uint8_t
+    enum SIO0_Address : uint8_t
     {
-        ADDR_CONTROLLER   = 0x01,
-        ADDR_PS2_IR       = 0x21,
+        ADDR_CONTROLLER = 0x01,
+        ADDR_PS2_IR = 0x21,
         ADDR_PS2_MULTITAP = 0x61,
-        ADDR_MEMORY_CARD  = 0x81
+        ADDR_MEMORY_CARD = 0x81
     };
 
-    enum ResponsePrefix : uint8_t
+    enum SIO0_ResponsePrefix : uint8_t
     {
-        PREFIX_CONTROLLER  = 0x5a,
+        PREFIX_CONTROLLER = 0x5a,
         PREFIX_MEMORY_CARD = 0x5d
     };
 
     enum Command : uint8_t
     {
         // Basic controller commands
-        CMD_POLL   = 'B',
+        CMD_POLL = 'B',
         CMD_CONFIG = 'C',
 
         // Configuration mode commands
         CMD_INIT_PRESSURE = '@', // DualShock 2 only
-        CMD_RESP_INFO     = 'A', // DualShock 2 only
-        CMD_SET_ANALOG    = 'D',
-        CMD_GET_ANALOG    = 'E',
-        CMD_MOTOR_INFO    = 'F',
-        CMD_MOTOR_LIST    = 'G',
-        CMD_MOTOR_STATE   = 'H',
-        CMD_GET_MODES     = 'L',
-        CMD_REQ_CONFIG    = 'M',
-        CMD_RESP_CONFIG   = 'O', // DualShock 2 only
+        CMD_RESP_INFO = 'A',     // DualShock 2 only
+        CMD_SET_ANALOG = 'D',
+        CMD_GET_ANALOG = 'E',
+        CMD_MOTOR_INFO = 'F',
+        CMD_MOTOR_LIST = 'G',
+        CMD_MOTOR_STATE = 'H',
+        CMD_GET_MODES = 'L',
+        CMD_REQ_CONFIG = 'M',
+        CMD_RESP_CONFIG = 'O', // DualShock 2 only
 
         // Memory card commands
-        CMD_READ_SECTOR   = 'R',
+        CMD_READ_SECTOR = 'R',
         CMD_IDENTIFY_CARD = 'S', // OEM cards only
-        CMD_WRITE_SECTOR  = 'W',
+        CMD_WRITE_SECTOR = 'W',
 
         CMD_AFFIX_MULTITAP_ALL = 0x01, // Tells the multitap to read and respond all four pads
     };
@@ -77,21 +95,63 @@ namespace System::PSX::IO
         MT_IS_PRESENT
     };
 
-    class PSX_SIO0
+    enum class SIO0_Port : uint8_t
     {
-        friend class PSX_Joypad;
-        friend class PSX_MemoryCard;
-        friend class SIO0_Transaction;
+        PORT1,
+        PORT2
+    };
+
+    inline constexpr const int sioPortNumber(const SIO0_Port port)
+    {
+        return (port == SIO0_Port::PORT1 ? 1 : 2);
+    }
+
+    enum class Multitap_Port : uint8_t
+    {
+        PORTA,
+        PORTB,
+        PORTC,
+        PORTD
+    };
+
+    inline constexpr const char multitapPortLetter(const Multitap_Port port)
+    {
+        switch (port)
+        {
+        case Multitap_Port::PORTA: return 'A';
+        case Multitap_Port::PORTB: return 'B';
+        case Multitap_Port::PORTC: return 'C';
+        case Multitap_Port::PORTD: return 'D';
+        }
+        return '?';
+    }
+
+    struct SIO0_Packet
+    {
+
+        SIO0_Port port;
+        int length;
+    };
+
+    class SIO0_Bus
+    {
+        friend class PSX_BaseSystem;
 
     private:
         bool _initialised = false;
-        int _initResult   = 0;
-        bool _inUse       = false;
+        int _initResult = 0;
+        bool _inUse = false;
+
+        volatile bool awaiting_ack = false;
+        volatile bool ack_received = false;
 
         MultitapState _multitap[2] = {MT_TEST_PRESENCE, MT_TEST_PRESENCE};
 
+        void m_sioISR();
+
+    public:
         int init();
-        int start(uint8_t address, SIOControlFlag port);
+        int start(uint8_t address, SIO0_Port port);
         void stop();
         uint8_t exchangeByte(uint8_t value);
         size_t exchangeBytes(
@@ -103,27 +163,29 @@ namespace System::PSX::IO
 
         void update();
 
+        Input::Player psxPlayerSelect(SIO0_Port port, Multitap_Port subport);
+
         // Multitap code - Set and used by the controller drivers, also used by memory card drivers
-        inline bool multitapPresent(SIOControlFlag port)
+        inline bool multitapPresent(SIO0_Port port)
         {
-            uint8_t _port = (port == SIO_CTRL_CS_PORT_1 ? 0 : 1);
+            uint8_t _port = (port == SIO0_Port::PORT1 ? 0 : 1);
             return _multitap[_port] == MT_IS_PRESENT;
         }
 
-        inline MultitapState getMultitapState(SIOControlFlag port)
+        inline MultitapState getMultitapState(SIO0_Port port)
         {
-            uint8_t _port = (port == SIO_CTRL_CS_PORT_1 ? 0 : 1);
+            uint8_t _port = (port == SIO0_Port::PORT1 ? 0 : 1);
             return _multitap[_port];
         }
 
-        inline void setMultitapState(SIOControlFlag port, MultitapState state)
+        inline void setMultitapState(SIO0_Port port, MultitapState state)
         {
-            uint8_t _port    = (port == SIO_CTRL_CS_PORT_1 ? 0 : 1);
+            uint8_t _port = (port == SIO0_Port::PORT1 ? 0 : 1);
             _multitap[_port] = state;
         }
 
         void mouseFix();
     };
 
-    extern PSX_SIO0 psx_sio0;
+    SIO0_Bus *getSIO0_Bus();
 } // namespace System::PSX::IO
