@@ -138,7 +138,7 @@ namespace Fonts
          0,
          1,
          2,
-         Genv_GIF_type,
+         Genv_GIF_Image_type,
          4,
          1,
          2,

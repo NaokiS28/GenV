@@ -1,0 +1,12 @@
+{
+	"$schema": "../../../schema/fontset.json",
+	"familyName": "Roboto",
+	"familyDesigner": "Christian Robertson, Paratype, Font Bureau",
+	"fonts": [
+		{
+			"size": 10,
+			"texture": "roboto-10.gif",
+			"metrics": "roboto-10.json"
+		}
+	]
+}
