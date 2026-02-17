@@ -32,10 +32,10 @@ static uint32_t _savedExceptionVector[4];
 static Thread _mainThread;
 
 ArgFunction interruptHandler = 0;
-void *interruptHandlerArg = 0;
+void *interruptHandlerArg    = 0;
 
 Thread *currentThread = &_mainThread;
-Thread *nextThread = &_mainThread;
+Thread *nextThread    = &_mainThread;
 
 /* Exception handler setup */
 
@@ -98,7 +98,7 @@ void psx_setInterruptHandler(ArgFunction func, void *arg)
 {
     psx_disableInterrupts();
 
-    interruptHandler = func;
+    interruptHandler    = func;
     interruptHandlerArg = arg;
     atomic_signal_fence(memory_order_release);
 }
@@ -121,26 +121,28 @@ void psx_softReset(void)
 
 /* IRQ acknowledgement */
 
-bool psx_acknowledgeInterrupt(IRQChannel irq)
+bool psx_testInterrupt(IRQChannel irq, bool ack)
 {
-    uint16_t a, b;
     if (irq == IRQ_SIO0)
     {
         // SIO0 ACK is not clock aligned and not double buffered.
+        uint16_t a, b;
         a = IRQ_STAT;
         psx_delayMicrosecondsBusy(5);
         b = IRQ_STAT;
+        if (a == b && a & (1 << irq))
+        {
+            if (ack) IRQ_STAT = ~(1 << irq);
+            return true;
+        }
     }
     else
     {
-        a = IRQ_STAT;
-        b = a;
-    }
-
-    if (a == b && a & (1 << irq))
-    {
-        IRQ_STAT = ~(1 << irq);
-        return true;
+        if (IRQ_STAT & (1 << irq))
+        {
+            if (ack) IRQ_STAT = ~(1 << irq);
+            return true;
+        }
     }
 
     return false;
@@ -150,7 +152,7 @@ bool psx_waitForInterrupt(IRQChannel irq, int timeout)
 {
     for (; timeout > 0; timeout -= 10)
     {
-        if (psx_acknowledgeInterrupt(irq))
+        if (psx_testInterrupt(irq, true))
             return true;
 
         if (irq == IRQ_SIO0)

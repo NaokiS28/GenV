@@ -167,7 +167,7 @@ extern "C"
 
     /**
      * @brief Checks if the specified interrupt was fired but not yet acknowledged;
-     * if so, acknowledges it and returns true. This function can be used in a
+     * if so, optionally acknowledges it and returns true. This function can be used in a
      * callback set using setInterruptHandler() to check for individual IRQs that
      * need to be processed, but will also work with interrupts that are not
      * explicitly enabled in the IRQ_MASK register.
@@ -178,9 +178,10 @@ extern "C"
      * timer interrupts do not require device-side acknowledgement.
      *
      * @param irq
+     * @param ack Bool whether to acknowledge the interrupt or not.
      * @return True if the IRQ was pending and got acknowledged, false otherwise
      */
-    bool psx_acknowledgeInterrupt(IRQChannel irq);
+    bool psx_testInterrupt(IRQChannel irq, bool ack);
 
     /**
      * @brief Waits for the specified interrupt to be fired for up to the specified
