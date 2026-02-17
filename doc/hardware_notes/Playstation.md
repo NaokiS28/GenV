@@ -20,3 +20,15 @@ The PlayStation 1 Sound Processing Unit (SPU) is an evolution of the Super Ninte
 The SPU only supports playing ADPCM encoded file formats. Other options for audio include CD Red Book audio and CD-XA streaming, however of these two, the last option is specific to the PS1 and should not be used when making cross platform GenV applications. CD-Audio is also not supported on all derivatives, and some derivatives have their own extensions or replacements to the sound system.
 
 For ADPCM files, which is going to be used for things like sound effects, streamed music or sequenced music, GenV ships with tools for converting common audio formats to the ADPCM format. The audio files must be in ADPCM format at runtime or the engine will reject them. Converting file formats at runtime, whilst theoretically possible, is entirely impractical and is not supported in GenV.
+
+## IO
+### Multitap
+The multitap for the PS1 is a funny beast to put it nicely. It has the following known issues:
+* Currently in GenV, a controller must always be present in port A for direct access to work
+* PS1 mouse will not work in port D when using direct port access. You must use long mode for this.
+* In direct access, putting the mouse into port D will cause the entire multitap to go offline as the multitap ACK is held low and it will not respond correctly.
+* PS2 DualShock 2s can be glitchy and might not show up if there is not another PS1 device connected. When one is present, it seems to work *alright*.
+* PS2 DVD Remote IR receiver just does not work at all in the multitap.
+* Some GunCon clones might have issues with the multitap. A 4gamers Justifier/GunCon/GunCon2 clone will just not work in GunCon mode over the multitap (it also requires C-sync to work at all)
+* All Justifiers share the IRQ10 line, which makes using more than 2 pretty much impossible.
+* Reading from memory cards is already painfully slow. Reading from 8 at the same time is not recomended to say the least.
