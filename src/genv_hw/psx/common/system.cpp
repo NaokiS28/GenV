@@ -75,31 +75,40 @@ namespace System::PSX
     BasePSXSystem::BasePSXSystem()
         : sm_state(SM_NORMAL)
     {
-        psx_installExceptionHandler();
+        // TODO: SIO1 driver will require interrupts in future, so this will need to change.
+        // We need to do this here (or change the boot process in GenV) so that boot logs are written.
+        // Suggest using PSX BIOS puts/gets as PSX BIOS handler is still running at this point.
         GenV_TerminalFuncs ops;
-        ops.init = &sio1_init;
-        ops.read = &sio1_read;
+        ops.init  = &sio1_init;
+        ops.read  = &sio1_read;
         ops.write = &sio1_write;
         ops.flush = &sio1_flush;
         genv_tty_register(&ops);
 
-        clock = new Time::SoftRTC;
+        clock = new Time::SoftRTC; // New clock here so GenV boot logs have correct timestamps
     }
 
     BasePSXSystem::~BasePSXSystem()
     {
+        // Restore the PSX BIOS handler (Unlikely to happen, but just in case)
         psx_uninstallExceptionHandler();
-        if (clock)
-            delete clock;
+        if (clock) delete clock;
     }
 
     int BasePSXSystem::initCore()
     {
-        if (pcsx_present())
-        {
-            LOG_SYS(szRedux);
-        }
-        setupInterruptHandler_();
+        if (pcsx_present()) LOG_SYS(szRedux);
+
+        // Prior to this point, we are using the Sony BIOS for interrupts
+        psx_installExceptionHandler();
+        psx_setInterruptHandler(
+            [](void *arg)
+            {
+                auto app = reinterpret_cast<BasePSXSystem *>(arg);
+                app->interruptHandler(); // etc.
+            },
+            this);
+
         psx_enableInterrupts();
         return PSX_SYS_OK;
     }
@@ -116,8 +125,8 @@ namespace System::PSX
     int BasePSXSystem::initVideo()
     {
         int error = 0;
-        gpu = new GPU::PSXGPU();
-        error = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
+        gpu       = new GPU::PSXGPU();
+        error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
         if (!error) services.setVideo(adminKey, gpu);
         return error;
@@ -164,8 +173,10 @@ namespace System::PSX
         psx_timer_reset(PSX_TIMER_1);
         psx_timer_reset(PSX_TIMER_2);
 
+        sio0.init();
+
         int error = 0;
-        int port = 1;
+        int port  = 1;
         for (auto &joy : joyDriver)
         {
             error = ioTest(joy.init(), PSX_JOYPAD_STR, port++, PSX_INIT_STR);
@@ -175,22 +186,11 @@ namespace System::PSX
         return error;
     }
 
-    void BasePSXSystem::setupInterruptHandler_(void)
+    void BasePSXSystem::interruptHandler(void)
     {
-        psx_setInterruptHandler(
-            [](void *arg)
-            {
-                auto app = reinterpret_cast<BasePSXSystem *>(arg);
-                app->interruptHandler_(); // etc.
-            },
-            this);
-    }
-
-    void BasePSXSystem::interruptHandler_(void)
-    {
-        if (psx_acknowledgeInterrupt(IRQ_VSYNC)) isr_vsync_();
-        if (psx_acknowledgeInterrupt(IRQ_TIMER2)) isr_timer2_();
-        if (isr_sio0.isValid() && psx_acknowledgeInterrupt(IRQ_SIO0)) isr_sio0.call();
+        if (psx_testInterrupt(IRQ_VSYNC, true)) isr_vsync_();
+        if (psx_testInterrupt(IRQ_TIMER2, true)) isr_timer2_();
+        if (psx_testInterrupt(IRQ_SIO0, isr_sio0_autoAck) && isr_sio0.isValid()) isr_sio0.call();
     }
 
     void BasePSXSystem::isr_vsync_()
@@ -221,8 +221,7 @@ namespace System::PSX
             else
                 timer2_addcycle = 0;
             lastRTCTick = timer2_count;
-            if (clock)
-                clock->tick();
+            doRTCtick   = true;
         }
         std::atomic_signal_fence(std::memory_order_release);
     }
@@ -230,7 +229,11 @@ namespace System::PSX
     int BasePSXSystem::update()
     {
         sm_state = SM_NORMAL;
-
+        if (doRTCtick && clock)
+        {
+            clock->tick();
+            doRTCtick = false;
+        }
         return sm_state;
     }
 
@@ -245,11 +248,14 @@ namespace System::PSX
         return nullptr;
     }
 
-    IRQChannel BasePSXSystem::registerISR(System::Callback callback, IRQChannel irq)
+    IRQChannel BasePSXSystem::registerISR(System::Callback callback, IRQChannel irq, bool autoAck)
     {
         switch (irq)
         {
-        case IRQ_SIO0: isr_sio0 = callback; return (callback.isValid() ? irq : IRQ_INVALID);
+        case IRQ_SIO0:
+            isr_sio0         = callback;
+            isr_sio0_autoAck = autoAck;
+            return (callback.isValid() ? irq : IRQ_INVALID);
         default: return IRQ_INVALID;
         }
     }

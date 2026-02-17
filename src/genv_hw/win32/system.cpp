@@ -163,6 +163,14 @@ namespace System
             (now.QuadPart - start.QuadPart) * 1000 / freq.QuadPart);
     }
 
+    size_t WinSystem::micros()
+    {
+        LARGE_INTEGER now;
+        QueryPerformanceCounter(&now);
+        return static_cast<size_t>(
+            (now.QuadPart - start.QuadPart) * 1000000 / freq.QuadPart);
+    }
+
     bool WinSystem::initWindowClass()
     {
         hInst = GetModuleHandle(nullptr);

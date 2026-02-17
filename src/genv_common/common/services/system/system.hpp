@@ -108,6 +108,7 @@ namespace System
     };
 
     size_t millis();
+    size_t micros();
     size_t random(size_t min, size_t max);
     bool getTime(tm &time);
     size_t getTime();

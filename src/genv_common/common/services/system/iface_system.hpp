@@ -73,6 +73,7 @@ namespace System
         virtual const SystemInfo *getSysInfo() const = 0;
 
         virtual size_t millis() = 0; // Millis since system start
+        virtual size_t micros() = 0; // Micros since system start
         virtual size_t random(size_t min, size_t max)
         { // Gets a random number between given values
             return ((min + rand()) % max);

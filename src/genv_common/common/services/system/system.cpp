@@ -28,6 +28,14 @@ namespace System
         return false;
     }
 
+    size_t micros()
+    {
+        ISystem *sys = getServiceManager()->getSystem();
+        if (sys)
+            return sys->micros();
+        return false;
+    }
+
     size_t random(size_t min, size_t max)
     {
         ISystem *sys = getServiceManager()->getSystem();

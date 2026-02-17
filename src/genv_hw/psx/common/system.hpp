@@ -22,7 +22,6 @@
 
 #include "common/services/system/iface_system.hpp"
 #include "drivers/video/video.hpp"
-#include "psx/common/drivers/sio0/psx_sio0.hpp"
 #include "system/timer.h"
 
 #include "common/services/system/timer.hpp"
@@ -31,8 +30,8 @@
 
 #include "drivers/sio0/psx_joy.hpp"
 #include "drivers/sio0/psx_mc.hpp"
+#include "drivers/sio0/psx_sio0.hpp"
 
-#include "psx_strings.hpp"
 #include "registers.hpp"
 
 namespace System
@@ -88,32 +87,40 @@ namespace System
             Time::IRTC *clock; // Pointer so can be overidden
             uint8_t sm_state;  // System Manager state for returning to main.cpp
 
-            void setupInterruptHandler_(void);
-            void interruptHandler_();
+            void interruptHandler();
 
             void isr_vsync_();
             void isr_timer2_();
+            struct
+            {
+                uint32_t timer;
+                Callback callback;
+            } timer_alarms[2];
 
+            bool isr_sio0_autoAck = false;
             Callback isr_sio0;
 
             // Millis/Seconds tracking
-            const size_t err_numerator = 307;
-            const size_t err_denominator = 512;
+            const size_t err_numerator      = 307;
+            const size_t err_denominator    = 512;
             volatile size_t timer2_addcycle = 0;
-            volatile size_t timer2_count = 0;
-            volatile size_t timer2_erracc = 0; // Time sync Error accumulator
-            volatile size_t lastRTCTick = 0;
+            volatile size_t timer2_count    = 0;
+            volatile size_t timer2_erracc   = 0; // Time sync Error accumulator
+            volatile size_t lastRTCTick     = 0;
+            volatile bool doRTCtick         = false;
 
             SystemInfo siPS1 = {
-                .type = SYS_Console,
-                .make = szSony,
-                .name = szPlaystation,
+                .type  = SYS_Console,
+                .make  = szSony,
+                .name  = szPlaystation,
                 .flags = SYS_No_Window_Mode};
 
             // Pointers to control the life cycle of items. TODO: Do these strictly *need* to be pointers?
-            GPU::PSXGPU *gpu = nullptr;                                                     // GPU probably needs to stay as pointer for V1/V2 CPU differences
-            IO::PSX_Joypad joyDriver[2] = {(IO::SIO0_Port::PORT1), (IO::SIO0_Port::PORT2)}; // <-| These are part of the CPU and thus can always be "present"
-            IO::PSX_MemoryCard mcDriver[2] = {(1), (2)};                                    // <-/
+            GPU::PSXGPU *gpu = nullptr; // GPU probably needs to stay as pointer for V1/V2 CPU differences
+            IO::SIO0_Bus sio0;
+            IO::PSX_Joypad joyDriver[2]    = {{&sio0, IO::SIO0_Port::PORT1}, {&sio0, IO::SIO0_Port::PORT2}}; // <-| These are part of the CPU and thus can always be "present"
+            IO::PSX_MemoryCard mcDriver[2] = {{&sio0, IO::SIO0_Port::PORT1}, {&sio0, IO::SIO0_Port::PORT2}}; // <-/
+            // IO::SIO1_Bus sio1;	// Always part of the CPU
 
         public:
             BasePSXSystem();
@@ -141,8 +148,18 @@ namespace System
             {
                 std::atomic_signal_fence(std::memory_order_acquire);
                 constexpr int tmult = 5;
-                constexpr int tdiv = 21168;
+                constexpr int tdiv  = 21168;
                 static_assert(((TIMER2_FREQ * tmult) / tdiv) == 1000, "");
+
+                return (uint64_t(TIMER_VALUE(PSX_TIMER_2) | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
+            }
+
+            size_t micros() override
+            {
+                std::atomic_signal_fence(std::memory_order_acquire);
+                constexpr int tmult = 625;
+                constexpr int tdiv  = 2646;
+                static_assert(((uint64_t(TIMER2_FREQ) * tmult) / tdiv) == 1000000, "");
 
                 return (uint64_t(TIMER_VALUE(PSX_TIMER_2) | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
             }
@@ -170,7 +187,7 @@ namespace System
                 return false;
             }
 
-            IRQChannel registerISR(System::Callback callback, IRQChannel irq);
+            IRQChannel registerISR(System::Callback callback, IRQChannel irq, bool autoAck = true);
         };
 
     } // namespace PSX

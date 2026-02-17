@@ -91,7 +91,8 @@ namespace System
             return &siWindows;
         }
 
-        size_t millis();
+        size_t millis() override;
+        size_t micros() override;
         size_t getTime(){ return 0; }
 
         inline bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq)

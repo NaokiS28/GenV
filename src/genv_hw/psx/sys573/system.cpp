@@ -20,7 +20,7 @@
 #include "psx/common/system.hpp"
 #include "psx/common/halt/halt.h"
 #include "psx/common/system/sys.h"
-#include "psx/common/system/gpucmd.h"
+#include "gpucmd.hpp"
 #include "psx/common/system/pcsxhw.h"
 
 #include "psx/sys573/halt/halt.h"
@@ -97,8 +97,8 @@ namespace System::PSX
     int Sys573System::initVideo()
     {
         int error = 0;
-        gpu = new GPU::PSXGPU(GP1_VRAM_2MB);
-        error = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
+        gpu       = new GPU::PSXGPU(GP1_VRAM_1MB);
+        error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
         if (!error) services.setVideo(adminKey, gpu);
         psx_halt_append_func(sys573_halt_delay);
@@ -137,6 +137,7 @@ namespace System::PSX
     {
         BasePSXSystem::initIO();
         services.registerInputDriver(&_jamma);
+        _jamma.init();
 
         return 0;
     }
