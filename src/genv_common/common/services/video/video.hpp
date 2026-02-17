@@ -35,12 +35,12 @@ namespace Video
 
     enum VideoResult : int
     {
-        V_RES_UNSUPPORTED = -3,
+        V_RES_UNSUPPORTED  = -3,
         V_RES_LIST_INVALID = -2,
-        V_RES_INVALID = -1,
+        V_RES_INVALID      = -1,
         V_OK,
         V_RES_TOO_HIGH,                   // The requested resolution was beyond the system's capabilities, the resolution was clamped
-        V_RES_MODIFIED = 128,             // The requested resolution didn't exist in the video drivers capabilities, was modified to the nearest fit.
+        V_RES_MODIFIED     = 128,         // The requested resolution didn't exist in the video drivers capabilities, was modified to the nearest fit.
         V_REFRESH_MODIFIED = (0x80 << 8), // The requested refresh rate didn't exist in the video drivers capabilities, was modified to the nearest fit.
     };
 
@@ -48,7 +48,7 @@ namespace Video
 
     enum MonitorDPI : uint8_t
     {
-        DPI_96 = 96,
+        DPI_96  = 96,
         DPI_120 = 120,
         DPI_144 = 144,
         DPI_168 = 168,
@@ -86,10 +86,10 @@ namespace Video
 
     struct Monitor
     {
-        VideoResolution res;
+        VideoResolution res = VideoResolution();
         int16_t refreshRate, dpi = DPI_96;
         const char *screenName = nullptr;
-        uint8_t monitorNumber = 0;
+        uint8_t monitorNumber  = 0;
     };
 
     enum GPUGradientMode : uint32_t

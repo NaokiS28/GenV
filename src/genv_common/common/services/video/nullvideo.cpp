@@ -48,8 +48,7 @@ namespace Video
     // Returns a nulled list.
     const VideoModeList *NullVideo::getSupportedResolutions()
     {
-        VideoModeList *vidList = new VideoModeList;
-        return vidList;
+        return &BlankVideoList;
     }
 
     void NullVideo::drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const

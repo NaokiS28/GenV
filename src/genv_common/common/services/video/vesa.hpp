@@ -57,67 +57,89 @@ namespace VESA
         return aspect_ratio_table[static_cast<uint8_t>(ar)];
     }
 
-    enum VideoFlags : uint16_t
+    // These flags denote certain attributes for the particular resolution.
+    // These can help to narrow down a list for a game to pick from if multiple options exist
+    enum ResolutionFlags : uint16_t
     {
-        NONE = 0x0000,
-        PC = 0x0001,
-        PC_UNCOMMON = 0x0002,
-        TV = 0x0004,
-        CONSOLE = 0x0008,
-        PORTABLE = 0x0010,
-        WIDESCREEN = 0x0080,
-        INTERLACED = 0x0100,
-        PROGRESSIVE = 0x0200,
-        SDTV = 0x0400,
-        HDTV = 0x0800
+        NONE        = 0x0000,
+        PC          = 0x0001, // Video monitor is a PC monitor
+        PC_UNCOMMON = 0x0002, // Video monitor is a PC monitor, but resolution is uncommon and might not be supported
+        TV          = 0x0004, // Video monitor is a standard TV
+        CONSOLE     = 0x0008, // Source device is a standard console
+        PORTABLE    = 0x0010, // Source device is a portable games console
+        WIDESCREEN  = 0x0080, // Resolution is widescreen
+        INTERLACED  = 0x0100, // Resolution is interlaced
+        PROGRESSIVE = 0x0200, // Resolution is progressive
+        SDTV        = 0x0400, // Resolution is an SDTV standard
+        HDTV        = 0x0800  // Resolution is an HDTV standard
     };
+
+    constexpr ResolutionFlags operator|(ResolutionFlags l, ResolutionFlags r)
+    {
+        return static_cast<ResolutionFlags>(static_cast<uint16_t>(l) | static_cast<uint16_t>(r));
+    }
 
     struct VideoResolution
     {
-        const char *name;
-        uint16_t width = 0;
-        uint16_t height = 0;
-        AspectRatio aspect = AspectRatio::INVALID;
-        uint16_t flags = NONE;
+        const char *name      = nullptr;
+        uint16_t width        = 0;
+        uint16_t height       = 0;
+        AspectRatio aspect    = AspectRatio::INVALID;
+        ResolutionFlags flags = NONE;
+
+        consteval VideoResolution() {}
+        consteval VideoResolution(const char *name, uint16_t w, uint16_t h, AspectRatio ratio, ResolutionFlags flags)
+            : name(name), width(w), height(h), aspect(ratio), flags(flags)
+        {
+        }
     };
 
     struct VideoModeList
     {
-        const uint16_t resLength = 0;
+        const uint16_t resLength       = 0;
         const VideoResolution *resList = nullptr;
-        const uint8_t refreshLength = 0;
-        const uint16_t *refreshList = nullptr;
+        const uint8_t refreshLength    = 0;
+        const uint16_t *refreshList    = nullptr;
+
+        consteval VideoModeList() {}
+        template <int N, int C>
+        constexpr VideoModeList(const VideoResolution (&v)[N], const uint16_t (&r)[C])
+            : resLength(N), resList(v),
+              refreshLength(C), refreshList(r)
+        {
+        }
     };
 
-    constexpr VideoResolution Custom = {"Custom", 0, 0, AspectRatio::INVALID, NONE};
-    constexpr VideoResolution CGA = {"CGA", 320, 200, AspectRatio::R16_10, PC_UNCOMMON | PROGRESSIVE};
-    constexpr VideoResolution QVGA = {"QVGA", 320, 240, AspectRatio::R4_3, PORTABLE | SDTV | PROGRESSIVE};
-    constexpr VideoResolution FWQVGA = {"FWQVGA", 432, 240, AspectRatio::R16_9, PORTABLE | WIDESCREEN | SDTV | PROGRESSIVE};
-    constexpr VideoResolution WQVGA = {"WQVGA", 384, 240, AspectRatio::R16_10, PORTABLE | WIDESCREEN | SDTV | PROGRESSIVE};
-    constexpr VideoResolution HVGA = {"HVGA", 480, 320, AspectRatio::R3_2, PORTABLE | SDTV | PROGRESSIVE};
-    constexpr VideoResolution VGA = {"VGA", 640, 480, AspectRatio::R4_3, PC | SDTV | PROGRESSIVE};
-    constexpr VideoResolution NTSC = {"NTSC", 640, 480, AspectRatio::R4_3, TV | CONSOLE | SDTV | INTERLACED};
-    constexpr VideoResolution WVGA = {"WVGA", 768, 480, AspectRatio::R5_3, PC | PORTABLE | WIDESCREEN | SDTV | PROGRESSIVE};
-    constexpr VideoResolution PAL = {"PAL", 768, 576, AspectRatio::R4_3, TV | CONSOLE | SDTV | INTERLACED};
-    constexpr VideoResolution WNTSC = {"NTSC (Widescreen)", 854, 480, AspectRatio::R16_9, TV | CONSOLE | WIDESCREEN | SDTV | INTERLACED};
-    constexpr VideoResolution SVGA = {"SVGA", 800, 600, AspectRatio::R4_3, PC | SDTV | PROGRESSIVE};
-    constexpr VideoResolution WPAL = {"PAL (Widescreen)", 1024, 576, AspectRatio::R16_9, TV | CONSOLE | WIDESCREEN | SDTV | INTERLACED};
-    constexpr VideoResolution XHD = {"HD (4:3)", 960, 720, AspectRatio::R4_3, PC_UNCOMMON | HDTV | PROGRESSIVE};
-    constexpr VideoResolution HD = {"HD", 1280, 720, AspectRatio::R16_9, PC | TV | CONSOLE | WIDESCREEN | HDTV | PROGRESSIVE};
-    constexpr VideoResolution XGA = {"XGA", 1024, 768, AspectRatio::R4_3, PC | SDTV | PROGRESSIVE};
-    constexpr VideoResolution WXGA = {"WXGA", 1280, 768, AspectRatio::R16_10, PC | WIDESCREEN | HDTV | PROGRESSIVE};
-    constexpr VideoResolution SXGA = {"SXGA", 1280, 1024, AspectRatio::R5_4, PC | HDTV | PROGRESSIVE};
-    constexpr VideoResolution SXGAM = {"SXGA-", 1280, 960, AspectRatio::R4_3, PC_UNCOMMON | HDTV | PROGRESSIVE};
-    constexpr VideoResolution FWXGA = {"FWXGA", 1366, 768, AspectRatio::R16_9, PC | WIDESCREEN | HDTV | PROGRESSIVE};
-    constexpr VideoResolution SXGAP = {"SXGA+", 1400, 1050, AspectRatio::R4_3, PC_UNCOMMON | HDTV | PROGRESSIVE};
-    constexpr VideoResolution UXGA = {"UXGA", 1600, 1200, AspectRatio::R4_3, PC_UNCOMMON | HDTV | PROGRESSIVE};
-    constexpr VideoResolution WSXGA = {"WSXGA", 1680, 900, AspectRatio::R16_9, PC_UNCOMMON | WIDESCREEN | HDTV | PROGRESSIVE};
-    constexpr VideoResolution WSXGAP = {"WSXGA+", 1680, 1050, AspectRatio::R16_10, PC | WIDESCREEN | HDTV | PROGRESSIVE};
-    constexpr VideoResolution XFHD = {"Full HD (4:3)", 1440, 1080, AspectRatio::R4_3, PC_UNCOMMON | HDTV | PROGRESSIVE};
-    constexpr VideoResolution FHD = {"Full HD", 1920, 1080, AspectRatio::R16_9, PC | CONSOLE | TV | WIDESCREEN | HDTV | PROGRESSIVE};
-    constexpr VideoResolution WUXGA = {"WUXGA", 1920, 1200, AspectRatio::R16_10, PC | WIDESCREEN | HDTV | PROGRESSIVE};
-    constexpr VideoResolution WQHD = {"WQHD", 2560, 1440, AspectRatio::R16_9, PC_UNCOMMON | WIDESCREEN | HDTV | PROGRESSIVE};
-    constexpr VideoResolution UHD = {"4K", 3840, 2160, AspectRatio::R16_9, PC | TV | CONSOLE | WIDESCREEN | HDTV | PROGRESSIVE};
+    constexpr auto BlankVideoList = VideoModeList();
 
+    constexpr auto Custom = VideoResolution("Custom", 0, 0, AspectRatio::INVALID, NONE);
+    constexpr auto CGA    = VideoResolution("CGA", 320, 200, AspectRatio::R16_10, PC_UNCOMMON | PROGRESSIVE);
+    constexpr auto QVGA   = VideoResolution("QVGA", 320, 240, AspectRatio::R4_3, PORTABLE | SDTV | PROGRESSIVE);
+    constexpr auto FWQVGA = VideoResolution("FWQVGA", 432, 240, AspectRatio::R16_9, PORTABLE | WIDESCREEN | SDTV | PROGRESSIVE);
+    constexpr auto WQVGA  = VideoResolution("WQVGA", 384, 240, AspectRatio::R16_10, PORTABLE | WIDESCREEN | SDTV | PROGRESSIVE);
+    constexpr auto HVGA   = VideoResolution("HVGA", 480, 320, AspectRatio::R3_2, PORTABLE | SDTV | PROGRESSIVE);
+    constexpr auto VGA    = VideoResolution("VGA", 640, 480, AspectRatio::R4_3, PC | SDTV | PROGRESSIVE);
+    constexpr auto NTSC   = VideoResolution("NTSC", 640, 480, AspectRatio::R4_3, TV | CONSOLE | SDTV | INTERLACED);
+    constexpr auto WVGA   = VideoResolution("WVGA", 768, 480, AspectRatio::R5_3, PC | PORTABLE | WIDESCREEN | SDTV | PROGRESSIVE);
+    constexpr auto PAL    = VideoResolution("PAL", 768, 576, AspectRatio::R4_3, TV | CONSOLE | SDTV | INTERLACED);
+    constexpr auto WNTSC  = VideoResolution("NTSC (Widescreen)", 854, 480, AspectRatio::R16_9, TV | CONSOLE | WIDESCREEN | SDTV | INTERLACED);
+    constexpr auto SVGA   = VideoResolution("SVGA", 800, 600, AspectRatio::R4_3, PC | SDTV | PROGRESSIVE);
+    constexpr auto WPAL   = VideoResolution("PAL (Widescreen)", 1024, 576, AspectRatio::R16_9, TV | CONSOLE | WIDESCREEN | SDTV | INTERLACED);
+    constexpr auto XHD    = VideoResolution("HD (4:3)", 960, 720, AspectRatio::R4_3, PC_UNCOMMON | HDTV | PROGRESSIVE);
+    constexpr auto HD     = VideoResolution("HD", 1280, 720, AspectRatio::R16_9, PC | TV | CONSOLE | WIDESCREEN | HDTV | PROGRESSIVE);
+    constexpr auto XGA    = VideoResolution("XGA", 1024, 768, AspectRatio::R4_3, PC | SDTV | PROGRESSIVE);
+    constexpr auto WXGA   = VideoResolution("WXGA", 1280, 768, AspectRatio::R16_10, PC | WIDESCREEN | HDTV | PROGRESSIVE);
+    constexpr auto SXGA   = VideoResolution("SXGA", 1280, 1024, AspectRatio::R5_4, PC | HDTV | PROGRESSIVE);
+    constexpr auto SXGAM  = VideoResolution("SXGA-", 1280, 960, AspectRatio::R4_3, PC_UNCOMMON | HDTV | PROGRESSIVE);
+    constexpr auto FWXGA  = VideoResolution("FWXGA", 1366, 768, AspectRatio::R16_9, PC | WIDESCREEN | HDTV | PROGRESSIVE);
+    constexpr auto SXGAP  = VideoResolution("SXGA+", 1400, 1050, AspectRatio::R4_3, PC_UNCOMMON | HDTV | PROGRESSIVE);
+    constexpr auto UXGA   = VideoResolution("UXGA", 1600, 1200, AspectRatio::R4_3, PC_UNCOMMON | HDTV | PROGRESSIVE);
+    constexpr auto WSXGA  = VideoResolution("WSXGA", 1680, 900, AspectRatio::R16_9, PC_UNCOMMON | WIDESCREEN | HDTV | PROGRESSIVE);
+    constexpr auto WSXGAP = VideoResolution("WSXGA+", 1680, 1050, AspectRatio::R16_10, PC | WIDESCREEN | HDTV | PROGRESSIVE);
+    constexpr auto XFHD   = VideoResolution("Full HD (4:3)", 1440, 1080, AspectRatio::R4_3, PC_UNCOMMON | HDTV | PROGRESSIVE);
+    constexpr auto FHD    = VideoResolution("Full HD", 1920, 1080, AspectRatio::R16_9, PC | CONSOLE | TV | WIDESCREEN | HDTV | PROGRESSIVE);
+    constexpr auto WUXGA  = VideoResolution("WUXGA", 1920, 1200, AspectRatio::R16_10, PC | WIDESCREEN | HDTV | PROGRESSIVE);
+    constexpr auto WQHD   = VideoResolution("WQHD", 2560, 1440, AspectRatio::R16_9, PC_UNCOMMON | WIDESCREEN | HDTV | PROGRESSIVE);
+    constexpr auto UHD    = VideoResolution("4K", 3840, 2160, AspectRatio::R16_9, PC | TV | CONSOLE | WIDESCREEN | HDTV | PROGRESSIVE);
 
-}
+} // namespace VESA
