@@ -18,8 +18,6 @@
 
 #include <stddef.h>
 
-#include "error_strings.hpp"
-
 namespace Logs
 {
 
@@ -76,9 +74,15 @@ namespace Logs
 } // namespace Logs
 
 /* Logging macros */
-
-#define LOG(type, fmt, ...) \
+#define INTERNAL_LOG(type, fmt, ...) \
     Logs::logger.logT(type, fmt, __func__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
+
+#ifndef NDEBUG
+#define LOG(type, fmt, ...) \
+    INTERNAL_LOG(type, fmt __VA_OPT__(, ) __VA_ARGS__)
+#else
+#define LOG(type, fmt, ...)
+#endif
 // Logs::logger.log(type ",%s(%d): " fmt, __func__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
 
 #ifdef ENABLE_APP_LOGGING

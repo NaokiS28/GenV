@@ -60,15 +60,15 @@
     }
 
 constexpr const char failedToInitFmt[] = "%s failed to init with error: %X";
-constexpr const char badPointerStr[] = "%s pointer is nullptr!";
+constexpr const char badPointerStr[]   = "%s pointer is nullptr!";
 
 void GenvSystemClass::startup()
 {
     auto services = getServiceManager();
 
     System::ISystem *system = System::makeNewSystem();
-    Audio::IAudio *audio = new Audio::NullAudio();
-    Video::IVideo *video = new Video::NullVideo();
+    Audio::IAudio *audio    = new Audio::NullAudio();
+    Video::IVideo *video    = new Video::NullVideo();
 
     services->setAudio(adminKey, audio);
     services->setVideo(adminKey, video);
@@ -84,9 +84,7 @@ void GenvSystemClass::startup()
     // What constitues an 'OS' is not to be decided by GenV, but if there's a kernel or OS version number,
     // it should be shown.
     if (system->getSysInfo()->osname != nullptr)
-    {
         GENV_LOG("OS Version: %s", system->getSysInfo()->osname);
-    }
 
     // The starting sequence needs to be handled carefully:
     // * The system core must be set up first for handling system interrupts and similar
@@ -119,9 +117,7 @@ void GenvSystemClass::halt(int return_code)
     GENV_LOG("GenV has halted.");
     genv_halt_screen_show("GenV has halted.");
     while (1)
-    {
         __asm__ volatile("");
-    }
 #else
     throw std::runtime_error("GenV has halted.");
 #endif

@@ -192,10 +192,7 @@ namespace Apps
         }
 
         AppFactory factory = appFactories.getFactory(APP_SCREEN_TITLE);
-        if (!factory)
-            factory = appFactories.getFactory(0);
-
-        if (!factory)
+        if (!factory && appFactories.listCount == 0)
         {
             showErrorScreen("APP FACTORY FAILURE",
                             "No app factories are registered.",
@@ -204,6 +201,9 @@ namespace Apps
                             EM_ICON_CRITICAL_ERROR);
             return 0;
         }
+
+        if (!factory)
+            factory = appFactories.getFactory(0);
 
         foregroundApp = factory(this);
         if (!foregroundApp)

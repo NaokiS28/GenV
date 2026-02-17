@@ -20,7 +20,7 @@
 #include "app/app.hpp"
 #include "common/util/templates.hpp"
 #include "common/services/services.hpp"
-
+#include "common/services/system/arcade/arcade.hpp"
 #include "common/services/system/arcade/errorcodes.hpp"
 
 using namespace Apps;
@@ -65,7 +65,7 @@ int DefaultErrorScreen::init()
     ArcadeFunc(
         if (msg->style == EM_STYLE_CRITICAL_ERROR)
             Genv_Arcade->getNVRAM()
-                .addErrorCode(GENV_ARC_ERR_CRITICAL_APP_ERROR, System::getTime(), msg->errorCode););
+                .addErrorCode(GENV_ARC_ERR_CRITICAL_APP_ERROR, 0, msg->errorCode););
 
     return 0;
 }
@@ -114,7 +114,7 @@ void DefaultErrorScreen::update()
         }
     }
 
-    if (playSound && playCount < maxCount && !errorSound->isPlaying())
+    if (playSound && playCount < maxCount && errorSound && !errorSound->isPlaying())
     {
         playSound = false;
         playCount++;
@@ -187,7 +187,7 @@ void DefaultErrorScreen::render()
     gpu->drawText(msg->message.str, area.x + 20, yOffset + 60, area.w - 20, 100, Video::Colors::White);
 
     // 	Button Options
-    gpu->drawText(eMsgOptionList[msg->action].str, area.x + 20, (yOffset + area.h) - 40, area.w - 20, 100, Video::Colors::White);
+    if (msg->style != EM_STYLE_CRITICAL_ERROR) gpu->drawText(eMsgOptionList[msg->action].str, area.x + 20, (yOffset + area.h) - 40, area.w - 20, 100, Video::Colors::White);
 }
 
 void DefaultErrorScreen::shutdown()
