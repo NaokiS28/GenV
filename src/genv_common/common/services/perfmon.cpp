@@ -16,7 +16,6 @@
  */
 
 #include "perfmon.hpp"
-#include "common/util/misc.hpp"
 
 namespace System
 {
@@ -34,32 +33,37 @@ namespace System
         lastFrame = frame;
 
         uint8_t screenRate = Video::getRefreshRate();
-        cycleTime = (MS_1HZ / screenRate);
+        cycleTime          = (US_1HZ / screenRate);
+
+        size_t busyTime = systemExecTime + storageUpdateTime + inputUpdateTime + appExecTime + renderTime + coroutineUpdateTime;
+        idleTime        = (busyTime < cycleTime) ? (cycleTime - busyTime) : 0;
 
         nextGraph.style = style;
         switch (style)
         {
         case PERFMON_GRAPH_TIME:
-            nextGraph.systemTime = systemExecTime;
-            nextGraph.appTime = appExecTime;
-            nextGraph.renderTime = renderTime;
-            nextGraph.storageTime = storageUpdateTime;
-            nextGraph.inputTime = inputUpdateTime;
+            nextGraph.systemTime    = systemExecTime;
+            nextGraph.appTime       = appExecTime;
+            nextGraph.renderTime    = renderTime;
+            nextGraph.storageTime   = storageUpdateTime;
+            nextGraph.inputTime     = inputUpdateTime;
             nextGraph.coroutineTime = coroutineUpdateTime;
-            nextGraph.idleTime = cycleTime - (systemExecTime + appExecTime + renderTime + storageUpdateTime + inputUpdateTime + coroutineUpdateTime);
-            nextGraph.cycleTime = cycleTime;
+            nextGraph.idleTime      = idleTime;
+            nextGraph.loopTime      = busyTime;
+            nextGraph.cycleTime     = cycleTime;
             break;
         default:
         case PERFMON_GRAPH_PIE:
         case PERFMON_GRAPH_BAR:
-            nextGraph.systemTime = util::toPercent(systemExecTime, cycleTime);
-            nextGraph.appTime = util::toPercent(appExecTime, cycleTime);
-            nextGraph.renderTime = util::toPercent(renderTime, cycleTime);
-            nextGraph.storageTime = util::toPercent(storageUpdateTime, cycleTime);
-            nextGraph.inputTime = util::toPercent(inputUpdateTime, cycleTime);
+            nextGraph.systemTime    = util::toPercent(systemExecTime, cycleTime);
+            nextGraph.appTime       = util::toPercent(appExecTime, cycleTime);
+            nextGraph.renderTime    = util::toPercent(renderTime, cycleTime);
+            nextGraph.storageTime   = util::toPercent(storageUpdateTime, cycleTime);
+            nextGraph.inputTime     = util::toPercent(inputUpdateTime, cycleTime);
             nextGraph.coroutineTime = util::toPercent(coroutineUpdateTime, cycleTime);
-            nextGraph.idleTime = util::toPercent(cycleTime - (systemExecTime + appExecTime + renderTime + storageUpdateTime + inputUpdateTime + coroutineUpdateTime), cycleTime);
-            nextGraph.cycleTime = cycleTime;
+            nextGraph.idleTime      = util::toPercent(idleTime, cycleTime);
+            nextGraph.loopTime      = util::toPercent(busyTime, cycleTime);
+            nextGraph.cycleTime     = cycleTime;
             break;
         }
 
