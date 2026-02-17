@@ -17,11 +17,12 @@
 
 #include "common/services/io/iface_input.hpp"
 #include "common/services/io/inputman.hpp"
+#include "common/services/io/vjoy.hpp"
 #include "common/services/services.hpp"
 #include "common/services/system/system.hpp"
 #include "common/util/time.hpp"
-#include <cstdint>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include <genv.hpp>
 
@@ -37,6 +38,13 @@ private:
     );
 
     Input::VPad *pads;
+    Input::InputManager *inputs;
+
+    int currentPage = 0;
+    int maxPage     = 0;
+    int padCount    = 0;
+
+    Input::Player currentPlayer = Input::Player::PLAYER_1;
 
     Coord txtOrigin;
     Coord timeOrigin;
@@ -57,7 +65,9 @@ public:
     {
         setAppState(APP_STATE_RUN);
         reload();
-        pads = &services.getInputs()->vpad;
+        inputs = getServiceManager()->getInputs();
+        pads   = &inputs->vpad;
+        pads->setMaximumPlayers(8);
 
         // Textures::TextureObject *textTest[256];
         // for (int i = 0; i < 256; i++)
@@ -78,49 +88,121 @@ public:
             // LOG("clock", "tick");
             lastSeconds = time.tm_sec;
         }
+
+        bool pageUpdate = false;
+
+        maxPage                = pads->playerCount() - 1;
+        static int lastMaxPage = 0;
+        if (lastMaxPage != maxPage)
+        {
+            lastMaxPage = maxPage;
+            pageUpdate |= true;
+        }
+
+        padCount                = inputs->deviceCount();
+        static int lastPadCount = 0;
+        if (lastPadCount != padCount)
+        {
+            lastPadCount = padCount;
+            pageUpdate |= true;
+        }
+
+        uint32_t inputs = 0;
+        pads->getPlayerDigitalInputs(inputs, Input::Player::PLAYER_1);
+        static uint32_t lastInputs = 0;
+        if (lastInputs != inputs)
+        {
+            lastInputs = inputs;
+            pageUpdate |= true;
+        }
+
+        if (pageUpdate)
+        {
+            if (inputs & static_cast<uint32_t>(VJoy_Input::D_Right))
+            {
+                if (currentPage < maxPage)
+                    currentPage++;
+                else
+                    currentPage = 0;
+            }
+            if (inputs & static_cast<uint32_t>(VJoy_Input::D_Left))
+            {
+                if (currentPage > 0)
+                    currentPage--;
+                else
+                    currentPage = maxPage;
+            }
+
+            if (maxPage && currentPage > maxPage) currentPage = maxPage;
+            if (currentPage < 0) currentPage = 0;
+
+            auto availablePlayers = pads->getPlayersAvailable();
+            auto playerTest       = Input::Player::PLAYER_1;
+            int found             = 0;
+            bool matched          = false;
+            do
+            {
+                if ((playerTest & availablePlayers) != Input::Player::NONE)
+                {
+                    if (found == currentPage)
+                    {
+                        matched = true;
+                        break;
+                    }
+                    found++;
+                }
+                if (playerTest == Input::Player::PLAYER_8) break;
+                playerTest++;
+            } while (true);
+            currentPlayer = matched ? playerTest : Input::Player::INVALID;
+        }
     }
 
     void render() override
     {
-        char timeStr[20] = {'\0'};
-        char padStr[16] = {'\0'};
+        char textStr[256] = {'\0'};
+        char temp[128]    = {'\0'};
         tm time;
         System::getTime(time);
-        Time::getTimeString(time, timeStr, 20, true, true);
-
-        auto padCount = getServiceManager()->getInputs()->deviceCount();
-        snprintf(padStr, 16, "Pads: %d", padCount);
-
-        int x = timeOrigin.x;
-        int y = timeOrigin.y;
 
         gpu->fillScreen(Video::Colors::Black);
-        gpu->drawText("This is an example string.", txtOrigin.x, txtOrigin.y, 500, 20, Video::Colors::White, Video::TALIGN_CENTER);
-        gpu->drawText(timeStr, x, y += 10, 200, 20, Video::Colors::White, Video::TALIGN_CENTER);
-        gpu->drawText(padStr, x, y += 10, 200, 20, Video::Colors::White, Video::TALIGN_CENTER);
+        gpu->drawText("GenV Input Test", txtOrigin.x, txtOrigin.y, 500, 20, Video::Colors::White, Video::TALIGN_CENTER);
 
-        for (size_t i = 0; i < padCount; i++)
+        Time::getTimeString(time, textStr, 20, true, true);
+        gpu->drawText(textStr, timeOrigin.x, timeOrigin.y, 200, 20, Video::Colors::White, Video::TALIGN_CENTER);
+
+        int x = 10;
+        int y = 20;
+
+        snprintf(textStr, sizeof(textStr), "Pads: %d\r\n", padCount);
+        strncat(textStr, temp, strlen(temp));
+
+        for (int i = 0; i < padCount; i++)
         {
-            char line[64] = {0};
-            int player = getServiceManager()->getInputs()->devicePlayer(i);
+            int player = inputs->devicePlayer(i);
             if (player > 0 && player < 10)
-                snprintf(line, 64, "%d: %s, assigned to player %d", (int)i, getServiceManager()->getInputs()->deviceName(i), player);
+                snprintf(temp, sizeof(temp), "\t%d: %s, assigned to player %d\r\n", (int)i, getServiceManager()->getInputs()->deviceName(i), player);
             else
-                snprintf(line, 64, "%d: %s, not assigned to player.", (int)i, getServiceManager()->getInputs()->deviceName(i));
-            gpu->drawText(line, x, y += 10, 500, 20, Video::Colors::White, Video::TALIGN_CENTER);
+                snprintf(temp, sizeof(temp), "\t%d: %s, not assigned to player.\r\n", (int)i, getServiceManager()->getInputs()->deviceName(i));
+            strncat(textStr, temp, strlen(temp));
+        }
+        gpu->drawText(textStr, x, y, 400, 40, Video::Colors::White, Video::TALIGN_CENTER);
+        y += (10 * (padCount + 2));
+
+        if (maxPage > 0)
+        {
+            snprintf(textStr, sizeof(textStr), "Page: %d / %d", currentPage + 1, maxPage + 1);
+            gpu->drawText(textStr, txtOrigin.x + 10, y, 200, 20, Video::Colors::White, Video::TALIGN_CENTER);
+            y += 20;
         }
 
-        printControllerData(x, y);
+        if (currentPlayer != Input::Player::INVALID) printControllerData(x, y, currentPlayer);
     }
 
     void reload() override
     {
-        txtOrigin = Coord(
-            (gpu->getHorizontalRes() / 2) - 50,
-            (gpu->getVerticalRes() / 2));
-        timeOrigin = Coord(
-            5,
-            5);
+        txtOrigin  = Coord((gpu->getHorizontalRes() / 2) - 50, 5);
+        timeOrigin = Coord(5, gpu->getVerticalRes() - 10);
     }
     void shutdown() override {}
 
@@ -129,68 +211,48 @@ public:
         return appInfo;
     }
 
-    void printControllerData(int x, int y)
+    void printControllerData(int &x, int &y, Input::Player player)
     {
-        static uint8_t digitalCount[8] = {0};
-        static uint8_t analogCount[8] = {0};
-        static uint8_t rotaryCount[8] = {0};
 
-        if (pads->devicesChanged())
+        char text[128] = {0};
+        char temp[32]  = {0};
+        snprintf(temp, 32, "Player: %i:\r\n", static_cast<int>(Input::playerToIndex(player)) + 1);
+        strncat(text, temp, 128);
+
+        uint8_t digitalBanks = (pads->getPlayerDigitalCount(player) / 32) + 1;
+        if (digitalBanks != 0)
         {
-            for (int i = 0; i < 8; i++)
+            for (uint8_t d = 0; d < digitalBanks; d++)
             {
-                auto player = Input::playerIndexToFlag(i);
-                if (!pads->isPlayerAvailable(player)) continue;
-                digitalCount[i] = pads->getPlayerDigitalCount(player);
-                analogCount[i] = pads->getPlayerAnalogCount(player);
-                rotaryCount[i] = pads->getPlayerRotaryCount(player);
+                uint32_t inputs = 0;
+                pads->getPlayerDigitalInputs(inputs, player);
+                snprintf(temp, 32, "\tDigital %i: 0x%08X\r\n", d, inputs);
+                strncat(text, temp, 128);
             }
         }
 
-        for (int i = 0; i < 8; i++)
+        if (auto aC = pads->getPlayerAnalogCount(player); aC != 0)
         {
-            auto p = Input::playerIndexToFlag(i);
-            if (pads->isPlayerAvailable(p))
+            for (int a = 0; a < aC; a++)
             {
-                char text[32] = {0};
-                snprintf(text, 32, "Player: %i:", i + 1);
-                gpu->drawText(text, x, y += 10, 500, 20, Video::Colors::White, Video::TALIGN_CENTER);
-
-                uint8_t digitalBanks = (digitalCount[i] / 32) + 1;
-                if (digitalCount[i] != 0)
-                {
-                    for (uint8_t d = 0; d < digitalBanks; d++)
-                    {
-                        uint32_t inputs = 0;
-                        pads->getPlayerDigitalInputs(inputs, p);
-                        snprintf(text, 32, "Digital %i: 0x%08X", d, inputs);
-                        gpu->drawText(text, x + 10, y += 10, 500, 20, Video::Colors::White, Video::TALIGN_CENTER);
-                    }
-                }
-
-                if (analogCount[i] != 0)
-                {
-                    for (int a = 0; a < analogCount[i]; a++)
-                    {
-                        int16_t analog = 0;
-                        pads->getPlayerAnalogInputs(analog, p, a);
-                        snprintf(text, 32, "Analog %i: %i", a, analog);
-                        gpu->drawText(text, x + 10, y += 10, 500, 20, Video::Colors::White, Video::TALIGN_CENTER);
-                    }
-                }
-
-                if (rotaryCount[i] != 0)
-                {
-                    for (int r = 0; r < rotaryCount[i]; r++)
-                    {
-                        int16_t rotary = 0;
-                        pads->getPlayerRotaryInputs(rotary, p, r);
-                        snprintf(text, 32, "Rotary %i: %i", r, rotary);
-                        gpu->drawText(text, x + 10, y += 10, 500, 20, Video::Colors::White, Video::TALIGN_CENTER);
-                    }
-                }
+                int16_t analog = 0;
+                pads->getPlayerAnalogInputs(analog, player, a);
+                snprintf(temp, 32, "\tAnalog %i: %i\r\n", a, analog);
+                strncat(text, temp, 128);
             }
         }
+
+        if (auto rC = pads->getPlayerRotaryCount(player); rC != 0)
+        {
+            for (int r = 0; r < rC; r++)
+            {
+                int16_t rotary = 0;
+                pads->getPlayerRotaryInputs(rotary, player, r);
+                snprintf(temp, 32, "\tRotary %i: %i\r\n", r, rotary);
+                strncat(text, temp, 128);
+            }
+        }
+        gpu->drawText(text, x, y, 500, 20, Video::Colors::White, Video::TALIGN_CENTER);
     }
 };
 
