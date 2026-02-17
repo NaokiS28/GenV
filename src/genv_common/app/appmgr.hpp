@@ -34,7 +34,7 @@ namespace Apps
         APP_LOADSCREEN
     };
 
-    static constexpr const char *appmgrName = "Application Manager";
+    static constexpr const char *appmgrName             = "Application Manager";
     static constexpr const int AppMgr_Max_App_Factories = 10;
 
     class AppManager : public IAppHost
@@ -57,10 +57,10 @@ namespace Apps
                 const AppInfo *info;
                 AppScreenType type = APP_SCREEN_GENERIC;
                 AppFactory factory = nullptr;
-                const char *name = nullptr;
+                const char *name   = nullptr;
             } factoryList[AppMgr_Max_App_Factories];
 
-            uint8_t listCount = 0;
+            uint8_t listCount  = 0;
             const int listSize = AppMgr_Max_App_Factories;
 
             template <typename T>
@@ -87,33 +87,39 @@ namespace Apps
             {
                 return getFactory(getTypeID(type));
             }
+
+            inline AppFactory getFactory(int idx)
+            {
+                return factoryList[idx].factory;
+            }
+
             AppFactory getFactory(AppID id);
             // Retrieves an app factory constructor using a generic app type value
             AppID getTypeID(AppScreenType type);
         } appFactories;
 
         // arcade specific
-        bool firstRun = true;
-        uint8_t enteredTestMode = 0;
-        System::IArcadeSystem *asys = nullptr;
-        ArcadeTestApp *gameTestModeFactory = nullptr;
+        bool firstRun                        = true;
+        uint8_t enteredTestMode              = 0;
+        System::IArcadeSystem *asys          = nullptr;
+        ArcadeTestApp *gameTestModeFactory   = nullptr;
         ArcadeTestApp *systemTestModeFactory = nullptr;
 
-        Application *foregroundApp = nullptr;
+        Application *foregroundApp       = nullptr;
         const AppInfo *foregroundAppInfo = nullptr;
 
         Application *backgroundApp = nullptr;
 
-        ErrorScreenApp *errorScreen = nullptr;
+        ErrorScreenApp *errorScreen           = nullptr;
         ErrorScreenFactory errorScreenFactory = nullptr;
-        const AppInfo *errorScreenInfo = nullptr;
+        const AppInfo *errorScreenInfo        = nullptr;
 
-        LoadScreenApp *loadingScreen = nullptr;
+        LoadScreenApp *loadingScreen        = nullptr;
         LoadScreenFactory loadScreenFactory = nullptr;
-        const AppInfo *loadScreenInfo = nullptr;
+        const AppInfo *loadScreenInfo       = nullptr;
 
-        bool m_hasPending = false;
-        AppID m_pendingId = 0;
+        bool m_hasPending       = false;
+        AppID m_pendingId       = 0;
         uint32_t m_pendingFlags = 0;
 
         void applyPending();
@@ -128,7 +134,7 @@ namespace Apps
             const char *title, const char *text,
             const uint32_t errorCode,
             ErrorMessageStyle style = EM_STYLE_DEFAULT,
-            ErrorMessageIcon icon = EM_ICON_DEFAULT);
+            ErrorMessageIcon icon   = EM_ICON_DEFAULT);
         bool showErrorScreen(ErrorScreenMessage *msg);
 
         Application *getApp(AppSelect type);

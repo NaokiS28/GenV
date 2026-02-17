@@ -37,12 +37,12 @@ extern "C++" int genv_register_apps(IAppHost *host);
 
 namespace Apps
 {
-    constexpr const char *s_factoryListfull = "Factory list is full.";
-    constexpr const char *s_factoryNotExists = "Factory does not exist in factory list.";
+    constexpr const char *s_factoryListfull      = "Factory list is full.";
+    constexpr const char *s_factoryNotExists     = "Factory does not exist in factory list.";
     constexpr const char *s_factoryAlreadyExists = "Factory is already in factory list.";
-    constexpr const char *s_factoryPtrNull = "Factory pointer was null.";
-    constexpr const char *s_infoPtrNull = "App info struct pointer was null.";
-    constexpr const char *s_unknownError = "Unknown error occured.";
+    constexpr const char *s_factoryPtrNull       = "Factory pointer was null.";
+    constexpr const char *s_infoPtrNull          = "App info struct pointer was null.";
+    constexpr const char *s_unknownError         = "Unknown error occured.";
 
     // --- Local helpers ---------------------------------------------------------
 
@@ -184,26 +184,36 @@ namespace Apps
         if (r != 0)
         {
             showErrorScreen("APP REGISTRATION FAILURE",
-                            "REGISTRATION FUNCTION RETURNED FAILED",
+                            "Registration function returned failed.",
                             GENV_APP_ERR_INVALID_GAME,
                             EM_STYLE_CRITICAL_ERROR,
                             EM_ICON_CRITICAL_ERROR);
-            return -1;
+            // return -1;
         }
 
         AppFactory factory = appFactories.getFactory(APP_SCREEN_TITLE);
         if (!factory)
-            factory = appFactories[0];
+            factory = appFactories.getFactory(0);
+
+        if (!factory)
+        {
+            showErrorScreen("APP FACTORY FAILURE",
+                            "No app factories are registered.",
+                            GENV_APP_ERR_INVALID_GAME,
+                            EM_STYLE_CRITICAL_ERROR,
+                            EM_ICON_CRITICAL_ERROR);
+            return 0;
+        }
 
         foregroundApp = factory(this);
         if (!foregroundApp)
         {
             showErrorScreen("APP INIT FAILURE",
-                            "INVALID ENTRYPOINT",
+                            "Invalid entry point.",
                             GENV_APP_ERR_INVALID_GAME,
                             EM_STYLE_CRITICAL_ERROR,
                             EM_ICON_CRITICAL_ERROR);
-            return -1;
+            return 0;
         }
 
         if (loadScreenFactory)
@@ -213,15 +223,15 @@ namespace Apps
         if (!loadingScreen)
         {
             showErrorScreen("LOADER INIT FAILURE",
-                            "INVALID LOADER",
+                            "Invalid AppLoader.",
                             GENV_APP_ERR_INVALID_LOADER,
                             EM_STYLE_CRITICAL_ERROR,
                             EM_ICON_CRITICAL_ERROR);
-            return -1;
+            return 0;
         }
 
         enteredTestMode = ASYS_GAME_MODE;
-        firstRun = false;
+        firstRun        = false;
 
         ArcadeFunc(Genv_Arcade->tickWatchdog());
 
@@ -300,6 +310,7 @@ namespace Apps
 
     int AppManager::render()
     {
+        // TODO: Indirect pointers and function execution is insanely slow on PS1. (But not on debug?)
         if (backgroundApp && backgroundApp->isReady())
             backgroundApp->render(); // bottom layer
         if (foregroundApp && foregroundApp->isReady())
@@ -455,7 +466,7 @@ namespace Apps
         }
         APPMGR_LOG("Registered new loading screen \"%s\" (%X) factory (0x%X)", info->name, info->id, factory);
         loadScreenFactory = factory;
-        loadScreenInfo = info;
+        loadScreenInfo    = info;
     }
 
     void AppManager::registerErrorScreenFactory(ErrorScreenApp *(*factory)(IAppHost *host, ErrorScreenMessage *msg), const AppInfo *info)
@@ -472,7 +483,7 @@ namespace Apps
         }
         APPMGR_LOG("Registered new error screen \"%s\" (%X) factory (0x%X)", info->name, info->id, factory);
         errorScreenFactory = factory;
-        errorScreenInfo = info;
+        errorScreenInfo    = info;
     }
 
     void AppManager::registerGameTestModeFactory(ArcadeTestScreenFactory factory, const AppInfo *info)
@@ -491,7 +502,7 @@ namespace Apps
             m_pendingId = appFactories.getTypeID(type);
             if (!m_pendingId)
                 return;
-            m_hasPending = true;
+            m_hasPending   = true;
             m_pendingFlags = flags;
         }
     }
@@ -499,15 +510,15 @@ namespace Apps
     void AppManager::requestSwitch(AppID id, uint32_t flags)
     {
         // Defer graph mutation to the end of the frame.
-        m_hasPending = true;
-        m_pendingId = id;
+        m_hasPending   = true;
+        m_pendingId    = id;
         m_pendingFlags = flags;
     }
 
     void AppManager::requestQuitForeground()
     {
-        m_hasPending = true;
-        m_pendingId = 0;                 // no new app
+        m_hasPending   = true;
+        m_pendingId    = 0;              // no new app
         m_pendingFlags = APPACT_REPLACE; // close foreground
     }
 
@@ -573,8 +584,8 @@ namespace Apps
             }
         }
 
-        m_hasPending = false;
-        m_pendingId = 0;
+        m_hasPending   = false;
+        m_pendingId    = 0;
         m_pendingFlags = 0;
     }
 
@@ -593,9 +604,9 @@ namespace Apps
         {
             if (factoryList[idx].info == nullptr)
             {
-                factoryList[idx].info = info;
+                factoryList[idx].info    = info;
                 factoryList[idx].factory = factory;
-                factoryList[idx].type = type;
+                factoryList[idx].type    = type;
                 listCount++;
                 APPMGR_LOG("Added \"%s\" (%X) factory at 0x%X to app factory list at position %u.", info->name, info->id, factoryList[idx].factory, idx);
                 return 0;
@@ -623,8 +634,8 @@ namespace Apps
                     sizeof(AppFactoryEntry) * moveCount);
         }
         factoryList[idx].factory = factory;
-        factoryList[idx].info = info;
-        factoryList[idx].type = type;
+        factoryList[idx].info    = info;
+        factoryList[idx].type    = type;
         ++listCount;
         APPMGR_LOG("Added \"%s\" (%X) factory at 0x%X to app factory list at position %u.", info->name, info->id, factoryList[idx].factory, idx);
         return 0;
