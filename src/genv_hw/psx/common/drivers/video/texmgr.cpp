@@ -21,9 +21,9 @@
 #include <stdint.h>
 #include <string.h>
 #include "texmgr.hpp"
+#include "common/logger/log.hpp"
 #include "common/util/rect.h"
-#include "psx/common/system/gpucmd.h"
-#include "psx/common/drivers/video/gpudef.hpp" // IWYU pragma: export
+#include "gpucmd.hpp"
 #include "common/return_codes.hpp"
 
 namespace System::PSX::GPU
@@ -33,8 +33,8 @@ namespace System::PSX::GPU
         // Using 8bpp width here as we're dealing with bytes, hieght is 4bpp since each line is a pixel
         _tile_bitmap_size = ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * (VRAM_HEIGHT / (PIXELS_PER_TILE(4))));
         _clut_bitmap_size = ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * (MAX_CLUT_LINES_PER_PAGE * (PAGE_MIN_ROWS * (1 + _vram))));
-        _tile_bitmap = new uint32_t[_tile_bitmap_size];
-        _clut_bitmap = new uint32_t[_clut_bitmap_size];
+        _tile_bitmap      = new uint32_t[_tile_bitmap_size];
+        _clut_bitmap      = new uint32_t[_clut_bitmap_size];
 
         if (!_tile_bitmap || !_clut_bitmap)
         {
@@ -51,7 +51,7 @@ namespace System::PSX::GPU
     {
         if (!_tile_bitmap) return TMGR_INUSE;
         uint32_t bitmask = (1 << (x % 32));
-        size_t tile_idx = ((x / 32) + ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * y));
+        size_t tile_idx  = ((x / 32) + ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * y));
         return ((_tile_bitmap[tile_idx] & bitmask) != TMGR_INUSE);
     }
 
@@ -67,7 +67,7 @@ namespace System::PSX::GPU
             return TMGR_INUSE;
 
         uint32_t bitmask = (1 << (x % 32));
-        size_t clut_idx = ((x / 32) + (((VRAM_WIDTH * 2) / (PIXELS_PER_TILE(8) * 32)) * row) + (y % MAX_CLUT_LINES_PER_PAGE));
+        size_t clut_idx  = ((x / 32) + (((VRAM_WIDTH * 2) / (PIXELS_PER_TILE(8) * 32)) * row) + (y % MAX_CLUT_LINES_PER_PAGE));
         for (int i = 0; i < w; i += MAX_COLORS_4BPP)
         {
             if ((_clut_bitmap[clut_idx] & bitmask) != TMGR_FREE)
@@ -98,7 +98,7 @@ namespace System::PSX::GPU
     {
         if (!_tile_bitmap) return;
         uint32_t bitmask = (1 << (x % 32));
-        size_t tile_idx = ((x / 32) + ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * y));
+        size_t tile_idx  = ((x / 32) + ((VRAM_WIDTH / (PIXELS_PER_TILE(8) * 32)) * y));
         if (state)
             _tile_bitmap[tile_idx] |= bitmask;
         else
@@ -117,7 +117,7 @@ namespace System::PSX::GPU
             return;
 
         uint32_t bitmask = (1 << (x % 32));
-        size_t clut_idx = ((x / 32) + (((VRAM_WIDTH * 2) / (PIXELS_PER_TILE(8) * 32)) * row) + (y % MAX_CLUT_LINES_PER_PAGE));
+        size_t clut_idx  = ((x / 32) + (((VRAM_WIDTH * 2) / (PIXELS_PER_TILE(8) * 32)) * row) + (y % MAX_CLUT_LINES_PER_PAGE));
         if (state)
             _clut_bitmap[clut_idx] |= bitmask;
         else
@@ -202,20 +202,20 @@ namespace System::PSX::GPU
     {
         // Always start at top left corner and try to align to left edge of nearest page.
         // Push to farthest right page start
-        int pageW = (VRAM_WIDTH_IN_PX(bpp) / bpp); // in pixels
-        int pageX = (PAGE_GRID_COLS - (1 + (w / pageW)));
-        int pageY = 0;
-        int startX = ((PAGE_SIZE / MIN_TILE_SIZE) * pageX);
-        int startY = 0;
-        int maxH = PAGE_SIZE / MIN_TILE_SIZE;
-        int maxW = (VRAM_WIDTH_IN_PX(bpp) / MIN_TILE_SIZE);
+        uint32_t pageW = (VRAM_WIDTH_IN_PX(bpp) / bpp); // in pixels
+        uint32_t pageX = (PAGE_GRID_COLS - (1 + (w / pageW)));
+        uint32_t pageY = 0;
+        int startX     = ((PAGE_SIZE / MIN_TILE_SIZE) * pageX);
+        int startY     = 0;
+        int maxH       = PAGE_SIZE / MIN_TILE_SIZE;
+        int maxW       = (VRAM_WIDTH_IN_PX(bpp) / MIN_TILE_SIZE);
 
         RectWH t = {startX, startY, w, h};
 
         for (;;)
         {
             // Page alignment
-            for (; (t.y + (t.h - 1)) < maxH + (32 * pageY); t.y++)
+            for (; (t.y + (t.h - 1)) < maxH + (32 * (int)pageY); t.y++)
             {
                 for (; (t.x + (t.w - 1)) < (maxW * (bpp / 4)); t.x++)
                 {
@@ -287,9 +287,9 @@ namespace System::PSX::GPU
     // X and Y is in px
     int TextureManager::findFreeCLUT(uint16_t &x, uint16_t &y, uint8_t bpp) const
     {
-        uint8_t pageX = 0;
-        uint8_t pageY = ((2 * (_vramSize + 1)) - 1); // Bottom line of VRAM
-        uint16_t minH = (PAGE_SIZE - MAX_CLUT_LINES_PER_PAGE);
+        uint8_t pageX   = 0;
+        uint8_t pageY   = ((2 * (_vramSize + 1)) - 1); // Bottom line of VRAM
+        uint16_t minH   = (PAGE_SIZE - MAX_CLUT_LINES_PER_PAGE);
         uint16_t startY = (PAGE_SIZE * (pageY + 1)) - 1;
 
         // CLUT strips are aligned by their pixel width for the given bpp.
@@ -336,7 +336,7 @@ namespace System::PSX::GPU
     int TextureManager::allocateCLUT(uint8_t bpp, uint16_t &x, uint16_t &y)
     {
         int r = 0;
-        r = findFreeCLUT(x, y, bpp);
+        r     = findFreeCLUT(x, y, bpp);
         if (r != GV_OK)
             return r;
 
@@ -375,8 +375,8 @@ namespace System::PSX::GPU
         ptObj->tpage.offsetX = ((ptObj->vramX % 64) * (ptObj->bpp == 4 ? 4 : ptObj->bpp == 8 ? 2
                                                                                              : 1));
         ptObj->tpage.offsetY = (ptObj->vramY % 256);
-        ptObj->tpage.x = (ptObj->vramX / 64);
-        ptObj->tpage.y = (16 * (ptObj->vramY / 256));
+        ptObj->tpage.x       = (ptObj->vramX / 64);
+        ptObj->tpage.y       = (16 * (ptObj->vramY / 256));
 
         if (ptObj->bpp == Textures::BPP_4BIT || ptObj->bpp == Textures::BPP_8BIT)
         {
@@ -395,8 +395,8 @@ namespace System::PSX::GPU
         // higher bitdepths use more tiles.
         uint16_t x = pxToTile(ptObj->vramX);
         uint16_t y = pxToTile(ptObj->vramY);
-        uint8_t w = (ptObj->width / PIXELS_PER_TILE(ptObj->bpp)); // width in tiles (bpp affects width)
-        uint8_t h = (ptObj->height / MIN_TILE_SIZE);              // hieght in tiles (bpp does not affect height)
+        uint8_t w  = (ptObj->width / PIXELS_PER_TILE(ptObj->bpp)); // width in tiles (bpp affects width)
+        uint8_t h  = (ptObj->height / MIN_TILE_SIZE);              // hieght in tiles (bpp does not affect height)
 
         if (w == 0) w = 1;
         if (h == 0) h = 1;

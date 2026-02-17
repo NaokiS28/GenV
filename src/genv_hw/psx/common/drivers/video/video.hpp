@@ -19,16 +19,16 @@
 
 #include <stdint.h>
 
+#include "psx/common/registers.hpp"
 #include "texmgr.hpp"
-#include "gpudef.hpp"
+#include "resolutions.hpp"
 #include "psxtex.hpp"
+#include "gpucmd.hpp"
 
 #include "common/util/rect.h"
 #include "common/objects/font.hpp"
 #include "common/services/services.hpp"
 #include "common/services/video/iface_video.hpp"
-
-#include "psx/common/system/gpucmd.h"
 
 namespace System::PSX
 {
@@ -48,14 +48,13 @@ namespace System::PSX::GPU
     protected:
         typedef struct DMAChain
         {
-            uint32_t data[iPSXDMAListSize] = {0};
-            uint32_t *nextPacket;
+            uint32_t data[iPSXDMAListSize] = {gp0_endTag(0)};
+            uint32_t *nextPacket           = nullptr;
         } DMAChain;
 
         bool screenBufferPage = 0;
-        uint16_t dmaPtrIdx = 0;
+        uint16_t dmaPtrIdx    = 0;
         DMAChain dmaChains[2];
-        bool useDMA = false;
 
         GP1VRAMSize vramSize = GP1_VRAM_1MB;
         GP1VideoMode gpuMode = GP1_MODE_NTSC;
@@ -64,25 +63,29 @@ namespace System::PSX::GPU
         int frameX = 0;
         int frameY = 0;
 
-        void _waitForGP0Ready(void);
-        void _waitForDMADone(void);
+        inline void __attribute__((always_inline)) _waitForGP0Ready(void)
+        {
+            while (!(GPU_GP1 & GP1_STAT_CMD_READY))
+                __asm__ volatile("");
+        }
+        inline void __attribute__((always_inline)) _waitForDMADone(void)
+        {
+            while (DMA_CHCR(DMA_GPU) & DMA_CHCR_ENABLE)
+                __asm__ volatile("");
+        }
         volatile bool _waitingForVsync = false;
 
         void _swapFrameBuffer();
         void _sendLinkedList(const void *data);
 
+        DMAChain *chain      = nullptr;
         uint32_t *gpuListPtr = nullptr;
-        DMAChain *chain = nullptr;
         // NOTE: Set true when the DMA chain is full. Draw calls become no-ops
         // until the next frame when _swapFrameBuffer resets it.
         bool _dmaOverflow = false;
         uint32_t *_allocatePacket(DMAChain *chain, int numCommands);
 
         void _enableDMA(bool state);
-
-        void _directWrite(uint32_t cmd);
-        void _addToDMAList(uint32_t cmd);
-        void (PSXGPU::*_GPUCMD)(uint32_t) = &PSXGPU::_directWrite;
 
         void _sendVRAMData(const void *data, int length, RectWH);
         int _uploadPalette(PSXTextureObject *ptObj);
@@ -92,7 +95,7 @@ namespace System::PSX::GPU
     public:
         PSXGPU();
         PSXGPU(GP1VRAMSize vram_size);
-        ~PSXGPU() override;
+        ~PSXGPU() override = default;
 
         bool init() override;
         bool reset() override
@@ -177,7 +180,5 @@ namespace System::PSX::GPU
         {
             return 0;
         }
-
-        void clearVRAM();
     };
 } // namespace System::PSX::GPU

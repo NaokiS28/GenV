@@ -24,11 +24,9 @@
 #include <stdint.h>
 
 #include "common/util/rect.h"
-#include "common/logger/log.hpp"
 
-#include "psx/common/system/gpucmd.h"
+#include "gpucmd.hpp"
 #include "psxtex.hpp"
-#include "gpudef.hpp"
 
 #define TM_ERROR(code) GV_ERROR(GV_SERVICE_VIDEO, GV_CATEGORY_GENERIC, code)
 
@@ -42,12 +40,12 @@ namespace System::PSX::GPU
         It is accessed via coordinates, ranging from (0,0)=Upper-Left to (N,1023)=Lower-Right.
     */
     // VRAM layout
-    static constexpr int VRAM_WIDTH = 2048;   // Total width of a VRAM, columns in bytes.
-    static constexpr int VRAM_HEIGHT = 512;   // Total height of a VRAM in lines
-    static constexpr int MIN_TILE_SIZE = 8;   // 1 Tile: Minimum of 8×8 pixels in 4BPP, equates to 4px 8 BPP, 2px 16 BPP, 1px 24 BPP
-    static constexpr int PAGE_SIZE = 256;     // 256x256 texture page size for W/H (in any BPP, serves as offset, 128 bytes (256px) in 4BPP, 256 bytes (128px) in 8bpp etc...)
-    static constexpr int PAGE_GRID_COLS = 16; // Texture pages per row
-    static constexpr int PAGE_MIN_ROWS = 2;
+    static constexpr int VRAM_WIDTH              = 2048; // Total width of a VRAM, columns in bytes.
+    static constexpr int VRAM_HEIGHT             = 512;  // Total height of a VRAM in lines
+    static constexpr int MIN_TILE_SIZE           = 8;    // 1 Tile: Minimum of 8×8 pixels in 4BPP, equates to 4px 8 BPP, 2px 16 BPP, 1px 24 BPP
+    static constexpr int PAGE_SIZE               = 256;  // 256x256 texture page size for W/H (in any BPP, serves as offset, 128 bytes (256px) in 4BPP, 256 bytes (128px) in 8bpp etc...)
+    static constexpr int PAGE_GRID_COLS          = 16;   // Texture pages per row
+    static constexpr int PAGE_MIN_ROWS           = 2;
     static constexpr int MAX_CLUT_LINES_IN_TILES = 5; // How many lines of CLUTs to use before considering there's too many. As this eats into tile space, this is in multiples of MIN_TILE_SIZE.
     static constexpr int MAX_CLUT_LINES_PER_PAGE = MIN_TILE_SIZE * MAX_CLUT_LINES_IN_TILES;
 
@@ -80,8 +78,8 @@ namespace System::PSX::GPU
         }
     }
 
-    static constexpr unsigned int MAX_COLORS_4BPP = (1 << 4);
-    static constexpr unsigned int MAX_COLORS_8BPP = (1 << 8);
+    static constexpr unsigned int MAX_COLORS_4BPP  = (1 << 4);
+    static constexpr unsigned int MAX_COLORS_8BPP  = (1 << 8);
     static constexpr unsigned int MAX_COLORS_16BPP = (1 << 16);
 
     /*
@@ -136,6 +134,15 @@ namespace System::PSX::GPU
         };
 
     private:
+        // TODO: Redo VRAM allocation
+        struct FreeRegion
+        {
+            uint16_t x = 0, y = 0;
+            uint16_t w = 0, h = 0;
+            FreeRegion *prev = nullptr;
+            FreeRegion *next = nullptr;
+        };
+
         class VRAM_Bitmap_POD
         {
         private:
