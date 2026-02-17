@@ -94,6 +94,42 @@ namespace Input
         INVALID = 0xFF
     };
 
+    inline constexpr Player &operator++(Player &a)
+    {
+        if (a == Player::PLAYER_8)
+            a = Player::PLAYER_1;
+        else
+            a = static_cast<Player>(static_cast<uint16_t>(a) << 1);
+        return a;
+    }
+
+    inline constexpr Player &operator--(Player &a)
+    {
+        if (a == Player::PLAYER_1)
+            a = Player::PLAYER_8;
+        else
+            a = static_cast<Player>(static_cast<uint16_t>(a) >> 1);
+        return a;
+    }
+
+    inline constexpr Player operator++(Player &a, int)
+    {
+        if (a == Player::PLAYER_8)
+            a = Player::PLAYER_1;
+        else
+            a = static_cast<Player>(static_cast<uint16_t>(a) << 1);
+        return a;
+    }
+
+    inline constexpr Player operator--(Player &a, int)
+    {
+        if (a == Player::PLAYER_1)
+            a = Player::PLAYER_8;
+        else
+            a = static_cast<Player>(static_cast<uint16_t>(a) >> 1);
+        return a;
+    }
+
     inline constexpr Player operator|(Player a, Player b)
     {
         return static_cast<Player>(static_cast<uint16_t>(a) | static_cast<uint16_t>(b));
@@ -164,7 +200,7 @@ namespace Input
         IInputDriver() = default;
         virtual ~IInputDriver() = default;
         virtual int init() { return GV_OK; };
-        virtual int update() = 0;
+        virtual bool update() = 0;
         virtual bool reset() { return GV_OK; };
         virtual void shutdown() {};
 
@@ -179,6 +215,7 @@ namespace Input
         friend class InputManager;
 
     private:
+        bool m_inputsChanged = false;              // Internal use only: Notifies that this device's input state changed
         uint8_t m_listID = 0xFF;                   // Internal use only: Specifies the exact position of the device within the set player.
         PlayerIndex player = PlayerIndex::INVALID; // Internal use only: When registered, this is changed to be the current player the device is registered to.
 
@@ -249,6 +286,8 @@ namespace Input
             this->inputs.analog = analogPtr;
             this->inputs.rotary = rotaryPtr;
         }
+
+        inline constexpr void setInputsChanged() { m_inputsChanged = true; }
     };
 
     class NullInput;

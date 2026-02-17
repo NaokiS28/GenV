@@ -41,6 +41,7 @@ namespace Input
         } m_playerDeviceList[9];
 
         bool m_devsChanged = false;
+        bool m_inputsChanged = false;
 
         int m_registerDevice(IInputDevice *device, Player player);
         int m_unregisterDevice(IInputDevice *device);
@@ -50,6 +51,15 @@ namespace Input
         {
             bool d = m_devsChanged;
             m_devsChanged = false;
+            return d;
+        }
+
+        // TODO: This should update when any inputs on any controller change.
+        // TODO: Make test to test specific player's inputs changed - usefull?
+        inline bool inputsChanged()
+        {
+            bool d = m_inputsChanged;
+            m_inputsChanged = false;
             return d;
         }
 

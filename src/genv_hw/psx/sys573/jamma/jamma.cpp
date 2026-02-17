@@ -51,7 +51,7 @@ namespace System::PSX
         return err;
     }
 
-    int Sys573Jamma::update()
+    bool Sys573Jamma::update()
     {
         getJAMMAInputs();
         return GV_OK;
@@ -71,7 +71,7 @@ namespace System::PSX
         uint32_t ud = (inputs[0] & 0x000C000C) >> 2;
         uint32_t st = (inputs[0] & 0x80008000) >> 3;
         uint32_t bt = (inputs[0] & 0x70007000) << 1;
-        inputs[0] = (ud | lr | st | bt);
+        inputs[0]   = (ud | lr | st | bt);
 
         _digital[0] = ((inputs[0] & 0xFF00) >> 8) | (inputs[1] & 0x0B);    // Player 1
         _digital[1] = (inputs[0] & 0x00FF) | (inputs[2] & 0x0B);           // Player 2

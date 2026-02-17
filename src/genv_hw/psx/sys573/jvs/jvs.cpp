@@ -41,9 +41,9 @@ namespace System::PSX
         return GV_OK;
     }
 
-    int Sys573JVS::update()
+    bool Sys573JVS::update()
     {
-        return GV_OK;
+        return false;
     }
 
     void Sys573JVS::processPackets_()

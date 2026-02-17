@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common/services/io/iface_input.hpp"
-#include "common/services/services.hpp"
+#include "common/util/templates.hpp"
 
 namespace System::PSX
 {
@@ -41,6 +41,6 @@ namespace System::PSX
         }
 
         int init() override;
-        int update() override;
+        bool update() override;
     };
 } // namespace System::PSX

@@ -203,6 +203,8 @@ namespace Input
 
             int numBanks = (device->capabilities.numDigital + 31) / 32;
             if (bank >= numBanks) continue;
+
+            if (device->m_inputsChanged) device->m_inputsChanged = false;
             temp_inputs |= device->inputs.digital[bank];
         }
         inputs = temp_inputs;
@@ -229,6 +231,8 @@ namespace Input
             if (device == nullptr) continue;
             if (bank > device->capabilities.numAnalog)
                 continue;
+
+            if (device->m_inputsChanged) device->m_inputsChanged = false;
             temp_val += device->inputs.analog[bank];
         }
         analog = temp_val;
@@ -255,6 +259,8 @@ namespace Input
             if (device == nullptr) continue;
             if (bank > device->capabilities.numRotary)
                 continue;
+
+            if (device->m_inputsChanged) device->m_inputsChanged = false;
             temp_val += device->inputs.rotary[bank];
         }
         rotary = temp_val;
