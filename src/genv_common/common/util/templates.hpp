@@ -442,23 +442,16 @@ namespace util
     public:
         RingBuffer(void) : head(0), tail(0), length(0) {}
 
-        inline void pushItem(T data) volatile
+        inline T *pushItem(T data)
         {
+            auto r = &items[tail];
             items[tail++] = data;
             tail %= N;
             length++;
+            return r;
         }
 
-        inline void pushItem16(uint16_t data) volatile
-        {
-            items[tail++] = (data & 0xFF);
-            tail %= N;
-            items[tail++] = ((data & 0xFF00) >> 8);
-            tail %= N;
-            length += 2;
-        }
-
-        inline T popItem(void) volatile
+        inline T popItem(void)
         {
             if (length == 0) return 0xFF;
 
@@ -468,16 +461,16 @@ namespace util
             return items[i];
         }
 
-        T peekItem(void) const volatile
+        T peekItem(void) const
         {
             if (!length)
                 return 0xFF;
             return items[head];
         }
 
-        inline bool available() volatile { return length != 0; }
-        inline int count() volatile { return length; }
-        inline void erase() volatile
+        inline bool available() { return length != 0; }
+        inline int count() { return length; }
+        inline void erase()
         {
             for (auto &i : items)
                 i = 0xFF;
