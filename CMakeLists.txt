@@ -111,9 +111,11 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(exe_folder "debug")
 		set(exe_name "${CMAKE_PROJECT_NAME}-debug")
+		set(MAP_PATH "${CMAKE_SOURCE_DIR}/bin/debug/${GENV_PLATFORM}/${GENV_SUBPLATFORM}/")
 	else()
 		set(exe_folder "release")
-		set(exe_name "$${CMAKE_PROJECT_NAME}")
+		set(exe_name "${CMAKE_PROJECT_NAME}")
+		set(MAP_PATH "${CMAKE_SOURCE_DIR}/bin/release/${GENV_PLATFORM}/${GENV_SUBPLATFORM}/")
 	endif()
 
 	add_subdirectory(src/example)
@@ -125,6 +127,10 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 	target_compile_definitions(
 		${exe_name} PRIVATE
 		VERSION="${PROJECT_VERSION}"
+	)
+
+	target_link_options(${exe_name}  PUBLIC
+    	LINKER:-Map=${MAP_PATH}/${exe_name}.map
 	)
 
 endif()
