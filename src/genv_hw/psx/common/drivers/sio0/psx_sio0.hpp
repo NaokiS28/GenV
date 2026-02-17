@@ -126,6 +126,46 @@ namespace System::PSX::IO
         return '?';
     }
 
+    inline constexpr Multitap_Port &operator++(Multitap_Port &a)
+    {
+        auto i = static_cast<uint16_t>(a) + 1;
+        if (a == Multitap_Port::PORTD)
+            a = Multitap_Port::PORTA;
+        else
+            a = static_cast<Multitap_Port>(i);
+        return a;
+    }
+
+    inline constexpr Multitap_Port operator++(Multitap_Port &a, int)
+    {
+        auto i = static_cast<uint16_t>(a) + 1;
+        if (a == Multitap_Port::PORTD)
+            a = Multitap_Port::PORTA;
+        else
+            a = static_cast<Multitap_Port>(i);
+        return a;
+    }
+
+    inline constexpr Multitap_Port &operator--(Multitap_Port &a)
+    {
+        auto i = static_cast<uint16_t>(a) + 1;
+        if (a == Multitap_Port::PORTA)
+            a = Multitap_Port::PORTD;
+        else
+            a = static_cast<Multitap_Port>(i);
+        return a;
+    }
+
+    inline constexpr Multitap_Port operator--(Multitap_Port &a, int)
+    {
+        auto i = static_cast<uint16_t>(a) + 1;
+        if (a == Multitap_Port::PORTA)
+            a = Multitap_Port::PORTD;
+        else
+            a = static_cast<Multitap_Port>(i);
+        return a;
+    }
+
     struct SIO0_Packet
     {
 
@@ -186,6 +226,4 @@ namespace System::PSX::IO
 
         void mouseFix();
     };
-
-    SIO0_Bus *getSIO0_Bus();
 } // namespace System::PSX::IO

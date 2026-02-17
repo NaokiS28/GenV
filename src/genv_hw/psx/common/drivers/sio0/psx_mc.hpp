@@ -39,11 +39,10 @@ namespace System::PSX::IO
         const SIO0_Port _portNumber;
 
     public:
-        inline PSX_MemoryCard(uint8_t port) : _portNumber((port % 2) ? SIO0_Port::PORT1 : SIO0_Port::PORT2)
+        inline PSX_MemoryCard(SIO0_Bus *bus, SIO0_Port port) : m_bus(bus), _portNumber(port)
         {
-            assert(driverCount < 2 && port <= 2);
+            assert(driverCount < 2);
             name = PSX_PS_MEMCARD_STR;
-            m_bus = getSIO0_Bus();
         };
 
         int init() override

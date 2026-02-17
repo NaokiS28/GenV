@@ -128,7 +128,7 @@ namespace System::PSX::IO
         }
     }
 
-    void PSX_Joypad::m_padChange(IInputDevice &pad, const ControllerReadResponse &resp, const Multitap_Port subport)
+    void PSX_Joypad::m_padChange(PSX_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport)
     {
         // Device changed
         LOG("makepad", "Controller changed on port %d:%c to 0x%04X (%s)",
@@ -138,9 +138,9 @@ namespace System::PSX::IO
             getPadName(resp.id));
 
         /*
-            if (m_padData[subport].doDSTest)
+            if (m_pads[subport].doDSTest)
         {
-            m_padData[subport].doDSTest = false;
+            m_pads[subport].doDSTest = false;
             // Config mode only works on DualShock and above
             if (!m_configMode(true, subport))
             {
@@ -163,44 +163,40 @@ namespace System::PSX::IO
             }
         }*/
 
-        auto padIndex = static_cast<uint8_t>(subport);
-        auto jt_type = static_cast<JoypadType>(resp.id8[0]);
-        m_padData[padIndex].type = jt_type;
-        if (pad.type != Input::DEVICE_TYPE_NULL)
-            getServiceManager()->dettachInputDevice(&pad);
+        pad.type = static_cast<JoypadType>(resp.id8[0]);
+        if (pad.device.type != Input::DEVICE_TYPE_NULL)
+            getServiceManager()->dettachInputDevice(&pad.device);
 
-        pad = addController(
+        pad.device = addController(
             resp, subport,
-            &m_padData[padIndex].digital,
-            m_padData[padIndex].analog);
+            &pad.digital,
+            pad.analog);
 
-        if (pad.type != Input::DEVICE_TYPE_NULL)
+        if (pad.device.type != Input::DEVICE_TYPE_NULL)
             getServiceManager()->attachInputDevice(
-                &pad, m_bus->psxPlayerSelect(m_portNumber, subport));
+                &pad.device, m_bus->psxPlayerSelect(m_portNumber, subport));
 
-        m_padData[padIndex].digital = 0;
-        memset(m_padData[padIndex].analog, (int)0, sizeof(m_padData->analog));
-        memset(m_padData[padIndex].rotary, (int)0, sizeof(m_padData->rotary));
+        pad.digital = 0;
+        memset(pad.analog, (int)0, sizeof(m_pads->analog));
+        memset(pad.rotary, (int)0, sizeof(m_pads->rotary));
     }
 
-    void PSX_Joypad::m_padDisconnect(IInputDevice &pad, const ControllerReadResponse &resp, const Multitap_Port subport)
+    void PSX_Joypad::m_padDisconnect(PSX_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport)
     {
         // If Controller 1-A dissapears, the multi-tap stops responding.
-        auto padIndex = static_cast<uint8_t>(subport);
         if (subport == Multitap_Port::PORTA && m_bus->multitapPresent(m_portNumber))
         {
             LOG("makepad", "Multitap disconnected on port %d", sioPortNumber(m_portNumber));
-            for (auto &tPad : m_padList)
+            for (auto &thisPad : m_pads)
             {
-                if (tPad.type != DEVICE_TYPE_NULL)
+                if (thisPad.device.type != DEVICE_TYPE_NULL)
                 {
                     LOG("makepad", "Controller disconnected on port %d:%c",
                         sioPortNumber(m_portNumber),
                         multitapPortLetter(subport));
 
-                    getServiceManager()->dettachInputDevice(&tPad);
-                    m_padData[tPad.subBusID] = PSX_PadData(); // Null it out
-                    tPad = IInputDevice();
+                    getServiceManager()->dettachInputDevice(&thisPad.device);
+                    thisPad = PSX_PadData(); // Null it out
                 }
             }
             m_bus->setMultitapState(m_portNumber, MT_TEST_PRESENCE);
@@ -211,39 +207,37 @@ namespace System::PSX::IO
                 sioPortNumber(m_portNumber),
                 multitapPortLetter(subport));
 
-            if (pad.type != Input::DEVICE_TYPE_NULL)
-                getServiceManager()->dettachInputDevice(&pad);
+            if (pad.device.type != Input::DEVICE_TYPE_NULL)
+                getServiceManager()->dettachInputDevice(&pad.device);
 
-            m_padData[padIndex] = PSX_PadData(); // Null it out
-            pad = IInputDevice();
+            pad = PSX_PadData(); // Null it out
             if (subport == Multitap_Port::PORTA) m_bus->setMultitapState(m_portNumber, MT_TEST_PRESENCE);
         }
     }
 
-    int PSX_Joypad::update()
+    bool PSX_Joypad::update()
     {
         int result = GV_OK;
-        uint8_t padIndex = 0;
+
+        auto subport = Multitap_Port::PORTA;
 
         // Will always do the first subport (assuming multitap is connected, else just first port)
         // TODO: Trim pad polling code down and use per-frame pacing
         // TODO: If controller in multitap with controller 1:B is connected whilst Port 2:A also connected to a controller prior, both are assigned player 2. Does not happen in reverse
-        for (auto &pad : m_padList)
+        for (auto &pad : m_pads)
         {
             ControllerReadResponse resp;
-            auto subport = static_cast<Multitap_Port>(padIndex % 4);
-
             switch (poll(resp, static_cast<Multitap_Port>(subport)))
             {
             case SIO0_OKAY:
             {
-                if (m_padData[padIndex].type == PAD_DISCONNECTED || m_padData[padIndex].type != resp.id8[0])
+                if (pad.type == PAD_DISCONNECTED || pad.type != resp.id8[0])
                     m_padChange(pad, resp, subport);
 
-                m_padData[padIndex].digital = 0;
+                pad.digital = 0;
 
                 // Convert poll digital inputs to GenV map
-                // if (m_padData[padIndex].type != PAD_MOUSE)
+                // if (pad.type != PAD_MOUSE)
                 //{
                 uint16_t x = (~resp.input) & 0xFFFF; // Inversion promotes to int
                 while (x != 0)
@@ -251,44 +245,44 @@ namespace System::PSX::IO
                     int lz = __builtin_clz((unsigned int)x) - 16; // adjust for uint16_t
                     int bit = 15 - lz;                            // MSB index
 
-                    m_padData[padIndex].digital |= to_uint32(controllerButtonMap[bit]);
+                    pad.digital |= to_uint32(controllerButtonMap[bit]);
 
                     x &= ~(1u << bit); // clear processed bit
                 }
                 //}
 
-                if (m_padData[padIndex].type == PAD_ANALOG || m_padData[padIndex].type == PAD_TWINSTICK)
+                if (pad.type == PAD_ANALOG || pad.type == PAD_TWINSTICK)
                 {
-                    m_padData[padIndex].analog[0] = resp.left.x;
-                    m_padData[padIndex].analog[1] = resp.left.y;
-                    m_padData[padIndex].analog[2] = resp.right.x;
-                    m_padData[padIndex].analog[3] = resp.right.y;
+                    pad.analog[0] = resp.left.x - 128;
+                    pad.analog[1] = resp.left.y - 128;
+                    pad.analog[2] = resp.right.x - 128;
+                    pad.analog[3] = resp.right.y - 128;
                 }
 
                 // TODO: Mouse "button" bits 8&9 are signs for rotary?
                 // TODO: Mouse rotary inputs aren't working. Either it's here or in vpad.
-                if (m_padData[padIndex].type == PAD_MOUSE)
+                if (pad.type == PAD_MOUSE)
                 {
-                    m_padData[padIndex].rotary[0] = resp.right.x;
-                    m_padData[padIndex].rotary[1] = resp.right.y;
+                    pad.rotary[0] = resp.right.x;
+                    pad.rotary[1] = resp.right.y;
                 }
 
                 // TODO: JogCon will not enable the dial functions and stays in compatability mode until you enable it with a config command, even if you press the mode button. GenV doesn't do this yet.
-                if (m_padData[padIndex].type == PAD_JOGCON)
+                if (pad.type == PAD_JOGCON)
                 {
-                    m_padData[padIndex].rotary[0] = resp.right.val16;
+                    // pad.rotary[0] = resp.right.val16;
                 }
             }
             break;
             case SIO0_NO_RESPONSE:
-                if (m_padData[padIndex].type != PAD_DISCONNECTED)
+                if (pad.type != PAD_DISCONNECTED)
                     m_padDisconnect(pad, resp, subport);
                 break;
             default: break; // If SIO0 is in use (somehow on a single threaded app..) ignore.
             }
 
             if (!m_bus->multitapPresent(m_portNumber)) break; // No need to scan further
-            padIndex++;
+            subport++;
         }
 
         return result;
@@ -302,12 +296,11 @@ namespace System::PSX::IO
 
     bool PSX_Joypad::reset()
     {
-        for (auto &pad : m_padList)
+        for (auto &pad : m_pads)
         {
-            getServiceManager()->dettachInputDevice(&pad);
-            pad = IInputDevice(); // Null device
+            getServiceManager()->dettachInputDevice(&pad.device);
+            pad = PSX_PadData(); // Null device
         }
-        memset(m_padData, 0, sizeof(PSX_PadData) * 4);
         return true;
     }
 
@@ -395,6 +388,20 @@ namespace System::PSX::IO
         // whilst we still have a controller plugged in, if it responded as a multitap, then we can assume it's always one.
         // We use the second method of polling when using a multitap so it's more flexible, just using method 1 to test presence.
 
+        // UPDATE: The multitap is a pain in the ass.
+        // The rules it follows are as such:
+        // * Mutlitap is not "enabled" if the 3rd command byte is not 0x01.
+        // * Multitap, once "enabled", will respond to poll commands with it's ID.
+        // * Multitap expects that if using method 1, or the "long poll" method, you will only use that.
+        // * The long poll will return all data from all pads connected pads, and pad the data for non-existant devices or data.
+        // * You should use 1MHz mode for method 1 to not eat too much CPU cycle time.
+        // * Using method 2, or direct access, the multitap will passively pass through the data.
+        // * However if using method 2, the multitap will lock up if the PS1 mouse is inserted in port D.
+        // * The multitap will not lock up if you use method 1.
+        // * Multitap will switch between modes from the next poll onwards.
+        // * Multitap maintains Method 1 state until two polling cycles with Method 2.
+        // * On power up, multitap is in Method 2.
+
         MultitapState multi_state = MT_NOT_PRESENT;
         if (subport == Multitap_Port::PORTA)
             multi_state = m_bus->getMultitapState(m_portNumber);
@@ -405,6 +412,7 @@ namespace System::PSX::IO
 
         uint8_t pass = 0;
         size_t respLength = 0;
+
         // Multitap jank - Issuing a request above wont always result in the multitap being ready
         // So if we're testing, send two commands. First a dummy poll with the test bit, then
         // the actual poll command without test bit to get the special ID.

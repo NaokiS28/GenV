@@ -23,8 +23,6 @@
 #include <string.h>
 
 #include "common/services/io/iface_input.hpp"
-
-#include "common/util/templates.hpp"
 #include "psx/common/drivers/sio0/psx_pads.hpp"
 #include "psx_sio0.hpp"
 
@@ -55,13 +53,9 @@ namespace System::PSX::IO
         uint16_t input = 0;
         struct AnalogInput
         {
-            union
-            {
-                uint8_t x;
-                uint8_t y;
-                int16_t val16 = 0;
-            };
-        } left, right;
+            uint8_t x;
+            uint8_t y;
+        } right, left;
 
         ControllerReadResponse() {}
         ControllerReadResponse(const uint8_t *rsp, size_t len)
@@ -98,13 +92,10 @@ namespace System::PSX::IO
             int16_t rotary[2] = {0};
             uint8_t motorStrength[2] = {0};
             JoypadType type = PAD_DISCONNECTED;
+            IInputDevice device;
             bool doDSTest = true;
-        } m_padData[4];
+        } m_pads[4];
 
-        IInputDevice m_padList[4];
-
-        util::RingBuffer<uint8_t, 16> m_pad_tx;
-        util::RingBuffer<uint8_t, 16> m_pad_rx;
         int m_packetSent = 0;
 
         int m_configMode(bool state, uint8_t subport = 0);
@@ -112,24 +103,23 @@ namespace System::PSX::IO
         int m_setDualshock(bool state = true, uint8_t subport = 0);
         int m_setDS2Analog(uint32_t bitmask = 0x3FFFF, uint8_t subport = 0);
 
-        void m_padChange(IInputDevice &pad, const ControllerReadResponse &resp, const Multitap_Port subport);
-        void m_padDisconnect(IInputDevice &pad, const ControllerReadResponse &resp, const Multitap_Port subport);
+        void m_padChange(PSX_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport);
+        void m_padDisconnect(PSX_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport);
 
         void m_processPackets();
 
     public:
-        inline PSX_Joypad(SIO0_Port port)
-            : m_portNumber(port)
+        inline PSX_Joypad(SIO0_Bus *bus, SIO0_Port port)
+            : m_bus(bus), m_portNumber(port)
         {
             assert(m_driverCount < 2);
             _name = PSX_PS_CONTROLLER_STR;
-            m_bus = getSIO0_Bus();
         };
 
         int poll(ControllerReadResponse &resp, Multitap_Port subport);
 
         int init() override;
-        int update() override;
+        bool update() override;
         bool reset() override;
         inline void shutdown() override
         {

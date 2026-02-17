@@ -23,6 +23,8 @@
 #include "psx/common/registers.hpp"
 #include "psx/common/system/sys.h"
 
+// TODO: SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
+
 namespace System::PSX
 {
     class PSXSystem;
@@ -31,18 +33,8 @@ namespace System::PSX
 namespace System::PSX::IO
 {
     static constexpr int _SIO0_BAUD_RATE = 250000;
-    static constexpr int _ACK_TIMEOUT = 120;
-    static constexpr int _CS_DELAY = 60;
-
-    SIO0_Bus *getSIO0_Bus()
-    {
-        static SIO0_Bus *sioPtr = nullptr;
-        if (!sioPtr)
-        {
-            sioPtr = new SIO0_Bus();
-        }
-        return sioPtr;
-    }
+    static constexpr int _ACK_TIMEOUT    = 120;
+    static constexpr int _CS_DELAY       = 60;
 
     int SIO0_Bus::init()
     {
@@ -142,10 +134,10 @@ namespace System::PSX::IO
             return SIO0_IN_USE;
 
         SIOControlFlag cs = (port == SIO0_Port::PORT1 ? SIO_CTRL_CS_PORT_1 : SIO_CTRL_CS_PORT_2);
-        SIO_CTRL(0) = cs | SIO_CTRL_DTR | SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE | SIO_CTRL_ACKNOWLEDGE;
+        SIO_CTRL(0)       = cs | SIO_CTRL_DTR | SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE | SIO_CTRL_ACKNOWLEDGE;
         psx_delayMicrosecondsBusy(_CS_DELAY);
 
-        IRQ_STAT = ~(1 << IRQ_SIO0);
+        IRQ_STAT    = ~(1 << IRQ_SIO0);
         SIO_DATA(0) = address;
 
         // The controller only pulses /ACK for a brief period of time and the DSR
@@ -165,7 +157,7 @@ namespace System::PSX::IO
     {
         psx_delayMicrosecondsBusy(_CS_DELAY);
         SIO_CTRL(0) = SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_DSR_IRQ_ENABLE;
-        _inUse = false;
+        _inUse      = false;
     }
 
     void SIO0_Bus::m_sioISR()
