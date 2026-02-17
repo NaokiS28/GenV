@@ -8,6 +8,11 @@ UseTab: Never
 # Put everything inside namespaces one indent in (VC Format-like)
 NamespaceIndentation: All
 
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+
 # Brace & spacing style (Visual Studio-ish)
 BreakBeforeBraces: Allman
 SpaceBeforeParens: ControlStatements

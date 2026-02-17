@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-02-10 23:05:53.192934_
+_Generated on 2026-02-17 16:08:39.337492_
 
 #### [src/genv_common/app/appmgr.cpp](src/genv_common/app/appmgr.cpp)
 
@@ -11,6 +11,7 @@ _Generated on 2026-02-10 23:05:53.192934_
 - [34](src/genv_common/app/appmgr.cpp?plain=1#L34): Better defined API for app management (app should request to close itself and report when it can be quit)
 - [35](src/genv_common/app/appmgr.cpp?plain=1#L35): Critical errors should halt the app execution flow (or rather only allow test mode).
 - [36](src/genv_common/app/appmgr.cpp?plain=1#L36): Pause the running apps (and sounds). Apps should still render the last frame when the error occurs.
+- [313](src/genv_common/app/appmgr.cpp?plain=1#L313): Indirect pointers and function execution is insanely slow on PS1. (But not on debug?)
 
 #### [src/genv_common/common/formats/image_file.cpp](src/genv_common/common/formats/image_file.cpp)
 
@@ -35,6 +36,11 @@ _Generated on 2026-02-10 23:05:53.192934_
 #### [src/genv_common/common/services/genv_sys.cpp](src/genv_common/common/services/genv_sys.cpp)
 
 - [77](src/genv_common/common/services/genv_sys.cpp?plain=1#L77): Allow setting custom startup baud
+
+#### [src/genv_common/common/services/io/vpad.hpp](src/genv_common/common/services/io/vpad.hpp)
+
+- [57](src/genv_common/common/services/io/vpad.hpp?plain=1#L57): This should update when any inputs on any controller change.
+- [58](src/genv_common/common/services/io/vpad.hpp?plain=1#L58): Make test to test specific player's inputs changed - usefull?
 
 #### [src/genv_common/common/services/system/arcade/arcade.cpp](src/genv_common/common/services/system/arcade/arcade.cpp)
 
@@ -68,17 +74,20 @@ _Generated on 2026-02-10 23:05:53.192934_
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp)
 
-- [226](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L226): Trim pad polling code down and use per-frame pacing
-- [227](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L227): If controller in multitap with controller 1:B is connected whilst Port 2:A also connected to a controller prior, both are assigned player 2. Does not happen in reverse
-- [265](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L265): Mouse "button" bits 8&9 are signs for rotary?
+- [61](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L61): Add support for PSX mouse in VMouse.
+- [225](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L225): Trim pad polling code down and use per-frame pacing
+- [226](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L226): If controller in multitap with controller 1:B is connected whilst Port 2:A also connected to a controller prior, both are assigned player 2. Does not happen in reverse
+- [262](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L262): Mouse "button" bits 8&9 are signs for rotary?
+- [263](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L263): Mouse rotary inputs aren't working. Either it's here or in vpad.
+- [270](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L270): JogCon will not enable the dial functions and stays in compatability mode until you enable it with a config command, even if you press the mode button. GenV doesn't do this yet.
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp](src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp)
 
 - [30](src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp?plain=1#L30): Implement memory card as a virtual file system complete with directory listing.
 
-#### [src/genv_hw/psx/common/drivers/video/gpudef.hpp](src/genv_hw/psx/common/drivers/video/gpudef.hpp)
+#### [src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp)
 
-- [53](src/genv_hw/psx/common/drivers/video/gpudef.hpp?plain=1#L53): 4096 words (16KB per chain, 32KB total for double-buffer). Increased
+- [26](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp?plain=1#L26): SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
 
 #### [src/genv_hw/psx/common/drivers/video/psxtex.hpp](src/genv_hw/psx/common/drivers/video/psxtex.hpp)
 
@@ -93,19 +102,17 @@ _Generated on 2026-02-10 23:05:53.192934_
 
 - [18](src/genv_hw/psx/common/drivers/video/texmgr.hpp?plain=1#L18): Bugs in CLUT allocation. Is only returning free clut lines every 32 pixels instead of 16.
 - [19](src/genv_hw/psx/common/drivers/video/texmgr.hpp?plain=1#L19): Rewrite for better efficiency.
-- [220](src/genv_hw/psx/common/drivers/video/texmgr.hpp?plain=1#L220): Allow CLUT to exist independantly of texture
+- [137](src/genv_hw/psx/common/drivers/video/texmgr.hpp?plain=1#L137): Redo VRAM allocation
+- [227](src/genv_hw/psx/common/drivers/video/texmgr.hpp?plain=1#L227): Allow CLUT to exist independantly of texture
 
 #### [src/genv_hw/psx/common/drivers/video/video.cpp](src/genv_hw/psx/common/drivers/video/video.cpp)
 
-- [455](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L455): Cleanup?
-- [881](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L881): Somewhere, somehow, font height is not being stored in the font file correctly
-- [84](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L84): Skip writes when the DMA chain has overflowed. _allocatePacket
-- [268](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L268): Reset overflow flag for the new frame so draw calls resume.
-- [291](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L291): Overflow protection — if the requested allocation would exceed
+- [398](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L398): Cleanup?
+- [258](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L258): Overflow protection — if the requested allocation would exceed
 
 #### [src/genv_hw/psx/common/drivers/video/video.hpp](src/genv_hw/psx/common/drivers/video/video.hpp)
 
-- [76](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L76): Set true when the DMA chain is full. Draw calls become no-ops
+- [83](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L83): Set true when the DMA chain is full. Draw calls become no-ops
 
 #### [src/genv_hw/psx/common/halt/halt.c](src/genv_hw/psx/common/halt/halt.c)
 
@@ -118,8 +125,8 @@ _Generated on 2026-02-10 23:05:53.192934_
 
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
-- [140](src/genv_hw/psx/common/system.cpp?plain=1#L140): int error = 0; How to handle multiple driver failures?
-- [154](src/genv_hw/psx/common/system.cpp?plain=1#L154): Allow setting custom startup baud
+- [145](src/genv_hw/psx/common/system.cpp?plain=1#L145): int error = 0; How to handle multiple driver failures?
+- [159](src/genv_hw/psx/common/system.cpp?plain=1#L159): Allow setting custom startup baud
 
 #### [src/genv_hw/psx/common/system/sys.h](src/genv_hw/psx/common/system/sys.h)
 

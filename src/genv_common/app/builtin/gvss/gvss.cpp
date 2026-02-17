@@ -28,6 +28,8 @@
 #include "common/objects/texture.hpp"
 #include "common/util/tween.hpp"
 
+#include "common/services/system/system.hpp"
+
 namespace Apps
 {
     constexpr const util::Hash GENV_LOGO_V_HASH = "GenVLogo_V"_h;
@@ -126,7 +128,7 @@ namespace Apps
         switch (GVSSAnimStep)
         {
         case GVSS_Init:
-            lineStop = logoVPos.x;
+            lineStop     = logoVPos.x;
             GVSSAnimStep = GVSS_Line1;
             break;
         case GVSS_Line1:
@@ -156,8 +158,8 @@ namespace Apps
             }
             else
             {
-                linePos.x = logoVPos.x + logoVPos.w;
-                linePos.w = 1;
+                linePos.x    = logoVPos.x + logoVPos.w;
+                linePos.w    = 1;
                 GVSSAnimStep = GVSS_Line2;
             }
             break;
