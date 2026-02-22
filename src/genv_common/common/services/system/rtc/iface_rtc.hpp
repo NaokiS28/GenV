@@ -24,9 +24,10 @@
 #include "common/return_codes.hpp"
 #include "common/util/time.hpp" // IWYU pragma: export
 
+#define LOG_RTC(fmt, ...) LOG("rtc", fmt __VA_OPT__(, ) __VA_ARGS__)
+
 namespace Time
 {
-#define LOG_RTC(fmt, ...) LOG("rtc", fmt __VA_OPT__(, ) __VA_ARGS__)
 
     constexpr auto rtcSetWithBadBattFmt = "Warning: The %s was set whilst RTC battery is dead, %s will not persist!";
     constexpr auto rtcBattLowFmt        = "Warning: The RTC battery is low.";

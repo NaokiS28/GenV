@@ -242,10 +242,10 @@ namespace System::PSX::IO
                 uint16_t x = (~resp.input) & 0xFFFF; // Inversion promotes to int
                 while (x != 0)
                 {
-                    int lz = __builtin_clz((unsigned int)x) - 16; // adjust for uint16_t
-                    int bit = 15 - lz;                            // MSB index
+                    int lz  = __builtin_clz((unsigned int)x) - 16; // adjust for uint16_t
+                    int bit = 15 - lz;                             // MSB index
 
-                    pad.digital |= to_uint32(controllerButtonMap[bit]);
+                    pad.digital |= asUint32(controllerButtonMap[bit]);
 
                     x &= ~(1u << bit); // clear processed bit
                 }
@@ -410,7 +410,7 @@ namespace System::PSX::IO
         uint8_t request[4]{CMD_POLL, test, 0, 0};
         alignas(ControllerReadResponse) uint8_t response[(2 + ((2 * 4) * 4))] = {0}; // 2 ID bits, 4 'half-words (uint16_t)' of controller data, 4 contollers
 
-        uint8_t pass = 0;
+        uint8_t pass      = 0;
         size_t respLength = 0;
 
         // Multitap jank - Issuing a request above wont always result in the multitap being ready

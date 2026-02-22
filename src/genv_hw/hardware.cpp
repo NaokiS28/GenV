@@ -27,13 +27,13 @@ namespace System
 {
     ISystem *makeNewSystem()
     {
-        PSX::Sys573System *system = new PSX::Sys573System;
+        System573::Sys573System *system = new System573::Sys573System;
         return system;
     }
     IArcadeSystem *getArcadeInterface()
     {
         ISystem *sys = getServiceManager()->getSystem();
-        return reinterpret_cast<PSX::Sys573System *>(sys);
+        return reinterpret_cast<System573::Sys573System *>(sys);
     }
 } // namespace System
 #else

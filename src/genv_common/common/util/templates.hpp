@@ -234,7 +234,7 @@ namespace util
         return value - (value >> 4) * 6;
     }
 
-    static constexpr inline size_t map(size_t x, size_t in_min, size_t in_max, size_t out_min, size_t out_max)
+    static constexpr inline int map(int x, int in_min, int in_max, int out_min, int out_max)
     {
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
@@ -299,7 +299,7 @@ namespace util
             if (ptr)
                 delete[] as<uint8_t>();
 
-            ptr = _length ? (new uint8_t[_length]) : nullptr;
+            ptr    = _length ? (new uint8_t[_length]) : nullptr;
             length = _length;
 
             return ptr;
@@ -319,10 +319,10 @@ namespace util
     class PointerList
     {
     private:
-        T *_list = nullptr;
-        size_t _listSize = 0;
+        T *_list           = nullptr;
+        size_t _listSize   = 0;
         size_t _listLength = 0;
-        bool _ready = false;
+        bool _ready        = false;
 
     public:
         PointerList() { _ready = (init() == 0); }
@@ -444,7 +444,7 @@ namespace util
 
         inline T *pushItem(T data)
         {
-            auto r = &items[tail];
+            auto r        = &items[tail];
             items[tail++] = data;
             tail %= N;
             length++;
@@ -474,8 +474,8 @@ namespace util
         {
             for (auto &i : items)
                 i = 0xFF;
-            head = 0;
-            tail = 0;
+            head   = 0;
+            tail   = 0;
             length = 0;
         }
     };
@@ -531,7 +531,7 @@ namespace util
                 {
                     if (idx < _top)
                     {
-                        _items[idx] = _items[idx + 1];
+                        _items[idx]     = _items[idx + 1];
                         _items[idx + 1] = item;
                     }
                     return;
@@ -554,7 +554,7 @@ namespace util
                 {
                     if (idx < _top)
                     {
-                        _items[idx] = _items[idx - 1];
+                        _items[idx]     = _items[idx - 1];
                         _items[idx - 1] = item;
                     }
                     return;
@@ -592,7 +592,7 @@ namespace util
             if (!length)
                 return {};
 
-            int idx = 0;
+            int idx    = 0;
             bool found = false;
             for (auto entry : _items)
             {

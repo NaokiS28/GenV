@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "common/util/hash.hpp"
 #include "stdint.h"
 #include "stddef.h"
 
@@ -24,16 +25,18 @@ enum class CoroutineStep : uint8_t
 {
     Init,
     Running,
-    Done
+    Finished
 };
 
 class ICoroutine
 {
 protected:
+    const util::Hash id;
     CoroutineStep m_step = CoroutineStep::Init;
 
 public:
     int listID = -1;
+    constexpr ICoroutine(util::Hash id) : id(id) {}
 
     virtual ~ICoroutine() {}
 
