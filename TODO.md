@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-02-17 16:08:39.337492_
+_Generated on 2026-02-21 22:34:13.103294_
 
 #### [src/genv_common/app/appmgr.cpp](src/genv_common/app/appmgr.cpp)
 
@@ -39,8 +39,8 @@ _Generated on 2026-02-17 16:08:39.337492_
 
 #### [src/genv_common/common/services/io/vpad.hpp](src/genv_common/common/services/io/vpad.hpp)
 
-- [57](src/genv_common/common/services/io/vpad.hpp?plain=1#L57): This should update when any inputs on any controller change.
-- [58](src/genv_common/common/services/io/vpad.hpp?plain=1#L58): Make test to test specific player's inputs changed - usefull?
+- [63](src/genv_common/common/services/io/vpad.hpp?plain=1#L63): This should update when any inputs on any controller change.
+- [64](src/genv_common/common/services/io/vpad.hpp?plain=1#L64): Make test to test specific player's inputs changed - usefull?
 
 #### [src/genv_common/common/services/system/arcade/arcade.cpp](src/genv_common/common/services/system/arcade/arcade.cpp)
 
@@ -69,8 +69,8 @@ _Generated on 2026-02-17 16:08:39.337492_
 
 #### [src/genv_common/common/util/misc.hpp](src/genv_common/common/util/misc.hpp)
 
-- [41](src/genv_common/common/util/misc.hpp?plain=1#L41): implement
 - [45](src/genv_common/common/util/misc.hpp?plain=1#L45): implement
+- [49](src/genv_common/common/util/misc.hpp?plain=1#L49): implement
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp)
 
@@ -88,6 +88,10 @@ _Generated on 2026-02-17 16:08:39.337492_
 #### [src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp)
 
 - [26](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp?plain=1#L26): SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
+
+#### [src/genv_hw/psx/common/drivers/video/gpucmd.hpp](src/genv_hw/psx/common/drivers/video/gpucmd.hpp)
+
+- [22](src/genv_hw/psx/common/drivers/video/gpucmd.hpp?plain=1#L22): 4096 words (16KB per chain, 32KB total for double-buffer). Increased
 
 #### [src/genv_hw/psx/common/drivers/video/psxtex.hpp](src/genv_hw/psx/common/drivers/video/psxtex.hpp)
 
@@ -125,8 +129,9 @@ _Generated on 2026-02-17 16:08:39.337492_
 
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
-- [145](src/genv_hw/psx/common/system.cpp?plain=1#L145): int error = 0; How to handle multiple driver failures?
-- [159](src/genv_hw/psx/common/system.cpp?plain=1#L159): Allow setting custom startup baud
+- [78](src/genv_hw/psx/common/system.cpp?plain=1#L78): SIO1 driver will require interrupts in future, so this will need to change.
+- [149](src/genv_hw/psx/common/system.cpp?plain=1#L149): int error = 0; How to handle multiple driver failures?
+- [163](src/genv_hw/psx/common/system.cpp?plain=1#L163): Allow setting custom startup baud
 
 #### [src/genv_hw/psx/common/system/sys.h](src/genv_hw/psx/common/system/sys.h)
 
