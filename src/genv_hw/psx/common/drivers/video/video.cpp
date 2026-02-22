@@ -828,6 +828,8 @@ namespace System::PSX::GPU
         // Each renderable glyph emits 4 GP0 commands, +1 for the texpage command.
         int totalCommands = (4 * glyphCount) + 1;
         int startX        = x;
+        int tabWidth      = fHeader.tabWidth;
+        int lineTab       = 1; // When reading the TAB character, move to the next tab line, rather than just adding pixels to x
         const char *cur   = str;
 
         // We only need to send the texture page command once. Also sending it means we potentially arent able to render
@@ -868,8 +870,11 @@ namespace System::PSX::GPU
                 switch (ch.codePoint)
                 {
                 // Non-renderable chars
-                case '\t': x += fHeader.tabWidth; break;
-                case '\r': x = startX; break;
+                case '\t': x = (tabWidth * lineTab); break;
+                case '\r':
+                    x       = startX;
+                    lineTab = 1;
+                    break;
                 case '\n': y += fontH; break;
                 case ' ': x += fHeader.spaceWidth; break;
                 default:
