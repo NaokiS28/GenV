@@ -26,21 +26,27 @@ namespace Input
 {
     constexpr const int maxDevicesPerPlayer = 4;
 
+    struct PlayerDeviceList
+    {
+        IInputDevice *const *devices;
+        uint8_t count;
+    };
+
     class VPad
     {
         friend class InputManager;
 
     private:
         Player m_playersAvailable = Player::NONE;
-        uint8_t m_playerMax = 4; // Maximum number of players to assign controllers to (1-8)
+        uint8_t m_playerMax       = 4; // Maximum number of players to assign controllers to (1-8)
         // 9th player is arcade cabinet service controls
         struct PhysicalPads
         {
-            uint8_t deviceCount = 0;
+            uint8_t deviceCount                        = 0;
             IInputDevice *devices[maxDevicesPerPlayer] = {nullptr};
         } m_playerDeviceList[9];
 
-        bool m_devsChanged = false;
+        bool m_devsChanged   = false;
         bool m_inputsChanged = false;
 
         int m_registerDevice(IInputDevice *device, Player player);
@@ -49,7 +55,7 @@ namespace Input
     public:
         inline bool devicesChanged()
         {
-            bool d = m_devsChanged;
+            bool d        = m_devsChanged;
             m_devsChanged = false;
             return d;
         }
@@ -58,7 +64,7 @@ namespace Input
         // TODO: Make test to test specific player's inputs changed - usefull?
         inline bool inputsChanged()
         {
-            bool d = m_inputsChanged;
+            bool d          = m_inputsChanged;
             m_inputsChanged = false;
             return d;
         }
@@ -66,6 +72,13 @@ namespace Input
         inline int playerCount() { return __builtin_popcount(static_cast<int>(m_playersAvailable)); }
         inline Player getPlayersAvailable() { return m_playersAvailable; }
         inline bool isPlayerAvailable(Player player) { return (m_playersAvailable & player) == player; }
+
+        inline PlayerDeviceList getPlayerDevices(Player player)
+        {
+            auto p  = playerToIndex(player);
+            auto &d = m_playerDeviceList[static_cast<uint8_t>(p)];
+            return {d.devices, d.deviceCount};
+        }
 
         inline void setMaximumPlayers(uint8_t players) { m_playerMax = players; }
         inline uint8_t getMaximumPlayers() { return m_playerMax; }
