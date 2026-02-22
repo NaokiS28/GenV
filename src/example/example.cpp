@@ -17,6 +17,7 @@
 
 #include "common/services/io/iface_input.hpp"
 #include "common/services/io/inputman.hpp"
+#include "common/services/io/playerman.hpp"
 #include "common/services/io/vjoy.hpp"
 #include "common/services/services.hpp"
 #include "common/services/system/system.hpp"
@@ -37,7 +38,7 @@ private:
         AppVersion(0, 0, 1) // version
     );
 
-    Input::VPad *pads;
+    IO::PlayerManager *pads;
     Input::InputManager *inputManager;
 
     int currentPage = 0;
@@ -70,7 +71,7 @@ public:
         setAppState(APP_STATE_RUN);
         reload();
         inputManager = getServiceManager()->getInputs();
-        pads         = &inputManager->vpad;
+        pads         = getServiceManager()->getPlayerManager();
         pads->setMaximumPlayers(8);
 
         // Textures::TextureObject *textTest[256];
@@ -221,7 +222,7 @@ public:
         strncat(pageStr, temp, 128);
         snprintf(temp, sizeof(temp), "\tAssigned controllers:\r\n");
         strncat(pageStr, temp, strlen(temp));
-        auto pDevList = pads->getPlayerDevices(player);
+        auto pDevList = pads->getPlayerInputDevices(player);
         if (pDevList.count)
             for (size_t i = 0; i < pDevList.count; i++)
             {
@@ -298,7 +299,7 @@ public:
         snprintf(temp, sizeof(temp), "\tAssigned controllers:\r\n");
         strncat(pageStr, temp, strlen(temp));
 
-        auto pDevList = pads->getPlayerDevices(Input::Player::ARCADE_CABINET);
+        auto pDevList = pads->getPlayerInputDevices(Input::Player::ARCADE_CABINET);
         if (pDevList.count)
             for (size_t i = 0; i < pDevList.count; i++)
             {
@@ -329,7 +330,7 @@ public:
                     i == PANEL_TEST ? inputs & asUint32(VJoy_Arcade::Test) : inputs & asUint32(VJoy_Arcade::Tilt));
                 break;
             case PANEL_SERVICE:
-                typeMax = asUint32(VJoy_Arcade::ServiceMax);
+                typeMax = 8; // Service_1 through Service_8
                 for (int idx = 0; idx < typeMax; idx++)
                 {
                     int n = idx + 1;
@@ -337,10 +338,12 @@ public:
                         temp, 32,
                         serviceInputList[i],
                         n, inputs & asUint32(arcadeService(idx)));
+                    strncat(pageStr, temp, strlen(temp));
                 }
+                temp[0] = '\0'; // Don't double-append via the outer strncat
                 break;
             case PANEL_COIN:
-                typeMax = asUint32(VJoy_Arcade::CoinMax);
+                typeMax = 8; // Coin_1 through Coin_8
                 for (int idx = 0; idx < typeMax; idx++)
                 {
                     int n = idx + 1;
@@ -348,7 +351,9 @@ public:
                         temp, 32,
                         serviceInputList[i],
                         n, inputs & asUint32(arcadeCoin(idx)));
+                    strncat(pageStr, temp, strlen(temp));
                 }
+                temp[0] = '\0'; // Don't double-append via the outer strncat
                 break;
             }
             strncat(pageStr, temp, 128);

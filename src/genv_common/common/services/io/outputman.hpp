@@ -17,39 +17,25 @@
 
 #pragma once
 
-#include "common/services/io/playerman.hpp"
+#include "common/services/io/iface_output.hpp"
 #include "common/util/templates.hpp"
 #include "iface_input.hpp"
 #include "common/services/adminkey.hpp"
 #include <string.h>
 
-namespace Input
+namespace Output
 {
-    static constexpr const int initialDrivers     = 4;
-    static constexpr const int initialControllers = 8;
-    static constexpr const int initialKeyboards   = 2;
-    static constexpr const int initialMice        = 4;
+    static constexpr const int initialDrivers = 4;
 
-    // Placeholders - VKey and VMouse will provide a universal inteface to the app
-    class VKeyboard
-    {
-    };
-
-    class VMouse
-    {
-    };
-
-    class InputManager
+    class OutputManager
     {
     private:
-        util::PointerList<IInputDriver *, initialDrivers> _driverList;
-        util::PointerList<const IInputDevice *, initialControllers> _devList;
-        IO::PlayerManager &_playerManager;
+        // util::PointerList<IOutputDriver *, initialDrivers> _driverList;
+        util::PointerList<const IOutputDevice *, initialDrivers> _devList;
 
     public:
-        inline InputManager(AdminClass_Key key, IO::PlayerManager &playerManager)
-            : _playerManager(playerManager) {};
-        ~InputManager();
+        inline OutputManager(AdminClass_Key key) {};
+        ~OutputManager();
 
         int init();
         void update();
@@ -67,4 +53,4 @@ namespace Input
 
         inline size_t deviceCount() { return _devList.length(); }
     };
-} // namespace Input
+} // namespace Output

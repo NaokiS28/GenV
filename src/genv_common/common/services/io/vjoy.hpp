@@ -106,21 +106,21 @@ ENABLE_BITWISE_OPS(VJoy_Arcade);
 inline constexpr VJoy_Arcade arcadeCoin(size_t coin)
 {
     auto x = static_cast<uint32_t>(VJoy_Arcade::Coin_1);
-    x += coin % static_cast<uint32_t>(VJoy_Arcade::CoinMax);
+    x <<= coin % 8; // 8 coins: Coin_1 through Coin_8
     return static_cast<VJoy_Arcade>(x);
 }
 
 inline constexpr VJoy_Arcade arcadeService(size_t service)
 {
     auto x = static_cast<uint32_t>(VJoy_Arcade::Service_1);
-    x += service % static_cast<uint32_t>(VJoy_Arcade::ServiceMax);
+    x <<= service % 8; // 8 services: Service_1 through Service_8
     return static_cast<VJoy_Arcade>(x);
 }
 
 inline constexpr VJoy_Arcade arcadeInterlock(size_t interlock)
 {
     auto x = static_cast<uint32_t>(VJoy_Arcade::Interlock_1);
-    x += interlock % static_cast<uint32_t>(VJoy_Arcade::InterlockMax);
+    x <<= interlock % 10; // 10 interlocks: Interlock_1 through Interlock_10
     return static_cast<VJoy_Arcade>(x);
 }
 

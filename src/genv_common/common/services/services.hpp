@@ -30,6 +30,7 @@
 
 #include "common/services/video/fontman.hpp"
 #include "common/services/io/inputman.hpp"
+#include "common/services/io/playerman.hpp"
 #include "common/services/storage/storeman.hpp"
 
 // Services uses pointers to avoid issues with atexit() as not all platforms implement this.
@@ -52,6 +53,7 @@ public:
     inline System::ISystem *getSystem(void) { return s_system; }
     inline Fonts::FontManager *fontManager(void) { return s_fonts; }
     inline Input::InputManager *getInputs(void) { return s_input; }
+    inline IO::PlayerManager *getPlayerManager(void) { return s_playerManager; }
 
     inline void setSystem(AdminClass_Key key, System::ISystem (*sys)(void)) { setSystem(sys); }
     inline void setVideo(AdminClass_Key key, Video::IVideo (*video)(void)) { setVideo(video); }
@@ -133,6 +135,7 @@ private:
     Audio::IAudio *s_audio = nullptr;
     Video::IVideo *s_video = nullptr;
     System::ISystem *s_system = nullptr;
+    IO::PlayerManager *s_playerManager = nullptr;
     Input::InputManager *s_input = nullptr;
     Fonts::FontManager *s_fonts = nullptr;
     Files::StorageManager *s_storage = nullptr;

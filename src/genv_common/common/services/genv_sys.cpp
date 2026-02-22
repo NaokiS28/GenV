@@ -28,6 +28,7 @@
 #include "audio/nullaudio.hpp"
 
 #include "halt_screen/halt_screen.h"
+#include "assert.h"
 
 #ifdef GENV_COMPUTER
 #include <stdexcept>
@@ -35,13 +36,8 @@
 
 #define GENV_LOG(fmt, ...) LOG("genv", fmt, __VA_ARGS__)
 
-#define abortIf(ptr, func, name)                \
+#define abortIf(func, name)                     \
     {                                           \
-        if (!ptr)                               \
-        {                                       \
-            GENV_LOG(badPointerStr, name);      \
-            halt();                             \
-        }                                       \
         int r = func;                           \
         if (r != GV_OK)                         \
         {                                       \
@@ -60,15 +56,18 @@
     }
 
 constexpr const char failedToInitFmt[] = "%s failed to init with error: %X";
-constexpr const char badPointerStr[]   = "%s pointer is nullptr!";
 
 void GenvSystemClass::startup()
 {
     auto services = getServiceManager();
 
+    assert(services != nullptr);
+
     System::ISystem *system = System::makeNewSystem();
     Audio::IAudio *audio    = new Audio::NullAudio();
     Video::IVideo *video    = new Video::NullVideo();
+
+    assert(system != nullptr);
 
     services->setAudio(adminKey, audio);
     services->setVideo(adminKey, video);
@@ -91,16 +90,17 @@ void GenvSystemClass::startup()
     // * Then the managers must be created for IO, store and such
     // * The video system is init'd first since if it is not, then the next step will fail
     // * The managers are init'd which uploads items like the default texture and default font
-    abortIf(system, system->initCore(), "System core");
-    abortIf(system, services->createManagers(), "Service managers");
-    abortIf(system, system->initVideo(), "Video driver");
-    abortIf(system, services->init(), "Service managers");
+    abortIf(system->initCore(), "System core");
+    abortIf(services->createManagers(), "Service managers");
+    abortIf(system->initVideo(), "Video driver");
+    abortIf(services->init(), "Init service managers");
     ArcadeFunc(Genv_Arcade->tickWatchdog());
 
     // Past this point, the most critical systems are running
-    warnIf(system->initAudio(), "Audio driver");
-    warnIf(system->initIO(), "IO driver");
-    warnIf(system->initStorage(), "Storage driver");
+    warnIf(system->initAudio(), "System audio driver");
+    warnIf(system->initIO(), "System IO drivers");
+    warnIf(system->initStorage(), "System storage driver");
+
     ArcadeFunc(Genv_Arcade->tickWatchdog());
 }
 

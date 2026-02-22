@@ -21,6 +21,7 @@
 #include "common/return_codes.hpp"
 #include "common/services/adminkey.hpp"
 #include "common/services/io/inputman.hpp"
+#include "common/services/io/playerman.hpp"
 #include "common/services/perfmon.hpp"
 #include "common/services/storage/storeman.hpp"
 #include "common/services/system/system.hpp"
@@ -36,6 +37,7 @@ constexpr const char szSystem[] = "system service";
 constexpr const char szVideo[] = "video service";
 constexpr const char szAudio[] = "audio service";
 constexpr const char szStorage[] = "storage manager";
+constexpr const char szPlayerManager[] = "player manager";
 constexpr const char szInput[] = "input manager";
 constexpr const char szFont[] = "font manager";
 constexpr const char szUnknown[] = "unknown";
@@ -52,6 +54,7 @@ enum ServiceName
     SN_VIDEO,
     SN_AUDIO,
     SN_STORAGE,
+    SN_PLAYER,
     SN_INPUT,
     SN_FONT
 };
@@ -79,6 +82,7 @@ constexpr const char *szServiceName(int errorcode)
     case SN_VIDEO: return szVideo;
     case SN_AUDIO: return szAudio;
     case SN_STORAGE: return szStorage;
+    case SN_PLAYER: return szPlayerManager;
     case SN_INPUT: return szInput;
     case SN_FONT: return szFont;
     default: return szUnknown;
@@ -103,7 +107,13 @@ int ServiceManager::createManagers()
 
     if (!error)
     {
-        s_input = new Input::InputManager(AdminClass_Key());
+        s_playerManager = new IO::PlayerManager();
+        if (!s_playerManager) error = makeErrorCode(SN_PLAYER, SE_NULLPTR);
+    }
+
+    if (!error)
+    {
+        s_input = new Input::InputManager(AdminClass_Key(), *s_playerManager);
         if (!s_input) error = makeErrorCode(SN_INPUT, SE_NULLPTR);
     }
 
@@ -162,6 +172,11 @@ void ServiceManager::shutdown()
         s_input->shutdown();
         delete s_input;
         s_input = nullptr;
+    }
+    if (s_playerManager)
+    {
+        delete s_playerManager;
+        s_playerManager = nullptr;
     }
     if (s_storage)
     {
@@ -302,6 +317,21 @@ int ServiceManager::registerCoroutine(ICoroutine &coroutine)
     }
     LOG_SVC("Could not register coroutine %s: Internal list error.", coroutine.name());
     return 1;
+}
+
+// --- IO free functions ---------------------------------------------------------
+
+namespace IO
+{
+    PlayerView player(Player p)
+    {
+        return PlayerView(getServiceManager()->getPlayerManager(), p);
+    }
+
+    PlayerView arcade()
+    {
+        return PlayerView(getServiceManager()->getPlayerManager(), Player::ARCADE_CABINET);
+    }
 }
 
 // --- ServiceManager ------------------------------------------------------------

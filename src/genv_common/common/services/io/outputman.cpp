@@ -15,79 +15,80 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "iostrings.hpp"
-#include "inputman.hpp"
+#include "outputman.hpp"
 #include "common/logger/log.hpp"
-#include "common/services/io/iface_input.hpp"
+#include "common/services/io/iface_output.hpp"
 #include <string.h>
 
-#define ILOG(fmt, ...) LOG("inputman", fmt __VA_OPT__(, ) __VA_ARGS__)
+#define ILOG(fmt, ...) LOG("outputman", fmt __VA_OPT__(, ) __VA_ARGS__)
 
-namespace Input
+namespace Output
 {
     using namespace IO;
 
-    InputManager::~InputManager()
+    OutputManager::~OutputManager()
     {
+        /*
         for (auto driver : _driverList)
             if (driver) delete driver;
+        */
     }
 
-    int InputManager::init()
+    int OutputManager::init()
     {
-        if (!_driverList.ready() || !_devList.ready())
-            return 1;
+        // if (!_driverList.ready() || !_devList.ready())
+        //    return 1;
         return 0;
     }
 
-    void InputManager::update()
+    void OutputManager::update()
     {
-        for (auto driver : _driverList)
-            if (driver) driver->update();
-
-        // for (auto pad : _devList)
     }
 
-    void InputManager::reset()
+    void OutputManager::reset()
     {
-        for (auto driver : _driverList)
-            if (driver) driver->reset();
+        // for (auto driver : _driverList)
+        //    if (driver) driver->reset();
     }
 
-    void InputManager::shutdown()
+    void OutputManager::shutdown()
     {
-        for (auto driver : _driverList)
-            if (driver) driver->shutdown();
+        // for (auto driver : _driverList)
+        //    if (driver) driver->shutdown();
     }
 
-    int InputManager::attachDevice(Input::IInputDevice *dev, Input::Player player)
+    int OutputManager::attachDevice(Input::IInputDevice *dev, Input::Player player)
     {
-        if (!dev || dev->type == DEVICE_TYPE_NULL)
+        /*if (!dev || dev->type == DEVICE_TYPE_NULL)
         {
             ILOG(szInputFailedFmt, szInput, szDevice, szAttach, szDeviceNull);
             return false;
         }
         _devList.append(dev);
-        _playerManager.m_registerInputDevice(dev, player);
+        vpad.m_registerDevice(dev, player);
         ILOG(szInputFmt, dev->name, szDevice, szAttach);
+        */
         return 0;
     }
 
-    int InputManager::detachDevice(Input::IInputDevice *dev)
+    int OutputManager::detachDevice(Input::IInputDevice *dev)
     {
+        /*
         if (!dev)
         {
             ILOG(szInputFailedFmt, szInput, szDevice, szDetach, szDeviceNull);
             return false;
         }
         _devList.remove(dev);
-        _playerManager.m_unregisterInputDevice(dev);
+        vpad.m_unregisterDevice(dev);
         ILOG(szInputFmt, dev->name, szDevice, szDetach, szDeviceNull);
+        */
         return 0;
     }
 
-    int InputManager::registerDriver(Input::IInputDriver *driver)
+    int OutputManager::registerDriver(Input::IInputDriver *driver)
     {
+        /*
         if (!driver)
         {
             ILOG(szInputFailedFmt, szInput, szDriver, szRegister, szDeviceNull);
@@ -102,11 +103,13 @@ namespace Input
 
         _driverList.append(driver);
         ILOG(szInputFmt, driver->getName(), szDriver, szRegister);
+        */
         return true;
     }
 
-    int InputManager::unregisterDriver(Input::IInputDriver *driver)
+    int OutputManager::unregisterDriver(Input::IInputDriver *driver)
     {
+        /*
         if (!driver)
         {
             ILOG(szInputFailedFmt, szInput, szDriver, szUnregister, szDeviceNull);
@@ -114,18 +117,19 @@ namespace Input
         }
         _driverList.remove(driver);
         ILOG(szInputFmt, driver->getName(), szDriver, szUnregister);
+        */
         return true;
     }
 
-    const char *InputManager::deviceName(size_t idx)
+    const char *OutputManager::deviceName(size_t idx)
     {
         if (idx >= _devList.length()) return nullptr;
         return _devList.at(idx)->name;
     }
 
-    const int InputManager::devicePlayer(size_t idx)
+    const int OutputManager::devicePlayer(size_t idx)
     {
         if (idx >= _devList.length()) return 255;
         return static_cast<int>(_devList.at(idx)->player) + 1;
     }
-} // namespace Input
+} // namespace Output
