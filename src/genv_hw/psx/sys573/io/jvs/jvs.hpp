@@ -20,27 +20,39 @@
 #include "common/services/io/iface_input.hpp"
 #include "common/util/templates.hpp"
 
-namespace System::PSX
+namespace System573::IO
 {
     using namespace Input;
 
     constexpr const char GX700_JVS_NAME[] = "System 573 JVS";
 
-    class Sys573JVS : public IInputDriver
+    constexpr int maxJVSDataSize = 16;
+    constexpr int maxJVSdevices  = 4;
+
+    struct alignas(uint16_t) JVS_Packet
+    {
+        uint8_t sync   = 0xE0;
+        uint8_t nodeID = 0x00;
+        uint8_t size   = 0x00;
+        uint8_t data[maxJVSDataSize]; // Contains sum
+    };
+
+    class JVS : public IInputDriver
     {
     private:
         void processPackets_();
 
-        IInputDevice _devs[4];
+        IInputDevice _devs[maxJVSdevices];
         util::RingBuffer<uint8_t, 64> _packetBuffer;
 
     public:
-        inline Sys573JVS()
-        {
-            _name = GX700_JVS_NAME;
-        }
+        inline JVS() { _name = GX700_JVS_NAME; }
 
         int init() override;
         bool update() override;
+
+        uint8_t setOutputs(uint8_t bank, uint8_t data);
+        uint8_t setSingleOutput(uint8_t outputNumber, bool state);
+        uint8_t increaseCoinCounter(uint8_t counter);
     };
-} // namespace System::PSX
+} // namespace System573::IO

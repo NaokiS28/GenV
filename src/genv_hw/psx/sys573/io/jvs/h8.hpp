@@ -20,65 +20,80 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "../registers573.hpp"
-#include "../asic.h"
+#include "psx/sys573/registers573.hpp"
+#include "psx/sys573/io/asic.hpp"
 
-#ifdef __cplusplus
-extern "C"
+namespace System573::IO::H8
 {
-#endif
-
     typedef enum
     {
-        H8_STATUS_WAITING = 0,
-        H8_STATUS_BUSY,
-        H8_STATUS_TRANSFER_IN_PROGRESS,
-        H8_INVALID_STATUS_CODE
+        H8_STATUS_WAITING              = 0,
+        H8_STATUS_BUSY                 = 1,
+        H8_STATUS_TRANSFER_IN_PROGRESS = 2,
+        H8_INVALID_STATUS_CODE         = 3
     } H8Status;
 
     typedef enum
     {
-        H8_NO_ERROR = 0,
-        H8_ERROR_INVALID_CHECKSUM,
-        H8_ERROR_INVALID_SYNC,
-        H8_INVALID_ERROR_CODE,
+        H8_NO_ERROR               = 3,
+        H8_ERROR_INVALID_CHECKSUM = 1,
+        H8_ERROR_INVALID_SYNC     = 2,
+        H8_INVALID_ERROR_CODE     = 4,
     } H8Error;
 
     // Acknowledges the incoming data has been read by the CPU from the H8 MCU
     // Once the data has been ack'd, the H8 will place the next byte of data on
     // the single stage FIFO
-    inline void sys573_h8_ack()
+    inline void ack()
     {
         SYS573_JVS_IRDY_ACK = 0;
     }
 
-    // Gets the current status code from the H8
-    inline uint8_t sys573_h8_status()
+    inline bool txReady()
     {
-        return ((SYS573_DIP_CART & 0x0C) >> 2);
+        return (static_cast<MiscInput>(SYS573_MISC_IN) & MiscInput::JVS_DRDY) != MiscInput::NONE;
+    }
+
+    inline bool available()
+    {
+        return (static_cast<MiscInput>(SYS573_MISC_IN) & MiscInput::JVS_IRDY) != MiscInput::NONE;
+    }
+
+    inline bool writeWord(uint16_t word)
+    {
+        if (txReady())
+        {
+            SYS573_JVS_TX_DATA = word;
+            return true;
+        }
+        return false;
+    }
+
+    // Gets the current status code from the H8
+    inline H8Status status()
+    {
+        return static_cast<H8Status>((SYS573_DIP_CART & 0x0C) >> 2);
     }
 
     // Gets the current error code from the H8
-    inline uint8_t sys573_h8_error()
+    inline H8Error error()
     {
-        return ((SYS573_DIP_CART & 0x30) >> 4);
+        return static_cast<H8Error>((SYS573_DIP_CART & 0x30) >> 4);
     }
 
     // Returns true if the JVS Sense input pin is being asserted.
     // JVS says the sense pin must be 2.5v when an IO board is connected but not
     // set with an ID, and 0v when ID has been given. If this function returns false,
     // an IO board is not present.
-    inline bool sys573_h8_sense_in()
+    inline bool sense_in()
     {
-        return !(SYS573_MISC_IN & SYS573_MISC_IN_JVS_SENSE);
+        return (static_cast<MiscInput>(SYS573_MISC_IN) & MiscInput::JVS_SENSE) != MiscInput::NONE;
     }
 
     // Resets the H8 using the ASIC pulse function
-    inline void sys573_h8_reset()
+    inline void reset()
     {
-        sys573_asic_pulse_output(SYS573_MISC_OUT_JVS_RESET);
+        ASIC::pulseOutput(MiscOutput::JVS_RESET);
     }
 
-#ifdef __cplusplus
-}
-#endif
+} // namespace System573::IO::H8
