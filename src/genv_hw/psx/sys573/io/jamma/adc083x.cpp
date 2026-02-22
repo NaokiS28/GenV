@@ -16,12 +16,27 @@
  */
 
 #include "adc083x.hpp"
-#include "psx/common/system/sys.h"
 #include "psx/sys573/io/asic.hpp"
 #include "psx/sys573/registers573.hpp"
 
 namespace System573::IO
 {
+    void ADC038x::sendAddress(ADC038x_Channel ch, bool differential, bool sign)
+    {
+        if (numChannels == ADC038x_Channel::CH_0) return;
+
+        uint8_t x = (static_cast<uint8_t>(ch) / 2);
+        bool odd  = static_cast<uint8_t>(ch) % 2;
+
+        exchangeBit(!differential);             // SIGNAL/!DIF
+        exchangeBit(differential ? sign : odd); // ODD / SIGN
+
+        if (numChannels == ADC038x_Channel::CH_7)
+            exchangeBit(x & 0b10); // Select 1
+        if (numChannels >= ADC038x_Channel::CH_3)
+            exchangeBit(x & 0b01); // Select 0
+    }
+
     bool ADC038x::exchangeBit(bool bit)
     {
         const MiscOutput mask = static_cast<MiscOutput>(MiscOutput::ADC_DI | MiscOutput::ADC_CLK);
@@ -36,13 +51,12 @@ namespace System573::IO
         bool in     = (miscin & MiscInput::ADC_DO) != MiscInput::NONE;
 
         // Clock low
-        psx_delayMicrosecondsBusy(1);
         x = (bit ? MiscOutput::ADC_DI : MiscOutput::NONE);
         ASIC::writeOutputsMasked(x, mask);
         return in;
     }
 
-    uint8_t ADC038x::getValue(ADC038x_Channel ch, bool singleChannel)
+    uint8_t ADC038x::getValue(ADC038x_Channel ch, bool differential)
     {
         const auto max = channelToIndex(numChannels);
         auto c         = channelToIndex(ch);
@@ -52,14 +66,10 @@ namespace System573::IO
         select(true);
         // Start bit
         exchangeBit(1);
-        if (numChannels > ADC038x_Channel::CH_1)
-            exchangeBit(singleChannel);
-
-        for (uint8_t i = max - 1; i > 0; i >>= 1)
-            exchangeBit(c & i);
-
-        exchangeBit(0); // ADC MUX settling period.
-
+        // MUX Select
+        sendAddress(ch, differential);
+        // ADC MUX settling period.
+        exchangeBit(0);
         // We no longer care about transmitting (DI is disabled)
         int8_t result = 0;
         for (uint8_t i = 0; i < 17; i++)

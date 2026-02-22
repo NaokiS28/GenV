@@ -16,7 +16,7 @@
  */
 
 #pragma once
-
+#include "common/util/enum_defs.hpp"
 #include "psx/sys573/io/asic.hpp"
 #include "psx/sys573/registers573.hpp"
 #include <assert.h>
@@ -31,25 +31,27 @@ namespace System573::IO
 {
     enum class ADC038x_Channel : uint8_t
     {
-        CH_1    = 0,
-        CH_2    = 1,
-        CH_3    = 2,
-        CH_4    = 3,
-        CH_5    = 4,
-        CH_6    = 5,
-        CH_7    = 6,
-        CH_8    = 7,
+        CH_0    = 0,
+        CH_1    = 1,
+        CH_2    = 2,
+        CH_3    = 3,
+        CH_4    = 4,
+        CH_5    = 5,
+        CH_6    = 6,
+        CH_7    = 7,
         INVALID = 0xFF
     };
+
+    ENABLE_BITWISE_OPS(ADC038x_Channel);
 
     constexpr ADC038x_Channel channelTotalToADC(uint8_t channels)
     {
         switch (channels)
         {
-        case 1: return ADC038x_Channel::CH_1;
-        case 2: return ADC038x_Channel::CH_2;
-        case 4: return ADC038x_Channel::CH_4;
-        case 8: return ADC038x_Channel::CH_8;
+        case 1: return ADC038x_Channel::CH_0;
+        case 2: return ADC038x_Channel::CH_1;
+        case 4: return ADC038x_Channel::CH_3;
+        case 8: return ADC038x_Channel::CH_7;
         default: return ADC038x_Channel::INVALID;
         }
     }
@@ -58,14 +60,14 @@ namespace System573::IO
     {
         switch (channel)
         {
-        case 0: return ADC038x_Channel::CH_1;
-        case 1: return ADC038x_Channel::CH_2;
-        case 2: return ADC038x_Channel::CH_3;
-        case 3: return ADC038x_Channel::CH_4;
-        case 4: return ADC038x_Channel::CH_5;
-        case 5: return ADC038x_Channel::CH_6;
-        case 6: return ADC038x_Channel::CH_7;
-        case 7: return ADC038x_Channel::CH_8;
+        case 0: return ADC038x_Channel::CH_0;
+        case 1: return ADC038x_Channel::CH_1;
+        case 2: return ADC038x_Channel::CH_2;
+        case 3: return ADC038x_Channel::CH_3;
+        case 4: return ADC038x_Channel::CH_4;
+        case 5: return ADC038x_Channel::CH_5;
+        case 6: return ADC038x_Channel::CH_6;
+        case 7: return ADC038x_Channel::CH_7;
         default: return ADC038x_Channel::INVALID;
         }
     }
@@ -77,6 +79,8 @@ namespace System573::IO
 
         bool exchangeBit(bool bit);
 
+        void sendAddress(ADC038x_Channel ch, bool differential = false, bool sign = false);
+
         inline void select(bool state)
         {
             ASIC::writeOutputBit(MiscOutput::ADC_CS, !state);
@@ -86,10 +90,10 @@ namespace System573::IO
         ADC038x(ADC038x_Channel channels) : numChannels(channels)
         {
             // The *x* in ADC038x
-            assert((channels == ADC038x_Channel::CH_1) ||
-                   (channels == ADC038x_Channel::CH_2) ||
-                   (channels == ADC038x_Channel::CH_4) ||
-                   (channels == ADC038x_Channel::CH_8));
+            assert((channels == ADC038x_Channel::CH_0) ||
+                   (channels == ADC038x_Channel::CH_1) ||
+                   (channels == ADC038x_Channel::CH_3) ||
+                   (channels == ADC038x_Channel::CH_7));
         }
 
         static constexpr uint8_t channelToIndex(ADC038x_Channel channel)
@@ -102,6 +106,6 @@ namespace System573::IO
             return static_cast<ADC038x_Channel>(channel > 7 ? 7 : channel);
         }
 
-        uint8_t getValue(ADC038x_Channel ch, bool singleChannel = true);
+        uint8_t getValue(ADC038x_Channel ch, bool differential = false);
     };
 } // namespace System573::IO

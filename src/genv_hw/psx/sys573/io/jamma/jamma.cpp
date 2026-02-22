@@ -130,7 +130,7 @@ namespace System573::IO
 
         ch = util::map(
             _adc.getValue(ADC038x::indexToChannel(c)),
-            0, UINT8_MAX, INT16_MIN, INT16_MAX);
+            0, UINT8_MAX, -1024, 1023);
         c++;
         if (c >= GX700_ANALOG_COUNT) c = 0;
     }

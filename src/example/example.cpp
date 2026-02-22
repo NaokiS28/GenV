@@ -255,7 +255,7 @@ public:
             {
                 int16_t analog = 0;
                 pads->getPlayerAnalogInputs(analog, player, a);
-                snprintf(temp, 32, "\tAnalog %i: %i\r\n", a, analog);
+                snprintf(temp, 32, "\tAnalog %i: %+i\r\n", a, analog);
                 strncat(pageStr, temp, 128);
             }
         }

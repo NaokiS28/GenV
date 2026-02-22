@@ -37,7 +37,9 @@ GenV Status:
 	<tr>
 		<td> IO </td>
 		<td> 
-			<p>JAMMA is partially implemented, but require advancements in the core input management system.
+			<p>JAMMA is implemented for both players and arcade service panel.
+			<p>Analog inputs on GX700 PCB supported (these appear under player 1, player 2 has only digital).
+			<p>ADC083X driver supports 1, 2, 4 and 8 channel variants, but only integrated 4 channel ADC is currently supported.
 			<p>JVS support is skeleton.
 			<p>Security cart is completely unimplemented.
 			<p>Expansion bus is completely unimplemented.
