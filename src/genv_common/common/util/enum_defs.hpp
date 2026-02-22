@@ -15,6 +15,8 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include <cstdint>
 
 #define ENABLE_BITWISE_OPS(T)                                         \
