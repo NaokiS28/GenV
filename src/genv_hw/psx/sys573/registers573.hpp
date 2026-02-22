@@ -17,45 +17,55 @@
 #pragma once
 
 #include "psx/common/registers.hpp"
+#include "common/util/enum_defs.hpp"
 
 /* System 573 base hardware */
-
-typedef enum
+namespace System573
 {
-    SYS573_MISC_OUT_ADC_DI = 1 << 0,
-    SYS573_MISC_OUT_ADC_CS = 1 << 1,
-    SYS573_MISC_OUT_ADC_CLK = 1 << 2,
-    SYS573_MISC_OUT_COIN_COUNT1 = 1 << 3,
-    SYS573_MISC_OUT_COIN_COUNT2 = 1 << 4,
-    SYS573_MISC_OUT_AMP_ENABLE = 1 << 5,
-    SYS573_MISC_OUT_CDDA_ENABLE = 1 << 6,
-    SYS573_MISC_OUT_SPU_ENABLE = 1 << 7,
-    SYS573_MISC_OUT_JVS_RESET = 1 << 8
-} Sys573MiscOutputFlag;
+    enum class MiscOutput : uint16_t
+    {
+        NONE        = 0 << 0,
+        ADC_DI      = 1 << 0,
+        ADC_CS      = 1 << 1,
+        ADC_CLK     = 1 << 2,
+        COIN_COUNT1 = 1 << 3,
+        COIN_COUNT2 = 1 << 4,
+        AMP_ENABLE  = 1 << 5,
+        CDDA_ENABLE = 1 << 6,
+        SPU_ENABLE  = 1 << 7,
+        JVS_RESET   = 1 << 8
+    };
 
-typedef enum
-{
-    SYS573_MISC_IN_ADC_DO = 1 << 0,
-    SYS573_MISC_IN_ADC_SARS = 1 << 1,
-    SYS573_MISC_IN_CART_SDA = 1 << 2,
-    SYS573_MISC_IN_JVS_SENSE = 1 << 3,
-    SYS573_MISC_IN_JVS_IRDY = 1 << 4,
-    SYS573_MISC_IN_JVS_DRDY = 1 << 5,
-    SYS573_MISC_IN_CART_IRDY = 1 << 6,
-    SYS573_MISC_IN_CART_DRDY = 1 << 7,
-    SYS573_MISC_IN_COIN1 = 1 << 8,
-    SYS573_MISC_IN_COIN2 = 1 << 9,
-    SYS573_MISC_IN_PCMCIA_CD1 = 1 << 10,
-    SYS573_MISC_IN_PCMCIA_CD2 = 1 << 11,
-    SYS573_MISC_IN_SERVICE = 1 << 12
-} Sys573MiscInputFlag;
+    ENABLE_BITWISE_OPS(MiscOutput);
 
-typedef enum
-{
-    SYS573_BANK_FLASH = 0,
-    SYS573_BANK_PCMCIA1 = 16,
-    SYS573_BANK_PCMCIA2 = 32
-} Sys573Bank;
+    enum class MiscInput : uint16_t
+    {
+        NONE       = 0 << 0,
+        ADC_DO     = 1 << 0,
+        ADC_SARS   = 1 << 1,
+        CART_SDA   = 1 << 2,
+        JVS_SENSE  = 1 << 3,
+        JVS_IRDY   = 1 << 4,
+        JVS_DRDY   = 1 << 5,
+        CART_IRDY  = 1 << 6,
+        CART_DRDY  = 1 << 7,
+        COIN1      = 1 << 8,
+        COIN2      = 1 << 9,
+        PCMCIA_CD1 = 1 << 10,
+        PCMCIA_CD2 = 1 << 11,
+        SERVICE    = 1 << 12
+    };
+
+    ENABLE_BITWISE_OPS(MiscInput);
+
+    typedef enum
+    {
+        FLASH   = 0,
+        PCMCIA1 = 16,
+        PCMCIA2 = 32
+    } FlashBank;
+
+} // namespace System573
 
 #define SYS573_MISC_OUT _MMIO16(DEV0_BASE | 0x400000)
 #define SYS573_DIP_CART _MMIO16(DEV0_BASE | 0x400004)
@@ -81,33 +91,33 @@ typedef enum
 
 typedef enum
 {
-    SYS573_RTC_CTRL_CAL_BITMASK = 31 << 0,
+    SYS573_RTC_CTRL_CAL_BITMASK  = 31 << 0,
     SYS573_RTC_CTRL_CAL_POSITIVE = 0 << 5,
     SYS573_RTC_CTRL_CAL_NEGATIVE = 1 << 5,
-    SYS573_RTC_CTRL_READ = 1 << 6,
-    SYS573_RTC_CTRL_WRITE = 1 << 7
+    SYS573_RTC_CTRL_READ         = 1 << 6,
+    SYS573_RTC_CTRL_WRITE        = 1 << 7
 } Sys573RTCControlFlag;
 
 typedef enum
 {
     SYS573_RTC_SECOND_UNITS_BITMASK = 15 << 0,
-    SYS573_RTC_SECOND_TENS_BITMASK = 7 << 4,
-    SYS573_RTC_SECOND_STOP = 1 << 7
+    SYS573_RTC_SECOND_TENS_BITMASK  = 7 << 4,
+    SYS573_RTC_SECOND_STOP          = 1 << 7
 } Sys573RTCSecondFlag;
 
 typedef enum
 {
-    SYS573_RTC_WEEKDAY_UNITS_BITMASK = 7 << 0,
-    SYS573_RTC_WEEKDAY_CENTURY = 1 << 4,
+    SYS573_RTC_WEEKDAY_UNITS_BITMASK  = 7 << 0,
+    SYS573_RTC_WEEKDAY_CENTURY        = 1 << 4,
     SYS573_RTC_WEEKDAY_CENTURY_ENABLE = 1 << 5,
     SYS573_RTC_WEEKDAY_FREQUENCY_TEST = 1 << 6
 } Sys573RTCWeekdayFlag;
 
 typedef enum
 {
-    SYS573_RTC_DAY_UNITS_BITMASK = 15 << 0,
-    SYS573_RTC_DAY_TENS_BITMASK = 3 << 4,
-    SYS573_RTC_DAY_LOW_BATTERY = 1 << 6,
+    SYS573_RTC_DAY_UNITS_BITMASK   = 15 << 0,
+    SYS573_RTC_DAY_TENS_BITMASK    = 3 << 4,
+    SYS573_RTC_DAY_LOW_BATTERY     = 1 << 6,
     SYS573_RTC_DAY_BATTERY_MONITOR = 1 << 7
 } Sys573RTCDayFlag;
 

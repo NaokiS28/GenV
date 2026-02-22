@@ -108,6 +108,8 @@ enum GVE_UniversalResults
     GV_ERR_NULL_POINTER,        // Null pointer passed
     GV_ERR_BAD_OBJECT,          // Object invalid or corrupted
 
+    GV_ERR_NO_RESPONSE,
+
     // Security / Auth errors
     GV_ERR_AUTH_FAILED,    // Authentication failure
     GV_ERR_NOT_AUTHORIZED, // Not authorized

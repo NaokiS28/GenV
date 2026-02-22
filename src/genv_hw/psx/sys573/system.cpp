@@ -17,18 +17,22 @@
 
 #include "system.hpp"
 
+#include "common/return_codes.hpp"
 #include "psx/common/system.hpp"
 #include "psx/common/halt/halt.h"
 #include "psx/common/system/sys.h"
-#include "gpucmd.hpp"
-#include "psx/common/system/pcsxhw.h"
+#include "psx/common/drivers/video/gpucmd.hpp"
 
+#include "psx/sys573/io/asic.hpp"
 #include "psx/sys573/halt/halt.h"
 
 #include "common/services/services.hpp"
+#include "psx/sys573/io/io.hpp"
+#include "psx/sys573/registers573.hpp"
 
-namespace System::PSX
+namespace System573
 {
+    using namespace System::PSX;
     Sys573System::Sys573System() : BasePSXSystem()
     {
     }
@@ -42,12 +46,7 @@ namespace System::PSX
 
     int Sys573System::initCore()
     {
-        if (pcsx_present())
-        {
-            LOG_SYS(szRedux);
-        }
-        setupInterruptHandler_();
-        psx_enableInterrupts();
+        BasePSXSystem::initCore();
 
         // Enable PIO/573 read/writing with delay slots. These are based on Konami's values
         // This needs to be done first else the RTC is inacessible - In theory already setup, but just in case.
@@ -57,10 +56,10 @@ namespace System::PSX
         // RAM size should already be configured by the BIOS
         // DRAM_CTRL = 0x00000B88;
 
-        _rtc.init();
+        m_rtc.init();
         if (clock)
             delete clock; // Remove the softclock
-        clock = &_rtc;
+        clock = &m_rtc;
 
         testSwitchLatching = false; // Test switch is push button
         tickWatchdog();
@@ -130,60 +129,45 @@ namespace System::PSX
         // if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
         // if (!pcError) services.registerStorageDriver(pcDriver);
 #endif
-        return 0;
+        return GV_OK;
     }
 
     int Sys573System::initIO()
     {
         BasePSXSystem::initIO();
-        services.registerInputDriver(&_jamma);
-        _jamma.init();
-
-        return 0;
+        services.registerInputDriver(&m_jamma);
+        services.registerInputDriver(&m_jvs);
+        return GV_OK;
     }
 
     uint8_t Sys573System::increaseCoinCounter(uint8_t counter)
     {
-        if (counter >= physicalCoinSlots)
-            return 0xFF;
-
         if (counter < 2)
         {
             // Shift over the counter (so it's either CC1 or CC2), set, wait, unset
-            SYS573_MISC_OUT |= (SYS573_MISC_OUT_COIN_COUNT1 << counter);
-            for (int i = 100; i > 0; i--)
-                ;
-            SYS573_MISC_OUT ^= (SYS573_MISC_OUT_COIN_COUNT1 << counter);
+            if (counter)
+                IO::ASIC::pulseOutput(MiscOutput::COIN_COUNT1);
+            else
+                IO::ASIC::pulseOutput(MiscOutput::COIN_COUNT2);
             return counter;
         }
         else
-        {
-            return increaseCoinCounter(counter);
-        }
+            return m_jvs.increaseCoinCounter(counter);
     }
 
     uint8_t Sys573System::setOutputs(uint8_t bank, uint8_t data)
     {
-        if (bank >= outputBanks)
-            return 0xff;
-
         if (bank == 0)
         {
-            SYS573_EXT_OUT = data;
+            IO::EXTOUT::set_state(data);
             return 0;
         }
         else
-        {
-            // JVS/IO
-            setOutputs(bank, data);
-            return 0;
-        }
+            return m_jvs.setOutputs(bank, data);
     }
+
     uint8_t Sys573System::setSingleOutput(uint8_t outputNumber, bool state)
     {
-        if (outputNumber >= (8 * outputBanks))
-            return 0xff;
-
         if (outputNumber < 8)
         {
             if (state)
@@ -193,11 +177,7 @@ namespace System::PSX
             return outputNumber;
         }
         else
-        {
-            // JVS/IO
-            setSingleOutput(outputNumber, state);
-            return outputNumber;
-        }
+            return m_jvs.setSingleOutput(outputNumber, state);
     }
 
     const char *Sys573System::getWorkingDirectory()
@@ -205,4 +185,4 @@ namespace System::PSX
         return nullptr;
     }
 
-} // namespace System::PSX
+} // namespace System573

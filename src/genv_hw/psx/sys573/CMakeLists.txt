@@ -10,16 +10,15 @@ add_library(genv_hw_sys573 STATIC)
 target_sources(genv_hw_sys573 PRIVATE
     system.cpp
 	rtc.cpp
-	asic.c
-	io/io.c
-	jvs/h8.c
-	jamma/jamma.cpp
-	jamma/adc083x.cpp
-	storage/flash.c
+	io/io.cpp
+	io/asic.cpp
+	io/jvs/jvs.cpp
+	io/jamma/jamma.cpp
+	io/jamma/adc083x.cpp
+	storage/flash.cpp
 	#storage/ide.c
-	#jvs/jvs.cpp
-	#aio/aio.cpp
-	#dio/dio.cpp
+	#io/aio/aio.cpp
+	#io/dio/dio.cpp
 	halt/halt.c
 )
 

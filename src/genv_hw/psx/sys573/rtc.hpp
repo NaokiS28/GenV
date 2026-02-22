@@ -20,11 +20,9 @@
 #include <string.h>
 
 #include "common/services/system/rtc/iface_rtc.hpp"
-#include "registers573.hpp"
 #include "common/services/system/rtc/soft_rtc.hpp"
-#include "common/services/system/arcade/nvram.hpp"
 
-namespace System::PSX::KSYS573
+namespace System573
 {
     constexpr const int RTCSyncTime = (60 * 15); // Seconds x Minutes
     class RTC : public Time::SoftRTC
@@ -51,4 +49,4 @@ namespace System::PSX::KSYS573
         int readNVRAM(uint8_t *data, int offset, int count);
         int writeNVRAM(const uint8_t *data, int offset, int size);
     };
-} // namespace System::PSX::KSYS573
+} // namespace System573

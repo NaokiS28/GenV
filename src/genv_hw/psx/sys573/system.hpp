@@ -18,39 +18,38 @@
 #pragma once
 
 #include "common/services/system/system.hpp"
+#include "common/services/system/arcade/arcade.hpp"
+
 #include "psx/common/system.hpp"
 #include "psx/common/drivers/video/video.hpp"
 
-#include "psx/sys573/io/io.h"
+#include "io/io.hpp"
 #include "rtc.hpp"
 
-#include "common/services/system/arcade/arcade.hpp"
+// #include "psx/common/drivers/psx_pcdrv.hpp"
 
-#include "jamma/jamma.hpp"
-
-#include "psx/common/drivers/psx_pcdrv.hpp"
-
-namespace System::PSX
+namespace System573
 {
     namespace KSYS573
     {
         constexpr const char *szSystemName = "System 573";
-        constexpr const char *szMakeName = "KONAMI";
+        constexpr const char *szMakeName   = "KONAMI";
     } // namespace KSYS573
 
-    class Sys573System : public BasePSXSystem, public BaseArcadeSystem
+    class Sys573System : public System::PSX::BasePSXSystem, public System::BaseArcadeSystem
     {
     private:
-        SystemInfo si573 = {
-            .type = SYS_Arcade,
-            .make = KSYS573::szMakeName,
-            .name = KSYS573::szSystemName,
-            .flags = SYS_No_Window_Mode};
+        System::SystemInfo si573 = {
+            .type  = System::SYS_Arcade,
+            .make  = KSYS573::szMakeName,
+            .name  = KSYS573::szSystemName,
+            .flags = System::SYS_No_Window_Mode};
 
-        uint8_t outputBanks = 1;
+        static const uint8_t system_outputBanks = 1;
 
-        KSYS573::RTC _rtc;
-        Sys573Jamma _jamma;
+        RTC m_rtc;
+        IO::JAMMA m_jamma;
+        IO::JVS m_jvs;
 
     public:
         Sys573System();
@@ -67,24 +66,21 @@ namespace System::PSX
 
         int readNVRAM(uint8_t *data, int offset, int count) override
         {
-            return _rtc.readNVRAM(data, offset, count);
+            return m_rtc.readNVRAM(data, offset, count);
         }
         int writeNVRAM(const uint8_t *data, int offset, int count) override
         {
-            return _rtc.writeNVRAM(data, offset, count);
+            return m_rtc.writeNVRAM(data, offset, count);
         }
 
         uint8_t increaseCoinCounter(uint8_t counter) override;
 
-        void tickWatchdog(void) override
+        inline void tickWatchdog(void) override
         {
-            if (enableWatchdogTicking)
-            {
-                sys573_watchdog_kick();
-            }
+            if (enableWatchdogTicking) IO::watchdog_kick();
         }
 
-        const SystemInfo *getSysInfo() const override
+        const System::SystemInfo *getSysInfo() const override
         {
             return &si573;
         }
@@ -95,4 +91,4 @@ namespace System::PSX
         const char *getWorkingDirectory() override;
     };
 
-} // namespace System::PSX
+} // namespace System573
