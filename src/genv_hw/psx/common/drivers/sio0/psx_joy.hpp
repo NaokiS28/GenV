@@ -61,12 +61,12 @@ namespace System::PSX::IO
         ControllerReadResponse(const uint8_t *rsp, size_t len)
         {
             assert(len >= 4);
-            id = (uint16_t)((rsp[1] << 8) | rsp[0]);
+            id    = (uint16_t)((rsp[1] << 8) | rsp[0]);
             input = (uint16_t)((rsp[3] << 8) | rsp[2]);
             if (len > 4)
             {
-                left.x = rsp[6];
-                left.y = rsp[7];
+                left.x  = rsp[6];
+                left.y  = rsp[7];
                 right.x = rsp[4];
                 right.y = rsp[5];
             }
@@ -77,7 +77,7 @@ namespace System::PSX::IO
     {
     };
 
-    class PSX_Joypad : public IInputDriver
+    class PSX_Joypad : public ::IO::IDriver
     {
     private:
         SIO0_Bus *m_bus;
@@ -87,11 +87,11 @@ namespace System::PSX::IO
 
         struct PSX_PadData
         {
-            uint32_t digital = 0;
-            int16_t analog[10] = {0};
-            int16_t rotary[2] = {0};
+            uint32_t digital         = 0;
+            int16_t analog[10]       = {0};
+            int16_t rotary[2]        = {0};
             uint8_t motorStrength[2] = {0};
-            JoypadType type = PAD_DISCONNECTED;
+            JoypadType type          = PAD_DISCONNECTED;
             IInputDevice device;
             bool doDSTest = true;
         } m_pads[4];

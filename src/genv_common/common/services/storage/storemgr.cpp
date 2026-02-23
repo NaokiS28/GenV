@@ -15,7 +15,7 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "storeman.hpp"
+#include "storemgr.hpp"
 
 namespace Files
 {
@@ -27,16 +27,6 @@ namespace Files
     {
         if (deviceList)
             delete[] deviceList;
-    }
-
-    int StorageManager::registerDriver(Files::IStorageDriver *dev)
-    {
-        return 0;
-    }
-
-    int StorageManager::unregisterDriver(Files::IStorageDriver *dev)
-    {
-        return 0;
     }
 
     int StorageManager::attachDevice(Files::IStorageDevice *dev)

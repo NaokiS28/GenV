@@ -29,9 +29,9 @@ namespace Files
         const char *name = nullptr;
 
     public:
-        IStorageDriver()        = default;
-        virtual int init()      = 0;
-        virtual void update()   = 0;
+        IStorageDriver()   = default;
+        virtual int init() = 0;
+        // virtual void update()   = 0;
         virtual bool reset()    = 0;
         virtual void shutdown() = 0;
 
@@ -44,8 +44,8 @@ namespace Files
         IStorage() = default;
         virtual ~IStorage() {}
 
-        virtual int init()      = 0;
-        virtual void update()   = 0;
+        virtual int init() = 0;
+        // virtual void update()   = 0;
         virtual bool reset()    = 0;
         virtual void shutdown() = 0;
 

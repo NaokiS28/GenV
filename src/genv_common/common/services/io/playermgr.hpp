@@ -22,15 +22,6 @@
 #include "common/services/io/iface_input.hpp"
 #include "common/services/io/iface_output.hpp"
 
-namespace Input
-{
-    class InputManager;
-}
-namespace Output
-{
-    class OutputManager;
-}
-
 namespace IO
 {
     constexpr const int maxInputDevicesPerPlayer  = 4;
@@ -55,9 +46,6 @@ namespace IO
     // VPad and VOutput read/write through this class.
     class PlayerManager
     {
-        friend class Input::InputManager;
-        friend class Output::OutputManager;
-
     private:
         Player m_playersAvailable = Player::NONE;
         uint8_t m_playerMax       = 4; // Maximum number of player slots to assign to (1-8)
@@ -74,14 +62,6 @@ namespace IO
         } m_players[9]; // 0-7 = players, 8 = ARCADE_CABINET
 
         bool m_devsChanged = false;
-
-        // Called by InputManager only
-        int m_registerInputDevice(Input::IInputDevice *device, Player player);
-        int m_unregisterInputDevice(Input::IInputDevice *device);
-
-        // Called by OutputManager only
-        int m_registerOutputDevice(Output::IOutputDevice *device, Player player);
-        int m_unregisterOutputDevice(Output::IOutputDevice *device);
 
     public:
         // Returns true and clears the flag if any device assignment changed since last call.
@@ -100,6 +80,12 @@ namespace IO
 
         inline void setMaximumPlayers(uint8_t players) { m_playerMax = players; }
         inline uint8_t getMaximumPlayers() { return m_playerMax; }
+
+        // Device registration — called by drivers during their init()
+        int attachInputDevice(Input::IInputDevice *device, Player player);
+        int detachInputDevice(Input::IInputDevice *device);
+        int attachOutputDevice(Output::IOutputDevice *device, Player player);
+        int detachOutputDevice(Output::IOutputDevice *device);
 
         PlayerInputDeviceList getPlayerInputDevices(Player player);
         PlayerOutputDeviceList getPlayerOutputDevices(Player player);

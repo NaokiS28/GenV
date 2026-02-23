@@ -28,7 +28,10 @@ namespace System::PSX::Storage
         LOG("psxpad", "Init PlayStation CD-ROM driver");
         return GV_ERROR(GV_SERVICE_FILESYSTEM, GV_CATEGORY_GENERIC, GV_ERR_DEVICE_NOT_READY);
     };
-    void PSX_CDROM::update() {};
+    bool PSX_CDROM::update()
+    {
+        return 0;
+    }
     bool PSX_CDROM::reset()
     {
         return false;
@@ -50,9 +53,9 @@ namespace System::PSX::Storage
     }
 
     // Gets a list of drives present in the system and returns the total count.
-    int PSX_CDROM::getDriveList(Files::IStorageDevice *list, uint8_t &count)
+    /*int PSX_CDROM::getDriveList(Files::IStorageDevice *list, uint8_t &count)
     {
         count = 1;
         return 0;
-    }
+    }*/
 } // namespace System::PSX::Storage

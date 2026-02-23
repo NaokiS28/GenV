@@ -21,17 +21,17 @@
 #include "common/logger/log.hpp"
 #include "common/return_codes.hpp"
 #include "iface_input.hpp"
-#include "playerman.hpp"
+#include "playermgr.hpp"
 
 #define PMLOG(fmt, ...) LOG("playerman", fmt __VA_OPT__(, ) __VA_ARGS__)
 
 namespace IO
 {
     // -------------------------------------------------------------------------
-    // Input device registration (called by InputManager)
+    // Input device registration
     // -------------------------------------------------------------------------
 
-    int PlayerManager::m_registerInputDevice(Input::IInputDevice *device, Player player)
+    int PlayerManager::attachInputDevice(Input::IInputDevice *device, Player player)
     {
         bool success = false;
         if (player == Player::INVALID)
@@ -140,7 +140,7 @@ namespace IO
         return (success ? GV_OK : GV_ERROR(GV_SERVICE_GENERIC, GV_CATEGORY_GENERIC, GV_ERR_CREATE_FAILED));
     }
 
-    int PlayerManager::m_unregisterInputDevice(Input::IInputDevice *device)
+    int PlayerManager::detachInputDevice(Input::IInputDevice *device)
     {
         if (device->player == PlayerIndex::INVALID)
         {
@@ -180,10 +180,10 @@ namespace IO
     }
 
     // -------------------------------------------------------------------------
-    // Output device registration (called by OutputManager)
+    // Output device registration
     // -------------------------------------------------------------------------
 
-    int PlayerManager::m_registerOutputDevice(Output::IOutputDevice *device, Player player)
+    int PlayerManager::attachOutputDevice(Output::IOutputDevice *device, Player player)
     {
         bool success = false;
         if (player == Player::INVALID)
@@ -289,7 +289,7 @@ namespace IO
         return (success ? GV_OK : GV_ERROR(GV_SERVICE_GENERIC, GV_CATEGORY_GENERIC, GV_ERR_CREATE_FAILED));
     }
 
-    int PlayerManager::m_unregisterOutputDevice(Output::IOutputDevice *device)
+    int PlayerManager::detachOutputDevice(Output::IOutputDevice *device)
     {
         if (device->player == PlayerIndex::INVALID)
         {

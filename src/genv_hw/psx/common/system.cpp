@@ -152,7 +152,7 @@ namespace System::PSX
         for (auto &mc : mcDriver)
         {
             int mcError = ioTest(mc.init(), PSX_MEMORY_CARD_STR, port, PSX_INIT_STR);
-            if (!mcError) services.registerStorageDriver(&mc);
+            if (!mcError) services.registerDriver(&mc);
         }
 
         return error;
@@ -180,7 +180,7 @@ namespace System::PSX
         for (auto &joy : joyDriver)
         {
             error = ioTest(joy.init(), PSX_JOYPAD_STR, port++, PSX_INIT_STR);
-            if (!error) services.registerInputDriver(&joy);
+            if (!error) services.registerDriver(&joy);
         }
 
         return error;

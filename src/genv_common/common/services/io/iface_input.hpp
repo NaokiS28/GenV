@@ -17,14 +17,16 @@
 
 #pragma once
 
-#include "common/return_codes.hpp"
 #include "common/util/hash.hpp"
 #include "player.hpp"
 #include "iostrings.hpp"
 
 #include <cstdint>
 
-namespace IO { class PlayerManager; }
+namespace IO
+{
+    class PlayerManager;
+}
 
 namespace Input
 {
@@ -45,25 +47,6 @@ namespace Input
     {
         DEVICE_SUBTYPE_NULL,
         DEVICE_SUBTYPE_STANDARD,
-    };
-
-    // Base class definition for input drivers. All input sources must have a driver associated with it.
-    // This can be one driver for a static, single device (see Konami 573 JAMMA driver), or it can be
-    // one driver for many types of devices (I.E, Windows HID input).
-    class IInputDriver
-    {
-    protected:
-        const char *_name = nullptr;
-
-    public:
-        IInputDriver()          = default;
-        virtual ~IInputDriver() = default;
-        virtual int init() { return GV_OK; };
-        virtual bool update() = 0;
-        virtual bool reset() { return GV_OK; };
-        virtual void shutdown() {};
-
-        const char *getName() { return _name; }
     };
 
     // Input device controller descriptor - Used to define the behavoir of this input device.

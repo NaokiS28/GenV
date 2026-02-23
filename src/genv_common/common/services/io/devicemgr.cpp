@@ -16,77 +16,49 @@
  */
 
 #include "iostrings.hpp"
-#include "inputman.hpp"
+#include "devicemgr.hpp"
 #include "common/logger/log.hpp"
-#include "common/services/io/iface_input.hpp"
 #include <string.h>
 
 #define ILOG(fmt, ...) LOG("inputman", fmt __VA_OPT__(, ) __VA_ARGS__)
 
-namespace Input
+namespace IO
 {
-    using namespace IO;
 
-    InputManager::~InputManager()
+    DeviceManager::~DeviceManager()
     {
         for (auto driver : _driverList)
             if (driver) delete driver;
     }
 
-    int InputManager::init()
+    int DeviceManager::init()
     {
-        if (!_driverList.ready() || !_devList.ready())
+        if (!_driverList.ready() || !_driverList.ready())
             return 1;
         return 0;
     }
 
-    void InputManager::update()
+    void DeviceManager::update()
     {
         for (auto driver : _driverList)
             if (driver) driver->update();
 
-        // for (auto pad : _devList)
+        // for (auto pad : _driverList)
     }
 
-    void InputManager::reset()
+    void DeviceManager::reset()
     {
         for (auto driver : _driverList)
             if (driver) driver->reset();
     }
 
-    void InputManager::shutdown()
+    void DeviceManager::shutdown()
     {
         for (auto driver : _driverList)
             if (driver) driver->shutdown();
     }
 
-    int InputManager::attachDevice(Input::IInputDevice *dev, Input::Player player)
-    {
-        if (!dev || dev->type == DEVICE_TYPE_NULL)
-        {
-            ILOG(szInputFailedFmt, szInput, szDevice, szAttach, szDeviceNull);
-            return false;
-        }
-        _devList.append(dev);
-        _playerManager.m_registerInputDevice(dev, player);
-        ILOG(szInputFmt, dev->name, szDevice, szAttach);
-        return 0;
-    }
-
-    int InputManager::detachDevice(Input::IInputDevice *dev)
-    {
-        if (!dev)
-        {
-            ILOG(szInputFailedFmt, szInput, szDevice, szDetach, szDeviceNull);
-            return false;
-        }
-        _devList.remove(dev);
-        _playerManager.m_unregisterInputDevice(dev);
-        ILOG(szInputFmt, dev->name, szDevice, szDetach, szDeviceNull);
-        return 0;
-    }
-
-    int InputManager::registerDriver(Input::IInputDriver *driver)
+    int DeviceManager::registerDriver(IDriver *driver)
     {
         if (!driver)
         {
@@ -94,7 +66,7 @@ namespace Input
             return false;
         }
 
-        if (size_t r = driver->init(); r != GV_OK)
+        if (size_t r = driver->init(_playerManager); r != GV_OK)
         {
             ILOG(szInputErrorFmt, szInput, szDriver, szInit, r);
             return false;
@@ -105,7 +77,7 @@ namespace Input
         return true;
     }
 
-    int InputManager::unregisterDriver(Input::IInputDriver *driver)
+    int DeviceManager::unregisterDriver(IDriver *driver)
     {
         if (!driver)
         {
@@ -117,15 +89,4 @@ namespace Input
         return true;
     }
 
-    const char *InputManager::deviceName(size_t idx)
-    {
-        if (idx >= _devList.length()) return nullptr;
-        return _devList.at(idx)->name;
-    }
-
-    const int InputManager::devicePlayer(size_t idx)
-    {
-        if (idx >= _devList.length()) return 255;
-        return static_cast<int>(_devList.at(idx)->player) + 1;
-    }
-} // namespace Input
+} // namespace IO

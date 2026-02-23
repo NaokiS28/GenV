@@ -60,14 +60,15 @@ add_library(genv_services STATIC
 	services/perfmon.cpp
 	services/services.cpp
 	services/storage/storage.cpp
-	services/storage/storeman.cpp
+	services/storage/storemgr.cpp
 	services/video/fontman.cpp
 	services/video/video.cpp
 	services/video/nullvideo.cpp
 	services/audio/nullaudio.cpp
-	services/io/inputman.cpp
-	services/io/outputman.cpp
-	services/io/playerman.cpp
+	services/io/inputmgr.cpp
+	services/io/devicemgr.cpp
+	services/io/outputmgr.cpp
+	services/io/playermgr.cpp
 	services/system/timer.cpp
 	services/system/system.cpp
 	services/system/rtc/soft_rtc.cpp

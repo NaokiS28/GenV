@@ -17,40 +17,41 @@
 
 #pragma once
 
-#include "common/services/io/iface_output.hpp"
 #include "common/util/templates.hpp"
-#include "iface_input.hpp"
+#include "iface_driver.hpp"
+#include "playermgr.hpp"
 #include "common/services/adminkey.hpp"
 #include <string.h>
 
-namespace Output
+namespace IO
 {
-    static constexpr const int initialDrivers = 4;
+    static constexpr const int initialDrivers = 16;
 
-    class OutputManager
+    class DeviceManager
     {
     private:
-        // util::PointerList<IOutputDriver *, initialDrivers> _driverList;
-        util::PointerList<const IOutputDevice *, initialDrivers> _devList;
+        util::PointerList<IDriver *, initialDrivers> _driverList;
+        PlayerManager &_playerManager;
 
     public:
-        inline OutputManager(AdminClass_Key key) {};
-        ~OutputManager();
+        inline DeviceManager(AdminClass_Key key, PlayerManager &playerManager)
+            : _playerManager(playerManager) { assert(_driverList.ready()); }
+        ~DeviceManager();
 
         int init();
         void update();
         void reset();
         void shutdown();
 
-        int registerDriver(Input::IInputDriver *device);
-        int unregisterDriver(Input::IInputDriver *device);
+        int registerDriver(IDriver *device);
+        int unregisterDriver(IDriver *device);
 
-        int attachDevice(Input::IInputDevice *driver, Input::Player player);
-        int detachDevice(Input::IInputDevice *driver);
+        inline const char *name(size_t idx)
+        {
+            if (idx >= _driverList.length()) return nullptr;
+            return _driverList.at(idx)->getName();
+        }
 
-        const char *deviceName(size_t idx);
-        const int devicePlayer(size_t idx);
-
-        inline size_t deviceCount() { return _devList.length(); }
+        inline size_t count() { return _driverList.length(); }
     };
-} // namespace Output
+} // namespace IO

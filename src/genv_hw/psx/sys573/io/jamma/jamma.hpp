@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include "adc083x.hpp"
+#include "common/services/io/iface_driver.hpp"
 #include "common/services/io/iface_input.hpp"
 
 namespace System573::IO
@@ -69,7 +70,7 @@ namespace System573::IO
         JAMMA_SERVICE    = 1 << 28
     };
 
-    class JAMMA : public IInputDriver
+    class JAMMA : public IDriver
     {
     private:
         uint32_t _digital[3]                = {0};

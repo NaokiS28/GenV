@@ -19,14 +19,15 @@
 
 #include "common/objects/file.hpp"
 #include "common/services/storage/iface_storage.hpp"
+#include "common/services/io/iface_driver.hpp"
 
 namespace System::PSX::Storage
 {
-    class PSX_PCDrive : public Files::IStorageDriver
+    class PSX_PCDrive : public IO::IDriver
     {
     public:
         int init();
-        void update();
+        bool update();
         bool reset();
         void shutdown();
 

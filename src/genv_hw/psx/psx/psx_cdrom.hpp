@@ -18,15 +18,15 @@
 #pragma once
 
 #include "common/objects/file.hpp"
-#include "common/services/storage/iface_storage.hpp"
+#include "common/services/io/iface_driver.hpp"
 
 namespace System::PSX::Storage
 {
-    class PSX_CDROM : public Files::IStorageDriver
+    class PSX_CDROM : public ::IO::IDriver
     {
     public:
         int init() override;
-        void update() override;
+        bool update() override;
         bool reset() override;
         void shutdown() override;
 
@@ -35,6 +35,6 @@ namespace System::PSX::Storage
         int readFile(size_t offset, size_t length);
 
         // Gets a list of drives present in the system and returns the total count.
-        int getDriveList(Files::IStorageDevice *list, uint8_t &count);
+        // int getDriveList(Files::IStorageDevice *list, uint8_t &count);
     };
 } // namespace System::PSX::Storage

@@ -25,7 +25,12 @@ namespace System::PSX::Storage
     {
         return GV_ERROR(GV_SERVICE_FILESYSTEM, GV_CATEGORY_GENERIC, GV_ERR_DEVICE_NOT_READY);
     }
-    void PSX_PCDrive::update() {}
+
+    bool PSX_PCDrive::update()
+    {
+        return false;
+    }
+
     bool PSX_PCDrive::reset()
     {
         return false;

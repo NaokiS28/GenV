@@ -29,9 +29,9 @@
 #include "system/iface_system.hpp"
 
 #include "common/services/video/fontman.hpp"
-#include "common/services/io/inputman.hpp"
-#include "common/services/io/playerman.hpp"
-#include "common/services/storage/storeman.hpp"
+#include "common/services/io/playermgr.hpp"
+#include "common/services/io/devicemgr.hpp"
+#include "common/services/storage/storemgr.hpp"
 
 // Services uses pointers to avoid issues with atexit() as not all platforms implement this.
 // Using pointers allows the services class to be entirely static. We do this so there's no
@@ -52,8 +52,8 @@ public:
     inline Video::IVideo *getVideo(void) { return s_video; }
     inline System::ISystem *getSystem(void) { return s_system; }
     inline Fonts::FontManager *fontManager(void) { return s_fonts; }
-    inline Input::InputManager *getInputs(void) { return s_input; }
     inline IO::PlayerManager *getPlayerManager(void) { return s_playerManager; }
+    inline IO::DeviceManager *getDeviceManager(void) { return s_deviceManager; }
 
     inline void setSystem(AdminClass_Key key, System::ISystem (*sys)(void)) { setSystem(sys); }
     inline void setVideo(AdminClass_Key key, Video::IVideo (*video)(void)) { setVideo(video); }
@@ -64,40 +64,31 @@ public:
 
     // Input::IInputDriver *getInput(void) { return s_input; }
     Files::IStorage *getStorage(void) { return s_storage; }
-    inline bool registerInputDriver(Input::IInputDriver *dev)
+
+    inline bool registerDriver(IO::IDriver *dev)
     {
-        if (!s_input || !dev) return false;
-        return s_input->registerDriver(dev);
+        if (!s_deviceManager || !dev) return false;
+        return s_deviceManager->registerDriver(dev);
     }
-    inline bool unregisterInputDriver(Input::IInputDriver *dev)
+
+    inline bool unregisterStorageDriver(IO::IDriver *dev)
     {
-        if (!s_input || !dev) return false;
-        return s_input->unregisterDriver(dev);
+        if (!s_deviceManager || !dev) return false;
+        return s_deviceManager->unregisterDriver(dev);
     }
 
     inline bool attachInputDevice(Input::IInputDevice *dev, Input::Player player = Input::Player::ANY)
     {
-        if (!s_input || !dev) return false;
-        return s_input->attachDevice(dev, player);
+        if (!s_playerManager || !dev) return false;
+        return s_playerManager->attachInputDevice(dev, player);
     }
-    inline bool dettachInputDevice(Input::IInputDevice *dev)
+    inline bool detachInputDevice(Input::IInputDevice *dev)
     {
-        if (!s_input || !dev) return false;
-        return s_input->detachDevice(dev);
+        if (!s_playerManager || !dev) return false;
+        return s_playerManager->detachInputDevice(dev);
     }
 
-    inline bool registerStorageDriver(Files::IStorageDriver *dev)
-    {
-        if (!s_storage || !dev) return false;
-        return s_storage->registerDriver(dev);
-    }
-    inline bool unregisterStorageDriver(Files::IStorageDriver *dev)
-    {
-        if (!s_storage || !dev) return false;
-        return s_storage->unregisterDriver(dev);
-    }
-
-    inline bool addStorageDevice(Files::IStorageDevice *dev)
+    inline bool attachStorageDevice(Files::IStorageDevice *dev)
     {
         if (!s_storage || !dev) return false;
         return s_storage->attachDevice(dev);
@@ -132,13 +123,13 @@ private:
     void destroyVideo();
     void destroyAudio();
 
-    Audio::IAudio *s_audio = nullptr;
-    Video::IVideo *s_video = nullptr;
-    System::ISystem *s_system = nullptr;
+    Audio::IAudio *s_audio             = nullptr;
+    Video::IVideo *s_video             = nullptr;
+    System::ISystem *s_system          = nullptr;
     IO::PlayerManager *s_playerManager = nullptr;
-    Input::InputManager *s_input = nullptr;
-    Fonts::FontManager *s_fonts = nullptr;
-    Files::StorageManager *s_storage = nullptr;
+    IO::DeviceManager *s_deviceManager = nullptr;
+    Fonts::FontManager *s_fonts        = nullptr;
+    Files::StorageManager *s_storage   = nullptr;
     util::PointerList<ICoroutine *, 10> s_coroutines;
 };
 

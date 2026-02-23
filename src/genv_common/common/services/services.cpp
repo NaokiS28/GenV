@@ -20,10 +20,11 @@
 
 #include "common/return_codes.hpp"
 #include "common/services/adminkey.hpp"
-#include "common/services/io/inputman.hpp"
-#include "common/services/io/playerman.hpp"
+#include "common/services/io/iface_driver.hpp"
+#include "common/services/io/playermgr.hpp"
+#include "common/services/io/devicemgr.hpp"
 #include "common/services/perfmon.hpp"
-#include "common/services/storage/storeman.hpp"
+#include "common/services/storage/storemgr.hpp"
 #include "common/services/system/system.hpp"
 
 #define LOG_SVC(fmt, ...) LOG("services", fmt __VA_OPT__(, ) __VA_ARGS__)
@@ -38,7 +39,7 @@ constexpr const char szVideo[]         = "video service";
 constexpr const char szAudio[]         = "audio service";
 constexpr const char szStorage[]       = "storage manager";
 constexpr const char szPlayerManager[] = "player manager";
-constexpr const char szInput[]         = "input manager";
+constexpr const char szDevice[]        = "devicer manager";
 constexpr const char szFont[]          = "font manager";
 constexpr const char szUnknown[]       = "unknown";
 
@@ -55,7 +56,7 @@ enum ServiceName
     SN_AUDIO,
     SN_STORAGE,
     SN_PLAYER,
-    SN_INPUT,
+    SN_DEVICE,
     SN_FONT
 };
 
@@ -83,7 +84,7 @@ constexpr const char *szServiceName(int errorcode)
     case SN_AUDIO: return szAudio;
     case SN_STORAGE: return szStorage;
     case SN_PLAYER: return szPlayerManager;
-    case SN_INPUT: return szInput;
+    case SN_DEVICE: return szDevice;
     case SN_FONT: return szFont;
     default: return szUnknown;
     }
@@ -113,8 +114,8 @@ int ServiceManager::createManagers()
 
     if (!error)
     {
-        s_input = new Input::InputManager(AdminClass_Key(), *s_playerManager);
-        if (!s_input) error = makeErrorCode(SN_INPUT, SE_NULLPTR);
+        s_deviceManager = new IO::DeviceManager(AdminClass_Key(), *s_playerManager);
+        if (!s_deviceManager) error = makeErrorCode(SN_DEVICE, SE_NULLPTR);
     }
 
     if (!error)
@@ -135,7 +136,7 @@ int ServiceManager::init()
 {
     int error = 0;
     if (s_storage->init() != GV_OK) error = makeErrorCode(SN_STORAGE, SE_INIT_FAILED);
-    if (s_input->init() != GV_OK) error = makeErrorCode(SN_INPUT, SE_INIT_FAILED);
+    if (s_deviceManager->init() != GV_OK) error = makeErrorCode(SN_DEVICE, SE_INIT_FAILED);
     if (s_fonts->init() != GV_OK) error = makeErrorCode(SN_FONT, SE_INIT_FAILED);
     return error;
 }
@@ -147,14 +148,14 @@ int ServiceManager::update()
     System::PerfMon.finishSystemExec();
 
     // It's unlikely these would ever be null at this point
-    if (s_storage)
+    // if (s_storage)
+    //{
+    // s_storage->update();
+    // System::PerfMon.finishStorageUpdate();
+    //}
+    if (s_deviceManager)
     {
-        s_storage->update();
-        System::PerfMon.finishStorageUpdate();
-    }
-    if (s_input)
-    {
-        s_input->update();
+        s_deviceManager->update();
         System::PerfMon.finishInputUpdate();
     }
     return r;
@@ -167,11 +168,11 @@ void ServiceManager::shutdown()
     destroyVideo();
     destroySystem();
 
-    if (s_input)
+    if (s_deviceManager)
     {
-        s_input->shutdown();
-        delete s_input;
-        s_input = nullptr;
+        s_deviceManager->shutdown();
+        delete s_deviceManager;
+        s_deviceManager = nullptr;
     }
     if (s_playerManager)
     {

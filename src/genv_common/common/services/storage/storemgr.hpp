@@ -36,12 +36,9 @@ namespace Files
         int attachDevice(Files::IStorageDevice *dev);
         int detachDevice(Files::IStorageDevice *dev);
 
-        int registerDriver(Files::IStorageDriver *dev);
-        int unregisterDriver(Files::IStorageDriver *dev);
-
         int init() override { return 0; };
         bool reset() override { return true; }
-        void update() override {};
+        // void update() override {};
         void shutdown() override {};
 
         int openFile(const char *filePath, bool lock, FileObject *fObj) override
