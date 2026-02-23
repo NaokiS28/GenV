@@ -16,10 +16,8 @@
  */
 
 #include "common/services/io/iface_input.hpp"
-#include "common/services/io/inputman.hpp"
-#include "common/services/io/playerman.hpp"
+#include "common/services/io/player.hpp"
 #include "common/services/io/vjoy.hpp"
-#include "common/services/services.hpp"
 #include "common/services/system/system.hpp"
 #include "common/util/time.hpp"
 #include <stdio.h>
@@ -37,9 +35,6 @@ private:
         "NaokisRC",         // maker
         AppVersion(0, 0, 1) // version
     );
-
-    IO::PlayerManager *pads;
-    Input::InputManager *inputManager;
 
     int currentPage = 0;
     int maxPage     = 0;
@@ -70,9 +65,7 @@ public:
     {
         setAppState(APP_STATE_RUN);
         reload();
-        inputManager = getServiceManager()->getInputs();
-        pads         = getServiceManager()->getPlayerManager();
-        pads->setMaximumPlayers(8);
+        IO::playerManager()->setMaximumPlayers(8);
 
         // Textures::TextureObject *textTest[256];
         // for (int i = 0; i < 256; i++)
@@ -87,16 +80,11 @@ public:
     {
         tm time;
         System::getTime(time);
-        static int lastSeconds = 0;
-        if (time.tm_sec != lastSeconds)
-        {
-            // LOG("clock", "tick");
-            lastSeconds = time.tm_sec;
-        }
 
         bool pageUpdate = false;
 
-        maxPage                = pads->playerCount() - 1;
+        // If player count changes (IO::playerManager() added/removed), update page
+        maxPage                = IO::playerManager()->playerCount() - 1;
         static int lastMaxPage = 0;
         if (lastMaxPage != maxPage)
         {
@@ -104,7 +92,8 @@ public:
             pageUpdate |= true;
         }
 
-        padCount                = inputManager->deviceCount();
+        // If total device count changes (IO::playerManager() added/removed), update page
+        padCount                = IO::playerManager()->inputDeviceCount();
         static int lastPadCount = 0;
         if (lastPadCount != padCount)
         {
@@ -112,9 +101,9 @@ public:
             pageUpdate |= true;
         }
 
-        uint32_t inputs = 0;
-        pads->getPlayerDigitalInputs(inputs, Input::Player::PLAYER_1);
         static uint32_t lastInputs = 0;
+        uint32_t inputs            = IO::player(IO::Player::PLAYER_1).getDigital();
+        // If the input states change, update the page
         if (lastInputs != inputs)
         {
             lastInputs = inputs;
@@ -123,6 +112,7 @@ public:
 
         if (pageUpdate)
         {
+            // Player 1 right moves to next page
             if (inputs & static_cast<uint32_t>(VJoy_Input::D_Right))
             {
                 if (currentPage < maxPage)
@@ -130,6 +120,8 @@ public:
                 else
                     currentPage = 0;
             }
+
+            // Player 1 left moves to previous page
             if (inputs & static_cast<uint32_t>(VJoy_Input::D_Left))
             {
                 if (currentPage > 0)
@@ -138,10 +130,11 @@ public:
                     currentPage = maxPage;
             }
 
+            // If page count changes and the selected page is above or below, fix it
             if (maxPage && currentPage > maxPage) currentPage = maxPage;
             if (currentPage < 0) currentPage = 0;
 
-            auto availablePlayers = pads->getPlayersAvailable();
+            auto availablePlayers = IO::playerManager()->getPlayersAvailable();
             auto playerTest       = Input::Player::PLAYER_1;
             int found             = 0;
             bool matched          = false;
@@ -214,7 +207,8 @@ public:
 
     void getControllerData(Input::Player player)
     {
-        pageStr[0] = {'\0'};
+        auto thisPlayer = IO::player(player);
+        pageStr[0]      = {'\0'};
 
         char temp[32] = {0};
 
@@ -222,7 +216,7 @@ public:
         strncat(pageStr, temp, 128);
         snprintf(temp, sizeof(temp), "\tAssigned controllers:\r\n");
         strncat(pageStr, temp, strlen(temp));
-        auto pDevList = pads->getPlayerInputDevices(player);
+        auto pDevList = thisPlayer.inputDevices();
         if (pDevList.count)
             for (size_t i = 0; i < pDevList.count; i++)
             {
@@ -238,35 +232,32 @@ public:
 
         snprintf(temp, sizeof(temp), "\r\n\tInputs:\r\n");
         strncat(pageStr, temp, strlen(temp));
-        uint8_t digitalBanks = (pads->getPlayerDigitalCount(player) / 32) + 1;
+        uint8_t digitalBanks = (thisPlayer.digitalCount() / 32) + 1;
         if (digitalBanks != 0)
         {
             for (uint8_t d = 0; d < digitalBanks; d++)
             {
-                uint32_t inputs = 0;
-                pads->getPlayerDigitalInputs(inputs, player);
+                uint32_t inputs = thisPlayer.getDigital();
                 snprintf(temp, 32, "\tDigital %i: 0x%08X\r\n", d, inputs);
                 strncat(pageStr, temp, 128);
             }
         }
 
-        if (auto aC = pads->getPlayerAnalogCount(player); aC != 0)
+        if (auto aC = thisPlayer.analogCount(); aC != 0)
         {
             for (int a = 0; a < aC; a++)
             {
-                int16_t analog = 0;
-                pads->getPlayerAnalogInputs(analog, player, a);
+                int16_t analog = thisPlayer.getAnalog(a);
                 snprintf(temp, 32, "\tAnalog %i: %+i\r\n", a, analog);
                 strncat(pageStr, temp, 128);
             }
         }
 
-        if (auto rC = pads->getPlayerRotaryCount(player); rC != 0)
+        if (auto rC = thisPlayer.rotaryCount(); rC != 0)
         {
             for (int r = 0; r < rC; r++)
             {
-                int16_t rotary = 0;
-                pads->getPlayerRotaryInputs(rotary, player, r);
+                int16_t rotary = thisPlayer.getRotary(r);
                 snprintf(temp, 32, "\tRotary %i: %i\r\n", r, rotary);
                 strncat(pageStr, temp, 128);
             }
@@ -299,7 +290,7 @@ public:
         snprintf(temp, sizeof(temp), "\tAssigned controllers:\r\n");
         strncat(pageStr, temp, strlen(temp));
 
-        auto pDevList = pads->getPlayerInputDevices(Input::Player::ARCADE_CABINET);
+        auto pDevList = IO::playerManager()->getPlayerInputDevices(Input::Player::ARCADE_CABINET);
         if (pDevList.count)
             for (size_t i = 0; i < pDevList.count; i++)
             {
@@ -315,9 +306,8 @@ public:
 
         snprintf(temp, sizeof(temp), "\r\n\tInputs:\r\n");
         strncat(pageStr, temp, strlen(temp));
-        uint32_t inputs = 0;
-        pads->getPlayerDigitalInputs(inputs, Input::Player::ARCADE_CABINET);
-        int typeMax = -1;
+        uint32_t inputs = IO::arcade().getDigital();
+        int typeMax     = -1;
         for (uint8_t i = 0; i < PANEL_MAX; i++)
         {
             switch (i)

@@ -61,9 +61,10 @@ namespace IO
                 for (auto &entry : slot.inputs)
                     if (entry == nullptr)
                     {
-                        entry         = device;
+                        entry          = device;
                         device->player = static_cast<PlayerIndex>(bestIdx);
                         if (slot.inputCount == 0) m_playersAvailable |= playerIndexToFlag(bestIdx);
+                        m_inputDeviceCount++;
                         slot.inputCount++;
                         success = true;
                         break;
@@ -84,15 +85,16 @@ namespace IO
                     break;
                 }
             if (slot.inputCount == 0) m_playersAvailable |= playerIndexToFlag(idx);
+            m_inputDeviceCount++;
             slot.inputCount++;
             device->player = PlayerIndex::ARCADE_CABINET;
             success        = true;
         }
         else
         {
-            uint8_t u8_player    = static_cast<uint8_t>(player);
-            uint8_t maxPlayers   = static_cast<uint8_t>(m_playerMax);
-            bool allOutOfRange   = true;
+            uint8_t u8_player  = static_cast<uint8_t>(player);
+            uint8_t maxPlayers = static_cast<uint8_t>(m_playerMax);
+            bool allOutOfRange = true;
 
             for (int idx = 0; idx < maxPlayers; idx++)
             {
@@ -124,9 +126,10 @@ namespace IO
                 for (auto &entry : slot.inputs)
                     if (entry == nullptr)
                     {
-                        entry         = device;
+                        entry          = device;
                         device->player = static_cast<PlayerIndex>(bestIdx);
                         if (slot.inputCount == 0) m_playersAvailable |= playerIndexToFlag(bestIdx);
+                        m_inputDeviceCount++;
                         slot.inputCount++;
                         success = true;
                         break;
@@ -145,11 +148,11 @@ namespace IO
             return GV_ERROR(GV_SERVICE_GENERIC, GV_CATEGORY_GENERIC, GV_ERR_INVALID_PARAM);
         }
 
-        m_devsChanged = true;
+        m_devsChanged       = true;
         uint8_t playerIndex = (device->player == PlayerIndex::ARCADE_CABINET)
                                   ? 8
                                   : static_cast<uint8_t>(device->player);
-        auto &slot = m_players[playerIndex];
+        auto &slot          = m_players[playerIndex];
 
         if (slot.inputCount == 0)
         {
@@ -163,6 +166,7 @@ namespace IO
             if (entry == device)
             {
                 slot.inputCount--;
+                m_inputDeviceCount--;
                 if (slot.inputCount == 0) m_playersAvailable &= ~playerIndexToFlag(playerIndex);
                 device->player = PlayerIndex::INVALID;
                 entry          = nullptr;
@@ -275,6 +279,7 @@ namespace IO
                         device->player = static_cast<PlayerIndex>(bestIdx);
                         if (slot.outputCount == 0) m_playersAvailable |= playerIndexToFlag(bestIdx);
                         slot.outputCount++;
+                        m_outputDeviceCount++;
                         success = true;
                         break;
                     }
@@ -292,11 +297,11 @@ namespace IO
             return GV_ERROR(GV_SERVICE_GENERIC, GV_CATEGORY_GENERIC, GV_ERR_INVALID_PARAM);
         }
 
-        m_devsChanged = true;
+        m_devsChanged       = true;
         uint8_t playerIndex = (device->player == PlayerIndex::ARCADE_CABINET)
                                   ? 8
                                   : static_cast<uint8_t>(device->player);
-        auto &slot = m_players[playerIndex];
+        auto &slot          = m_players[playerIndex];
 
         if (slot.outputCount == 0)
         {
@@ -309,6 +314,7 @@ namespace IO
         {
             if (entry == device)
             {
+                m_outputDeviceCount--;
                 slot.outputCount--;
                 if (slot.outputCount == 0 && slot.inputCount == 0)
                     m_playersAvailable &= ~playerIndexToFlag(playerIndex);

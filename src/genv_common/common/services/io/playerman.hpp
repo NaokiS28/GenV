@@ -22,8 +22,14 @@
 #include "common/services/io/iface_input.hpp"
 #include "common/services/io/iface_output.hpp"
 
-namespace Input  { class InputManager;  }
-namespace Output { class OutputManager; }
+namespace Input
+{
+    class InputManager;
+}
+namespace Output
+{
+    class OutputManager;
+}
 
 namespace IO
 {
@@ -56,6 +62,9 @@ namespace IO
         Player m_playersAvailable = Player::NONE;
         uint8_t m_playerMax       = 4; // Maximum number of player slots to assign to (1-8)
 
+        int m_inputDeviceCount  = 0;
+        int m_outputDeviceCount = 0;
+
         struct PlayerSlot
         {
             uint8_t inputCount                                        = 0;
@@ -83,6 +92,8 @@ namespace IO
             return d;
         }
 
+        inline int inputDeviceCount() { return m_inputDeviceCount; }
+        inline int outputDeviceCount() { return m_outputDeviceCount; }
         inline int playerCount() { return __builtin_popcount(static_cast<int>(m_playersAvailable)); }
         inline Player getPlayersAvailable() { return m_playersAvailable; }
         inline bool isPlayerAvailable(Player player) { return (m_playersAvailable & player) == player; }
@@ -108,7 +119,7 @@ namespace IO
     class PlayerView
     {
         PlayerManager *m_manager;
-        Player         m_player;
+        Player m_player;
 
     public:
         constexpr PlayerView(PlayerManager *mgr, Player player)
@@ -170,7 +181,8 @@ namespace IO
 
     // Free functions — game-facing API. PlayerManager is guaranteed valid post-startup.
     // IO::player(PLAYER_1).getDigital() etc.
+    PlayerManager *playerManager();
     PlayerView player(Player p);
-    PlayerView arcade();  // alias for the ARCADE_CABINET slot
+    PlayerView arcade(); // alias for the ARCADE_CABINET slot
 
 } // namespace IO

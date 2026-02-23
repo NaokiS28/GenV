@@ -28,19 +28,19 @@
 
 #define LOG_SVC(fmt, ...) LOG("services", fmt __VA_OPT__(, ) __VA_ARGS__)
 
-constexpr const char szManagerNullptr[] = "Failed to create %s.";
-constexpr const char szManagerInitError[] = "Failed to init %s, reported error code: %i";
+constexpr const char szManagerNullptr[]     = "Failed to create %s.";
+constexpr const char szManagerInitError[]   = "Failed to init %s, reported error code: %i";
 constexpr const char szChangeServiceError[] = "Failed to change to new %s: %i";
-constexpr const char szUnkownError[] = "Unknown error reported from %s: %i";
+constexpr const char szUnkownError[]        = "Unknown error reported from %s: %i";
 
-constexpr const char szSystem[] = "system service";
-constexpr const char szVideo[] = "video service";
-constexpr const char szAudio[] = "audio service";
-constexpr const char szStorage[] = "storage manager";
+constexpr const char szSystem[]        = "system service";
+constexpr const char szVideo[]         = "video service";
+constexpr const char szAudio[]         = "audio service";
+constexpr const char szStorage[]       = "storage manager";
 constexpr const char szPlayerManager[] = "player manager";
-constexpr const char szInput[] = "input manager";
-constexpr const char szFont[] = "font manager";
-constexpr const char szUnknown[] = "unknown";
+constexpr const char szInput[]         = "input manager";
+constexpr const char szFont[]          = "font manager";
+constexpr const char szUnknown[]       = "unknown";
 
 enum ServiceError
 {
@@ -143,7 +143,7 @@ int ServiceManager::init()
 int ServiceManager::update()
 {
     int r = System::SM_NORMAL;
-    r = s_system->update();
+    r     = s_system->update();
     System::PerfMon.finishSystemExec();
 
     // It's unlikely these would ever be null at this point
@@ -323,6 +323,11 @@ int ServiceManager::registerCoroutine(ICoroutine &coroutine)
 
 namespace IO
 {
+    PlayerManager *playerManager()
+    {
+        return getServiceManager()->getPlayerManager();
+    }
+
     PlayerView player(Player p)
     {
         return PlayerView(getServiceManager()->getPlayerManager(), p);
@@ -332,7 +337,7 @@ namespace IO
     {
         return PlayerView(getServiceManager()->getPlayerManager(), Player::ARCADE_CABINET);
     }
-}
+} // namespace IO
 
 // --- ServiceManager ------------------------------------------------------------
 
