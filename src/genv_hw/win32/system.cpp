@@ -147,12 +147,11 @@ namespace System
         return sm_state;
     }
 
-    bool WinSystem::shutdown()
+    void WinSystem::shutdown()
     {
         DeleteTimerQueueTimer(NULL, sysTimer.timerHandle, NULL); // Stop 10ms timer
         winManager.shutdown();
         UnregisterClass(szWindowClass, hInst);
-        return true;
     }
 
     size_t WinSystem::millis()

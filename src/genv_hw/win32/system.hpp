@@ -82,7 +82,7 @@ namespace System
 
         bool init() override;             // Registers Windows app class and inits drivers
         int update() override;            // Process wWindows messages
-        bool shutdown() override;         // Prepare drivers and app for close
+        void shutdown() override;         // Prepare drivers and app for close
         bool setResolution(int w, int h); // Sets window resolution (internal viewport)
         bool setFullscreen(Video::FullscreenMode mode);
         bool toggleFullscreen();
