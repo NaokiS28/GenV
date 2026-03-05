@@ -37,7 +37,7 @@ DefaultErrorScreen::DefaultErrorScreen(IAppHost *host, ErrorScreenMessage *msg)
 int DefaultErrorScreen::init()
 {
     setAppState(APP_STATE_RUN);
-    area = RectWH(
+    area = Video::RectWH(
         gpu->getHorizontalRes() / 10,
         gpu->getVerticalRes() / 4,
         (gpu->getHorizontalRes() / 10) * 8,
@@ -124,7 +124,7 @@ void DefaultErrorScreen::update()
 
 void DefaultErrorScreen::reload()
 {
-    area = RectWH(
+    area = Video::RectWH(
         gpu->getHorizontalRes() / 10,
         gpu->getVerticalRes() / 4,
         (gpu->getHorizontalRes() / 10) * 8,

@@ -19,13 +19,13 @@
 #include "app/app.hpp"
 #include "app/iapp_host.hpp"
 #include "common/objects/sprite.hpp"
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 #include "common/util/tween.hpp"
 
 namespace Apps
 {
     constexpr const int iTimeToShow = 4000;
-    constexpr const int iFadeTime = 500;
+    constexpr const int iFadeTime   = 500;
 
     class GVSS : public LoadScreenApp
     {
@@ -58,15 +58,15 @@ namespace Apps
         Util::Tween<uint16_t, Util::QuadInOutEasing> logoMove;
 
         Sprites::SpriteObject *logo_ring = nullptr;
-        Sprites::SpriteObject *logo_v = nullptr;
+        Sprites::SpriteObject *logo_v    = nullptr;
 
         const char *GVSSText = "CREATED WITH\n\rOR RUNNING UNDER\n\rGEN-V MULTIPLATFORM ENGINE.";
 
-        RectWH logoRPos;
-        RectWH logoVPos;
-        RectWH linePos;
-        RectWH textPos;
-        RectWH vBoxPos;
+        Video::RectWH logoRPos;
+        Video::RectWH logoVPos;
+        Video::RectWH linePos;
+        Video::RectWH textPos;
+        Video::RectWH vBoxPos;
 
         bool drawLine = true;
 

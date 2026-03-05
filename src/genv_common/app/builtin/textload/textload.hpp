@@ -18,7 +18,7 @@
 #pragma once
 #include "app/app.hpp"
 #include "app/iapp_host.hpp"
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 
 namespace Apps
 {
@@ -33,7 +33,7 @@ namespace Apps
 
         const char *loadingText = "NOW LOADING...";
 
-        RectWH textPos;
+        Video::RectWH textPos;
 
     public:
         static LoadScreenApp *createApp(IAppHost *host) { return new TextLoader(host); }

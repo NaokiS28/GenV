@@ -13,14 +13,14 @@
  *
  * You should have received a copy of the GNU General Public License along with
  * GenV. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
 #pragma once
 
 #include <windows.h>
 #include <vector>
 #include "common/services/video/video.hpp"
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 
 class WindowObject
 {
@@ -50,7 +50,7 @@ public:
 class WindowManager
 {
 private:
-    std::vector<WindowObject*> vWindowList;
+    std::vector<WindowObject *> vWindowList;
 
 public:
     // DWORD dwExStyle,LPCSTR lpClassName,LPCSTR lpWindowName,DWORD dwStyle,int X,int Y,int nWidth,int nHeight,HWND hWndParent,HMENU hMenu,HINSTANCE hInstance,LPVOID lpParam

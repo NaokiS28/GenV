@@ -47,7 +47,7 @@ namespace Sprites
 
     int TileObject::repeat(int x, int y, uint16_t w, uint16_t h)
     {
-        int r = 0;
+        int r   = 0;
         int tx1 = 0, ty1 = 0, tx2 = 0, ty2 = 0, tw = 0, th = 0;
         int ih2 = 0;
         _getTransformedSize(tw, th);
@@ -93,7 +93,7 @@ namespace Sprites
         }
 
         // Get the absolute tile coord and box
-        RectWH tile = {
+        Video::RectWH tile = {
             meta.w * selectedTile.c,
             meta.h * selectedTile.r,
             (meta.w * selectedTile.c) + meta.w,
@@ -136,7 +136,7 @@ namespace Sprites
 
     int TileObject::loadTextureFromFile(const char *filePath)
     {
-        int r = texture->loadTextureFromFile(filePath);
+        int r        = texture->loadTextureFromFile(filePath);
         this->meta.w = texture->width;
         this->meta.h = texture->height;
         resetTransform();
@@ -182,10 +182,10 @@ namespace Sprites
         meta.cropArea.y = y;
         meta.cropArea.w = w;
         meta.cropArea.h = h;
-        meta.cropped = true;
+        meta.cropped    = true;
 
         // Get the absolute tile coord and box
-        RectWH tile = {
+        Video::RectWH tile = {
             meta.w * selectedTile.r,
             meta.h * selectedTile.c,
             meta.w * (selectedTile.r + 1),
@@ -304,13 +304,13 @@ namespace Sprites
 
     void TileObject::resetTransform()
     {
-        vertex[0] = Vertex();                                                         // Top left
-        vertex[1] = Vertex(meta.w, 0, 0, 1, intToiFloat(meta.w, texture->width), 0);  // Top right
-        vertex[2] = Vertex(0, meta.h, 0, 1, 0, intToiFloat(meta.h, texture->height)); // Bottom left
-        vertex[3] = Vertex(meta.w, meta.h, 0, 1,
-                           intToiFloat(meta.w, texture->width), intToiFloat(meta.h, texture->height)); // Bottom right
-        meta.cropped = false;
-        meta.cropArea = RectWH();
+        vertex[0]     = Video::Vertex();                                                         // Top left
+        vertex[1]     = Video::Vertex(meta.w, 0, 0, 1, intToiFloat(meta.w, texture->width), 0);  // Top right
+        vertex[2]     = Video::Vertex(0, meta.h, 0, 1, 0, intToiFloat(meta.h, texture->height)); // Bottom left
+        vertex[3]     = Video::Vertex(meta.w, meta.h, 0, 1,
+                                      intToiFloat(meta.w, texture->width), intToiFloat(meta.h, texture->height)); // Bottom right
+        meta.cropped  = false;
+        meta.cropArea = Video::RectWH();
     }
 
     void TileObject::_getTransformedSize(int &w, int &h)

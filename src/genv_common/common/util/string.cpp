@@ -18,7 +18,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "common/util/string.hpp"
-#include "common/util/rect.h"
 #include "common/util/templates.hpp"
 
 namespace util
@@ -115,9 +114,9 @@ namespace util
 
     UTF8Character parseUTF8Character(const char *ch)
     {
-        auto start = uint8_t(*(ch++));
+        auto start  = uint8_t(*(ch++));
         auto length = _START_BYTE_LENGTHS[start >> 3];
-        auto mask = _START_BYTE_MASKS[length];
+        auto mask   = _START_BYTE_MASKS[length];
 
         auto codePoint = UTF8CodePoint(start & mask);
 
@@ -157,7 +156,7 @@ namespace util
         size_t inputLength)
     {
         auto outputEnd = &output[maxOutputLength];
-        auto inputEnd = &input[inputLength];
+        auto inputEnd  = &input[inputLength];
 
         while (input < inputEnd)
         {

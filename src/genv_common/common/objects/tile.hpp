@@ -21,7 +21,7 @@
 #include <string.h>
 #include "texture.hpp"
 #include "common/util/ifloat.hpp"
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 #include "common/util/templates.hpp"
 
 namespace Sprites
@@ -53,28 +53,28 @@ namespace Sprites
     protected:
         Textures::TextureObject *texture = nullptr;
 
-        Vertex vertex[4];
+        Video::Vertex vertex[4];
 
         // Tile metadata for operations
         struct
         {
-            bool multiTile = false;   // Set to true if tile contains variations
-            bool randomTile = false;  // Set to true if tile contains variations
-            bool resetOnDraw = false; // If true, resets the tile geometry once drawn
-            bool cropped = false;     // If true, use texture area given in txArea to crop to
-            uint16_t w = 0;           // A single tile width
-            uint16_t h = 0;           // A single tile height
-            uint8_t c = 0;            // Amount of tiles in texture's X direction
-            uint8_t r = 0;            // Amount of tiles in texture's Y direction
-            RectWH cropArea = {       // Sets the texture box to use when drawing
+            bool multiTile         = false; // Set to true if tile contains variations
+            bool randomTile        = false; // Set to true if tile contains variations
+            bool resetOnDraw       = false; // If true, resets the tile geometry once drawn
+            bool cropped           = false; // If true, use texture area given in txArea to crop to
+            uint16_t w             = 0;     // A single tile width
+            uint16_t h             = 0;     // A single tile height
+            uint8_t c              = 0;     // Amount of tiles in texture's X direction
+            uint8_t r              = 0;     // Amount of tiles in texture's Y direction
+            Video::RectWH cropArea = {      // Sets the texture box to use when drawing
                 0, 0, 0, 0};
             struct
             {
                 const uint8_t **array = nullptr;
-                uint16_t x = 0;
-                uint16_t y = 0;
-                uint16_t w = 0;
-                uint16_t h = 0;
+                uint16_t x            = 0;
+                uint16_t y            = 0;
+                uint16_t w            = 0;
+                uint16_t h            = 0;
             } tileList;
         } meta;
 
@@ -149,15 +149,15 @@ namespace Sprites
         //  If this is not set, it will render the entire texture instead.
 
         // Draws this tile once at the specified location
-        inline int draw(Coord pos) { return draw(pos.x, pos.y); }
+        inline int draw(Video::Coord pos) { return draw(pos.x, pos.y); }
         virtual int draw(int x, int y);
 
         // Repeats the tile w times in width, or h times in height, starting at x,y
-        inline int repeat(RectWH rect) { return repeat(rect.x, rect.y, rect.w, rect.h); }
+        inline int repeat(Video::RectWH rect) { return repeat(rect.x, rect.y, rect.w, rect.h); }
         virtual int repeat(int x, int y, uint16_t w, uint16_t h);
 
         // Fills a specified area with this tile (TODO: not clipped) (w + h in px)
-        inline void fillArea(RectWH rect) { fillArea(rect.x, rect.y, rect.w, rect.h); }
+        inline void fillArea(Video::RectWH rect) { fillArea(rect.x, rect.y, rect.w, rect.h); }
         virtual void fillArea(int x, int y, int w, int h);
 
         // Fills the rendered screen with this tile with option offset
@@ -168,8 +168,8 @@ namespace Sprites
             if (arr != nullptr && w > 0 && h > 0)
             {
                 meta.tileList.array = arr;
-                meta.tileList.w = w;
-                meta.tileList.h = h;
+                meta.tileList.w     = w;
+                meta.tileList.h     = h;
             }
             return *this;
         }
@@ -196,7 +196,7 @@ namespace Sprites
             return *this;
         }
 
-        inline Vertex *getVertex()
+        inline Video::Vertex *getVertex()
         {
             return vertex;
         }

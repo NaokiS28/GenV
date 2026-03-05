@@ -23,14 +23,14 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 
 #include "gpucmd.hpp"
 #include "psxtex.hpp"
 
 #define TM_ERROR(code) GV_ERROR(GV_SERVICE_VIDEO, GV_CATEGORY_GENERIC, code)
 
-namespace System::PSX::GPU
+namespace PSX::GPU
 {
 
     /*
@@ -162,18 +162,18 @@ namespace System::PSX::GPU
             int init(GP1VRAMSize _vram);
 
             /* Mark a tile or block of tiles as in use/free. X/Y/W/H in tiles */
-            inline bool mark_block(RectWH rect, bool state) { return mark_block(rect.x, rect.y, rect.w, rect.h, state); }
+            inline bool mark_block(Video::RectWH rect, bool state) { return mark_block(rect.x, rect.y, rect.w, rect.h, state); }
             bool mark_block(int x, int y, int w, int h, bool state);
 
             /* Returns whether a tile or block of tiles as in use/free. X/Y/W/H in tiles */
-            inline bool test_block(RectWH rect) const { return test_block(rect.x, rect.y, rect.w, rect.h); }
+            inline bool test_block(Video::RectWH rect) const { return test_block(rect.x, rect.y, rect.w, rect.h); }
             bool test_block(int x, int y, int w, int h) const;
 
-            inline bool process_block(RectWH rect, bool state, bool dry_run) { return process_block(rect.x, rect.y, rect.w, rect.h, state, dry_run); }
+            inline bool process_block(Video::RectWH rect, bool state, bool dry_run) { return process_block(rect.x, rect.y, rect.w, rect.h, state, dry_run); }
             bool process_block(int x, int y, int w, int h, bool state, bool dry_run);
 
             /* Returns whether a tile or block of tiles as in use/free. X/Y/W/H in tiles */
-            inline bool tile_available(RectWH rect) const { return tile_available(rect.x, rect.y); }
+            inline bool tile_available(Video::RectWH rect) const { return tile_available(rect.x, rect.y); }
             bool tile_available(int tile_x, int tile_y) const;
 
             /* Returns whether a CLUT line is in use/free. X/Y in starting tile space, W in bitwidth, H in line */
@@ -214,7 +214,7 @@ namespace System::PSX::GPU
         } _vramBitmap;
 
         GP1VRAMSize _vramSize = GP1_VRAM_1MB; // VRAM size in MiB
-        RectWH _frameBufferBox;               // In px
+        Video::RectWH _frameBufferBox;        // In px
 
         // Finds a free space in the texture page where the requested block can go, or returns no space.
         // X,Y,W,H in tiles
@@ -282,4 +282,4 @@ namespace System::PSX::GPU
             _vramBitmap.clear_all();
         }
     };
-} // namespace System::PSX::GPU
+} // namespace PSX::GPU

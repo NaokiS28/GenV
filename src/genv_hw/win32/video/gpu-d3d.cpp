@@ -563,7 +563,7 @@ bool DirectXGPU::endRender()
     return 0;
 }
 
-bool DirectXGPU::shutdown()
+void DirectXGPU::shutdown()
 {
     if (adaptorList)
     {
@@ -577,7 +577,6 @@ bool DirectXGPU::shutdown()
         }
     }
     reset();
-    return 1;
 }
 
 DirectXGPU::~DirectXGPU()

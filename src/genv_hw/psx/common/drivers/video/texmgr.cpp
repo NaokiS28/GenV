@@ -22,11 +22,11 @@
 #include <string.h>
 #include "texmgr.hpp"
 #include "common/logger/log.hpp"
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 #include "gpucmd.hpp"
 #include "common/return_codes.hpp"
 
-namespace System::PSX::GPU
+namespace PSX::GPU
 {
     int TextureManager::VRAM_Bitmap_POD::init(GP1VRAMSize _vram)
     {
@@ -210,7 +210,7 @@ namespace System::PSX::GPU
         int maxH       = PAGE_SIZE / MIN_TILE_SIZE;
         int maxW       = (VRAM_WIDTH_IN_PX(bpp) / MIN_TILE_SIZE);
 
-        RectWH t = {startX, startY, w, h};
+        Video::RectWH t = {startX, startY, w, h};
 
         for (;;)
         {
@@ -410,4 +410,4 @@ namespace System::PSX::GPU
 
         return r;
     }
-} // namespace System::PSX::GPU
+} // namespace PSX::GPU

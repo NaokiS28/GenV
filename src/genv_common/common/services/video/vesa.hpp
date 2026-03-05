@@ -87,8 +87,8 @@ namespace VESA
         AspectRatio aspect    = AspectRatio::INVALID;
         ResolutionFlags flags = NONE;
 
-        consteval VideoResolution() {}
-        consteval VideoResolution(const char *name, uint16_t w, uint16_t h, AspectRatio ratio, ResolutionFlags flags)
+        constexpr VideoResolution() {}
+        constexpr VideoResolution(const char *name, uint16_t w, uint16_t h, AspectRatio ratio, ResolutionFlags flags)
             : name(name), width(w), height(h), aspect(ratio), flags(flags)
         {
         }
@@ -101,7 +101,7 @@ namespace VESA
         const uint8_t refreshLength    = 0;
         const uint16_t *refreshList    = nullptr;
 
-        consteval VideoModeList() {}
+        constexpr VideoModeList() {}
         template <int N, int C>
         constexpr VideoModeList(const VideoResolution (&v)[N], const uint16_t (&r)[C])
             : resLength(N), resList(v),

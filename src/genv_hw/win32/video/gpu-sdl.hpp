@@ -32,7 +32,7 @@ public:
     bool reset() override { return false; }
     bool beginRender() override;
     bool endRender() override;
-    bool shutdown() override { return 0; }
+    void shutdown() override {}
     bool setWindow(WindowObject *wObj) override { return false; }
 
     int getSupportedResolutions(VideoModeList &list) { return 0; }

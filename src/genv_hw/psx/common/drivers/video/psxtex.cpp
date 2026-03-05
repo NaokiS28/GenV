@@ -21,7 +21,7 @@
 #include "common/vendor/vendor.h"
 #include "common/objects/texture/missingtex.h"
 
-namespace System::PSX::GPU
+namespace PSX::GPU
 {
     PSXTextureObject::PSXTextureObject(util::Hash objectID) : Textures::TextureObject(objectID)
     {
@@ -38,4 +38,4 @@ namespace System::PSX::GPU
             deleteParam(PSXFONT_PALETTE_PTR);
         }
     }
-} // namespace System::PSX::GPU
+} // namespace PSX::GPU

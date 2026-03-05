@@ -40,9 +40,8 @@ namespace Video
     {
         return true;
     }
-    bool NullVideo::shutdown()
+    void NullVideo::shutdown()
     {
-        return true;
     }
 
     // Returns a nulled list.

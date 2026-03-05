@@ -21,7 +21,7 @@
 #include "common/util/hash.hpp"
 #include "texture.hpp"
 #include "common/util/ifloat.hpp"
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 #include "common/util/templates.hpp"
 
 namespace Sprites
@@ -85,7 +85,7 @@ namespace Sprites
             drawScaled(sP, sP);
         }
 
-        inline void setPosition(Coord position)
+        inline void setPosition(Video::Coord position)
         {
             pos.x = position.x;
             pos.y = position.y;
@@ -94,7 +94,7 @@ namespace Sprites
 
         inline void setPosition(unsigned int x, unsigned int y, unsigned int z = 0)
         {
-            setPosition(Coord(x, y, z));
+            setPosition(Video::Coord(x, y, z));
         }
 
         inline void transformX(int x) { pos.x += x; }

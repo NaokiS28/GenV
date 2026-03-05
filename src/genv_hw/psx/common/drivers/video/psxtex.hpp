@@ -19,7 +19,7 @@
 #include "common/util/hash.hpp"
 #include "common/objects/texture.hpp"
 
-namespace System::PSX::GPU
+namespace PSX::GPU
 {
     static constexpr util::Hash GENV_PSX_TEXTURE_TYPE_NAME = "GenVPSXTextureObject"_h;
 
@@ -32,8 +32,8 @@ namespace System::PSX::GPU
 
         struct
         {
-            uint8_t x = 0;
-            uint8_t y = 0;
+            uint8_t x       = 0;
+            uint8_t y       = 0;
             uint8_t offsetX = 0;
             uint8_t offsetY = 0;
         } tpage;
@@ -51,8 +51,8 @@ namespace System::PSX::GPU
     struct FontPaletteEntry
     {
         uint16_t color = Video::Colors::White.toBGR555();
-        int vramX = 0;
-        int vramY = 0;
+        int vramX      = 0;
+        int vramY      = 0;
     };
 
     class FontColorTable
@@ -84,4 +84,4 @@ namespace System::PSX::GPU
             return false;
         }
     };
-} // namespace System::PSX::GPU
+} // namespace PSX::GPU

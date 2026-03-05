@@ -21,12 +21,10 @@
 #include "common/objects/font.hpp"
 #include "common/services/video/color.hpp"
 #include "iface_video.hpp"
-#include "common/util/templates.hpp"
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 #include "common/objects/texture.hpp"
 #include "common/objects/sprite.hpp"
 #include "common/objects/tile.hpp"
-#include "common/logger/log.hpp"
 
 namespace Video
 {
@@ -41,7 +39,7 @@ namespace Video
         bool reset() override;
         bool beginRender() override;
         bool endRender() override;
-        bool shutdown() override;
+        void shutdown() override;
 
         bool waitingForVSync() override { return false; }
 

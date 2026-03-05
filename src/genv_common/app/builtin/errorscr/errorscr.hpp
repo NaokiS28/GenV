@@ -24,7 +24,7 @@
 #pragma once
 #include "app/app.hpp"
 #include "app/iapp_host.hpp"
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 #include "common/util/tween.hpp"
 
 using namespace Apps;
@@ -39,7 +39,7 @@ private:
     );
     Util::Tween<uint16_t, Util::LinearEasing> colorIntensity;
 
-    RectWH area;
+    Video::RectWH area;
 
     // Into/Outro Animation
     enum : uint8_t

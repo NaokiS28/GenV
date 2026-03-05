@@ -118,7 +118,7 @@ public:
     bool reset() override;
     bool beginRender() override;
     bool endRender() override;
-    bool shutdown() override;
+    void shutdown() override;
 
     int getSupportedResolutions(VideoModeList &list);
     int setResolution(int w, int h, bool updateWindow = true) override;
