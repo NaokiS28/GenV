@@ -14,22 +14,15 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-# Override the default file extensions for executables and libraries. This is
-# not strictly required, but it makes CMake's behavior more consistent.
-set(CMAKE_EXECUTABLE_SUFFIX     .exe)
-set(CMAKE_STATIC_LIBRARY_PREFIX lib)
-set(CMAKE_STATIC_LIBRARY_SUFFIX .a)
-
-# Add libgcc.a (-lgcc) to the set of libraries linked to all executables by
-# default. This library ships with GCC and must be linked to anything compiled
-# with it.
-link_libraries(-lgcc)
-
-# Create a dummy "flags" library that is not made up of any files, but adds the
-# appropriate compiler and linker flags for PS1 executables to anything linked
-# to it. The library is then added to the default set of libraries.
 add_library   (flags INTERFACE)
 link_libraries(flags)
+
+# Link required Apple frameworks for Metal/AppKit/CoreFoundation/QuartzCore.
+find_library(FW_APPKIT        AppKit        REQUIRED)
+find_library(FW_COREFOUNDATION CoreFoundation REQUIRED)
+find_library(FW_METAL         Metal         REQUIRED)
+find_library(FW_QUARTZCORE    QuartzCore    REQUIRED)
+link_libraries(${FW_APPKIT} ${FW_COREFOUNDATION} ${FW_METAL} ${FW_QUARTZCORE})
 
 target_compile_options(
 	flags INTERFACE
@@ -37,16 +30,21 @@ target_compile_options(
 	-Wextra
 	-Wno-unused-parameter
 	$<$<COMPILE_LANGUAGE:CXX>:
-		-Wno-pmf-conversions		
-    >
+		-Wno-pmf-conversions
+	>
+	$<$<COMPILE_LANGUAGE:OBJCXX>:
+		-fobjc-arc
+	>
 	-g
-		-DGENV_WIN32
-		-DGENV_COMPUTER
+	-DGENV_MACOSX
+	-DGENV_COMPUTER
+	# Inform the SDK that we target macOS 11+ so that API_AVAILABLE /
+	# __API_UNAVAILABLE guards apply to anything older than 11.0.
+	-DMAC_OS_X_VERSION_MIN_REQUIRED=110000
+	-DMAC_OS_X_VERSION_MAX_ALLOWED=110000
 	$<IF:$<CONFIG:Debug>,
-		# These options will only be added if CMAKE_BUILD_TYPE is set to Debug.
 		-Og
 	,
-		# These options will be added if CMAKE_BUILD_TYPE is not set to Debug.
 		#-O3
 		#-flto
 	>

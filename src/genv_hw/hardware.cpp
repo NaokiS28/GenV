@@ -32,7 +32,8 @@ namespace System
     }
     IArcadeSystem *getArcadeInterface()
     {
-        ISystem *sys = getServiceManager()->getSystem();
+        static ISystem *sys = nullptr;
+        if (!sys) sys = getServiceManager()->getSystem();
         return reinterpret_cast<System573::Sys573System *>(sys);
     }
 } // namespace System
@@ -60,6 +61,34 @@ namespace System
     ISystem *makeNewSystem()
     {
         WinSystem *system = new WinSystem();
+        return system;
+    }
+    IArcadeSystem *getArcadeInterface()
+    {
+        return nullptr;
+    }
+} // namespace System
+#elif defined(GENV_MACOSX)
+#include "mac/osx/system.hpp"
+namespace System
+{
+    ISystem *makeNewSystem()
+    {
+        OSXSystem *system = new OSXSystem();
+        return system;
+    }
+    IArcadeSystem *getArcadeInterface()
+    {
+        return nullptr;
+    }
+} // namespace System
+#elif defined(GENV_MACOS9)
+#include "mac/osx/system.hpp"
+namespace System
+{
+    ISystem *makeNewSystem()
+    {
+        OS9System *system = new OS9System();
         return system;
     }
     IArcadeSystem *getArcadeInterface()

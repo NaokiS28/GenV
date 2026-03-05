@@ -1,1 +1,1 @@
-add_definitions(-DGENV_PSX -DGENV_SYS573)
+add_definitions(-DGENV_PSX -DGENV_SYS573 -DGENV_ARCADE_SYSTEM)

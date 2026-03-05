@@ -7,99 +7,161 @@
 	},
 	"configurePresets": [
 		{
-			"name": "win-debug",
-			"displayName": "Debug build (Win32)",
-			"description": "Build the project with no optimization and assertions enabled.",
+			"name": "base-debug",
+			"hidden": true,
+			"description": "No optimisation, assertions enabled.",
+			"cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+		},
+		{
+			"name": "base-release",
+			"hidden": true,
+			"description": "Performance optimisation, assertions stripped.",
+			"cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+		},
+		{
+			"name": "base-minsizerel",
+			"hidden": true,
+			"description": "Size optimisation, assertions stripped.",
+			"cacheVariables": { "CMAKE_BUILD_TYPE": "MinSizeRel" }
+		},
+		{
+			"name": "base-common",
+			"hidden": true,
 			"generator": "Ninja",
-			"binaryDir": "${sourceDir}/build/win32",
-			"graphviz": "graph/build_graph.dot",
+			"graphviz": "graph/build_graph.dot"
+		},
+		{
+			"name": "base-win-x64",
+			"hidden": true,
+			"inherits": "base-common",
+			"binaryDir": "${sourceDir}/build/win/x64",
 			"cacheVariables": {
 				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
-				"CMAKE_BUILD_TYPE": "Debug",
-				"GENV_PLATFORM": "win32"
+				"GENV_PLATFORM": "win32",
+				"GENV_ARCH": "x64"
 			}
 		},
 		{
-			"name": "win-release",
-			"displayName": "Release build (Win32)",
-			"description": "Build the project with performance optimization and assertions stripped.",
-			"generator": "Ninja",
-			"binaryDir": "${sourceDir}/build/win32",
-			"graphviz": "graph/build_graph.dot",
+			"name": "base-win-x86",
+			"hidden": true,
+			"inherits": "base-common",
+			"binaryDir": "${sourceDir}/build/win/x86",
 			"cacheVariables": {
 				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
-				"CMAKE_BUILD_TYPE": "Release",
-				"GENV_PLATFORM": "win32"
+				"GENV_PLATFORM": "win32",
+				"GENV_ARCH": "x86"
 			}
 		},
 		{
-			"name": "win-min-size-release",
-			"displayName": "Minimum size release build (Win32)",
-			"description": "Build the project with size optimization and assertions stripped.",
-			"generator": "Ninja",
-			"binaryDir": "${sourceDir}/build/win32",
-			"graphviz": "graph/build_graph.dot",
-			"cacheVariables": {
-				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/win32/toolchain.cmake",
-				"CMAKE_BUILD_TYPE": "MinSizeRel",
-				"GENV_PLATFORM": "win32"
-			}
-		},
-		{
-			"name": "psx-debug",
-			"displayName": "Debug build (PSX)",
-			"description": "Build the project with no optimization and assertions enabled.",
-			"generator": "Ninja",
+			"name": "base-psx",
+			"hidden": true,
+			"inherits": "base-common",
 			"binaryDir": "${sourceDir}/build/psx/psx",
-			"graphviz": "graph/build_graph.dot",
 			"cacheVariables": {
 				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
-				"CMAKE_BUILD_TYPE": "Debug",
 				"GENV_PLATFORM": "psx",
 				"GENV_SUBPLATFORM": "psx"
 			}
 		},
 		{
-			"name": "psx-release",
-			"displayName": "Release build (PSX)",
-			"description": "Build the project with performance optimization and assertions stripped.",
-			"generator": "Ninja",
-			"binaryDir": "${sourceDir}/build/psx/psx",
-			"graphviz": "graph/build_graph.dot",
-			"cacheVariables": {
-				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
-				"CMAKE_BUILD_TYPE": "Release",
-				"GENV_PLATFORM": "psx",
-				"GENV_SUBPLATFORM": "psx"
-			}
-		},
-		{
-			"name": "psx-min-size-release",
-			"displayName": "Minimum size release build (PSX)",
-			"description": "Build the project with size optimization and assertions stripped.",
-			"generator": "Ninja",
-			"binaryDir": "${sourceDir}/build/psx/psx",
-			"graphviz": "graph/build_graph.dot",
-			"cacheVariables": {
-				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
-				"CMAKE_BUILD_TYPE": "MinSizeRel",
-				"GENV_PLATFORM": "psx",
-				"GENV_SUBPLATFORM": "psx"
-			}
-		},
-		{
-			"name": "sys573-debug",
-			"displayName": "Debug build (573)",
-			"description": "Build the project with no optimization and assertions enabled.",
-			"generator": "Ninja",
+			"name": "base-sys573",
+			"hidden": true,
+			"inherits": "base-common",
 			"binaryDir": "${sourceDir}/build/psx/sys573",
-			"graphviz": "graph/build_graph.dot",
 			"cacheVariables": {
 				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
-				"CMAKE_BUILD_TYPE": "Debug",
 				"GENV_PLATFORM": "psx",
 				"GENV_SUBPLATFORM": "sys573"
 			}
+		},
+		{
+			"name": "base-macos-universal",
+			"hidden": true,
+			"inherits": "base-common",
+			"binaryDir": "${sourceDir}/build/mac/osx",
+			"cacheVariables": {
+				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mac/osx-toolchain.cmake",
+				"GENV_PLATFORM": "mac",
+				"GENV_SUBPLATFORM": "osx",
+				"GENV_ARCH": "universal",
+				"CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+				"CMAKE_OSX_DEPLOYMENT_TARGET": "11.0"
+			}
+		},
+		{
+			"name": "win-x64-debug",
+			"displayName": "Win64 Debug",
+			"inherits": [ "base-win-x64", "base-debug" ]
+		},
+		{
+			"name": "win-x64-release",
+			"displayName": "Win64 Release",
+			"inherits": [ "base-win-x64", "base-release" ]
+		},
+		{
+			"name": "win-x64-minsizerel",
+			"displayName": "Win64 MinSizeRel",
+			"inherits": [ "base-win-x64", "base-minsizerel" ]
+		},
+		{
+			"name": "win-x86-debug",
+			"displayName": "Win32 Debug",
+			"inherits": [ "base-win-x86", "base-debug" ]
+		},
+		{
+			"name": "win-x86-release",
+			"displayName": "Win32 Release",
+			"inherits": [ "base-win-x86", "base-release" ]
+		},
+		{
+			"name": "win-x86-minsizerel",
+			"displayName": "Win32 MinSizeRel",
+			"inherits": [ "base-win-x86", "base-minsizerel" ]
+		},
+		{
+			"name": "macos-universal-debug",
+			"displayName": "macOS Universal Debug",
+			"inherits": [ "base-macos-universal", "base-debug" ]
+		},
+		{
+			"name": "macos-universal-release",
+			"displayName": "macOS Universal Release",
+			"inherits": [ "base-macos-universal", "base-release" ]
+		},
+		{
+			"name": "macos-universal-minsizerel",
+			"displayName": "macOS Universal MinSizeRel",
+			"inherits": [ "base-macos-universal", "base-minsizerel" ]
+		},
+		{
+			"name": "psx-debug",
+			"displayName": "PSX Debug",
+			"inherits": [ "base-psx", "base-debug" ]
+		},
+		{
+			"name": "psx-release",
+			"displayName": "PSX Release",
+			"inherits": [ "base-psx", "base-release" ]
+		},
+		{
+			"name": "psx-minsizerel",
+			"displayName": "PSX MinSizeRel",
+			"inherits": [ "base-psx", "base-minsizerel" ]
+		},
+		{
+			"name": "sys573-debug",
+			"displayName": "System 573 Debug",
+			"inherits": [ "base-sys573", "base-debug" ]
+		},
+		{
+			"name": "sys573-release",
+			"displayName": "System 573 Release",
+			"inherits": [ "base-sys573", "base-release" ]
+		},
+		{
+			"name": "sys573-minsizerel",
+			"displayName": "System 573 MinSizeRel",
+			"inherits": [ "base-sys573", "base-minsizerel" ]
 		}
 	]
 }
