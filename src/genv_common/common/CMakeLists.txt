@@ -65,7 +65,6 @@ add_library(genv_services STATIC
 	services/video/video.cpp
 	services/video/nullvideo.cpp
 	services/audio/nullaudio.cpp
-	services/io/inputmgr.cpp
 	services/io/devicemgr.cpp
 	services/io/outputmgr.cpp
 	services/io/playermgr.cpp

@@ -46,8 +46,8 @@ private:
 
     Input::Player currentPlayer = Input::Player::PLAYER_1;
 
-    Coord txtOrigin;
-    Coord timeOrigin;
+    Video::Coord txtOrigin;
+    Video::Coord timeOrigin;
 
 public:
     static Application *createApp(IAppHost *host)
@@ -195,8 +195,8 @@ public:
 
     void reload() override
     {
-        txtOrigin  = Coord((gpu->getHorizontalRes() / 2) - 50, 5);
-        timeOrigin = Coord(5, gpu->getVerticalRes() - 10);
+        txtOrigin  = Video::Coord((gpu->getHorizontalRes() / 2) - 50, 5);
+        timeOrigin = Video::Coord(5, gpu->getVerticalRes() - 10);
     }
     void shutdown() override {}
 
@@ -218,7 +218,7 @@ public:
         strncat(pageStr, temp, strlen(temp));
         auto pDevList = thisPlayer.inputDevices();
         if (pDevList.count)
-            for (size_t i = 0; i < pDevList.count; i++)
+            for (int i = 0; i < pDevList.count; i++)
             {
                 if (pDevList.devices[i] == nullptr) continue;
                 snprintf(temp, sizeof(temp), "\t%d: %s\r\n", i, pDevList.devices[i]->name);
@@ -292,7 +292,7 @@ public:
 
         auto pDevList = IO::playerManager()->getPlayerInputDevices(Input::Player::ARCADE_CABINET);
         if (pDevList.count)
-            for (size_t i = 0; i < pDevList.count; i++)
+            for (int i = 0; i < (int)pDevList.count; i++)
             {
                 if (pDevList.devices[i] == nullptr) continue;
                 snprintf(temp, sizeof(temp), "\t%d: %s\r\n", i, pDevList.devices[i]->name);

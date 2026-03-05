@@ -61,7 +61,7 @@ namespace Time
         if (time.tm_yday >= 365)
         {
             time.tm_mday = 1;
-            time.tm_mon = 0; // C tm struct is 0-based months.
+            time.tm_mon  = 0; // C tm struct is 0-based months.
             time.tm_year++;
             time.tm_yday = 0;
         }
@@ -88,7 +88,7 @@ namespace Time
         bool pm = false;
         if (time.tm_hour > 12)
         {
-            pm = true;
+            pm   = true;
             hour = time.tm_hour - 12;
         }
         else
@@ -117,7 +117,7 @@ namespace Time
 
         snprintf(
             str, 14, "%02u:%02u:%02u.%04d",
-            time.tm_hour, time.tm_min, time.tm_sec, millis);
+            time.tm_hour, time.tm_min, time.tm_sec, (int)millis);
 
         return 0;
     }

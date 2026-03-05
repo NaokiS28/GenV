@@ -110,7 +110,7 @@ namespace Files
                 if (name == nullptr)
                     return 0;
             }
-            return util::Hash(name);
+            return util::Hash(*name);
         }
         return 0;
     }

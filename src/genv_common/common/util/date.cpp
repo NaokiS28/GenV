@@ -84,9 +84,10 @@ namespace Date
         }
     }
 
-    int getYearDaysElapsed(tm &time){
+    int getYearDaysElapsed(tm &time)
+    {
         int days = 0;
-        for(int m = 0; m < time.tm_mon; m++)
+        for (int m = 0; m < time.tm_mon; m++)
             days += getMonthDayCount(m, time.tm_year);
         days += (time.tm_mday - 1);
         return days;
@@ -94,7 +95,7 @@ namespace Date
 
     uint32_t toDOSTime(tm &time)
     {
-        int _year = time.tm_year - 80;  // tm_year is sans 1900
+        int _year = time.tm_year - 80; // tm_year is sans 1900
 
         if (!dateValid(time) || !Time::timeValid(time))
             return 0;
@@ -112,10 +113,10 @@ namespace Date
             return 0;
         }
 
-        return sprintf(
-            output, "%04d-%02d-%02d %02d:%02d:%02d",
+        return snprintf(
+            output, 32, "%04d-%02d-%02d %02d:%02d:%02d",
             time.tm_year, time.tm_mon, time.tm_mday,
             time.tm_hour, time.tm_min, time.tm_sec);
     }
 
-}
+} // namespace Date

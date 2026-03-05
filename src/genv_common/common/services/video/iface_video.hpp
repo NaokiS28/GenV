@@ -22,7 +22,7 @@
 #include "common/services/video/color.hpp"
 #include "common/util/hash.hpp"
 #include "video.hpp"
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 #include "common/objects/texture.hpp"
 #include "common/objects/sprite.hpp"
 #include "common/objects/tile.hpp"
@@ -35,13 +35,13 @@ namespace Video
     {
     protected:
         Monitor _screen;
-        size_t _frameCount = 0;
+        size_t _frameCount    = 0;
         bool _useDoubleBuffer = true;
 
         Textures::TextureObject *defaultTexture = nullptr;
 
     public:
-        IVideo() = default;
+        IVideo()          = default;
         virtual ~IVideo() = default;
 
         virtual inline size_t getFrameCount()
@@ -49,11 +49,11 @@ namespace Video
             return _frameCount;
         }
 
-        virtual bool init() = 0;
-        virtual bool reset() = 0;
+        virtual bool init()        = 0;
+        virtual bool reset()       = 0;
         virtual bool beginRender() = 0;
-        virtual bool endRender() = 0;
-        virtual bool shutdown() = 0;
+        virtual bool endRender()   = 0;
+        virtual void shutdown()    = 0;
 
         virtual bool waitingForVSync() = 0;
         virtual void doWaitForVSync() {}
@@ -122,7 +122,7 @@ namespace Video
         }
         virtual int setResolution(int _width, int _height, bool updateWindow = true)
         {
-            this->_screen.res.width = _width;
+            this->_screen.res.width  = _width;
             this->_screen.res.height = _height;
             return true;
         }
@@ -150,21 +150,21 @@ namespace Video
 
         // void newLayer(int x, int y, int drawWidth, int drawHeight);
 
-        virtual void drawLine(int x1, int y1, int x2, int y2, int width, Color color) = 0;
+        virtual void drawLine(int x1, int y1, int x2, int y2, int width, Color color)                = 0;
         virtual void drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2) = 0;
 
-        virtual void drawRect(int x, int y, int width, int height, Color color) = 0;
-        virtual void drawGradientRectH(int x, int y, int w, int h, Color left, Color right) = 0;
-        virtual void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom) = 0;
+        virtual void drawRect(int x, int y, int width, int height, Color color)                           = 0;
+        virtual void drawGradientRectH(int x, int y, int w, int h, Color left, Color right)               = 0;
+        virtual void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom)               = 0;
         virtual void drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom) = 0;
 
-        virtual void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m) = 0;
+        virtual void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m)                                         = 0;
         virtual void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) = 0;
         virtual void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) = 0;
 
         inline virtual int setDefaultFont(Fonts::FontObject *fObj) { return 0; }
         virtual int drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) = 0;
-        virtual int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) = 0;
+        virtual int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)                          = 0;
 
         virtual Textures::TextureObject *createTexture(util::Hash objectID)
         {
@@ -178,7 +178,7 @@ namespace Video
             Textures::TextureObject *tObj = new Textures::TextureObject(objectID, filePath);
             return (tObj != nullptr ? tObj : defaultTexture);
         }
-        virtual int uploadTexture(Textures::TextureObject *tObj) = 0;
+        virtual int uploadTexture(Textures::TextureObject *tObj)  = 0;
         virtual int releaseTexture(Textures::TextureObject *tObj) = 0;
 
         inline int drawTextureObject(Textures::TextureObject *tObj, int x, int y, int w, int h, RectUV area)
@@ -217,7 +217,7 @@ namespace Video
 
         inline void drawSpriteObject(Sprites::SpriteObject *sObj)
         {
-            Sprites::SpritePosition pos = sObj->getPosition();
+            Sprites::SpritePosition pos  = sObj->getPosition();
             Textures::TextureObject *tex = sObj->getTexture();
             drawSpriteObject(sObj, (int)pos.x, (int)pos.y, tex->width, tex->height);
         }

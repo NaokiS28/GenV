@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-02-21 22:34:13.103294_
+_Generated on 2026-03-05 21:52:29.373216_
 
 #### [src/genv_common/app/appmgr.cpp](src/genv_common/app/appmgr.cpp)
 
@@ -35,26 +35,20 @@ _Generated on 2026-02-21 22:34:13.103294_
 
 #### [src/genv_common/common/services/genv_sys.cpp](src/genv_common/common/services/genv_sys.cpp)
 
-- [77](src/genv_common/common/services/genv_sys.cpp?plain=1#L77): Allow setting custom startup baud
-
-#### [src/genv_common/common/services/io/vpad.hpp](src/genv_common/common/services/io/vpad.hpp)
-
-- [63](src/genv_common/common/services/io/vpad.hpp?plain=1#L63): This should update when any inputs on any controller change.
-- [64](src/genv_common/common/services/io/vpad.hpp?plain=1#L64): Make test to test specific player's inputs changed - usefull?
+- [76](src/genv_common/common/services/genv_sys.cpp?plain=1#L76): Allow setting custom startup baud
 
 #### [src/genv_common/common/services/system/arcade/arcade.cpp](src/genv_common/common/services/system/arcade/arcade.cpp)
 
-- [26](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L26): Is this needing any extra logic?
-- [125](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L125): Check IO service?
-- [131](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L131): Check IO service?
-- [136](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L136): Check IO service?
-- [141](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L141): Check IO service?
-- [146](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L146): Check IO service?
-- [151](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L151): Check IO service?
+- [128](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L128): Check IO service?
+- [134](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L134): Check IO service?
+- [139](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L139): Check IO service?
+- [144](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L144): Check IO service?
+- [149](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L149): Check IO service?
+- [154](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L154): Check IO service?
 
 #### [src/genv_common/common/services/system/arcade/arcade.hpp](src/genv_common/common/services/system/arcade/arcade.hpp)
 
-- [120](src/genv_common/common/services/system/arcade/arcade.hpp?plain=1#L120): Is this macro of any real benefit now? GetArcadeInterface does the important thing.
+- [119](src/genv_common/common/services/system/arcade/arcade.hpp?plain=1#L119): Is this macro of any real benefit now? GetArcadeInterface does the important thing.
 
 #### [src/genv_common/common/services/video/fontman.cpp](src/genv_common/common/services/video/fontman.cpp)
 
@@ -67,11 +61,6 @@ _Generated on 2026-02-21 22:34:13.103294_
 
 - [31](src/genv_common/common/services/video/fontman.hpp?plain=1#L31): Support loading from raw data - We need to have a safe-fall back font.
 
-#### [src/genv_common/common/util/misc.hpp](src/genv_common/common/util/misc.hpp)
-
-- [45](src/genv_common/common/util/misc.hpp?plain=1#L45): implement
-- [49](src/genv_common/common/util/misc.hpp?plain=1#L49): implement
-
 #### [src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp)
 
 - [61](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L61): Add support for PSX mouse in VMouse.
@@ -83,7 +72,7 @@ _Generated on 2026-02-21 22:34:13.103294_
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp](src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp)
 
-- [30](src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp?plain=1#L30): Implement memory card as a virtual file system complete with directory listing.
+- [31](src/genv_hw/psx/common/drivers/sio0/psx_mc.hpp?plain=1#L31): Implement memory card as a virtual file system complete with directory listing.
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp)
 
@@ -111,35 +100,36 @@ _Generated on 2026-02-21 22:34:13.103294_
 
 #### [src/genv_hw/psx/common/drivers/video/video.cpp](src/genv_hw/psx/common/drivers/video/video.cpp)
 
-- [398](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L398): Cleanup?
-- [258](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L258): Overflow protection — if the requested allocation would exceed
+- [387](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L387): Cleanup?
+- [247](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L247): Overflow protection — if the requested allocation would exceed
 
 #### [src/genv_hw/psx/common/drivers/video/video.hpp](src/genv_hw/psx/common/drivers/video/video.hpp)
 
 - [83](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L83): Set true when the DMA chain is full. Draw calls become no-ops
 
-#### [src/genv_hw/psx/common/halt/halt.c](src/genv_hw/psx/common/halt/halt.c)
-
-- [222](src/genv_hw/psx/common/halt/halt.c?plain=1#L222): Somewhere, somehow, font height is not being stored in the font file correctly
-- [233](src/genv_hw/psx/common/halt/halt.c?plain=1#L233): There is no font!
-
-#### [src/genv_hw/psx/common/halt/halt.h](src/genv_hw/psx/common/halt/halt.h)
-
-- [20](src/genv_hw/psx/common/halt/halt.h?plain=1#L20): Currently relies on a existing font from GenV, but trying to assume
-
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
-- [78](src/genv_hw/psx/common/system.cpp?plain=1#L78): SIO1 driver will require interrupts in future, so this will need to change.
-- [149](src/genv_hw/psx/common/system.cpp?plain=1#L149): int error = 0; How to handle multiple driver failures?
-- [163](src/genv_hw/psx/common/system.cpp?plain=1#L163): Allow setting custom startup baud
+- [81](src/genv_hw/psx/common/system.cpp?plain=1#L81): SIO1 driver will require interrupts in future, so this will need to change.
+- [159](src/genv_hw/psx/common/system.cpp?plain=1#L159): int error = 0; How to handle multiple driver failures?
+- [173](src/genv_hw/psx/common/system.cpp?plain=1#L173): Allow setting custom startup baud
+
+#### [src/genv_hw/psx/common/system/serial.h](src/genv_hw/psx/common/system/serial.h)
+
+- [26](src/genv_hw/psx/common/system/serial.h?plain=1#L26): Convert to proper C++ driver
 
 #### [src/genv_hw/psx/common/system/sys.h](src/genv_hw/psx/common/system/sys.h)
 
-- [157](src/genv_hw/psx/common/system/sys.h?plain=1#L157): // void psx_delayMicroseconds(int time);	Make this function save the state of the Timer 2 variable so that it wont break things.
+- [25](src/genv_hw/psx/common/system/sys.h?plain=1#L25): Convert to C++
+- [159](src/genv_hw/psx/common/system/sys.h?plain=1#L159): // void psx_delayMicroseconds(int time);	Make this function save the state of the Timer 2 variable so that it wont break things.
 
 #### [src/genv_hw/psx/psx/system.cpp](src/genv_hw/psx/psx/system.cpp)
 
 - [50](src/genv_hw/psx/psx/system.cpp?plain=1#L50): int error = 0; How to handle multiple driver failures?
+
+#### [src/genv_hw/psx/sys573/io/jamma/adc083x.hpp](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp)
+
+- [27](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp?plain=1#L27): Does not support differential mode. But is this worth supporting?
+- [28](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp?plain=1#L28): Critical: Implementation does not work. Require logic probing.
 
 #### [src/genv_hw/win32/README.md](src/genv_hw/win32/README.md)
 
