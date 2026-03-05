@@ -28,6 +28,9 @@ namespace util
 
     using Hash = uint32_t;
 
+    constexpr Hash hashEmpty     = 0x00000000; // Slot is unused — also the value of hash("")
+    constexpr Hash hashTombstone = 0xFFFFFFFF; // Slot was deleted — keep probing on find()
+
     template <typename T>
     static constexpr inline Hash hash(
         const T *const data, size_t length = -1, Hash value = 0)
