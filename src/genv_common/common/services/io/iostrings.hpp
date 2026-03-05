@@ -21,7 +21,7 @@
 
 namespace IO
 {
-    constexpr util::Hash idNull       = 0;
+    constexpr util::Hash idNull       = util::hashEmpty;
     const char szNullInputDevice[]    = "Null input device";
     const char szGenericInputDevice[] = "Generic input device";
 

@@ -25,12 +25,12 @@
 #include "video/iface_video.hpp"
 #include "audio/iface_audio.hpp"
 #include "io/iface_input.hpp"
-#include "storage/iface_storage.hpp"
 #include "system/iface_system.hpp"
 
 #include "common/services/video/fontman.hpp"
 #include "common/services/io/playermgr.hpp"
 #include "common/services/io/devicemgr.hpp"
+#include "common/services/io/outputmgr.hpp"
 #include "common/services/storage/storemgr.hpp"
 
 // Services uses pointers to avoid issues with atexit() as not all platforms implement this.
@@ -51,19 +51,15 @@ public:
     inline Audio::IAudio *getAudio(void) { return s_audio; }
     inline Video::IVideo *getVideo(void) { return s_video; }
     inline System::ISystem *getSystem(void) { return s_system; }
-    inline Fonts::FontManager *fontManager(void) { return s_fonts; }
-    inline IO::PlayerManager *getPlayerManager(void) { return s_playerManager; }
-    inline IO::DeviceManager *getDeviceManager(void) { return s_deviceManager; }
+    inline Files::StorageManager *getStorage(void) { return s_storage; }
+    inline Fonts::FontManager *getFontManager(void) { return s_fonts; }
+    inline IO::PlayerManager  *getPlayerManager(void)  { return s_playerManager; }
+    inline IO::DeviceManager  *getDeviceManager(void)  { return s_deviceManager; }
+    inline IO::OutputManager  *getOutputManager(void)  { return s_outputManager; }
 
-    inline void setSystem(AdminClass_Key key, System::ISystem (*sys)(void)) { setSystem(sys); }
-    inline void setVideo(AdminClass_Key key, Video::IVideo (*video)(void)) { setVideo(video); }
-    inline void setAudio(AdminClass_Key key, Audio::IAudio (*audio)(void)) { setAudio(audio); }
     inline void setSystem(AdminClass_Key key, System::ISystem *sys) { setSystem(sys); }
     inline void setVideo(AdminClass_Key key, Video::IVideo *video) { setVideo(video); }
     inline void setAudio(AdminClass_Key key, Audio::IAudio *audio) { setAudio(audio); }
-
-    // Input::IInputDriver *getInput(void) { return s_input; }
-    Files::IStorage *getStorage(void) { return s_storage; }
 
     inline bool registerDriver(IO::IDriver *dev)
     {
@@ -71,39 +67,14 @@ public:
         return s_deviceManager->registerDriver(dev);
     }
 
-    inline bool unregisterStorageDriver(IO::IDriver *dev)
+    inline bool unregisterDriver(IO::IDriver *dev)
     {
         if (!s_deviceManager || !dev) return false;
         return s_deviceManager->unregisterDriver(dev);
     }
 
-    inline bool attachInputDevice(Input::IInputDevice *dev, Input::Player player = Input::Player::ANY)
-    {
-        if (!s_playerManager || !dev) return false;
-        return s_playerManager->attachInputDevice(dev, player);
-    }
-    inline bool detachInputDevice(Input::IInputDevice *dev)
-    {
-        if (!s_playerManager || !dev) return false;
-        return s_playerManager->detachInputDevice(dev);
-    }
-
-    inline bool attachStorageDevice(Files::IStorageDevice *dev)
-    {
-        if (!s_storage || !dev) return false;
-        return s_storage->attachDevice(dev);
-    }
-    inline bool removeStorageDevice(Files::IStorageDevice *dev)
-    {
-        if (!s_storage || !dev) return false;
-        return s_storage->detachDevice(dev);
-    }
     int update();
     int updateCoroutines(); // This runs until either vsync occurs or all services are finished
-
-    inline size_t gfx_size(size_t size) { return (s_video ? s_video->getBufferSize(size) : 0); }
-    inline void *gfx_alloc(size_t size) { return (s_video ? s_video->allocate(size) : nullptr); }
-
     int registerCoroutine(ICoroutine &coroutine);
 
 private:
@@ -111,23 +82,16 @@ private:
     int init();
     void shutdown();
 
-    // pointers to service implementations
-
-    void setSystem(System::ISystem (*sys)(void));
-    void setVideo(Video::IVideo (*video)(void));
-    void setAudio(Audio::IAudio (*audio)(void));
     void setSystem(System::ISystem *sys);
     void setVideo(Video::IVideo *video);
     void setAudio(Audio::IAudio *audio);
-    void destroySystem();
-    void destroyVideo();
-    void destroyAudio();
 
     Audio::IAudio *s_audio             = nullptr;
     Video::IVideo *s_video             = nullptr;
     System::ISystem *s_system          = nullptr;
-    IO::PlayerManager *s_playerManager = nullptr;
-    IO::DeviceManager *s_deviceManager = nullptr;
+    IO::PlayerManager *s_playerManager  = nullptr;
+    IO::DeviceManager *s_deviceManager  = nullptr;
+    IO::OutputManager *s_outputManager  = nullptr;
     Fonts::FontManager *s_fonts        = nullptr;
     Files::StorageManager *s_storage   = nullptr;
     util::PointerList<ICoroutine *, 10> s_coroutines;

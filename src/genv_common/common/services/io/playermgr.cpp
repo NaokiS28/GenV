@@ -216,6 +216,7 @@ namespace IO
                         device->player = static_cast<PlayerIndex>(bestIdx);
                         if (slot.outputCount == 0) m_playersAvailable |= playerIndexToFlag(bestIdx);
                         slot.outputCount++;
+                        m_outputDeviceCount++;
                         success = true;
                         break;
                     }
@@ -236,6 +237,7 @@ namespace IO
                 }
             if (slot.outputCount == 0) m_playersAvailable |= playerIndexToFlag(idx);
             slot.outputCount++;
+            m_outputDeviceCount++;
             device->player = PlayerIndex::ARCADE_CABINET;
             success        = true;
         }

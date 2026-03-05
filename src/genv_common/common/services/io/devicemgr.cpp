@@ -66,7 +66,7 @@ namespace IO
             return false;
         }
 
-        if (size_t r = driver->init(_playerManager); r != GV_OK)
+        if (size_t r = driver->init(); r != GV_OK)
         {
             ILOG(szInputErrorFmt, szInput, szDriver, szInit, r);
             return false;

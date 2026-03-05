@@ -20,7 +20,6 @@
 
 #include "common/return_codes.hpp"
 #include "common/services/adminkey.hpp"
-#include "common/services/io/iface_driver.hpp"
 #include "common/services/io/playermgr.hpp"
 #include "common/services/io/devicemgr.hpp"
 #include "common/services/perfmon.hpp"
@@ -60,17 +59,17 @@ enum ServiceName
     SN_FONT
 };
 
-constexpr const int makeErrorCode(ServiceName sn, ServiceError se)
+constexpr int makeErrorCode(ServiceName sn, ServiceError se)
 {
     return ((sn << 8) | (se & 0xFF));
 }
 
-constexpr const int getServiceID(int errorcode)
+constexpr int getServiceID(int errorcode)
 {
-    return (errorcode >> 4);
+    return (errorcode >> 8);
 }
 
-constexpr const int getErrorCode(int errorcode)
+constexpr int getErrorCode(int errorcode)
 {
     return (errorcode & 0xFF);
 }
@@ -100,6 +99,15 @@ constexpr const char *szGetErrorString(int errorcode)
     }
 }
 
+template <typename T>
+static void destroyService(T *&ptr)
+{
+    if (!ptr) return;
+    ptr->shutdown();
+    delete ptr;
+    ptr = nullptr;
+}
+
 int ServiceManager::createManagers()
 {
     int error = 0;
@@ -110,6 +118,12 @@ int ServiceManager::createManagers()
     {
         s_playerManager = new IO::PlayerManager();
         if (!s_playerManager) error = makeErrorCode(SN_PLAYER, SE_NULLPTR);
+    }
+
+    if (!error)
+    {
+        s_outputManager = new IO::OutputManager();
+        if (!s_outputManager) error = makeErrorCode(SN_PLAYER, SE_NULLPTR);
     }
 
     if (!error)
@@ -164,15 +178,20 @@ int ServiceManager::update()
 void ServiceManager::shutdown()
 {
     LOG_SVC("Shutting down ServiceManager.");
-    destroyAudio();
-    destroyVideo();
-    destroySystem();
+    destroyService(s_audio);
+    destroyService(s_video);
+    destroyService(s_system);
 
     if (s_deviceManager)
     {
         s_deviceManager->shutdown();
         delete s_deviceManager;
         s_deviceManager = nullptr;
+    }
+    if (s_outputManager)
+    {
+        delete s_outputManager;
+        s_outputManager = nullptr;
     }
     if (s_playerManager)
     {
@@ -193,35 +212,14 @@ void ServiceManager::shutdown()
     }
 }
 
-void ServiceManager::setSystem(System::ISystem (*system)(void))
-{
-}
-
-void ServiceManager::setVideo(Video::IVideo (*video)(void))
-{
-}
-
-void ServiceManager::setAudio(Audio::IAudio (*audio)(void))
-{
-}
-
 void ServiceManager::setSystem(System::ISystem *system)
 {
     if (!system)
     {
-        int error = makeErrorCode(SN_SYSTEM, SE_NULLPTR);
-        LOG_SVC(szChangeServiceError,
-                szServiceName(error),
-                getErrorCode(error));
+        LOG_SVC(szChangeServiceError, szSystem, SE_NULLPTR);
         return;
     }
-
-    if (s_system)
-    {
-        s_system->shutdown();
-        delete s_system;
-    }
-
+    destroyService(s_system);
     s_system = system;
 }
 
@@ -229,19 +227,10 @@ void ServiceManager::setVideo(Video::IVideo *video)
 {
     if (!video)
     {
-        int error = makeErrorCode(SN_VIDEO, SE_NULLPTR);
-        LOG_SVC(szChangeServiceError,
-                szServiceName(error),
-                getErrorCode(error));
+        LOG_SVC(szChangeServiceError, szVideo, SE_NULLPTR);
         return;
     }
-
-    if (s_video)
-    {
-        s_video->shutdown();
-        delete s_video;
-    }
-
+    destroyService(s_video);
     s_video = video;
 }
 
@@ -249,46 +238,11 @@ void ServiceManager::setAudio(Audio::IAudio *audio)
 {
     if (!audio)
     {
-        int error = makeErrorCode(SN_AUDIO, SE_NULLPTR);
-        LOG_SVC(szChangeServiceError,
-                szServiceName(error),
-                getErrorCode(error));
+        LOG_SVC(szChangeServiceError, szAudio, SE_NULLPTR);
         return;
     }
-    if (s_audio)
-    {
-        s_audio->shutdown();
-        delete s_audio;
-    }
-
+    destroyService(s_audio);
     s_audio = audio;
-}
-
-void ServiceManager::destroySystem()
-{
-    if (!s_system)
-        return;
-    s_system->shutdown();
-    delete s_system;
-    s_system = nullptr;
-}
-
-void ServiceManager::destroyVideo()
-{
-    if (!s_video)
-        return;
-    s_video->shutdown();
-    delete s_video;
-    s_video = nullptr;
-}
-
-void ServiceManager::destroyAudio()
-{
-    if (!s_audio)
-        return;
-    s_audio->shutdown();
-    delete s_audio;
-    s_audio = nullptr;
 }
 
 int ServiceManager::updateCoroutines()
@@ -337,6 +291,11 @@ namespace IO
     PlayerView arcade()
     {
         return PlayerView(getServiceManager()->getPlayerManager(), Player::ARCADE_CABINET);
+    }
+
+    OutputManager *outputManager()
+    {
+        return getServiceManager()->getOutputManager();
     }
 } // namespace IO
 

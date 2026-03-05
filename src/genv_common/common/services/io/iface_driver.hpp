@@ -22,8 +22,6 @@
 
 namespace IO
 {
-    class PlayerManager; // forward declaration
-
     // Base class for all IO drivers. A driver represents a hardware bus or input source
     // (e.g. JAMMA, JVS, Windows HID). During init(), drivers attach their devices to
     // PlayerManager. During update(), drivers refresh device state buffers.
@@ -37,7 +35,7 @@ namespace IO
         IDriver() = default;
         IDriver(util::Hash id) : id(id) {}
         virtual ~IDriver() = default;
-        virtual int init(PlayerManager &playerManager) { return GV_OK; };
+        virtual int init() { return GV_OK; };
         virtual bool update() = 0;
         virtual bool reset() { return GV_OK; };
         virtual void shutdown() {};
