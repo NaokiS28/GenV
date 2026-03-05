@@ -19,6 +19,7 @@
 #include "nvram.hpp"
 #include "hardware.hpp" // IWYU pragma: export
 #include "common/services/system/arcade/iface_arcade.hpp"
+#include "common/services/io/player.hpp"
 
 /*
  * GenV - Arcade Extenstions
@@ -41,13 +42,13 @@ namespace System
     {
         struct DIPSwitches
         {
-            uint8_t banks = 0;
+            uint8_t banks  = 0;
             uint8_t *array = nullptr;
         };
 
         struct CoinData
         {
-            uint8_t coinsIn = 0;
+            uint8_t coinsIn      = 0;
             uint8_t counterTicks = 0;
         };
     } // namespace ArcadeEnv
@@ -60,19 +61,17 @@ namespace System
         ArcadeEnv::CoinData *playerCoins = nullptr;
 
     protected:
-        uint8_t physicalPlayers = 0;
-        uint8_t physicalCoinSlots = 0;
+        CoinSlot physicalCoinSlots = CoinSlot::None;
 
-        bool enableWatchdogTicking = true; // ⚠️ WARNING ⚠️ Unless you are testWatchdog(), DONT TOUCH.
-        bool testSwitchLatching = false;   // If false, enableTestMode must be disabled by the Test Menu exiting. If true, test screen will exit when enableTestMode goes low,
-        bool enableTestMode = false;       // On systems with a switch, this will mirror the switch ON-OFF state. On push button systems, this will toggle on
+        bool enableWatchdogTicking = true;  // ⚠️ WARNING ⚠️ Unless you are testWatchdog(), DONT TOUCH.
+        bool testSwitchLatching    = false; // If false, enableTestMode must be disabled by the Test Menu exiting. If true, test screen will exit when enableTestMode goes low,
+        bool enableTestMode        = false; // On systems with a switch, this will mirror the switch ON-OFF state. On push button systems, this will toggle on
 
-        uint8_t setPhysicalPlayers(uint8_t players) override;
-        uint8_t setPhysicalCoinSlots(uint8_t slots) override;
-        virtual uint8_t getCoinCounterBuffer(int8_t slot = -1) override;
-        virtual uint8_t addCoin(uint8_t slot, uint8_t amount) override;
-        virtual uint8_t addServiceCoin(uint8_t slot = 0, uint8_t amount = 1) override;
-        virtual uint8_t increaseCoinCounter(uint8_t counter) override;
+        CoinSlot setPhysicalCoinSlots(CoinSlot slots) override;
+        virtual CoinSlot addCoin(CoinSlot slot, uint8_t amount = 1) override;
+        virtual CoinSlot addServiceCoin(CoinSlot slot = CoinSlot::Coin1, uint8_t amount = 1) override;
+        virtual CoinCounter increaseCoinCounter(CoinCounter counter) override;
+        virtual CoinCounter getCoinCounterBuffer(CoinSlot slot = CoinSlot::Coin1) override;
 
     public:
         // Get the virtual NVRAM data for read/writing
@@ -100,10 +99,10 @@ namespace System
         // Writes the current NVRAM data to the physical device (if available)
         virtual int writeNVRAM(const uint8_t *data, int offset, int size) override { return 0; }
 
-        int8_t coinsAvailable(int8_t player = -1) override;
+        int8_t coinsAvailable(IO::Player player) override;
 
         // Returns as many coin counters as is requested by size
-        uint8_t coinsAvailable(uint8_t *array, uint8_t size) override;
+        IO::Player coinsAvailable(uint8_t *array, IO::Player players) override;
 
         bool testSwitchIsLatching() override { return testSwitchLatching; }
         bool runTestMode() override { return enableTestMode; }
@@ -121,6 +120,7 @@ namespace System
 // This macro is a short hand to mean that this code should only be run if the system
 // is an arcade system. Otherwise it is skipped. Use Genv_Arcade to access arcade
 // system specific functions. Uses static_cast to avoid RTTI
+#ifdef GENV_ARCARDE_SYSTEM
 #define ArcadeFunc(action)                                                 \
     do                                                                     \
     {                                                                      \
@@ -140,3 +140,7 @@ namespace System
             Genv_Arcade->tickWatchdog();                                   \
         }                                                                  \
     } while (0)
+#else
+#define ArcadeFunc(action)
+#define ArcadeWatchdogKick()
+#endif

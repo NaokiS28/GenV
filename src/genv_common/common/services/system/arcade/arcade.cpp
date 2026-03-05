@@ -18,52 +18,49 @@
 #include <assert.h>
 
 #include "arcade.hpp"
+#include "common/services/io/player.hpp"
+#include "common/services/system/arcade/iface_arcade.hpp"
 
 namespace System
 {
-    uint8_t BaseArcadeSystem::setPhysicalPlayers(uint8_t players)
-    {
-        // TODO: Is this needing any extra logic?
-        physicalPlayers = players;
-        return players;
-    }
+    using namespace IO;
 
-    uint8_t BaseArcadeSystem::setPhysicalCoinSlots(uint8_t slots)
+    CoinSlot BaseArcadeSystem::setPhysicalCoinSlots(CoinSlot slots)
     {
-        if (playerCoins != nullptr)
-            delete playerCoins;
+        if (playerCoins != nullptr) delete playerCoins;
+
         playerCoins = new ArcadeEnv::CoinData[4];
         assert(playerCoins != nullptr && "playerCoins is null!");
         if (!playerCoins)
-            return 0;
+            return CoinSlot::None;
         physicalCoinSlots = slots;
         return slots;
     }
 
-    uint8_t BaseArcadeSystem::getCoinCounterBuffer(int8_t slot)
+    CoinCounter BaseArcadeSystem::getCoinCounterBuffer(CoinSlot slot)
     {
-        if (slot >= physicalCoinSlots)
-            return 0;
+        if (slot >= physicalCoinSlots) return CoinCounter::None;
 
-        if (slot < 0)
+        CoinCounter counter = CoinCounter::None;
+        /*
+        for (CoinSlot c = CoinSlot::Coin1; c < physicalCoinSlots;)
         {
-            uint8_t counter = 0;
-            for (int c = 0; c < physicalCoinSlots; c++)
-            {
-                counter |= (uint8_t)((playerCoins[c].counterTicks > 0) << c);
-                if (playerCoins[c].counterTicks > 0)
-                    playerCoins[c].counterTicks--;
-            }
-            return counter;
+            counter |= (uint8_t)((playerCoins[c].counterTicks > 0) << c);
+            if (playerCoins[c].counterTicks > 0)
+                playerCoins[c].counterTicks--;
         }
-        return playerCoins[slot].counterTicks--;
+        return counter;
+        */
+
+        // return playerCoins[slot].counterTicks--;
+        return counter;
     }
 
-    int8_t BaseArcadeSystem::coinsAvailable(int8_t slot)
+    int8_t BaseArcadeSystem::coinsAvailable(Player slot)
     {
-        if (!playerCoins || slot >= physicalCoinSlots)
-            return false;
-
+        // if (!playerCoins || slot >= physicalCoinSlots)
+        //    return false;
+        /*
         if (slot < 0)
         {
             for (int8_t p = 0; p < physicalCoinSlots; p++)
@@ -77,53 +74,59 @@ namespace System
         {
             return playerCoins[slot].coinsIn;
         }
+            */
+        return 0;
     }
 
-    uint8_t BaseArcadeSystem::coinsAvailable(uint8_t *array, uint8_t size)
+    Player BaseArcadeSystem::coinsAvailable(uint8_t *array, Player players)
     {
         if (!playerCoins || !array)
-            return 0;
+            return Player::NONE;
 
+        CoinSlot size = static_cast<CoinSlot>(playerToIndex(players));
         if (size > physicalCoinSlots)
             size = physicalCoinSlots;
 
-        uint8_t players = 0;
-        for (int8_t p = 0; p < physicalCoinSlots; p++)
+        Player available = Player::NONE;
+        for (CoinSlot p = CoinSlot::Coin1; p < physicalCoinSlots;) // p++
         {
-            array[p] = playerCoins[p].coinsIn;
+            // array[p] = playerCoins[p].coinsIn;
             players++;
         }
-        return players;
+        return available;
     }
 
-    uint8_t BaseArcadeSystem::addCoin(uint8_t slot, uint8_t amount)
+    CoinSlot BaseArcadeSystem::addCoin(CoinSlot slot, uint8_t amount)
     {
         if (slot >= physicalCoinSlots)
-            return 0xFF;
-        playerCoins[slot].coinsIn += amount;
-        playerCoins[slot].counterTicks += amount;
+            return CoinSlot::None;
+
+        auto idx = coinSlotToIndex(slot);
+        playerCoins[idx].coinsIn += amount;
+        playerCoins[idx].counterTicks += amount;
+        /*
         if (slot < _eeprom.coinSlots)
         {
             // Should always happen, but code safety ennit.
             _eeprom.totalCoins[slot]++;
         }
+            */
         return slot;
     }
 
-    uint8_t BaseArcadeSystem::addServiceCoin(uint8_t slot, uint8_t amount)
+    CoinSlot BaseArcadeSystem::addServiceCoin(CoinSlot slot, uint8_t amount)
     {
-        if (slot >= physicalCoinSlots)
-            slot = 0;
-        playerCoins[slot].coinsIn += amount;
+        if (slot >= physicalCoinSlots) return CoinSlot::None;
+        playerCoins[coinSlotToIndex(slot)].coinsIn += amount;
         return slot;
     }
 
-    uint8_t BaseArcadeSystem::increaseCoinCounter(uint8_t counter)
+    CoinCounter BaseArcadeSystem::increaseCoinCounter(CoinCounter counter)
     {
-        if (counter >= physicalCoinSlots)
-            return 0xFF;
+        // if (counter >= physicalCoinSlots)
+        //    return CoinCounter::None;
         // TODO: Check IO service?
-        return 0xFF;
+        return CoinCounter::None;
     }
 
     uint8_t BaseArcadeSystem::setOutputs(uint8_t bank, uint8_t data)

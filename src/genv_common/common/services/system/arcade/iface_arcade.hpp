@@ -19,19 +19,85 @@
 
 #include <stdint.h>
 
+#include "common/services/io/player.hpp"
+#include "common/util/enum_defs.hpp"
 #include "nvram.hpp"
 
 namespace System
 {
+    enum class CoinSlot
+    {
+        None  = 0,
+        Coin1 = 1 << 0,
+        Coin2 = 1 << 1,
+        Coin3 = 1 << 2,
+        Coin4 = 1 << 3,
+    };
+
+    ENABLE_BITWISE_OPS(CoinSlot);
+
+    constexpr int coinSlotToIndex(CoinSlot coin)
+    {
+        switch (coin)
+        {
+        default: return -1;
+        case CoinSlot::Coin1: return 0;
+        case CoinSlot::Coin2: return 1;
+        case CoinSlot::Coin3: return 2;
+        case CoinSlot::Coin4: return 3;
+        }
+    }
+
+    enum class CoinCounter
+    {
+        None     = 0,
+        Counter1 = 1 << 0,
+        Counter2 = 1 << 1,
+        Counter3 = 1 << 2,
+        Counter4 = 1 << 3,
+    };
+
+    enum class CoinCounterIndex
+    {
+        Counter1 = 0,
+        Counter2 = 1,
+        Counter3 = 2,
+        Counter4 = 3,
+        Invalid  = 0xFFFF,
+    };
+
+    ENABLE_BITWISE_OPS(CoinCounter);
+
+    constexpr CoinCounter coinCounterIndexToFlag(uint8_t idx)
+    {
+        constexpr CoinCounter flags[] = {
+            CoinCounter::Counter1,
+            CoinCounter::Counter2,
+            CoinCounter::Counter3,
+            CoinCounter::Counter4};
+        return (idx < 9) ? flags[idx] : CoinCounter::None;
+    }
+
+    constexpr CoinCounterIndex coinCounterToIndex(CoinCounter counter)
+    {
+        switch (counter)
+        {
+        case CoinCounter::Counter1: return CoinCounterIndex::Counter1;
+        case CoinCounter::Counter2: return CoinCounterIndex::Counter2;
+        case CoinCounter::Counter3: return CoinCounterIndex::Counter3;
+        case CoinCounter::Counter4: return CoinCounterIndex::Counter4;
+        default: return CoinCounterIndex::Invalid;
+        }
+    }
+
     class IArcadeSystem
     {
     protected:
-        virtual uint8_t setPhysicalPlayers(uint8_t players) = 0;
-        virtual uint8_t setPhysicalCoinSlots(uint8_t slots) = 0;
-        virtual uint8_t getCoinCounterBuffer(int8_t slot = -1) = 0;
-        virtual uint8_t addCoin(uint8_t slot, uint8_t amount) = 0;
-        virtual uint8_t addServiceCoin(uint8_t slot = 0, uint8_t amount = 1) = 0;
-        virtual uint8_t increaseCoinCounter(uint8_t counter) = 0;
+        virtual CoinSlot setPhysicalCoinSlots(CoinSlot slots)                                = 0;
+        virtual CoinSlot addCoin(CoinSlot slot, uint8_t amount)                              = 0;
+        virtual CoinSlot addServiceCoin(CoinSlot slot = CoinSlot::Coin1, uint8_t amount = 1) = 0;
+        virtual CoinCounter increaseCoinCounter(CoinCounter counter)                         = 0;
+        virtual CoinCounter getCoinCounterBuffer(CoinSlot slot = CoinSlot::Coin1)            = 0;
 
     public:
         virtual ~IArcadeSystem() = default;
@@ -73,10 +139,10 @@ namespace System
         // If player given is negative, will instead return the first player
         // (if any) that has coins are available for use. If it returns negative
         // no coins are available
-        virtual int8_t coinsAvailable(int8_t player = -1) = 0;
+        virtual int8_t coinsAvailable(IO::Player player) = 0;
 
         // Returns as many coin counters as is requested by size
-        virtual uint8_t coinsAvailable(uint8_t *array, uint8_t size) = 0;
+        virtual IO::Player coinsAvailable(uint8_t *array, IO::Player players) = 0;
 
         // True if the test switch is a sliding or rocker switch. False if a push button.
         // If false, any game test menu must have an "EXIT TO GAME" menu option.
