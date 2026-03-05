@@ -15,66 +15,64 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Very basic GPU driver designed to reset the GPU and use bare C to draw out
-// an error screen.
-// TODO: Currently relies on a existing font from GenV, but trying to assume
-// the worst case scenario, we shouldnt trust a font to be uploaded.
+// Self-contained halt screen library for PSX. Resets the GPU and renders an
+// error message using a built-in font spritesheet. Assumes all prior execution
+// context is invalid - no dependencies on the rest of GenV.
 
 #pragma once
 #ifndef GENV_PSX_HALT_H
 #define GENV_PSX_HALT_H
 
 #include <stdint.h>
-#include <stddef.h>
-#include "common/objects/fonts/font_glyph.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+    // Metrics for the active halt screen font. The glyph table is internal to
+    // halt.c; this struct exposes only what platform-specific post-halt
+    // callbacks (e.g. System 573) need in order to draw additional text.
     typedef struct
     {
-        struct
-        {
-            int x;
-            int y;
-            int xoffset;
-            int yoffset;
-        } tpage;
-        struct
-        {
-            int x;
-            int y;
-        } vram;
-        struct
-        {
-            int x;
-            int y;
-        } clut;
-        int tabWidth;
-        int spaceWidth;
-        int fontSize;
-        const FontGlyph *table;
-        size_t numBuckets;
+        uint16_t page;  // GP0 texpage word for the font spritesheet
+        uint16_t clut;  // GP0 CLUT attribute word for the font palette
+        uint8_t u;      // U base offset within the texpage (pixels)
+        uint8_t v;      // V base offset within the texpage (pixels)
+        int fontSize;   // Line height in pixels
+        int spaceWidth; // Width of a space character in pixels
+        int tabWidth;   // Width of a tab stop in pixels
     } HaltScreenFont;
 
     typedef struct
     {
-        uint16_t r;
-        uint16_t g;
-        uint16_t b;
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
     } HaltColor;
 
     typedef void (*PostHaltFunc)(HaltScreenFont *font);
 
-    // Allows passing of a function that will be ran after the halt screen has been displayed.
+    // Registers a function to be called after the halt screen has been
+    // displayed. Used by platform-specific code (e.g. System 573 watchdog
+    // kick / countdown before reboot).
     void psx_halt_append_func(PostHaltFunc func);
 
-    // Reinits the GPU and shows the given string on screen.
+    // Resets the GPU and displays the given error string on a blue screen.
     void psx_halt_screen_show(const char *string);
 
-    int psx_gpu_drawText(HaltScreenFont *ptObj, const char *str, int x, int y, int w, int h);
+    // Draw a string using the halt screen font. x/y are the top-left origin;
+    // w/h bound the text area. Returns 0 on success.
+    int psx_gpu_drawText(
+        HaltScreenFont *font,
+        const char *str,
+        int x, int y,
+        int w, int h);
+
+    // Fill a solid-color rectangle directly via GP0 VRAM fill.
     void psx_gpu_rectangle(HaltColor color, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+
+    // Fill the full 320x240 screen with a solid color.
     void psx_gpu_fillScreen(HaltColor color, uint16_t x, uint16_t y);
 
 #ifdef __cplusplus

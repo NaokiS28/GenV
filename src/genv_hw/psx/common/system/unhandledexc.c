@@ -75,71 +75,72 @@ static const char _registerNames[] =
 
 static const char _hexDigits[] = "0123456789ABCDEF";
 
-static void _printHexValue(char *str, uint32_t value)
+char halt_str[256] = {0};
+
+static void _printHexValue(char *halt_str, uint32_t value)
 {
     for (int i = 8; i; i--, value <<= 4)
-        strncat(str, &_hexDigits[value >> 28], 1);
+        strncat(halt_str, &_hexDigits[value >> 28], 1);
 }
 #endif
 
 void _unhandledException(int cause, uint32_t badv)
 {
 #ifndef NDEBUG
-    char str[256] = {0};
 
-    strcat(str, "SYSTEM EXCEPTION: ");
-    strcat(str, _causeNames[cause - 4]);
-    strcat(str, "\r\n");
+    strcat(halt_str, "SYSTEM EXCEPTION: ");
+    strcat(halt_str, _causeNames[cause - 4]);
+    strcat(halt_str, "\r\n");
 
     if (cause <= 5)
     {
-        strcat(str, "@");
-        strcat(str, " ");
-        _printHexValue(str, badv);
-        strcat(str, "\r\n");
+        strcat(halt_str, "@");
+        strcat(halt_str, " ");
+        _printHexValue(halt_str, badv);
+        strcat(halt_str, "\r\n");
     }
 
-    strcat(str, "Register dump:\r\n");
+    strcat(halt_str, "Register dump:\r\n");
 
     const char *name = _registerNames;
-    uint32_t *reg = (uint32_t *)&(currentThread->pc);
+    uint32_t *reg    = (uint32_t *)&(currentThread->pc);
 
     for (int i = 31; i >= 0; i--)
     {
-        strcat(str, " ");
-        strcat(str, " ");
-        strncat(str, (name++), 1);
-        strncat(str, (name++), 1);
-        strcat(str, "=");
-        _printHexValue(str, *(reg++));
+        strcat(halt_str, " ");
+        strcat(halt_str, " ");
+        strncat(halt_str, (name++), 1);
+        strncat(halt_str, (name++), 1);
+        strcat(halt_str, "=");
+        _printHexValue(halt_str, *(reg++));
 
         if (!(i % 4))
         {
-            strcat(str, "\r\n");
+            strcat(halt_str, "\r\n");
         }
     }
 
-    strcat(str, "Stack dump:\r\n");
+    strcat(halt_str, "Stack dump:\r\n");
 
     uint32_t *addr = ((uint32_t *)currentThread->sp) - 7;
-    uint32_t *end = ((uint32_t *)currentThread->sp) + 7;
+    uint32_t *end  = ((uint32_t *)currentThread->sp) + 7;
 
     for (; addr <= end; addr++)
     {
         if (((uint32_t)addr) == currentThread->sp)
-            strcat(str, ">");
+            strcat(halt_str, ">");
         else
-            strcat(str, " ");
+            strcat(halt_str, " ");
 
-        strcat(str, " ");
-        _printHexValue(str, (uint32_t)addr);
-        strcat(str, " ");
-        strcat(str, " ");
-        _printHexValue(str, *addr);
-        strcat(str, "\r\n");
+        strcat(halt_str, " ");
+        _printHexValue(halt_str, (uint32_t)addr);
+        strcat(halt_str, " ");
+        strcat(halt_str, " ");
+        _printHexValue(halt_str, *addr);
+        strcat(halt_str, "\r\n");
     }
-    puts(str);
-    genv_halt_screen_show(str);
+    puts(halt_str);
+    genv_halt_screen_show(halt_str);
 #endif
 
     for (;;)
