@@ -17,18 +17,74 @@
 
 #pragma once
 
-#include "psx/sys573/registers573.hpp"
+#include "common/util/enum_defs.hpp"
+#include "psx/common/registers.hpp"    // IWYU pragma: keep
+#include "psx/sys573/registers573.hpp" // IWYU pragma: keep
 #include <stdint.h>
 #include <stdbool.h>
 
 namespace System573::IO::ASIC
 {
-    void writeOutputs(MiscOutput state);                          // Writes all outputs to the raw given data
-    void writeOutputsMasked(MiscOutput outputs, MiscOutput mask); // Writes multiple bits using a mask to only change select bits
-    void writeOutputBit(MiscOutput output, bool state);           // Sets/Unsets a single bit of the output data
-    void pulseOutput(MiscOutput output);                          // Pulses output (only supports coin counters and JVS reset, blocking)
-    void muteAudio(MiscOutput channel);                           // Mutes the passed audio channels (only supports audio channels)
-    void unmuteAudio(MiscOutput channel);                         // Unmutes the passed audio channels (only supports audio channels)
+    namespace Regs
+    {
+        static volatile uint16_t &MiscOut    = *_ADDR16(DEV0_BASE | 0x400000);
+        static volatile uint16_t &DipCart    = *_ADDR16(DEV0_BASE | 0x400004);
+        static volatile uint16_t &MiscIn     = *_ADDR16(DEV0_BASE | 0x400006);
+        static volatile uint16_t &JammaMain  = *_ADDR16(DEV0_BASE | 0x400008);
+        static volatile uint16_t &JvsRxData  = *_ADDR16(DEV0_BASE | 0x40000a);
+        static volatile uint16_t &JammaExt1  = *_ADDR16(DEV0_BASE | 0x40000c);
+        static volatile uint16_t &JammaExt2  = *_ADDR16(DEV0_BASE | 0x40000e);
+        static volatile uint16_t &BankCtrl   = *_ADDR16(DEV0_BASE | 0x500000);
+        static volatile uint16_t &JvsIrdyAck = *_ADDR16(DEV0_BASE | 0x520000);
+        static volatile uint16_t &IdeReset   = *_ADDR16(DEV0_BASE | 0x560000);
+        static volatile uint16_t &Watchdog   = *_ADDR16(DEV0_BASE | 0x5c0000);
+        static volatile uint16_t &ExtOut     = *_ADDR16(DEV0_BASE | 0x600000);
+        static volatile uint16_t &JvsTxData  = *_ADDR16(DEV0_BASE | 0x680000);
+        static volatile uint16_t &CartOut    = *_ADDR16(DEV0_BASE | 0x6a0000);
+    } // namespace Regs
 
-    MiscOutput get_outputs(); // Returns the state of the output port (stored in RAM)
+    enum MiscOutput : uint16_t
+    {
+        OUT_NONE        = 0 << 0,
+        OUT_ADC_DI      = 1 << 0,
+        OUT_ADC_CS      = 1 << 1,
+        OUT_ADC_CLK     = 1 << 2,
+        OUT_COIN_COUNT1 = 1 << 3,
+        OUT_COIN_COUNT2 = 1 << 4,
+        OUT_AMP_ENABLE  = 1 << 5,
+        OUT_CDDA_ENABLE = 1 << 6,
+        OUT_SPU_ENABLE  = 1 << 7,
+        OUT_JVS_RESET   = 1 << 8
+    };
+
+    ENABLE_BITWISE_OPS(MiscOutput);
+
+    enum MiscInput : uint16_t
+    {
+        IN_NONE       = 0 << 0,
+        IN_ADC_DO     = 1 << 0,
+        IN_ADC_SARS   = 1 << 1,
+        IN_CART_SDA   = 1 << 2,
+        IN_JVS_SENSE  = 1 << 3,
+        IN_JVS_IRDY   = 1 << 4,
+        IN_JVS_DRDY   = 1 << 5,
+        IN_CART_IRDY  = 1 << 6,
+        IN_CART_DRDY  = 1 << 7,
+        IN_COIN1      = 1 << 8,
+        IN_COIN2      = 1 << 9,
+        IN_PCMCIA_CD1 = 1 << 10,
+        IN_PCMCIA_CD2 = 1 << 11,
+        IN_SERVICE    = 1 << 12
+    };
+
+    ENABLE_BITWISE_OPS(MiscInput);
+
+    void SetOutputs(MiscOutput state);                          // Writes all outputs to the raw given data
+    void SetOutputsMasked(MiscOutput outputs, MiscOutput mask); // Writes multiple bits using a mask to only change select bits
+    void SetOutputBit(MiscOutput output, bool state);           // Sets/Unsets a single bit of the output data
+    void PulseOutput(MiscOutput output);                        // Pulses output (only supports coin counters and JVS reset, blocking)
+    void MuteAudio(MiscOutput channel);                         // Mutes the passed audio channels (only supports audio channels)
+    void UnmuteAudio(MiscOutput channel);                       // Unmutes the passed audio channels (only supports audio channels)
+
+    MiscOutput GetOutputs(); // Returns the state of the output port (stored in RAM)
 } // namespace System573::IO::ASIC

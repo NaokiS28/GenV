@@ -20,9 +20,8 @@
 
 #include "halt.h"
 #include "psx/common/halt/halt.h"
-#include "psx/common/registers.hpp"
-#include "psx/common/system/sys.h"
-#include "psx/sys573/registers573.hpp"
+#include "psx/common/halt/ps1/registers.h"
+#include "psx/common/halt/ps1/sys.h"
 
 extern HaltColor ColorBlue;
 
@@ -35,9 +34,9 @@ void sys573_halt_delay(HaltScreenFont *font)
     // This needs to be done first else the RTC is inacessible
     BIU_DEV0_ADDR = 0x1F000000;
     BIU_DEV0_CTRL = 0x24173f47;
-    SYS573_WATCHDOG = 0;
+    // SYS573_WATCHDOG = 0;
 
-    size_t timer = 60 * 15; // 60Hz
+    size_t timer    = 60 * 15; // 60Hz
     int lastSeconds = 0;
 
     puts("Rebooting in...");
@@ -49,7 +48,7 @@ void sys573_halt_delay(HaltScreenFont *font)
 
             if (lastSeconds != seconds)
             {
-                lastSeconds = seconds;
+                lastSeconds  = seconds;
                 char str[32] = {0};
                 snprintf(str, 32, "Rebooting in ... %d second%c", seconds, (seconds > 1 ? 's' : ' '));
                 psx_gpu_rectangle(
@@ -79,7 +78,7 @@ void sys573_halt_delay(HaltScreenFont *font)
             timer--;
         }
 
-        SYS573_WATCHDOG = 0;
+        // SYS573_WATCHDOG = 0;
     }
 
     puts("\r\nRebooting now!\r\n");

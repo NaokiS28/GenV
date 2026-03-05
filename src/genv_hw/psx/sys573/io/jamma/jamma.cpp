@@ -18,6 +18,8 @@
 #include "jamma.hpp"
 #include "common/return_codes.hpp"
 #include "common/services/io/iface_input.hpp"
+#include "common/services/io/iface_output.hpp"
+#include "common/services/io/iostrings.hpp"
 #include "common/services/io/vjoy.hpp"
 #include "common/services/services.hpp"
 #include "common/util/templates.hpp"
@@ -28,6 +30,11 @@
 namespace System573::IO
 {
     using namespace Input;
+    using namespace Output;
+
+    constexpr IOutputDevice gx700_outputs = IOutputDevice(
+        "Systm 573 EXTOUT", "GX700-EXTOUT"_h, idNull, OutputType::BINARY, 0, 0);
+
     constexpr IInputDevice jamma(const char *name, uint32_t *digital, uint8_t numAnalog = 0, int16_t *analog = nullptr)
     {
         return {
@@ -74,10 +81,10 @@ namespace System573::IO
         _devs[2] = jamma("System 573 JAMMA (Service)", &_digital[2]);
 
         int err = 0;
-        err += getServiceManager()->attachInputDevice(&_devs[0], Input::Player::PLAYER_1);
-        err += getServiceManager()->attachInputDevice(&_devs[1], Input::Player::PLAYER_2);
-        err += getServiceManager()->attachInputDevice(&_devs[2], Input::Player::ARCADE_CABINET);
-        ASIC::writeOutputBit(MiscOutput::ADC_CS, true);
+        err += playerManager()->attachInputDevice(&_devs[0], Input::Player::PLAYER_1);
+        err += playerManager()->attachInputDevice(&_devs[1], Input::Player::PLAYER_2);
+        err += playerManager()->attachInputDevice(&_devs[2], Input::Player::ARCADE_CABINET);
+        ASIC::SetOutputBit(ASIC::OUT_ADC_CS, true);
         return err;
     }
 
@@ -93,9 +100,9 @@ namespace System573::IO
         uint16_t inputs[3] = {0};
 
         // Read in raw data
-        inputs[0] = SYS573_JAMMA_MAIN;
-        inputs[1] = (SYS573_JAMMA_EXT1 & 0x0f00) >> 8;
-        inputs[2] = (SYS573_JAMMA_EXT2 & 0x0f00) >> 8;
+        inputs[0] = ASIC::Regs::JammaMain;
+        inputs[1] = (ASIC::Regs::JammaExt1 & 0x0f00) >> 8;
+        inputs[2] = (ASIC::Regs::JammaExt2 & 0x0f00) >> 8;
 
         for (int i = 0; i < 2; i++) // Hoping this loop is unrolled by the compiler
         {
@@ -109,7 +116,7 @@ namespace System573::IO
             _digital[i] |= getInputsFromMap(x, extraButtonMap);
         }
 
-        uint8_t service = (~SYS573_MISC_IN >> 8) & 0x13;
+        uint8_t service = (~ASIC::Regs::MiscIn >> 8) & 0x13;
         service |= ~inputs[1] & 0x04;
         _digital[2] = getArcadeFromMap(service, serviceButtonMap); // System
     }
@@ -123,9 +130,9 @@ namespace System573::IO
         // Debug marker for signiture in logic analyser
         if (!c)
         {
-            ASIC::writeOutputBit(MiscOutput::ADC_CS, false);
+            ASIC::SetOutputBit(ASIC::OUT_ADC_CS, false);
             psx_delayMicrosecondsBusy(10);
-            ASIC::writeOutputBit(MiscOutput::ADC_CS, true);
+            ASIC::SetOutputBit(ASIC::OUT_ADC_CS, true);
         }
 
         ch = util::map(

@@ -19,7 +19,6 @@
 #include <stdbool.h>
 
 #include "io.hpp"
-#include "psx/sys573/registers573.hpp"
 
 namespace System573::IO
 {
@@ -29,8 +28,8 @@ namespace System573::IO
 
         void set_state(uint8_t data)
         {
-            ext_out_state  = data;
-            SYS573_EXT_OUT = ext_out_state;
+            ext_out_state      = data;
+            ASIC::Regs::ExtOut = ext_out_state;
         }
 
         uint8_t get_state()
@@ -45,29 +44,45 @@ namespace System573::IO
                 ext_out_state |= (1 << bit);
             else
                 ext_out_state &= ~(1 << bit);
-            SYS573_EXT_OUT = ext_out_state;
+            ASIC::Regs::ExtOut = ext_out_state;
         }
     } // namespace EXTOUT
 
     namespace SecurityCart
     {
-        int set_out_data(uint8_t data)
+        constexpr uint8_t OutPortGPIOMask = ~(1 << 0);
+        uint8_t OutPortState              = 0;
+
+        int SetGPIOState(bool state)
         {
-            auto x = static_cast<MiscInput>(SYS573_MISC_IN) & MiscInput::CART_DRDY;
-            if (x != MiscInput::NONE)
+            auto x = ASIC::Regs::MiscIn & ASIC::IN_CART_DRDY;
+            if (x != ASIC::IN_NONE)
             {
-                SYS573_CART_OUT = data;
+                OutPortState        = (OutPortState & OutPortGPIOMask) | state;
+                ASIC::Regs::CartOut = OutPortState;
                 return 0;
             }
             return 1;
         }
 
-        int get_in_data(uint8_t *data)
+        int SetOutPort(uint8_t data)
         {
-            auto x = static_cast<MiscInput>(SYS573_MISC_IN) & MiscInput::CART_IRDY;
-            if (x != MiscInput::NONE)
+            auto x = ASIC::Regs::MiscIn & ASIC::IN_CART_DRDY;
+            if (x != ASIC::IN_NONE)
             {
-                *data = (SYS573_DIP_CART & 0xFF00) >> 8;
+                OutPortState        = data;
+                ASIC::Regs::CartOut = OutPortState;
+                return 0;
+            }
+            return 1;
+        }
+
+        int GetInPort(uint8_t *data)
+        {
+            auto x = ASIC::Regs::MiscIn & ASIC::IN_CART_IRDY;
+            if (x != ASIC::IN_NONE)
+            {
+                *data = (ASIC::Regs::DipCart & 0xFF00) >> 8;
                 return 0;
             }
             return 1;

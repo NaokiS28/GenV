@@ -19,7 +19,9 @@
 
 #include "common/services/io/iface_driver.hpp"
 #include "common/services/io/iface_input.hpp"
+#include "common/services/system/arcade/iface_arcade.hpp"
 #include "common/util/templates.hpp"
+#include "psx/sys573/io/asic.hpp"
 
 namespace System573::IO
 {
@@ -54,6 +56,15 @@ namespace System573::IO
 
         uint8_t setOutputs(uint8_t bank, uint8_t data);
         uint8_t setSingleOutput(uint8_t outputNumber, bool state);
-        uint8_t increaseCoinCounter(uint8_t counter);
+        System::CoinCounter increaseCoinCounter(System::CoinCounter counter);
+
+        // Returns true if the JVS Sense input pin is being asserted.
+        // JVS says the sense pin must be 2.5v when an IO board is connected but not
+        // set with an ID, and 0v when ID has been given. If this function returns false,
+        // an IO board is not present.
+        static inline bool Sense()
+        {
+            return (ASIC::Regs::MiscIn & ASIC::IN_JVS_SENSE) != ASIC::IN_NONE;
+        }
     };
 } // namespace System573::IO

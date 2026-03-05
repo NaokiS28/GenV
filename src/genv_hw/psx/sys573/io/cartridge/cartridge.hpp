@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 - 2026 NaokiS, spicyjpeg
- * flash.hpp - Created on 05-03-2026
+ * cartridge.hpp - Created on 23-02-2026
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -17,7 +17,9 @@
 
 #pragma once
 
-namespace System573::IO::Flash
+#include "psx/sys573/registers573.hpp"
+
+namespace System573::Cartridge
 {
 
 }

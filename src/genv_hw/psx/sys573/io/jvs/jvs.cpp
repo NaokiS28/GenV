@@ -35,6 +35,7 @@
 #include "jvs.hpp"
 #include "common/return_codes.hpp"
 #include "common/services/io/iface_input.hpp"
+#include "common/services/system/arcade/iface_arcade.hpp"
 #include "common/services/system/iface_coroutine.hpp"
 #include "psx/common/system/sys.h"
 #include "psx/sys573/io/jvs/h8.hpp"
@@ -70,7 +71,7 @@ namespace System573::IO
             {
             case JVS_SYNC_ID:
                 if (!word) word = (packet.sync | (packet.nodeID << 8));
-                if (H8::writeWord(word))
+                if (H8::WriteWord(word))
                 {
                     packetStep = JVS_SIZE_DATA;
                     word       = 0;
@@ -78,7 +79,7 @@ namespace System573::IO
                 break;
             case JVS_SIZE_DATA:
                 if (!word) word = (packet.size | (packet.data[0] << 8));
-                if (H8::writeWord(word))
+                if (H8::WriteWord(word))
                 {
                     packetStep = JVS_DATA_SUM;
                     word       = 0;
@@ -87,7 +88,7 @@ namespace System573::IO
                 break;
             case JVS_DATA_SUM:
                 if (!word) word = (packet.data[emitted] | (packet.data[emitted + 1] << 8));
-                if (H8::writeWord(word))
+                if (H8::WriteWord(word))
                 {
                     word = 0;
                     emitted += 2;
@@ -133,33 +134,33 @@ namespace System573::IO
         // Test the H8 is responding as we expect
         for (;;)
         {
-            H8::reset();
+            H8::Reset();
             psx_delayMicrosecondsBusy(10);
-            H8::ack();
-            H8Status status = H8_INVALID_STATUS_CODE;
-            H8Error error   = H8_INVALID_ERROR_CODE;
+            H8::Ack();
+            auto status = H8::INVALID_STATUS_CODE;
+            auto error  = H8::INVALID_ERROR_CODE;
             switch (h8_init_step)
             {
             case H8_RESET_CHECK:
-                status = H8::status();
-                error  = H8::error();
-                if (status != H8_STATUS_WAITING || error != H8_NO_ERROR)
+                status = H8::Status();
+                error  = H8::Error();
+                if (status != H8::STATUS_WAITING || error != H8::NO_ERROR)
                     return GV_ERROR(GV_SERVICE_INPUT, GV_CATEGORY_GENERIC, GV_ERR_NO_RESPONSE);
                 break;
             case H8_HEADER_CHECK:
-                H8::writeWord(0x00E0);
+                H8::WriteWord(0x00E0);
                 psx_delayMicrosecondsBusy(10);
-                status = H8::status();
-                error  = H8::error();
-                if (status != H8_STATUS_TRANSFER_IN_PROGRESS || error != H8_NO_ERROR)
+                status = H8::Status();
+                error  = H8::Error();
+                if (status != H8::STATUS_TRANSFER_IN_PROGRESS || error != H8::NO_ERROR)
                     return GV_ERROR(GV_SERVICE_INPUT, GV_CATEGORY_GENERIC, GV_ERR_NO_RESPONSE);
                 break;
             case H8_INVALID_CHECK:
-                H8::writeWord(0x001F);
+                H8::WriteWord(0x001F);
                 psx_delayMicrosecondsBusy(10);
-                status = H8::status();
-                error  = H8::error();
-                if (status != H8_STATUS_BUSY || error != H8_ERROR_INVALID_SYNC)
+                status = H8::Status();
+                error  = H8::Error();
+                if (status != H8::STATUS_BUSY || error != H8::ERROR_INVALID_SYNC)
                     return GV_ERROR(GV_SERVICE_INPUT, GV_CATEGORY_GENERIC, GV_ERR_NO_RESPONSE);
                 h8_init_step = DONE;
                 break;
@@ -191,9 +192,9 @@ namespace System573::IO
         return 0;
     }
 
-    uint8_t JVS::increaseCoinCounter(uint8_t counter)
+    System::CoinCounter JVS::increaseCoinCounter(System::CoinCounter counter)
     {
-        return 0;
+        return System::CoinCounter::None;
     }
 
 } // namespace System573::IO

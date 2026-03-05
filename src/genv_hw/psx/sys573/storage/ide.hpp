@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 - 2026 NaokiS, spicyjpeg
- * flash.hpp - Created on 05-03-2026
+ * ide.hpp - Created on 05-03-2026
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -17,7 +17,8 @@
 
 #pragma once
 
-namespace System573::IO::Flash
+namespace System573::IO::IDE
 {
-
-}
+    void SetReset(bool state);
+    void PulseReset(bool state);
+} // namespace System573::IO::IDE

@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "common/services/system/arcade/iface_arcade.hpp"
 #include "common/services/system/system.hpp"
 #include "common/services/system/arcade/arcade.hpp"
 
@@ -36,7 +37,7 @@ namespace System573
         constexpr const char *szMakeName   = "KONAMI";
     } // namespace KSYS573
 
-    class Sys573System : public System::PSX::BasePSXSystem, public System::BaseArcadeSystem
+    class Sys573System : public PSX::BasePSXSystem, public System::BaseArcadeSystem
     {
     private:
         System::SystemInfo si573 = {
@@ -47,7 +48,7 @@ namespace System573
 
         static const uint8_t system_outputBanks = 1;
 
-        RTC m_rtc;
+        RTC::M48T58 m_rtc;
         IO::JAMMA m_jamma;
         IO::JVS m_jvs;
 
@@ -62,7 +63,7 @@ namespace System573
         int initStorage() override;
 
         int update() override;
-        bool shutdown() override;
+        void shutdown() override;
 
         int readNVRAM(uint8_t *data, int offset, int count) override
         {
@@ -73,11 +74,11 @@ namespace System573
             return m_rtc.writeNVRAM(data, offset, count);
         }
 
-        uint8_t increaseCoinCounter(uint8_t counter) override;
+        System::CoinCounter increaseCoinCounter(System::CoinCounter counter) override;
 
         inline void tickWatchdog(void) override
         {
-            if (enableWatchdogTicking) IO::watchdog_kick();
+            if (enableWatchdogTicking) IO::TickWatchdog();
         }
 
         const System::SystemInfo *getSysInfo() const override

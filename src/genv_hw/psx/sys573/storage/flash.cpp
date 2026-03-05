@@ -15,24 +15,55 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "flash.hpp"
-#include "psx/sys573/registers573.hpp"
+#include "common/services/storage/storage.hpp"
+#include "psx/sys573/io/asic.hpp"
+#include "psx/sys573/io/io.hpp"
 
-uint8_t sys573_bank_state = 0;
-void sys573_cart_gpio_set_direction(bool state)
+namespace System573::IO
 {
-    if (state)
-        sys573_bank_state |= (state << 6);
-    else
-        sys573_bank_state &= ~(state << 6);
-    SYS573_BANK_CTRL = sys573_bank_state;
-}
+    uint8_t sys573_bank_state = 0;
 
-void sys573_flash_set_bank(uint8_t bank)
-{
-    bank &= 0x3F;
-    if (!(bank & 0x30)) bank &= 0x03;
-    uint8_t mask      = sys573_bank_state ^ bank;
-    sys573_bank_state = (sys573_bank_state & mask) | bank;
-    SYS573_BANK_CTRL  = sys573_bank_state;
-}
+    namespace SecurityCart
+    {
+        void SetGPIODirection(GPIODir state)
+        {
+            bool _st = state == GPIODir::Output;
+            if (_st)
+                sys573_bank_state |= (_st << 6);
+            else
+                sys573_bank_state &= ~(_st << 6);
+            ASIC::Regs::BankCtrl = sys573_bank_state;
+        }
+    } // namespace SecurityCart
+
+    namespace Flash
+    {
+        static constexpr uint32_t BaseAddr = DEV0_BASE | 0x000000;
+        static constexpr int FlashSize     = Files::MiB(16);
+        static constexpr int BankSize      = Files::MiB(4);
+
+        /*struct FlashView
+        {
+            volatile uint16_t *const ptr = _ADDR16(BaseAddr);
+
+            volatile uint16_t &operator[](int offset) const
+            {
+                return ptr[offset % FlashSize];
+            }
+        };*/
+
+        namespace Regs
+        {
+            // static volatile uint16_t &Ctrl    = *_ADDR16(_A8_to_A16(ClockBaseAddr, 0x00));
+        } // namespace Regs
+
+        void SetBank(uint8_t bank)
+        {
+            bank &= 0x3F;
+            if (!(bank & 0x30)) bank &= 0x03;
+            uint8_t mask         = sys573_bank_state ^ bank;
+            sys573_bank_state    = (sys573_bank_state & mask) | bank;
+            ASIC::Regs::BankCtrl = sys573_bank_state;
+        }
+    } // namespace Flash
+} // namespace System573::IO

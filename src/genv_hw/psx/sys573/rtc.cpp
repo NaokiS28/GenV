@@ -23,58 +23,57 @@
 #include "common/util/time.hpp"
 #include "common/util/date.hpp"
 
-namespace System573
+namespace System573::RTC
 {
 
     constexpr auto rtcNvram = "NVRAM";
 
-    int RTC::init()
+    int M48T58::init()
     {
         getClock(clock);
-        SYS573_RTC_DAY |= SYS573_RTC_DAY_BATTERY_MONITOR;
-        RTC_is_ok = !(SYS573_RTC_DAY & SYS573_RTC_DAY_LOW_BATTERY);
-        if (!RTC_is_ok) LOG_RTC(Time::rtcBattLowFmt);
-        return RTC_is_ok;
+        Regs::Day |= DAY_BATTERY_MONITOR;
+        rtc_is_ok = !(Regs::Day & DAY_LOW_BATTERY);
+        if (!rtc_is_ok) LOG_RTC(Time::rtcBattLowFmt);
+        return rtc_is_ok;
     }
 
-    int RTC::setTime(int hour, int min, int sec, bool amPm)
+    int M48T58::setTime(int hour, int min, int sec, bool amPm)
     {
         if (!Time::timeValid(hour, min, sec))
             return 1;
-        SYS573_RTC_CTRL |= SYS573_RTC_CTRL_WRITE;
-        SYS573_RTC_HOUR   = util::dec2bcd(hour);
-        SYS573_RTC_MINUTE = util::dec2bcd(min);
-        SYS573_RTC_SECOND = util::dec2bcd(sec) & (SYS573_RTC_SECOND_TENS_BITMASK | SYS573_RTC_SECOND_UNITS_BITMASK);
-        SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_WRITE);
+        Regs::Ctrl |= CTRL_WRITE;
+        Regs::Hour   = util::dec2bcd(hour);
+        Regs::Minute = util::dec2bcd(min);
+        Regs::Second = util::dec2bcd(sec) & (SECOND_TENS_BITMASK | SECOND_UNITS_BITMASK);
+        Regs::Ctrl &= ~(CTRL_WRITE);
 
-        if (!RTC_is_ok) LOG_RTC(Time::rtcSetWithBadBattFmt, Time::rtcTimeString, Time::rtcTimeString);
+        if (!rtc_is_ok) LOG_RTC(Time::rtcSetWithBadBattFmt, Time::rtcTimeString, Time::rtcTimeString);
 
         return 0;
     }
 
-    int RTC::setDate(int day, int month, int year)
+    int M48T58::setDate(int day, int month, int year)
     {
         if (!Date::dateValid(day, month, year))
             return 1;
-        SYS573_RTC_CTRL |= SYS573_RTC_CTRL_WRITE;
+        Regs::Ctrl |= CTRL_WRITE;
 
-        bool century       = year > 1999;
-        SYS573_RTC_WEEKDAY = (Date::getDayOfWeek(year, month, day) & (century << 4));
+        bool century    = year > 1999;
+        Regs::Weekday   = (Date::getDayOfWeek(year, month, day) & (century << 4));
+        Regs::Year      = util::dec2bcd(year);
+        Regs::Month     = util::dec2bcd(month);
+        Regs::Day       = (util::dec2bcd(day) & (DAY_TENS_BITMASK | DAY_UNITS_BITMASK));
+        Regs::Ctrl &= ~(CTRL_WRITE);
 
-        SYS573_RTC_YEAR  = util::dec2bcd(year);
-        SYS573_RTC_MONTH = util::dec2bcd(month);
-        SYS573_RTC_DAY   = (util::dec2bcd(day) & (SYS573_RTC_DAY_TENS_BITMASK | SYS573_RTC_DAY_UNITS_BITMASK));
-        SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_WRITE);
-
-        if (!RTC_is_ok) LOG_RTC(Time::rtcSetWithBadBattFmt, Time::rtcDateString, Time::rtcDateString);
+        if (!rtc_is_ok) LOG_RTC(Time::rtcSetWithBadBattFmt, Time::rtcDateString, Time::rtcDateString);
 
         return 0;
     }
 
-    void RTC::tick()
+    void M48T58::tick()
     {
         SoftRTC::tick();
-        if (RTC_is_ok && ticks > RTCSyncTime)
+        if (rtc_is_ok && ticks > SyncTime)
         {
             // Sync with the physical RTC every so often if the battery is good
             // If not, then the RTC features will be disabled to prevent time/date corruption
@@ -83,63 +82,61 @@ namespace System573
         }
     }
 
-    int RTC::getTime(tm &time)
+    int M48T58::getTime(tm &time)
     {
-        if (!RTC_is_ok) return SoftRTC::getTime(time);
+        if (!rtc_is_ok) return SoftRTC::getTime(time);
 
-        SYS573_RTC_CTRL |= SYS573_RTC_CTRL_READ;
-        time.tm_hour = util::bcd2dec(SYS573_RTC_HOUR);
-        time.tm_min  = util::bcd2dec(SYS573_RTC_MINUTE);
-        time.tm_sec  = util::bcd2dec(SYS573_RTC_SECOND & (SYS573_RTC_SECOND_TENS_BITMASK | SYS573_RTC_SECOND_UNITS_BITMASK));
-        SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_READ);
+        Regs::Ctrl |= CTRL_READ;
+        time.tm_hour = util::bcd2dec(Regs::Hour);
+        time.tm_min  = util::bcd2dec(Regs::Minute);
+        time.tm_sec  = util::bcd2dec(Regs::Second & (SECOND_TENS_BITMASK | SECOND_UNITS_BITMASK));
+        Regs::Ctrl &= ~(CTRL_READ);
         return 0;
     }
 
-    int RTC::getDate(tm &time)
+    int M48T58::getDate(tm &time)
     {
-        if (!RTC_is_ok) return SoftRTC::getDate(time);
+        if (!rtc_is_ok) return SoftRTC::getDate(time);
 
-        SYS573_RTC_CTRL |= SYS573_RTC_CTRL_READ;
-        time.tm_mday = util::bcd2dec(SYS573_RTC_DAY & (SYS573_RTC_DAY_TENS_BITMASK | SYS573_RTC_DAY_UNITS_BITMASK));
-        time.tm_mon  = util::bcd2dec(SYS573_RTC_MONTH);
-        time.tm_year = util::bcd2dec(SYS573_RTC_YEAR);
-        SYS573_RTC_CTRL &= ~(SYS573_RTC_CTRL_READ);
+        Regs::Ctrl |= CTRL_READ;
+        time.tm_mday = util::bcd2dec(Regs::Day & (DAY_TENS_BITMASK | DAY_UNITS_BITMASK));
+        time.tm_mon  = util::bcd2dec(Regs::Month);
+        time.tm_year = util::bcd2dec(Regs::Year);
+        Regs::Ctrl &= ~(CTRL_READ);
         return 0;
     }
 
-    size_t RTC::getUnixTime()
-    {
-        return 0;
-    }
-
-    int RTC::getLocalTime(tm *tmObj, time_t time)
+    size_t M48T58::getUnixTime()
     {
         return 0;
     }
 
-    int RTC::readNVRAM(uint8_t *data, int offset, int count)
+    int M48T58::getLocalTime(tm *tmObj, time_t time)
     {
-        if (!data || count >= SYS573_RTC_SIZE)
+        return 0;
+    }
+
+    int M48T58::readNVRAM(uint8_t *data, int offset, int count)
+    {
+        if (!data || count >= SRAMSize)
             return 0;
 
-        offset %= SYS573_RTC_SIZE; // Allow mirroring
-
         for (int c = 0; c < count; c++)
-            data[c] = SYS573_RTC_SRAM[offset + c];
+            data[c] = SRAM[offset + c];
 
         return count;
     }
 
-    int RTC::writeNVRAM(const uint8_t *data, int offset, int count)
+    int M48T58::writeNVRAM(const uint8_t *data, int offset, int count)
     {
-        if (!data || count >= SYS573_RTC_SIZE || offset >= SYS573_RTC_SIZE)
+        if (!data || count >= SRAMSize)
             return 0;
 
         for (int c = 0; c < count; c++)
-            SYS573_RTC_SRAM[offset + c] = data[c];
+            SRAM[offset + c] = data[c];
 
-        if (!RTC_is_ok) LOG_RTC(Time::rtcSetWithBadBattFmt, rtcNvram, rtcNvram);
+        if (!rtc_is_ok) LOG_RTC(Time::rtcSetWithBadBattFmt, rtcNvram, rtcNvram);
 
         return count;
     };
-} // namespace System573
+} // namespace System573::RTC

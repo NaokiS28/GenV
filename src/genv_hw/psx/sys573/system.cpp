@@ -18,6 +18,7 @@
 #include "system.hpp"
 
 #include "common/return_codes.hpp"
+#include "common/services/system/arcade/iface_arcade.hpp"
 #include "psx/common/system.hpp"
 #include "psx/common/halt/halt.h"
 #include "psx/common/system/sys.h"
@@ -32,7 +33,7 @@
 
 namespace System573
 {
-    using namespace System::PSX;
+    using namespace PSX;
     Sys573System::Sys573System() : BasePSXSystem()
     {
     }
@@ -73,11 +74,11 @@ namespace System573
 
         // Tick each coin counter if there's data to add.
         // Gets all counter buffers as a boolean value.
-        uint8_t cc = getCoinCounterBuffer();
+        uint8_t cc = 0; // getCoinCounterBuffer();
         for (int i = 0; cc != 0; i++)
         {
-            if (cc & 0x1)
-                increaseCoinCounter(i);
+            // if (cc & 0x1)
+            //  increaseCoinCounter();
             cc >>= 1;
         }
 
@@ -87,10 +88,9 @@ namespace System573
         return 0;
     }
 
-    bool Sys573System::shutdown()
+    void Sys573System::shutdown()
     {
         clock = nullptr;
-        return true;
     }
 
     int Sys573System::initVideo()
@@ -119,7 +119,7 @@ namespace System573
         for (auto &mc : mcDriver)
         {
             int mcError = ioTest(mc.init(), PSX_MEMORY_CARD_STR, port, PSX_INIT_STR);
-            if (!mcError) services.registerStorageDriver(&mc);
+            if (!mcError) services.registerDriver(&mc);
         }
 
 #ifndef NDEBUG
@@ -135,20 +135,19 @@ namespace System573
     int Sys573System::initIO()
     {
         BasePSXSystem::initIO();
-        services.registerInputDriver(&m_jamma);
-        services.registerInputDriver(&m_jvs);
+        services.registerDriver(&m_jamma);
+        services.registerDriver(&m_jvs);
         return GV_OK;
     }
 
-    uint8_t Sys573System::increaseCoinCounter(uint8_t counter)
+    System::CoinCounter Sys573System::increaseCoinCounter(System::CoinCounter counter)
     {
-        if (counter < 2)
+        if (counter < System::CoinCounter::Counter2)
         {
-            // Shift over the counter (so it's either CC1 or CC2), set, wait, unset
-            if (counter)
-                IO::ASIC::pulseOutput(MiscOutput::COIN_COUNT1);
+            if (counter == System::CoinCounter::Counter1)
+                IO::ASIC::PulseOutput(IO::ASIC::OUT_COIN_COUNT1);
             else
-                IO::ASIC::pulseOutput(MiscOutput::COIN_COUNT2);
+                IO::ASIC::PulseOutput(IO::ASIC::OUT_COIN_COUNT2);
             return counter;
         }
         else
@@ -171,9 +170,9 @@ namespace System573
         if (outputNumber < 8)
         {
             if (state)
-                SYS573_EXT_OUT |= (uint8_t)(state << outputNumber);
+                IO::ASIC::Regs::ExtOut |= (uint8_t)(state << outputNumber);
             else
-                SYS573_EXT_OUT &= ~(uint8_t)(state << outputNumber);
+                IO::ASIC::Regs::ExtOut &= ~(uint8_t)(state << outputNumber);
             return outputNumber;
         }
         else

@@ -16,7 +16,7 @@ target_sources(genv_hw_sys573 PRIVATE
 	io/jamma/jamma.cpp
 	io/jamma/adc083x.cpp
 	storage/flash.cpp
-	#storage/ide.c
+	storage/ide.cpp
 	#io/aio/aio.cpp
 	#io/dio/dio.cpp
 	halt/halt.c

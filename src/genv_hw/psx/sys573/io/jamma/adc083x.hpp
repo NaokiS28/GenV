@@ -83,7 +83,7 @@ namespace System573::IO
 
         inline void select(bool state)
         {
-            ASIC::writeOutputBit(MiscOutput::ADC_CS, !state);
+            ASIC::SetOutputBit(ASIC::OUT_ADC_CS, !state);
         }
 
     public:

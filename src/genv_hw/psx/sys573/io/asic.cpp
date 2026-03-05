@@ -21,64 +21,63 @@
 #include "asic.hpp"
 
 #include "psx/common/system/sys.h"
-#include "psx/sys573/registers573.hpp"
 
 #define OUTPUT_PULSE_TIME 20
 
 namespace System573::IO::ASIC
 {
     // Used to keep track of the output port state
-    MiscOutput asicOutState = MiscOutput::NONE;
+    MiscOutput asicOutState = OUT_NONE;
 
-    void writeOutputs(MiscOutput state)
+    void SetOutputs(MiscOutput state)
     {
-        asicOutState    = state;
-        SYS573_MISC_OUT = static_cast<uint16_t>(asicOutState);
+        asicOutState  = state;
+        Regs::MiscOut = (uint16_t)asicOutState;
     }
 
-    void writeOutputsMasked(MiscOutput outputs, MiscOutput mask)
+    void SetOutputsMasked(MiscOutput outputs, MiscOutput mask)
     {
         auto asic = asicOutState & ~(mask);
         outputs   = (outputs & mask);
-        writeOutputs(asic | outputs);
+        SetOutputs(asic | outputs);
     }
 
-    void writeOutputBit(MiscOutput output, bool state)
+    void SetOutputBit(MiscOutput output, bool state)
     {
         auto asic = asicOutState;
         if (state)
             asic |= output;
         else
             asic &= ~output;
-        writeOutputs(asic);
+        SetOutputs(asic);
     }
 
-    MiscOutput getOutputs()
+    MiscOutput GetOutputs()
     {
         return asicOutState;
     }
 
-    void pulseOutput(MiscOutput output)
+    void PulseOutput(MiscOutput output)
     {
-        output &= (MiscOutput::COIN_COUNT1 | MiscOutput::COIN_COUNT1 | MiscOutput::JVS_RESET);
-        if (output == MiscOutput::NONE) return;
+        output &= (OUT_COIN_COUNT1 | OUT_COIN_COUNT1 | OUT_JVS_RESET);
+        if (output == OUT_NONE) return;
 
-        writeOutputs(asicOutState |= output);
+        SetOutputs(asicOutState |= output);
         psx_delayMicrosecondsBusy(OUTPUT_PULSE_TIME);
-        writeOutputs(asicOutState &= ~output);
+        SetOutputs(asicOutState &= ~output);
     }
 
-    void muteAudio(MiscOutput channel)
+    void MuteAudio(MiscOutput channel)
     {
-        channel &= (MiscOutput::SPU_ENABLE | MiscOutput::AMP_ENABLE | MiscOutput::CDDA_ENABLE);
-        if (channel == MiscOutput::NONE) return;
-        writeOutputs(asicOutState &= ~channel);
+        channel &= (OUT_SPU_ENABLE | OUT_AMP_ENABLE | OUT_CDDA_ENABLE);
+        if (channel == OUT_NONE) return;
+        SetOutputs(asicOutState &= ~channel);
     }
 
-    void unmuteAudio(MiscOutput channel)
+    void unMuteAudio(MiscOutput channel)
     {
-        channel |= (MiscOutput::SPU_ENABLE | MiscOutput::AMP_ENABLE | MiscOutput::CDDA_ENABLE);
-        if (channel == MiscOutput::NONE) return;
-        writeOutputs(asicOutState |= channel);
+        channel |= (OUT_SPU_ENABLE | OUT_AMP_ENABLE | OUT_CDDA_ENABLE);
+        if (channel == OUT_NONE) return;
+        SetOutputs(asicOutState |= channel);
     }
 } // namespace System573::IO::ASIC

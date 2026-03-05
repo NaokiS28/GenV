@@ -39,20 +39,20 @@ namespace System573::IO
 
     bool ADC038x::exchangeBit(bool bit)
     {
-        const MiscOutput mask = static_cast<MiscOutput>(MiscOutput::ADC_DI | MiscOutput::ADC_CLK);
-        MiscOutput x          = bit ? MiscOutput::ADC_DI : MiscOutput::NONE;
+        const ASIC::MiscOutput mask = ASIC::OUT_ADC_DI | ASIC::OUT_ADC_CLK;
+        ASIC::MiscOutput x          = bit ? ASIC::OUT_ADC_DI : ASIC::OUT_NONE;
 
         // Set data
-        ASIC::writeOutputsMasked(x, mask);
+        ASIC::SetOutputsMasked(x, mask);
 
         // Clock high
-        ASIC::writeOutputsMasked(x | MiscOutput::ADC_CLK, mask);
-        auto miscin = static_cast<MiscInput>(SYS573_MISC_IN);
-        bool in     = (miscin & MiscInput::ADC_DO) != MiscInput::NONE;
+        ASIC::SetOutputsMasked(x | ASIC::OUT_ADC_CLK, mask);
+        auto miscin = ASIC::Regs::MiscIn;
+        bool in     = (miscin & ASIC::IN_ADC_DO) != ASIC::IN_NONE;
 
         // Clock low
-        x = (bit ? MiscOutput::ADC_DI : MiscOutput::NONE);
-        ASIC::writeOutputsMasked(x, mask);
+        x = (bit ? ASIC::OUT_ADC_DI : ASIC::OUT_NONE);
+        ASIC::SetOutputsMasked(x, mask);
         return in;
     }
 
