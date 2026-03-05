@@ -69,11 +69,11 @@ namespace System
         SYS_Handheld
     };
 
-    constexpr const char *szSystemType_Console = "Console";
+    constexpr const char *szSystemType_Console  = "Console";
     constexpr const char *szSystemType_Computer = "Computer";
-    constexpr const char *szSystemType_Arcade = "Arcade";
+    constexpr const char *szSystemType_Arcade   = "Arcade";
     constexpr const char *szSystemType_Handheld = "Handheld";
-    constexpr const char *szSystemType_Unknown = "Unknown";
+    constexpr const char *szSystemType_Unknown  = "Unknown";
 
     constexpr const char *getSystemTypeString(System::SysType type)
     {
@@ -95,16 +95,16 @@ namespace System
     enum SysFlags : uint32_t
     {
         SYS_No_Window_Mode = (1 << 0),
-        SYS_No_Switch_Res = (1 << 1),
+        SYS_No_Switch_Res  = (1 << 1),
     };
 
     struct SystemInfo
     {
-        SysType type = SysType::SYS_Unknown;
-        const char *make = nullptr;
-        const char *name = nullptr;
+        SysType type       = SysType::SYS_Unknown;
+        const char *make   = nullptr;
+        const char *name   = nullptr;
         const char *osname = nullptr;
-        uint32_t flags = 0;
+        uint32_t flags     = 0;
     };
 
     size_t millis();
@@ -112,6 +112,23 @@ namespace System
     size_t random(size_t min, size_t max);
     bool getTime(tm &time);
     size_t getTime();
+
+    class CriticalSection
+    {
+    private:
+        System::ISystem *sys = nullptr;
+
+    public:
+        inline CriticalSection(void)
+        {
+            sys = getSystem();
+            if (sys) sys->enterCriticalSection();
+        }
+        inline ~CriticalSection(void)
+        {
+            if (sys) sys->leaveCriticalSection();
+        }
+    };
 
     class BaseSystem : public ISystem
     {

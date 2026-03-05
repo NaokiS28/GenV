@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -30,21 +29,6 @@ namespace util
     {
         return (n / 16 * 10) + (n % 16);
     }
-
-    /* Critical section helper */
-
-    class CriticalSection
-    {
-    public:
-        inline CriticalSection(void)
-        {
-            // TODO: implement
-        }
-        inline ~CriticalSection(void)
-        {
-            // TODO: implement
-        }
-    };
 
     template <typename T>
     void ClearMemory(T *dest, size_t len)

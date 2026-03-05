@@ -17,8 +17,9 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stddef.h>
 #include <time.h>
 
 #include "timer.hpp"
@@ -41,14 +42,14 @@ namespace System
     class Callback
     {
     private:
-        const char *m_name = nullptr;
+        const char *m_name      = nullptr;
         CallbackFunction m_func = nullptr;
-        void *m_arg = nullptr;
+        void *m_arg             = nullptr;
 
     public:
         Callback() {}
         Callback(const char *name, CallbackFunction func, void *arg) : m_name(name), m_func(func), m_arg(arg) {}
-        inline const char *const name() { return m_name; }
+        inline const char *name() { return m_name; }
         inline bool isValid() { return m_func != nullptr; }
         inline void call()
         {
@@ -61,14 +62,17 @@ namespace System
     public:
         virtual ~ISystem() = default;
 
-        virtual int initCore() = 0; // Init system core
-        virtual int initVideo() = 0;
-        virtual int initAudio() = 0;
-        virtual int initIO() = 0;
+        virtual int initCore()    = 0; // Init system core
+        virtual int initVideo()   = 0;
+        virtual int initAudio()   = 0;
+        virtual int initIO()      = 0;
         virtual int initStorage() = 0;
 
-        virtual int update() = 0;    // Update system manager
-        virtual bool shutdown() = 0; // Prepare for app shutdow
+        virtual int update()    = 0; // Update system manager
+        virtual void shutdown() = 0; // Prepare for app shutdown
+
+        virtual void enterCriticalSection() = 0;
+        virtual void leaveCriticalSection() = 0;
 
         virtual const SystemInfo *getSysInfo() const = 0;
 
@@ -83,6 +87,6 @@ namespace System
         virtual const char *getWorkingDirectory() = 0;
 
         virtual bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq) = 0;
-        virtual bool unregisterTimerFunc(TFunc func, TChannel timer) = 0;
+        virtual bool unregisterTimerFunc(TFunc func, TChannel timer)             = 0;
     };
 } // namespace System
