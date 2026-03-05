@@ -39,44 +39,44 @@
             return 2;                      \
     }
 
-namespace System::PSX::IO
+namespace PSX::IO
 {
     enum SIO0_Address : uint8_t
     {
-        ADDR_CONTROLLER = 0x01,
-        ADDR_PS2_IR = 0x21,
+        ADDR_CONTROLLER   = 0x01,
+        ADDR_PS2_IR       = 0x21,
         ADDR_PS2_MULTITAP = 0x61,
-        ADDR_MEMORY_CARD = 0x81
+        ADDR_MEMORY_CARD  = 0x81
     };
 
     enum SIO0_ResponsePrefix : uint8_t
     {
-        PREFIX_CONTROLLER = 0x5a,
+        PREFIX_CONTROLLER  = 0x5a,
         PREFIX_MEMORY_CARD = 0x5d
     };
 
     enum Command : uint8_t
     {
         // Basic controller commands
-        CMD_POLL = 'B',
+        CMD_POLL   = 'B',
         CMD_CONFIG = 'C',
 
         // Configuration mode commands
         CMD_INIT_PRESSURE = '@', // DualShock 2 only
-        CMD_RESP_INFO = 'A',     // DualShock 2 only
-        CMD_SET_ANALOG = 'D',
-        CMD_GET_ANALOG = 'E',
-        CMD_MOTOR_INFO = 'F',
-        CMD_MOTOR_LIST = 'G',
-        CMD_MOTOR_STATE = 'H',
-        CMD_GET_MODES = 'L',
-        CMD_REQ_CONFIG = 'M',
-        CMD_RESP_CONFIG = 'O', // DualShock 2 only
+        CMD_RESP_INFO     = 'A', // DualShock 2 only
+        CMD_SET_ANALOG    = 'D',
+        CMD_GET_ANALOG    = 'E',
+        CMD_MOTOR_INFO    = 'F',
+        CMD_MOTOR_LIST    = 'G',
+        CMD_MOTOR_STATE   = 'H',
+        CMD_GET_MODES     = 'L',
+        CMD_REQ_CONFIG    = 'M',
+        CMD_RESP_CONFIG   = 'O', // DualShock 2 only
 
         // Memory card commands
-        CMD_READ_SECTOR = 'R',
+        CMD_READ_SECTOR   = 'R',
         CMD_IDENTIFY_CARD = 'S', // OEM cards only
-        CMD_WRITE_SECTOR = 'W',
+        CMD_WRITE_SECTOR  = 'W',
 
         CMD_AFFIX_MULTITAP_ALL = 0x01, // Tells the multitap to read and respond all four pads
     };
@@ -179,8 +179,8 @@ namespace System::PSX::IO
 
     private:
         bool _initialised = false;
-        int _initResult = 0;
-        bool _inUse = false;
+        int _initResult   = 0;
+        bool _inUse       = false;
 
         volatile bool awaiting_ack = false;
         volatile bool ack_received = false;
@@ -220,10 +220,10 @@ namespace System::PSX::IO
 
         inline void setMultitapState(SIO0_Port port, MultitapState state)
         {
-            uint8_t _port = (port == SIO0_Port::PORT1 ? 0 : 1);
+            uint8_t _port    = (port == SIO0_Port::PORT1 ? 0 : 1);
             _multitap[_port] = state;
         }
 
         void mouseFix();
     };
-} // namespace System::PSX::IO
+} // namespace PSX::IO

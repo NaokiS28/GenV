@@ -20,7 +20,7 @@
 
 #include "common/logger/log.hpp"
 
-namespace System::PSX::Storage
+namespace PSX::Storage
 {
 
     int PSX_CDROM::init()
@@ -58,4 +58,4 @@ namespace System::PSX::Storage
         count = 1;
         return 0;
     }*/
-} // namespace System::PSX::Storage
+} // namespace PSX::Storage

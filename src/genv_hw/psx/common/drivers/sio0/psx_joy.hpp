@@ -22,16 +22,17 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "common/services/io/iface_driver.hpp"
 #include "common/services/io/iface_input.hpp"
 #include "psx/common/drivers/sio0/psx_pads.hpp"
 #include "psx_sio0.hpp"
 
-namespace System::PSX
+namespace PSX
 {
     class PSXSystem;
 }
 
-namespace System::PSX::IO
+namespace PSX::IO
 {
     using namespace ::Input;
 
@@ -125,5 +126,5 @@ namespace System::PSX::IO
         {
             reset();
         }
-    }; // namespace System::PSX::IO
-} // namespace System::PSX::IO
+    }; // namespace PSX::IO
+} // namespace PSX::IO

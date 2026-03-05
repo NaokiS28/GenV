@@ -19,7 +19,7 @@
 #include "psx/common/drivers/sio0/memcard.hpp"
 #include "psx_sio0.hpp"
 
-namespace System::PSX::IO
+namespace PSX::IO
 {
     uint8_t PSX_MemoryCard::driverCount = 0;
 
@@ -58,8 +58,8 @@ namespace System::PSX::IO
         Memcard_SectorWrite(uint16_t _address, uint8_t *_data, size_t _length)
         {
             uint16_t address = (_address & 0x3FFF);
-            rawData[3] = (address & 0xff00) >> 8;
-            rawData[4] = (address & 0xff);
+            rawData[3]       = (address & 0xff00) >> 8;
+            rawData[4]       = (address & 0xff);
             memcpy(&rawData[5], _data, _length);
             rawData[(sizeof(rawData) - 1)] = PSX_MemoryCard_xor(&rawData[3], (sizeof(address) + _length));
         }
@@ -147,8 +147,8 @@ namespace System::PSX::IO
         if (respLength < sizeof(request) + 3)
             return 1;
 
-        int rxRsp = sizeof(response) - 3;
-        uint16_t ack = (response[rxRsp] << 8) | response[rxRsp + 1];
+        int rxRsp      = sizeof(response) - 3;
+        uint16_t ack   = (response[rxRsp] << 8) | response[rxRsp + 1];
         uint8_t result = response[rxRsp + 2];
 
         if (ack != 0x5C5D)
@@ -179,4 +179,4 @@ namespace System::PSX::IO
     {
         return 0;
     }
-} // namespace System::PSX::IO
+} // namespace PSX::IO

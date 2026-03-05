@@ -20,7 +20,7 @@
 #include "psx/common/system.hpp"
 #include "psx/common/psx_strings.hpp"
 
-namespace System::PSX
+namespace PSX
 {
     int PSXSystem::initVideo()
     {
@@ -63,4 +63,4 @@ namespace System::PSX
         return error;
     }
 
-} // namespace System::PSX
+} // namespace PSX

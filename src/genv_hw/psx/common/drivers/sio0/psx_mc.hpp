@@ -30,7 +30,7 @@
 
 // TODO: Implement memory card as a virtual file system complete with directory listing.
 
-namespace System::PSX::IO
+namespace PSX::IO
 {
     class PSX_MemoryCard : public Files::IStorageDriver, public ::IO::IDriver
     {
@@ -75,4 +75,4 @@ namespace System::PSX::IO
         // Gets a list of drives present in the system and returns the total count.
         int getDriveList(Files::IStorageDevice *list, uint8_t &count);
     };
-} // namespace System::PSX::IO
+} // namespace PSX::IO

@@ -25,12 +25,12 @@
 
 // TODO: SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
 
-namespace System::PSX
+namespace PSX
 {
     class PSXSystem;
 }
 
-namespace System::PSX::IO
+namespace PSX::IO
 {
     static constexpr int _SIO0_BAUD_RATE = 250000;
     static constexpr int _ACK_TIMEOUT    = 120;
@@ -48,7 +48,7 @@ namespace System::PSX::IO
         mouseFix();
         _initialised = true;
 
-        // static_cast<System::PSX::BasePSXSystem *>(getSystem())->registerISR(SYSTEM_CALLBACK("SIO0 ISR", SIO0_Bus, m_sioISR), IRQ_SIO0);
+        // static_cast<PSX::BasePSXSystem *>(getSystem())->registerISR(SYSTEM_CALLBACK("SIO0 ISR", SIO0_Bus, m_sioISR), IRQ_SIO0);
 
         _initResult = 0;
         return _initResult;
@@ -209,4 +209,4 @@ namespace System::PSX::IO
             }
         }
     }
-} // namespace System::PSX::IO
+} // namespace PSX::IO

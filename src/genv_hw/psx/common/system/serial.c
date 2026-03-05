@@ -18,61 +18,63 @@
 #define PSX_SIO_C
 #include <stddef.h>
 #include "serial.h"
-#include "../registers.hpp"
+#include "registers.h"
 
 /* Serial port stdin/stdout */
 int sio1_init(int baud)
 {
-	SIO_CTRL(1) = SIO_CTRL_RESET;
+    SIO_CTRL(1) = SIO_CTRL_RESET;
 
-	SIO_MODE(1) = 0 | SIO_MODE_BAUD_DIV1 | SIO_MODE_DATA_8 | SIO_MODE_STOP_1;
-	SIO_BAUD(1) = F_CPU / baud;
-	SIO_CTRL(1) = 0 | SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_RTS;
-	return 0;
+    SIO_MODE(1) = 0 | SIO_MODE_BAUD_DIV1 | SIO_MODE_DATA_8 | SIO_MODE_STOP_1;
+    SIO_BAUD(1) = F_CPU / baud;
+    SIO_CTRL(1) = 0 | SIO_CTRL_TX_ENABLE | SIO_CTRL_RX_ENABLE | SIO_CTRL_RTS;
+    return 0;
 }
 
 void sio1_write_byte(char ch)
 {
-	// The serial interface will buffer but not send any data if the CTS input
-	// is not asserted, so we are going to abort if CTS is not set to avoid
-	// waiting forever.
-	while (
-		(SIO_STAT(1) & (SIO_STAT_TX_NOT_FULL | SIO_STAT_CTS)) == SIO_STAT_CTS)
-		__asm__ volatile("");
+    // The serial interface will buffer but not send any data if the CTS input
+    // is not asserted, so we are going to abort if CTS is not set to avoid
+    // waiting forever.
+    while (
+        (SIO_STAT(1) & (SIO_STAT_TX_NOT_FULL | SIO_STAT_CTS)) == SIO_STAT_CTS)
+        __asm__ volatile("");
 
-	if (SIO_STAT(1) & SIO_STAT_CTS)
-		SIO_DATA(1) = ch;
+    if (SIO_STAT(1) & SIO_STAT_CTS)
+        SIO_DATA(1) = ch;
 }
 
 int sio1_read_byte(void)
 {
-	while (!(SIO_STAT(1) & SIO_STAT_RX_NOT_EMPTY))
-		__asm__ volatile("");
+    while (!(SIO_STAT(1) & SIO_STAT_RX_NOT_EMPTY))
+        __asm__ volatile("");
 
-	return SIO_DATA(1);
-	return 0;
+    return SIO_DATA(1);
+    return 0;
 }
 
 int sio1_read(char *data, size_t number)
 {
-	int bytes = 0;
-	for(; number > 0; number--){
-		*data = sio1_read_byte();
-		data++;
-		bytes++;
-	}
-	return bytes;
+    int bytes = 0;
+    for (; number > 0; number--)
+    {
+        *data = sio1_read_byte();
+        data++;
+        bytes++;
+    }
+    return bytes;
 }
 
 int sio1_write(const char *data, size_t number)
 {
-	int bytes = 0;
-	for(; number > 0; number--){
-		sio1_write_byte(*data);
-		data++;
-		bytes++;
-	}
-	return bytes;
+    int bytes = 0;
+    for (; number > 0; number--)
+    {
+        sio1_write_byte(*data);
+        data++;
+        bytes++;
+    }
+    return bytes;
 }
 
 void sio1_flush()

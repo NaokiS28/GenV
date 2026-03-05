@@ -17,7 +17,7 @@
 
 #pragma once
 
-namespace System::PSX
+namespace PSX
 {
     constexpr const char szPlaystation[] = "PlayStation";
     constexpr const char szSony[]        = "Sony";
@@ -49,4 +49,4 @@ namespace System::PSX
     constexpr const char PSX_NEGCON_STR[]      = "Namco NegCon";
     constexpr const char PSX_JOGCON_STR[]      = "Namco JogCon";
 
-} // namespace System::PSX
+} // namespace PSX

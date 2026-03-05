@@ -17,21 +17,24 @@
 
 #include <atomic>
 
+#include "halt_screen/halt_screen.h"
+
 #include "system.hpp"
 #include "common/return_codes.hpp"
 #include "common/services/services.hpp"
 #include "common/services/system/rtc/soft_rtc.hpp"
 
+#include "psx/common/halt/halt.h"
 #include "psx_strings.hpp"
 #include "system/pcsxhw.h"
 #include "system/sys.h"
-#include "system/timer.h"
+#include "system/timers.hpp"
 #include "registers.hpp"
 
 #include "system/serial.h"
 #include "terminal/terminal.h"
 
-namespace System::PSX
+namespace PSX
 {
 
     int ioTest(void *ptr, const char *device, const char *string)
@@ -73,17 +76,24 @@ namespace System::PSX
     }
 
     BasePSXSystem::BasePSXSystem()
-        : sm_state(SM_NORMAL)
+        : sm_state(System::SM_NORMAL)
     {
         // TODO: SIO1 driver will require interrupts in future, so this will need to change.
         // We need to do this here (or change the boot process in GenV) so that boot logs are written.
         // Suggest using PSX BIOS puts/gets as PSX BIOS handler is still running at this point.
-        GenV_TerminalFuncs ops;
-        ops.init  = &sio1_init;
-        ops.read  = &sio1_read;
-        ops.write = &sio1_write;
-        ops.flush = &sio1_flush;
-        genv_tty_register(&ops);
+        GenV_TerminalFuncs tty_ops;
+        tty_ops.init  = &sio1_init;
+        tty_ops.read  = &sio1_read;
+        tty_ops.write = &sio1_write;
+        tty_ops.flush = &sio1_flush;
+        genv_tty_register(&tty_ops);
+
+        // If at any point the system encounters a fatal exception, the PSX haltscreen will show.
+        // This haltscreen doesn't rely on GenV at all, so registering at construction will
+        // ensure we show *something* on screen in case of an error.
+        GenV_HaltScreenFuncs hs_ops;
+        hs_ops.show = &psx_halt_screen_show;
+        genv_halt_screen_register(&hs_ops);
 
         clock = new Time::SoftRTC; // New clock here so GenV boot logs have correct timestamps
     }
@@ -118,7 +128,7 @@ namespace System::PSX
         if (!gpu)
             return false;
 
-        sm_state = SM_RESIZE;
+        sm_state = System::SM_RESIZE;
         return gpu->setResolution(w, h);
     }
 
@@ -162,16 +172,14 @@ namespace System::PSX
     {
         // TODO: Allow setting custom startup baud
         sio1_init(115200);
-        psx_timer_set_params(PSX_TIMER_0, PSX_TMR0_CLK_SRC_SYSTEM);
-        psx_timer_set_params(PSX_TIMER_1, PSX_TMR2_CLK_SRC_SYSTEM);
-        psx_timer_set_params(PSX_TIMER_2,
-                             (0 | PSX_TMR2_CLK_SRC_SYS_DIV8) +
-                                 (PSX_TMR_RESET_ON_OVERFLOW | PSX_TMR_IRQ_ON_OVERFLOW |
-                                  PSX_TMR_IRQ_REPEAT | PSX_TMR_IRQ_PULSE_BIT_10));
-        psx_timer_enable_irq(PSX_TIMER_2);
-        psx_timer_reset(PSX_TIMER_0);
-        psx_timer_reset(PSX_TIMER_1);
-        psx_timer_reset(PSX_TIMER_2);
+        Timer0::Ctrl = (uint16_t)Timer0::ClockSource::SYSTEM;
+        Timer1::Ctrl = (uint16_t)Timer1::ClockSource::SYSTEM;
+        Timer2::Ctrl = (uint16_t)Timer2::ClockSource::SYS_DIV8 |
+                       CTRL_IRQ_ON_OVERFLOW | CTRL_IRQ_REPEAT | CTRL_IRQ_TOGGLE;
+        IRQ_MASK |= 1 << IRQ_TIMER2;
+        Timer0::Value = 0;
+        Timer1::Value = 0;
+        Timer2::Value = 0;
 
         sio0.init();
 
@@ -204,7 +212,7 @@ namespace System::PSX
     void BasePSXSystem::isr_timer2_()
     {
         std::atomic_signal_fence(std::memory_order_acquire);
-        psx_timer_ack_irq(PSX_TIMER_2);
+        ::PSX::Timer2::Ctrl |= ::PSX::CTRL_ACK_IRQ;
         // Timer 2 is used for millis/seconds but will drift out of sync
         //  as the timer is not a perfect division of time for seconds.
         //  This will account for this and add an extra every so often to
@@ -228,7 +236,7 @@ namespace System::PSX
 
     int BasePSXSystem::update()
     {
-        sm_state = SM_NORMAL;
+        sm_state = System::SM_NORMAL;
         if (doRTCtick && clock)
         {
             clock->tick();
@@ -237,9 +245,8 @@ namespace System::PSX
         return sm_state;
     }
 
-    bool BasePSXSystem::shutdown()
+    void BasePSXSystem::shutdown()
     {
-        return true;
     }
 
     const char *BasePSXSystem::getWorkingDirectory()
@@ -259,5 +266,4 @@ namespace System::PSX
         default: return IRQ_INVALID;
         }
     }
-
-} // namespace System::PSX
+} // namespace PSX

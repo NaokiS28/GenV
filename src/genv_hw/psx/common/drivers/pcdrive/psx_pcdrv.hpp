@@ -21,7 +21,7 @@
 #include "common/services/storage/iface_storage.hpp"
 #include "common/services/io/iface_driver.hpp"
 
-namespace System::PSX::Storage
+namespace PSX::Storage
 {
     class PSX_PCDrive : public IO::IDriver
     {
@@ -42,4 +42,4 @@ namespace System::PSX::Storage
         // Gets a list of drives present in the system and returns the total count.
         int getDriveList(Files::IStorageDevice *list, uint8_t &count);
     };
-} // namespace System::PSX::Storage
+} // namespace PSX::Storage

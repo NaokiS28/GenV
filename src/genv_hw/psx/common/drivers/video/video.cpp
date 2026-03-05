@@ -29,12 +29,10 @@
 #include "common/services/video/iface_video.hpp"
 #include "common/services/video/video.hpp"
 #include "common/util/hash.hpp"
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 
-#include "psx/common/registers.hpp"
 #include "common/logger/log.hpp"
-#include "halt_screen/halt_screen.h"
-#include "psx/common/halt/halt.h"
+#include "psx/common/system/registers.h"
 #include "psxtex.hpp"
 #include "texmgr.hpp"
 
@@ -42,26 +40,17 @@
 #define GPUCMD(cmd) \
     if (!_dmaOverflow) { gpuListPtr[dmaPtrIdx++] = cmd; }
 
-namespace System::PSX::GPU
+namespace PSX::GPU
 {
     constexpr const size_t PSX_GPU_VSYNC_TIMEOUT = 0x000FFFFF;
     constexpr const int PSX_GPU_DMA_FIFO_SIZE    = 16;
 
     PSXGPU::PSXGPU() : _texmgr(vramSize)
     {
-        registerHaltScreen();
     }
 
     PSXGPU::PSXGPU(GP1VRAMSize vram_size) : vramSize(vram_size), _texmgr(vram_size)
     {
-        registerHaltScreen();
-    }
-
-    void PSXGPU::registerHaltScreen()
-    {
-        GenV_HaltScreenFuncs ops;
-        ops.show = &psx_halt_screen_show;
-        genv_halt_screen_register(&ops);
     }
 
     bool PSXGPU::init()
@@ -965,4 +954,4 @@ namespace System::PSX::GPU
         return GV_OK;
     }
 
-} // namespace System::PSX::GPU
+} // namespace PSX::GPU

@@ -18,7 +18,7 @@
 #include "psx_pcdrv.hpp"
 #include "common/return_codes.hpp"
 
-namespace System::PSX::Storage
+namespace PSX::Storage
 {
 
     int PSX_PCDrive::init()
@@ -71,4 +71,4 @@ namespace System::PSX::Storage
     {
         return 0;
     }
-} // namespace System::PSX::Storage
+} // namespace PSX::Storage

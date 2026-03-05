@@ -23,8 +23,8 @@
 #include "common/logger/log.hpp"
 #include "common/return_codes.hpp"
 #include "common/services/io/iface_input.hpp"
+#include "common/services/io/playermgr.hpp"
 #include "common/services/io/vjoy.hpp"
-#include "common/services/services.hpp"
 
 #include "psx/common/drivers/sio0/psx_pads.hpp"
 #include "psx/common/drivers/sio0/psx_sio0.hpp"
@@ -34,7 +34,7 @@
 
 #define BOOL(val) ((val) > 0 ? 1 : 0)
 
-namespace System::PSX::IO
+namespace PSX::IO
 {
     uint8_t PSX_Joypad::m_driverCount = 0;
 
@@ -165,7 +165,7 @@ namespace System::PSX::IO
 
         pad.type = static_cast<JoypadType>(resp.id8[0]);
         if (pad.device.type != Input::DEVICE_TYPE_NULL)
-            getServiceManager()->dettachInputDevice(&pad.device);
+            playerManager()->detachInputDevice(&pad.device);
 
         pad.device = addController(
             resp, subport,
@@ -173,7 +173,7 @@ namespace System::PSX::IO
             pad.analog);
 
         if (pad.device.type != Input::DEVICE_TYPE_NULL)
-            getServiceManager()->attachInputDevice(
+            playerManager()->attachInputDevice(
                 &pad.device, m_bus->psxPlayerSelect(m_portNumber, subport));
 
         pad.digital = 0;
@@ -195,7 +195,7 @@ namespace System::PSX::IO
                         sioPortNumber(m_portNumber),
                         multitapPortLetter(subport));
 
-                    getServiceManager()->dettachInputDevice(&thisPad.device);
+                    playerManager()->detachInputDevice(&thisPad.device);
                     thisPad = PSX_PadData(); // Null it out
                 }
             }
@@ -208,7 +208,7 @@ namespace System::PSX::IO
                 multitapPortLetter(subport));
 
             if (pad.device.type != Input::DEVICE_TYPE_NULL)
-                getServiceManager()->dettachInputDevice(&pad.device);
+                playerManager()->detachInputDevice(&pad.device);
 
             pad = PSX_PadData(); // Null it out
             if (subport == Multitap_Port::PORTA) m_bus->setMultitapState(m_portNumber, MT_TEST_PRESENCE);
@@ -298,7 +298,7 @@ namespace System::PSX::IO
     {
         for (auto &pad : m_pads)
         {
-            getServiceManager()->dettachInputDevice(&pad.device);
+            playerManager()->detachInputDevice(&pad.device);
             pad = PSX_PadData(); // Null device
         }
         return true;
@@ -451,4 +451,4 @@ namespace System::PSX::IO
     {
     }
 
-} // namespace System::PSX::IO
+} // namespace PSX::IO

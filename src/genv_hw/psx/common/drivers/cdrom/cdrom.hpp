@@ -211,114 +211,109 @@ namespace PSX::CDROM
 
     /* CD-ROM drive command and status definitions */
 
-    enum class Command : uint8_t
+    enum Command : uint8_t
     {
-        NOP        = 0x01,
-        SETLOC     = 0x02,
-        PLAY       = 0x03,
-        FORWARD    = 0x04,
-        BACKWARD   = 0x05,
-        READ_N     = 0x06,
-        STANDBY    = 0x07,
-        STOP       = 0x08,
-        PAUSE      = 0x09,
-        INIT       = 0x0a,
-        MUTE       = 0x0b,
-        DEMUTE     = 0x0c,
-        SETFILTER  = 0x0d,
-        SETMODE    = 0x0e,
-        GETPARAM   = 0x0f,
-        GETLOC_L   = 0x10,
-        GETLOC_P   = 0x11,
-        SETSESSION = 0x12,
-        GET_TN     = 0x13,
-        GET_TD     = 0x14,
-        SEEK_L     = 0x15,
-        SEEK_P     = 0x16,
-        TEST       = 0x19,
-        GET_ID     = 0x1a,
-        READ_S     = 0x1b,
-        RESET      = 0x1c,
-        GET_Q      = 0x1d, // Versions 0xc1 and later only
-        READ_TOC   = 0x1e, // Versions 0xc1 and later only
-        UNLOCK0    = 0x50, // Versions 0xc1 and later only
-        UNLOCK1    = 0x51, // Versions 0xc1 and later only
-        UNLOCK2    = 0x52, // Versions 0xc1 and later only
-        UNLOCK3    = 0x53, // Versions 0xc1 and later only
-        UNLOCK4    = 0x54, // Versions 0xc1 and later only
-        UNLOCK5    = 0x55, // Versions 0xc1 and later only
-        UNLOCK6    = 0x56, // Versions 0xc1 and later only
-        LOCK       = 0x57  // Versions 0xc1 and later only
+        CMD_NOP        = 0x01,
+        CMD_SETLOC     = 0x02,
+        CMD_PLAY       = 0x03,
+        CMD_FORWARD    = 0x04,
+        CMD_BACKWARD   = 0x05,
+        CMD_READ_N     = 0x06,
+        CMD_STANDBY    = 0x07,
+        CMD_STOP       = 0x08,
+        CMD_PAUSE      = 0x09,
+        CMD_INIT       = 0x0a,
+        CMD_MUTE       = 0x0b,
+        CMD_DEMUTE     = 0x0c,
+        CMD_SETFILTER  = 0x0d,
+        CMD_SETMODE    = 0x0e,
+        CMD_GETPARAM   = 0x0f,
+        CMD_GETLOC_L   = 0x10,
+        CMD_GETLOC_P   = 0x11,
+        CMD_SETSESSION = 0x12,
+        CMD_GET_TN     = 0x13,
+        CMD_GET_TD     = 0x14,
+        CMD_SEEK_L     = 0x15,
+        CMD_SEEK_P     = 0x16,
+        CMD_TEST       = 0x19,
+        CMD_GET_ID     = 0x1a,
+        CMD_READ_S     = 0x1b,
+        CMD_RESET      = 0x1c,
+        CMD_GET_Q      = 0x1d, // Versions 0xc1 and later only
+        CMD_READ_TOC   = 0x1e, // Versions 0xc1 and later only
+        CMD_UNLOCK0    = 0x50, // Versions 0xc1 and later only
+        CMD_UNLOCK1    = 0x51, // Versions 0xc1 and later only
+        CMD_UNLOCK2    = 0x52, // Versions 0xc1 and later only
+        CMD_UNLOCK3    = 0x53, // Versions 0xc1 and later only
+        CMD_UNLOCK4    = 0x54, // Versions 0xc1 and later only
+        CMD_UNLOCK5    = 0x55, // Versions 0xc1 and later only
+        CMD_UNLOCK6    = 0x56, // Versions 0xc1 and later only
+        CMD_LOCK       = 0x57  // Versions 0xc1 and later only
     };
-    ENABLE_BITWISE_OPS(Command);
 
-    enum class TestCommand : uint8_t
+    enum TestCommand : uint8_t
     {
-        READ_ID              = 0x04,
-        GET_ID_COUNTERS      = 0x05,
-        GET_VERSION          = 0x20,
-        GET_SWITCHES         = 0x21,
-        GET_REGION           = 0x22, // Versions 0xc1 and later only
-        GET_SERVO_TYPE       = 0x23, // Versions 0xc1 and later only
-        GET_DSP_TYPE         = 0x24, // Versions 0xc1 and later only
-        GET_DECODER_TYPE     = 0x25, // Versions 0xc1 and later only
-        DSP_CMD              = 0x50,
-        DSP_CMD_RESP         = 0x51, // Versions 0xc2 and later only
-        MCU_PEEK             = 0x60,
-        DECODER_GET_REG      = 0x71, // Versions 0xc1 and later only
-        DECODER_SET_REG      = 0x72, // Versions 0xc1 and later only
-        DECODER_GET_SRAM_PTR = 0x75, // Versions 0xc1 and later only
-        DECODER_SET_SRAM_PTR = 0x76  // Versions 0xc1 and later only
+        TEST_READ_ID              = 0x04,
+        TEST_GET_ID_COUNTERS      = 0x05,
+        TEST_GET_VERSION          = 0x20,
+        TEST_GET_SWITCHES         = 0x21,
+        TEST_GET_REGION           = 0x22, // Versions 0xc1 and later only
+        TEST_GET_SERVO_TYPE       = 0x23, // Versions 0xc1 and later only
+        TEST_GET_DSP_TYPE         = 0x24, // Versions 0xc1 and later only
+        TEST_GET_DECODER_TYPE     = 0x25, // Versions 0xc1 and later only
+        TEST_DSP_CMD              = 0x50,
+        TEST_DSP_CMD_RESP         = 0x51, // Versions 0xc2 and later only
+        TEST_MCU_PEEK             = 0x60,
+        TEST_DECODER_GET_REG      = 0x71, // Versions 0xc1 and later only
+        TEST_DECODER_SET_REG      = 0x72, // Versions 0xc1 and later only
+        TEST_DECODER_GET_SRAM_PTR = 0x75, // Versions 0xc1 and later only
+        TEST_DECODER_SET_SRAM_PTR = 0x76  // Versions 0xc1 and later only
     };
-    ENABLE_BITWISE_OPS(TestCommand);
 
-    enum class IRQType : uint8_t
+    enum IRQType : uint8_t
     {
-        NONE        = 0,
-        DATA_READY  = 1,
-        COMPLETE    = 2,
-        ACKNOWLEDGE = 3,
-        DATA_END    = 4,
-        ERROR       = 5
+        IRQ_NONE        = 0,
+        IRQ_DATA_READY  = 1,
+        IRQ_COMPLETE    = 2,
+        IRQ_ACKNOWLEDGE = 3,
+        IRQ_DATA_END    = 4,
+        IRQ_ERROR       = 5
     };
-    ENABLE_BITWISE_OPS(IRQType);
 
-    enum class CommandStatusFlag : uint8_t
+    enum CommandStatusFlag : uint8_t
     {
-        ERROR      = 1 << 0,
-        SPINDLE_ON = 1 << 1,
-        SEEK_ERROR = 1 << 2,
-        ID_ERROR   = 1 << 3,
-        LID_OPEN   = 1 << 4,
-        READING    = 1 << 5,
-        SEEKING    = 1 << 6,
-        PLAYING    = 1 << 7
+        STATUS_ERROR      = 1 << 0,
+        STATUS_SPINDLE_ON = 1 << 1,
+        STATUS_SEEK_ERROR = 1 << 2,
+        STATUS_ID_ERROR   = 1 << 3,
+        STATUS_LID_OPEN   = 1 << 4,
+        STATUS_READING    = 1 << 5,
+        STATUS_SEEKING    = 1 << 6,
+        STATUS_PLAYING    = 1 << 7
     };
-    ENABLE_BITWISE_OPS(CommandStatusFlag);
 
-    enum class CommandErrorFlag : uint8_t
+    enum CommandErrorFlag : uint8_t
     {
-        SEEK_FAILED         = 1 << 2,
-        LID_OPENED          = 1 << 3,
-        INVALID_PARAM_VALUE = 1 << 4,
-        INVALID_PARAM_COUNT = 1 << 5,
-        INVALID_COMMAND     = 1 << 6,
-        NO_DISC             = 1 << 7
+        ERROR_SEEK_FAILED         = 1 << 2,
+        ERROR_LID_OPENED          = 1 << 3,
+        ERROR_INVALID_PARAM_VALUE = 1 << 4,
+        ERROR_INVALID_PARAM_COUNT = 1 << 5,
+        ERROR_INVALID_COMMAND     = 1 << 6,
+        ERROR_NO_DISC             = 1 << 7
     };
-    ENABLE_BITWISE_OPS(CommandErrorFlag);
 
-    enum class ModeFlag : uint8_t
+    enum ModeFlag : uint8_t
     {
-        CDDA         = 1 << 0,
-        AUTO_PAUSE   = 1 << 1,
-        CDDA_REPORT  = 1 << 2,
-        XA_FILTER    = 1 << 3,
-        SIZE_BITMASK = 3 << 4,
-        SIZE_2048    = 0 << 4,
-        SIZE_2340    = 2 << 4,
-        XA_ADPCM     = 1 << 6,
-        SPEED_1X     = 0 << 7,
-        SPEED_2X     = 1 << 7
+        MODE_CDDA         = 1 << 0,
+        MODE_AUTO_PAUSE   = 1 << 1,
+        MODE_CDDA_REPORT  = 1 << 2,
+        MODE_XA_FILTER    = 1 << 3,
+        MODE_SIZE_BITMASK = 3 << 4,
+        MODE_SIZE_2048    = 0 << 4,
+        MODE_SIZE_2340    = 2 << 4,
+        MODE_XA_ADPCM     = 1 << 6,
+        MODE_SPEED_1X     = 0 << 7,
+        MODE_SPEED_2X     = 1 << 7
     };
     ENABLE_BITWISE_OPS(ModeFlag);
 

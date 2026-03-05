@@ -19,11 +19,10 @@
 
 #include <stdint.h>
 
-#include "common/objects/texture.hpp"
 #include "common/services/video/vesa.hpp"
 #include "common/services/video/video.hpp"
 
-namespace System::PSX::GPU
+namespace PSX::GPU
 {
     using namespace VESA;
 
@@ -48,4 +47,4 @@ namespace System::PSX::GPU
 
     constexpr auto PSX_Video_Modes = Video::VideoModeList(PSX_Resolutions, PSX_Refresh_Rates);
 
-} // namespace System::PSX::GPU
+} // namespace PSX::GPU

@@ -24,39 +24,39 @@
 
 #include "common/util/hash.hpp"
 
-namespace System::PSX::IO
+namespace PSX::IO
 {
     enum JoypadType : uint8_t
     {
-        PAD_ERROR = 0x00,
+        PAD_ERROR        = 0x00,
         PAD_DISCONNECTED = 0xFF,
-        PAD_MOUSE = 0x12,
-        PAD_NEGCON = 0x23,
-        PAD_KONAMI_GUN = 0x31,
-        PAD_DIGITAL = 0x41,
-        PAD_TWINSTICK = 0x53,
-        PAD_GUNCON = 0x63,
-        PAD_ANALOG = 0x73,
-        PAD_DVD_REMOTE = 0x12,
-        PAD_DUALSHOCK2 = 0x79,
-        PAD_MULTITAP = 0x80,
-        PAD_KEYBOARD = 0x96,
-        PAD_JOGCON = 0xE3,
-        PAD_CONFIG = 0xF3,
+        PAD_MOUSE        = 0x12,
+        PAD_NEGCON       = 0x23,
+        PAD_KONAMI_GUN   = 0x31,
+        PAD_DIGITAL      = 0x41,
+        PAD_TWINSTICK    = 0x53,
+        PAD_GUNCON       = 0x63,
+        PAD_ANALOG       = 0x73,
+        PAD_DVD_REMOTE   = 0x12,
+        PAD_DUALSHOCK2   = 0x79,
+        PAD_MULTITAP     = 0x80,
+        PAD_KEYBOARD     = 0x96,
+        PAD_JOGCON       = 0xE3,
+        PAD_CONFIG       = 0xF3,
     };
 
-    constexpr const util::Hash PSX_PAD_HASH = "PSXPAD"_h;
-    constexpr const util::Hash PSX_DIGITAL_HASH = "PSXDIGITAL"_h;
-    constexpr const util::Hash PSX_ANALOG_HASH = "PSXANALOG"_h;
-    constexpr const util::Hash PSX_DUALSHOCK_HASH = "PSXDUALSHOCK"_h;
+    constexpr const util::Hash PSX_PAD_HASH        = "PSXPAD"_h;
+    constexpr const util::Hash PSX_DIGITAL_HASH    = "PSXDIGITAL"_h;
+    constexpr const util::Hash PSX_ANALOG_HASH     = "PSXANALOG"_h;
+    constexpr const util::Hash PSX_DUALSHOCK_HASH  = "PSXDUALSHOCK"_h;
     constexpr const util::Hash PSX_DUALSHOCK2_HASH = "PSXDUALSHOCK2"_h;
-    constexpr const util::Hash PSX_GUNCON_HASH = "PSXGUNCON"_h;
-    constexpr const util::Hash PSX_TWINSTICK_HASH = "PSXTWINSTICK"_h;
-    constexpr const util::Hash PSX_JUSTIFIER_HASH = "PSXJUSTIFIER"_h;
-    constexpr const util::Hash PSX_MOUSE_HASH = "PSXMOUSE"_h;
-    constexpr const util::Hash PSX_KEYBOARD_HASH = "PSXKEYBOARD"_h;
-    constexpr const util::Hash PSX_NEGCON_HASH = "PSXNEGCON"_h;
-    constexpr const util::Hash PSX_JOGCON_HASH = "PSXJOGCON"_h;
+    constexpr const util::Hash PSX_GUNCON_HASH     = "PSXGUNCON"_h;
+    constexpr const util::Hash PSX_TWINSTICK_HASH  = "PSXTWINSTICK"_h;
+    constexpr const util::Hash PSX_JUSTIFIER_HASH  = "PSXJUSTIFIER"_h;
+    constexpr const util::Hash PSX_MOUSE_HASH      = "PSXMOUSE"_h;
+    constexpr const util::Hash PSX_KEYBOARD_HASH   = "PSXKEYBOARD"_h;
+    constexpr const util::Hash PSX_NEGCON_HASH     = "PSXNEGCON"_h;
+    constexpr const util::Hash PSX_JOGCON_HASH     = "PSXJOGCON"_h;
 
     constexpr const char *getPadName(uint16_t id)
     {
@@ -76,4 +76,4 @@ namespace System::PSX::IO
         }
     }
 
-} // namespace System::PSX::IO
+} // namespace PSX::IO

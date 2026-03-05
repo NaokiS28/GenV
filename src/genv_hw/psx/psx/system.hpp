@@ -21,42 +21,38 @@
 
 #include "common/services/system/system.hpp"
 #include "psx/common/drivers/sio0/psx_joy.hpp"
-#include "psx/common/drivers/psx_pcdrv.hpp"
+#include "psx/common/drivers/pcdrive/psx_pcdrv.hpp"
 #include "psx/common/psx_strings.hpp"
 #include "psx/common/system.hpp"
 #include "psx_cdrom.hpp"
 
-namespace System
+namespace PSX
 {
-    /*
-     * PSX System class
-     */
-    namespace PSX
+    using namespace System;
+
+    class PSXSystem : public BasePSXSystem
     {
-        class PSXSystem : public BasePSXSystem
+    protected:
+        SystemInfo siPS1 = {
+            .type  = SYS_Console,
+            .make  = szSony,
+            .name  = szPlaystation,
+            .flags = SYS_No_Window_Mode};
+
+        Storage::PSX_CDROM *cdDriver   = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
+        Storage::PSX_PCDrive *pcDriver = nullptr; // Not always needed?
+
+    public:
+        inline PSXSystem() {};
+
+        virtual int initVideo() override;
+        virtual int initAudio() override;
+        virtual int initStorage() override;
+
+        inline virtual const SystemInfo *getSysInfo() const override
         {
-        protected:
-            SystemInfo siPS1 = {
-                .type = SYS_Console,
-                .make = szSony,
-                .name = szPlaystation,
-                .flags = SYS_No_Window_Mode};
+            return &siPS1;
+        }
+    };
 
-            Storage::PSX_CDROM *cdDriver = nullptr;   // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
-            Storage::PSX_PCDrive *pcDriver = nullptr; // Not always needed?
-
-        public:
-            inline PSXSystem() {};
-
-            virtual int initVideo() override;
-            virtual int initAudio() override;
-            virtual int initStorage() override;
-
-            inline virtual const SystemInfo *getSysInfo() const override
-            {
-                return &siPS1;
-            }
-        };
-
-    } // namespace PSX
-} // namespace System
+} // namespace PSX

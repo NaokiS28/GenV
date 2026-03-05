@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../cpu/cop0gte.h"
+#include "cop0gte.h"
 #include "registers.h"
 
 // TODO: Convert to C++

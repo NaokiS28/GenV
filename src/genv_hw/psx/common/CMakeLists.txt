@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License along with
 # GenV. If not, see <https://www.gnu.org/licenses/>.
 
+add_subdirectory(halt)
+
 ## PSX Core Library
 add_library(genv_psx_core STATIC)
 target_sources(genv_psx_core PUBLIC
@@ -23,9 +25,8 @@ target_sources(genv_psx_core PUBLIC
 	system/sys.s
 	system/unhandledexc.c
 	system/serial.c
-	system/timer.c
-	system/pcdrv.s
-	halt/halt.c
+	drivers/pcdrive/pcdrv.s
+	drivers/pcdrive/psx_pcdrv.cpp
     drivers/video/video.cpp
     drivers/video/texmgr.cpp
     drivers/video/psxtex.cpp
@@ -34,7 +35,6 @@ target_sources(genv_psx_core PUBLIC
 	drivers/sio0/psx_joy.cpp
 	drivers/sio0/psx_mc.cpp
 	drivers/sio0/psx_sio0.cpp
-	drivers/psx_pcdrv.cpp
 )
 
 target_include_directories(
@@ -42,4 +42,9 @@ target_include_directories(
 	${CMAKE_SOURCE_DIR}/src/genv_hw
 	${CMAKE_SOURCE_DIR}/src/genv_common
 	${LIBC_INCLUDE}
+)
+
+target_link_libraries(
+	genv_psx_core PUBLIC
+	psx_halt_screen
 )

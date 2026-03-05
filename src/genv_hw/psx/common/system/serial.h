@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+// TODO: Convert to proper C++ driver
+
 #ifdef __cplusplus
 extern "C"
 {

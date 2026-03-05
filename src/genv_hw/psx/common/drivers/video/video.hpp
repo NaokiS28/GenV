@@ -19,23 +19,23 @@
 
 #include <stdint.h>
 
-#include "psx/common/registers.hpp"
+#include "psx/common/system/registers.h"
 #include "texmgr.hpp"
 #include "resolutions.hpp"
 #include "psxtex.hpp"
 #include "gpucmd.hpp"
 
-#include "common/util/rect.h"
+#include "common/util/rect.hpp"
 #include "common/objects/font.hpp"
 #include "common/services/services.hpp"
 #include "common/services/video/iface_video.hpp"
 
-namespace System::PSX
+namespace PSX
 {
     class BasePSXSystem;
 }
 
-namespace System::PSX::GPU
+namespace PSX::GPU
 {
     using namespace Video;
 
@@ -43,7 +43,7 @@ namespace System::PSX::GPU
 
     class PSXGPU : public IVideo
     {
-        friend class System::PSX::BasePSXSystem;
+        friend class PSX::BasePSXSystem;
 
     protected:
         typedef struct DMAChain
@@ -104,9 +104,8 @@ namespace System::PSX::GPU
         }
         bool beginRender() override;
         bool endRender() override;
-        bool shutdown() override
+        void shutdown() override
         {
-            return 0;
         }
 
         bool waitingForVSync() override;
@@ -150,7 +149,7 @@ namespace System::PSX::GPU
 
         inline int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override
         {
-            Fonts::FontObject *fObj = getServiceManager()->fontManager()->getCurrentFont();
+            Fonts::FontObject *fObj = getServiceManager()->getFontManager()->getCurrentFont();
             return drawText(fObj, str, x, y, w, h, color, mode);
         }
         int drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override;
@@ -181,4 +180,4 @@ namespace System::PSX::GPU
             return 0;
         }
     };
-} // namespace System::PSX::GPU
+} // namespace PSX::GPU
