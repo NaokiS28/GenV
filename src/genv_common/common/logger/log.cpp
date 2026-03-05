@@ -30,6 +30,16 @@ namespace Logs
     /* Logging framework */
     Logger logger;
 
+    inline void putEndLine()
+    {
+        // Different consoles handle line endings differently.
+#if defined(__APPLE__) || defined(__unix__)
+        puts("\r");
+#else
+        puts("\r\n");
+#endif
+    }
+
     void LogBuffer::clear(void)
     {
         for (auto line : _lines)
@@ -39,7 +49,7 @@ namespace Logs
     char *LogBuffer::allocateLine(void)
     {
         size_t tail = _tail;
-        _tail = (tail + 1) % MAX_LOG_LINES;
+        _tail       = (tail + 1) % MAX_LOG_LINES;
 
         return _lines[tail];
     }
@@ -68,7 +78,7 @@ namespace Logs
             if (_enableSyslog)
             {
                 puts(line);
-                puts("\r\n");
+                putEndline();
             }
         }
         else if (_enableSyslog)
@@ -76,7 +86,7 @@ namespace Logs
             va_start(ap, format);
             vprintf(format, ap);
             va_end(ap);
-            puts("\r\n");
+            putEndline();
         }
     }
 
@@ -109,7 +119,7 @@ namespace Logs
             if (_enableSyslog)
             {
                 puts(line);
-                puts("\r\n");
+                putEndline();
             }
         }
         else if (_enableSyslog)
@@ -117,7 +127,7 @@ namespace Logs
             va_start(ap, linenum);
             vprintf(str, ap);
             va_end(ap);
-            puts("\r\n");
+            putEndline();
         }
     }
 
