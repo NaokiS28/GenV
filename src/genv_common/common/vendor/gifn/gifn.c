@@ -17,6 +17,10 @@
 
 #include "gifn.h"
 
+#ifndef GIFN_NO_STDIO
+#include <stdio.h> // FILE, fopen, fclose, fseek, ftell, fread
+#endif
+
 #include <string.h> // memcpy, memset
 #include <stdlib.h>
 #include <stddef.h>
