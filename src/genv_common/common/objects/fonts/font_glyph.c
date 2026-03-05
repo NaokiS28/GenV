@@ -32,7 +32,7 @@ const FontGlyph *glyph_getHashTableEntry(
     do
     {
         const FontGlyph *entry = &table[index];
-        index = glyph_getChained(entry);
+        index                  = glyph_getChained(entry);
 
         if (glyph_getHash(entry) == id)
             return entry;
@@ -41,7 +41,7 @@ const FontGlyph *glyph_getHashTableEntry(
     return NULL;
 }
 
-const FontGlyph glyph_get(const FontGlyph *table, size_t numBuckets, uint32_t id)
+FontGlyph glyph_get(const FontGlyph *table, size_t numBuckets, uint32_t id)
 {
     const FontGlyph *entry = glyph_getHashTableEntry(
         table,

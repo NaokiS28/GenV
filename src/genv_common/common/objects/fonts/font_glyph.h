@@ -48,7 +48,7 @@ extern "C"
     }
 
     const FontGlyph *glyph_getHashTableEntry(const FontGlyph *table, size_t numBuckets, uint32_t id);
-    const FontGlyph glyph_get(const FontGlyph *table, size_t numBuckets, uint32_t id);
+    FontGlyph glyph_get(const FontGlyph *table, size_t numBuckets, uint32_t id);
 
 #ifdef __cplusplus
 }

@@ -27,15 +27,15 @@
 namespace Textures
 {
     static constexpr const char *GENV_TEXTURE_OBJ_TYPENAME = "GenVTextureObject";
-    static constexpr util::Hash TextureUploaded = "TextureUploaded"_h;
+    static constexpr util::Hash TextureUploaded            = "TextureUploaded"_h;
 
     enum BitsPerPixel : uint8_t
     {
         INVALID,
-        BPP_1BIT = 1,
-        BPP_2BIT = 2,
-        BPP_4BIT = 4,
-        BPP_8BIT = 8,
+        BPP_1BIT  = 1,
+        BPP_2BIT  = 2,
+        BPP_4BIT  = 4,
+        BPP_8BIT  = 8,
         BPP_16BIT = 16,
         BPP_24BIT = 24
     };
@@ -46,16 +46,16 @@ namespace Textures
         Files::FileObject *file = nullptr;
 
     public:
-        unsigned int width = 0;
+        unsigned int width  = 0;
         unsigned int height = 0;
-        unsigned int bpp = 0;
+        unsigned int bpp    = 0;
 
         const uint8_t *bitmap = nullptr;
-        size_t bitmapLength = 0;
+        size_t bitmapLength   = 0;
 
         // For indexed textures
         const Video::Color *palette = nullptr;
-        size_t paletteLength = 0;
+        size_t paletteLength        = 0;
 
         TextureObject(util::Hash objectID);
         TextureObject(util::Hash objectID, const char *filePath);
@@ -87,7 +87,7 @@ namespace Textures
 } // namespace Textures
 
 // Is pow(bpp,2), really.
-static constexpr const size_t genv_bpp(uint8_t bpp)
+static constexpr size_t genv_bpp(uint8_t bpp)
 {
     size_t r = 2;
     if (bpp < 2)

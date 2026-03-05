@@ -54,11 +54,11 @@ namespace Files
 
         const uint8_t *getRawData() { return DataObject::getRawData(); }
 
-        inline const char *const getFilePath()
+        inline const char *getFilePath()
         {
             return filePath;
         }
-        inline const char *const getFileName()
+        inline const char *getFileName()
         {
             return fileName;
         }
