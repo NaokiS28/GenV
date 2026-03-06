@@ -100,10 +100,16 @@ namespace System
         bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq) override;
         bool unregisterTimerFunc(TFunc func, TChannel timer) override;
 
+        // ---- Quit signalling ------------------------------------------------
+        // Called by GenVAppDelegate when the OS requests termination so that
+        // the main loop can shut down cleanly via the state machine.
+        void requestQuit() { _smState = System::SM_QUIT; }
+
     private:
-        // The NSWindow* is stored as void* so this header stays valid C++.
-        // Objective-C types only appear inside system.mm.
-        void *_window = nullptr; // NSWindow*
+        // The NSWindow* and app delegate are stored as void* so this header
+        // stays valid C++.  Objective-C types only appear inside system.mm.
+        void *_window   = nullptr; // NSWindow*
+        void *_delegate = nullptr; // GenVAppDelegate*
 
         // Monotonic timing state.
         mach_timebase_info_data_t _tbInfo = {};

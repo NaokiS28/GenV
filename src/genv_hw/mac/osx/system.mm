@@ -67,7 +67,9 @@
  */
 
 // Objective-C / macOS headers
+#include <AppKit/AppKit.h>
 #import <Cocoa/Cocoa.h>
+#include <Foundation/Foundation.h>
 #import <mach/mach_time.h>
 
 // GenV headers
@@ -76,6 +78,43 @@
 
 #include "common/services/services.hpp"
 #include "common/logger/log.hpp"
+
+// ============================================================================
+// GenVAppDelegate
+// ============================================================================
+// Objective-C application delegate.  Intercepts applicationShouldTerminate:
+// (triggered by Cmd+Q, the "Quit GenV" menu item, or the Dock context menu)
+// and routes the quit signal through the GenV state machine instead of letting
+// Cocoa kill the process immediately.
+// ============================================================================
+@interface GenVAppDelegate : NSObject <NSApplicationDelegate>
+{
+    System::OSXSystem *_system;
+}
+- (instancetype)initWithSystem:(System::OSXSystem *)system;
+@end
+
+@implementation GenVAppDelegate
+
+- (instancetype)initWithSystem:(System::OSXSystem *)system
+{
+    self = [super init];
+    if (self)
+        _system = system;
+    return self;
+}
+
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+{
+    // Signal the main loop to quit via the state machine and cancel the
+    // Cocoa-level termination so the process stays alive until GenV's own
+    // shutdown sequence has completed.
+    if (_system)
+        _system->requestQuit();
+    return NSTerminateCancel;
+}
+
+@end
 
 namespace System
 {
@@ -117,9 +156,11 @@ int OSXSystem::initCore()
     NSApplication *app = [NSApplication sharedApplication];
     [app setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-    // We act as our own delegate (defined in osx_platform.mm).
-    // The delegate receives applicationShouldTerminate: when the user quits.
-    // [app setDelegate: ...];   // TODO: set a delegate to handle Quit
+    // Install the delegate so applicationShouldTerminate: routes quit signals
+    // through the GenV state machine instead of killing the process directly.
+    GenVAppDelegate *delegate = [[GenVAppDelegate alloc] initWithSystem:this];
+    [app setDelegate:delegate];
+    _delegate = (__bridge_retained void *)delegate;
 
     // --- NSWindow ------------------------------------------------------------
     NSRect frame   = NSMakeRect(100, 100, 800, 600); // x, y, width, height (points)
@@ -135,9 +176,25 @@ int OSXSystem::initCore()
                     backing:NSBackingStoreBuffered  // double-buffered
                       defer:NO];                   // create now, not lazily
 
-    [window setTitle:@"GenV"];
+	[window setMinSize:NSMakeSize(320, 240)];
+	[window setAspectRatio:NSMakeSize(4, 3)];
+	[window setTitle:@"GenV"];
     [window makeKeyAndOrderFront:nil]; // show window and bring to front
 
+	NSMenu *menuBar = [[NSMenu alloc] init];
+	NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
+	[menuBar addItem:appMenuItem];
+
+	NSMenu *appMenu = [[NSMenu alloc] init];
+	NSMenuItem *quitItem = [[NSMenuItem alloc]
+		initWithTitle:@"Quit GenV"
+		action:@selector(terminate:)
+    	keyEquivalent:@"q"];
+	[appMenu addItem:quitItem];
+	[appMenuItem setSubmenu:appMenu];
+
+	[app setMainMenu:menuBar];
+	
     // Activate the application so the window gets focus immediately.
     [app activateIgnoringOtherApps:YES];
 
@@ -241,7 +298,6 @@ int OSXSystem::update()
                     _smState = System::SM_RESIZE;
                 }
                 break;
-
             default:
                 break;
             }

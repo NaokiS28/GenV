@@ -3,7 +3,11 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-03-05 21:52:29.373216_
+_Generated on 2026-03-06 20:44:36.022042_
+
+#### [src/example/example.cpp](src/example/example.cpp)
+
+- [224](src/example/example.cpp?plain=1#L224): macOS - Sometimes this gets a random and invalid device pointer in the device list?
 
 #### [src/genv_common/app/appmgr.cpp](src/genv_common/app/appmgr.cpp)
 
@@ -27,7 +31,7 @@ _Generated on 2026-03-05 21:52:29.373216_
 
 #### [src/genv_common/common/objects/font.cpp](src/genv_common/common/objects/font.cpp)
 
-- [90](src/genv_common/common/objects/font.cpp?plain=1#L90): Change this so it prefers non-bold/italic fonts when requested
+- [88](src/genv_common/common/objects/font.cpp?plain=1#L88): Change this so it prefers non-bold/italic fonts when requested
 
 #### [src/genv_common/common/objects/tile.cpp](src/genv_common/common/objects/tile.cpp)
 
@@ -35,7 +39,7 @@ _Generated on 2026-03-05 21:52:29.373216_
 
 #### [src/genv_common/common/services/genv_sys.cpp](src/genv_common/common/services/genv_sys.cpp)
 
-- [76](src/genv_common/common/services/genv_sys.cpp?plain=1#L76): Allow setting custom startup baud
+- [77](src/genv_common/common/services/genv_sys.cpp?plain=1#L77): Allow setting custom startup baud
 
 #### [src/genv_common/common/services/system/arcade/arcade.cpp](src/genv_common/common/services/system/arcade/arcade.cpp)
 
@@ -60,6 +64,24 @@ _Generated on 2026-03-05 21:52:29.373216_
 #### [src/genv_common/common/services/video/fontman.hpp](src/genv_common/common/services/video/fontman.hpp)
 
 - [31](src/genv_common/common/services/video/fontman.hpp?plain=1#L31): Support loading from raw data - We need to have a safe-fall back font.
+
+#### [src/genv_hw/mac/osx/README.md](src/genv_hw/mac/osx/README.md)
+
+- [4](src/genv_hw/mac/osx/README.md?plain=1#L4): Add documentation and support status
+
+#### [src/genv_hw/mac/osx/system.mm](src/genv_hw/mac/osx/system.mm)
+
+- [238](src/genv_hw/mac/osx/system.mm?plain=1#L238): create and register an Audio::IAudio driver (e.g. CoreAudio).
+- [249](src/genv_hw/mac/osx/system.mm?plain=1#L249): create and register IO drivers (keyboard, gamepad via IOKit / GCController).
+- [259](src/genv_hw/mac/osx/system.mm?plain=1#L259): initialise file/storage manager for macOS paths.
+- [344](src/genv_hw/mac/osx/system.mm?plain=1#L344): use an NSLock or os_unfair_lock for thread safety.
+- [349](src/genv_hw/mac/osx/system.mm?plain=1#L349): unlock the above.
+
+#### [src/genv_hw/mac/osx/video/gpu-metal.mm](src/genv_hw/mac/osx/video/gpu-metal.mm)
+
+- [516](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L516): enumerate CGDisplayCopyAllDisplayModes() and build a VideoModeList.
+- [526](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L526): render text using a sprite font or CoreText.
+- [542](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L542): create a MTLTexture from tObj->data and store in _texMap.
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp)
 
@@ -106,6 +128,11 @@ _Generated on 2026-03-05 21:52:29.373216_
 #### [src/genv_hw/psx/common/drivers/video/video.hpp](src/genv_hw/psx/common/drivers/video/video.hpp)
 
 - [83](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L83): Set true when the DMA chain is full. Draw calls become no-ops
+
+#### [src/genv_hw/psx/common/halt/ps1/sys.h](src/genv_hw/psx/common/halt/ps1/sys.h)
+
+- [25](src/genv_hw/psx/common/halt/ps1/sys.h?plain=1#L25): Convert to C++
+- [159](src/genv_hw/psx/common/halt/ps1/sys.h?plain=1#L159): // void psx_delayMicroseconds(int time);	Make this function save the state of the Timer 2 variable so that it wont break things.
 
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 

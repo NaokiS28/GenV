@@ -78,7 +78,7 @@ namespace Logs
             if (_enableSyslog)
             {
                 puts(line);
-                putEndline();
+                putEndLine();
             }
         }
         else if (_enableSyslog)
@@ -86,7 +86,7 @@ namespace Logs
             va_start(ap, format);
             vprintf(format, ap);
             va_end(ap);
-            putEndline();
+            putEndLine();
         }
     }
 
@@ -119,7 +119,7 @@ namespace Logs
             if (_enableSyslog)
             {
                 puts(line);
-                putEndline();
+                putEndLine();
             }
         }
         else if (_enableSyslog)
@@ -127,7 +127,7 @@ namespace Logs
             va_start(ap, linenum);
             vprintf(str, ap);
             va_end(ap);
-            putEndline();
+            putEndLine();
         }
     }
 

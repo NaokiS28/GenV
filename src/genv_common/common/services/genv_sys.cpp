@@ -27,10 +27,11 @@
 #include "video/nullvideo.hpp"
 #include "audio/nullaudio.hpp"
 
-#include "halt_screen/halt_screen.h"
 #include "assert.h"
 
-#ifdef GENV_COMPUTER
+#ifndef GENV_COMPUTER
+#include "halt_screen/halt_screen.h"
+#else
 #include <stdexcept>
 #endif
 
@@ -106,7 +107,7 @@ void GenvSystemClass::startup()
 
 void GenvSystemClass::shutdown()
 {
-    GENV_LOG("GenV is shutting down...");
+    GENV_LOG("GenV system is shutting down...");
     getServiceManager()->shutdown();
 }
 
@@ -116,8 +117,7 @@ void GenvSystemClass::halt(int return_code)
 #ifndef GENV_COMPUTER
     GENV_LOG("GenV has halted.");
     genv_halt_screen_show("GenV has halted.");
-    while (1)
-        __asm__ volatile("");
+    while (1) {}
 #else
     throw std::runtime_error("GenV has halted.");
 #endif

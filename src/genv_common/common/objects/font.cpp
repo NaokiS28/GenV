@@ -34,7 +34,7 @@ namespace Fonts
     {
         setObjectType(GENV_FONT_OBJ_TYPENAME);
         _header = header;
-        _table = table;
+        _table  = table;
     }
 
     FontObject::FontObject(util::Hash objectID, const FontHeader *header, const Glyph *table, Textures::TextureObject *texture)
@@ -42,8 +42,8 @@ namespace Fonts
     {
         setObjectType(GENV_FONT_OBJ_TYPENAME);
         _texture = texture;
-        _header = header;
-        _table = table;
+        _header  = header;
+        _table   = table;
     }
 
     FontObject::~FontObject()
@@ -69,13 +69,11 @@ namespace Fonts
 
     FontsetObject::~FontsetObject()
     {
-        if (_header)
-            delete _header;
     }
 
     int FontsetObject::find(uint8_t size, uint8_t flags)
     {
-        int bestIndex = FO_ERROR(GV_ERR_INCOMPATIBLE_PARAMS);
+        int bestIndex      = FO_ERROR(GV_ERR_INCOMPATIBLE_PARAMS);
         uint32_t bestScore = 0xFFFFFFFF; // lower score = better fit
 
         for (uint16_t i = 0; i < _header->fontCount; i++)
@@ -88,7 +86,7 @@ namespace Fonts
             // Compute how well it fits: prioritize matching exactly, then closeness
             uint16_t ds = size - f_header.fontSize;
             // TODO: Change this so it prefers non-bold/italic fonts when requested
-            uint16_t df = flags - f_header.flags;
+            uint16_t df    = flags - f_header.flags;
             uint32_t score = (uint32_t)ds * df + (uint32_t)ds * df;
 
             // Prefer exact match if found - TODO: Entirely broken because it was designed for video modes, not fonts
@@ -115,7 +113,7 @@ namespace Fonts
                 const FontHeader &f_header = *_fontList[i]->getHeader();
                 if (f_header.fontSize < closestSize)
                 {
-                    bestIndex = i;
+                    bestIndex   = i;
                     closestSize = f_header.fontSize;
                 }
             }
@@ -129,18 +127,18 @@ namespace Fonts
 
     FontsetObject *loadFontsetV1(const FontsetHeader *fsHeader, const uint8_t *base, size_t length)
     {
-        int error = 0;
+        int error  = 0;
         size_t pos = sizeof(FontsetHeader);
 
-        const char *familyName = reinterpret_cast<const char *>(base + pos);
+        const char *familyName   = reinterpret_cast<const char *>(base + pos);
         const char *designerName = reinterpret_cast<const char *>(base + pos + fsHeader->familyLength);
         pos += fsHeader->familyLength + fsHeader->designerLength;
 
-        const size_t offsetsSize = static_cast<size_t>(fsHeader->fontCount) * sizeof(uint32_t);
+        const size_t offsetsSize    = static_cast<size_t>(fsHeader->fontCount) * sizeof(uint32_t);
         const uint8_t *offsetsBytes = base + pos;
         pos += offsetsSize;
 
-        FontObject **fontBlobs = new FontObject *[fsHeader->fontCount]{};
+        FontObject **fontBlobs = new FontObject *[fsHeader->fontCount] {};
         if (!fontBlobs) return nullptr;
 
         // Clear the allocated objects if any failures occur
@@ -161,13 +159,13 @@ namespace Fonts
             uint32_t fontBaseOff = 0;
             memcpy(&fontBaseOff, offsetsBytes + i * sizeof(uint32_t), sizeof(uint32_t));
 
-            const uint8_t *fontBase = (base + fontBaseOff);
+            const uint8_t *fontBase    = (base + fontBaseOff);
             const FontHeader *ftHeader = reinterpret_cast<const FontHeader *>(fontBase);
             util::assertAligned<uint32_t>(ftHeader);
             if (ftHeader->validateMagic())
             {
-                const Glyph *table = reinterpret_cast<const Glyph *>(fontBase + sizeof(FontHeader));
-                const uint8_t *txOffset = (fontBase + ftHeader->bitmapOffset + sizeof(FontHeader));
+                const Glyph *table                 = reinterpret_cast<const Glyph *>(fontBase + sizeof(FontHeader));
+                const uint8_t *txOffset            = (fontBase + ftHeader->bitmapOffset + sizeof(FontHeader));
                 Textures::TextureObject *ftTexture = Textures::openImageMemory(
                     ftHeader->id,
                     ftHeader->bitmapType,
@@ -177,7 +175,7 @@ namespace Fonts
                 if (ftTexture)
                 {
                     FontObject *ftObj = new FontObject(ftHeader->id, ftHeader, table, ftTexture);
-                    fontBlobs[i] = ftObj;
+                    fontBlobs[i]      = ftObj;
                 }
                 else
                 {
@@ -246,9 +244,9 @@ namespace Fonts
             return nullptr;
         }
 
-        size_t pos = 0;
+        size_t pos                = 0;
         const uint8_t *const base = static_cast<const uint8_t *>(data);
-        const auto *fsHeader = reinterpret_cast<const FontsetHeader *>(base + pos);
+        const auto *fsHeader      = reinterpret_cast<const FontsetHeader *>(base + pos);
         pos += sizeof(FontsetHeader);
 
         if (fsHeader->magic != GENV_BITMAP_FONTSET_MAGIC || !fsHeader->fontCount)

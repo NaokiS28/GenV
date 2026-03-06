@@ -180,7 +180,6 @@ void ServiceManager::shutdown()
     LOG_SVC("Shutting down ServiceManager.");
     destroyService(s_audio);
     destroyService(s_video);
-    destroyService(s_system);
 
     if (s_deviceManager)
     {
@@ -210,6 +209,9 @@ void ServiceManager::shutdown()
         delete s_fonts;
         s_fonts = nullptr;
     }
+
+    LOG_SVC("GenV has shutdown. Bye!");
+    destroyService(s_system);
 }
 
 void ServiceManager::setSystem(System::ISystem *system)
