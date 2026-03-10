@@ -25,7 +25,7 @@
 
 namespace PSX
 {
-    consteval int TimerMStoClock(int ms, int div)
+    constexpr int TimerMStoClock(int ms, int div)
     {
         return ((uint32_t)((((F_CPU) / (div)) * (ms)) / 1000));
     }
