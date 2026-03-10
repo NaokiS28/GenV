@@ -207,6 +207,7 @@ public:
 
     void getControllerData(Input::Player player)
     {
+        if (player == IO::Player::INVALID || player == IO::Player::NONE) return;
         auto thisPlayer = IO::player(player);
         pageStr[0]      = {'\0'};
 
@@ -220,6 +221,7 @@ public:
         if (pDevList.count)
             for (int i = 0; i < pDevList.count; i++)
             {
+                // TODO: macOS - Sometimes this gets a random and invalid device pointer in the device list?
                 if (pDevList.devices[i] == nullptr) continue;
                 snprintf(temp, sizeof(temp), "\t%d: %s\r\n", i, pDevList.devices[i]->name);
                 strncat(pageStr, temp, strlen(temp));

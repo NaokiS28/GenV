@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-03-06 20:44:36.022042_
+_Generated on 2026-03-07 23:46:48.030219_
 
 #### [src/example/example.cpp](src/example/example.cpp)
 
@@ -71,17 +71,17 @@ _Generated on 2026-03-06 20:44:36.022042_
 
 #### [src/genv_hw/mac/osx/system.mm](src/genv_hw/mac/osx/system.mm)
 
-- [238](src/genv_hw/mac/osx/system.mm?plain=1#L238): create and register an Audio::IAudio driver (e.g. CoreAudio).
-- [249](src/genv_hw/mac/osx/system.mm?plain=1#L249): create and register IO drivers (keyboard, gamepad via IOKit / GCController).
-- [259](src/genv_hw/mac/osx/system.mm?plain=1#L259): initialise file/storage manager for macOS paths.
-- [344](src/genv_hw/mac/osx/system.mm?plain=1#L344): use an NSLock or os_unfair_lock for thread safety.
-- [349](src/genv_hw/mac/osx/system.mm?plain=1#L349): unlock the above.
+- [263](src/genv_hw/mac/osx/system.mm?plain=1#L263): create and register an Audio::IAudio driver (e.g. CoreAudio).
+- [274](src/genv_hw/mac/osx/system.mm?plain=1#L274): create and register IO drivers (keyboard, gamepad via IOKit / GCController).
+- [284](src/genv_hw/mac/osx/system.mm?plain=1#L284): initialise file/storage manager for macOS paths.
+- [369](src/genv_hw/mac/osx/system.mm?plain=1#L369): use an NSLock or os_unfair_lock for thread safety.
+- [374](src/genv_hw/mac/osx/system.mm?plain=1#L374): unlock the above.
 
 #### [src/genv_hw/mac/osx/video/gpu-metal.mm](src/genv_hw/mac/osx/video/gpu-metal.mm)
 
-- [516](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L516): enumerate CGDisplayCopyAllDisplayModes() and build a VideoModeList.
-- [526](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L526): render text using a sprite font or CoreText.
-- [542](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L542): create a MTLTexture from tObj->data and store in _texMap.
+- [517](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L517): enumerate CGDisplayCopyAllDisplayModes() and build a VideoModeList.
+- [527](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L527): render text using a sprite font or CoreText.
+- [543](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L543): create a MTLTexture from tObj->data and store in _texMap.
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp)
 
