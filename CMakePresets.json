@@ -121,17 +121,35 @@
 		{
 			"name": "macos-universal-debug",
 			"displayName": "macOS Universal Debug",
-			"inherits": [ "base-macos-universal", "base-debug" ]
+			"inherits": [ "base-macos-universal", "base-debug" ],
+			"description": "This build is only available on macOS",
+			"condition": {
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Darwin"
+			}
 		},
 		{
 			"name": "macos-universal-release",
 			"displayName": "macOS Universal Release",
-			"inherits": [ "base-macos-universal", "base-release" ]
+			"inherits": [ "base-macos-universal", "base-release" ],
+			"description": "This build is only available on macOS",
+			"condition": {
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Darwin"
+			}
 		},
 		{
 			"name": "macos-universal-minsizerel",
 			"displayName": "macOS Universal MinSizeRel",
-			"inherits": [ "base-macos-universal", "base-minsizerel" ]
+			"inherits": [ "base-macos-universal", "base-minsizerel" ],
+			"description": "This build is only available on macOS",
+			"condition": {
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Darwin"
+			}
 		},
 		{
 			"name": "psx-debug",

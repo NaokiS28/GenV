@@ -12,7 +12,7 @@
 /*
 /*/
 
-!/.clangd
+/.clangd
 !/.clang-format
 !/.gitignore
 !/CMakeLists.txt

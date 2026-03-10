@@ -14,6 +14,13 @@
 
 cmake_minimum_required(VERSION 3.25)
 
+# Copy the macOS clangd config to the workspace root so clangd picks it up.
+file(
+    COPY_FILE
+    "${CMAKE_CURRENT_LIST_DIR}/../clangd/mac.clangd"
+    "${CMAKE_SOURCE_DIR}/.clangd"
+)
+
 add_library   (flags INTERFACE)
 link_libraries(flags)
 
