@@ -71,6 +71,7 @@
 #import <Cocoa/Cocoa.h>
 #include <Foundation/Foundation.h>
 #import <mach/mach_time.h>
+#include <sys/sysctl.h>
 
 // GenV headers
 #include "system.hpp"
@@ -119,6 +120,18 @@
 namespace System
 {
 
+	constexpr const char *getMacOSName(size_t major, size_t minor){
+		constexpr const char *MacOSNames[] = {
+			"Mac OS X",
+			"OS X",
+			"macOS"
+		};
+
+		if(major <= 10 && minor < 8) return MacOSNames[0];
+		if(major <= 10 && minor >= 8 && minor < 12) return MacOSNames[1];
+		return MacOSNames[2];
+	}
+
 // ============================================================================
 // OSXSystem::OSXSystem / ~OSXSystem
 // ============================================================================
@@ -129,10 +142,22 @@ OSXSystem::OSXSystem()
     mach_timebase_info(&_tbInfo);
     _startTick = mach_absolute_time();
 
+	size_t _size = sizeof(m_systemName);
+	sysctlbyname("hw.model", &m_systemName, &_size, nullptr, 0);
+
+	NSProcessInfo *pInfo = [NSProcessInfo processInfo];
+	NSOperatingSystemVersion version = [pInfo operatingSystemVersion];
+
+	snprintf(m_systemVersion, sizeof(m_systemVersion), 
+		"%s %ld.%ld.%ld", getMacOSName(version.majorVersion, version.minorVersion),
+		static_cast<long>(version.majorVersion), 
+		static_cast<long>(version.minorVersion),
+		static_cast<long>(version.patchVersion));
+
     _sysInfo.type   = System::SYS_Computer;
-    _sysInfo.make   = "Apple";
-    _sysInfo.name   = "macOS";
-    _sysInfo.osname = "macOS 11+";
+    _sysInfo.make   = m_systemMake;
+    _sysInfo.name   = m_systemName;
+    _sysInfo.osname = m_systemVersion;
 }
 
 OSXSystem::~OSXSystem()

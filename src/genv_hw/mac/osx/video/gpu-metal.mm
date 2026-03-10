@@ -69,6 +69,7 @@
 
 // Then the GenV C++ header for this class
 #include "gpu-metal.hpp"
+#include "common/logger/log.hpp"
 
 // ============================================================================
 // Convenience macros to cast void* <-> strong ObjC types
@@ -144,7 +145,7 @@ bool MetalGPU::init()
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();
     if (!device)
     {
-        NSLog(@"[MetalGPU] MTLCreateSystemDefaultDevice() returned nil. "
+        LOG("metalgpu","MTLCreateSystemDefaultDevice() returned nil. "
                "Metal is not supported on this machine.");
         return false;
     }
@@ -164,7 +165,7 @@ bool MetalGPU::init()
     id<MTLCommandQueue> queue = [device newCommandQueue];
     if (!queue)
     {
-        NSLog(@"[MetalGPU] Failed to create MTLCommandQueue.");
+        LOG("metalgpu","Failed to create MTLCommandQueue.");
         return false;
     }
     STORE(_queue, queue);
@@ -183,7 +184,7 @@ bool MetalGPU::init()
     // See: Metal Best Practices Guide – Triple Buffering
     _frameSemaphore = (__bridge_retained void *)dispatch_semaphore_create(kMaxFramesInFlight);
 
-    NSLog(@"[MetalGPU] init() succeeded on device: %@", device.name);
+    LOG("metalgpu","init() succeeded on device: %@", device.name);
     return true;
 }
 
@@ -198,7 +199,7 @@ bool MetalGPU::setupMetalLayer()
     NSWindow *window = AS_WINDOW(_window);
     if (!window)
     {
-        NSLog(@"[MetalGPU] setupMetalLayer: window is nil.");
+        LOG("metalgpu","setupMetalLayer: window is nil.");
         return false;
     }
 
@@ -284,7 +285,7 @@ bool MetalGPU::createPipeline()
                                                     error:&error];
     if (!library)
     {
-        NSLog(@"[MetalGPU] Shader compilation failed: %@", error.localizedDescription);
+        LOG("metalgpu","Shader compilation failed: %@", error.localizedDescription);
         return false;
     }
 
@@ -303,13 +304,13 @@ bool MetalGPU::createPipeline()
         [device newRenderPipelineStateWithDescriptor:pipeDesc error:&error];
     if (!pipeline)
     {
-        NSLog(@"[MetalGPU] Pipeline creation failed: %@", error.localizedDescription);
+        LOG("metalgpu","Pipeline creation failed: %@", error.localizedDescription);
         return false;
     }
 
     // In a real driver you would store the pipeline state and bind it in
     // beginRender().  Here we just discard it to keep the stub simple.
-    NSLog(@"[MetalGPU] Render pipeline created successfully.");
+    LOG("metalgpu","Render pipeline created successfully.");
     return true;
 }
 
@@ -346,7 +347,7 @@ bool MetalGPU::beginRender()
     id<CAMetalDrawable> drawable = [layer nextDrawable];
     if (!drawable)
     {
-        NSLog(@"[MetalGPU] nextDrawable returned nil – skipping frame.");
+        LOG("metalgpu", "nextDrawable returned nil - skipping frame.");
         return false;
     }
     STORE(_drawable, drawable);
@@ -525,7 +526,7 @@ int MetalGPU::drawText(const char *str, int x, int y, int w, int h,
 {
     // TODO: render text using a sprite font or CoreText.
     // For the hello world example, just log to the console.
-    //NSLog(@"[MetalGPU] drawText(\"%s\", %d, %d)", str, x, y);
+    //LOG("metalgpu","drawText(\"%s\", %d, %d)", str, x, y);
     return 0;
 }
 
