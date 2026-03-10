@@ -111,6 +111,10 @@ namespace System
         void *_window   = nullptr; // NSWindow*
         void *_delegate = nullptr; // GenVAppDelegate*
 
+        char m_systemName[32]                     = {'\0'};
+        char m_systemVersion[64]                  = {'\0'};
+        static constexpr const char *m_systemMake = "Apple";
+
         // Monotonic timing state.
         mach_timebase_info_data_t _tbInfo = {};
         uint64_t _startTick               = 0;
