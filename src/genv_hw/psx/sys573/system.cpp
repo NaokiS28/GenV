@@ -158,7 +158,7 @@ namespace System573
     {
         if (bank == 0)
         {
-            IO::EXTOUT::set_state(data);
+            IO::EXTOUT::SetState(data);
             return 0;
         }
         else

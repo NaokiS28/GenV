@@ -26,18 +26,18 @@ namespace System573::IO
     {
         uint8_t ext_out_state = 0;
 
-        void set_state(uint8_t data)
+        void SetState(uint8_t data)
         {
             ext_out_state      = data;
             ASIC::Regs::ExtOut = ext_out_state;
         }
 
-        uint8_t get_state()
+        uint8_t GetState()
         {
             return ext_out_state;
         }
 
-        void write_bit(uint8_t bit, bool state)
+        void WriteBite(uint8_t bit, bool state)
         {
             if (bit > 7) return;
             if (state)
