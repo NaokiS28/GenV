@@ -29,7 +29,6 @@
 #include "system/pcsxhw.h"
 #include "system/sys.h"
 #include "system/timers.hpp"
-#include "registers.hpp"
 
 #include "system/serial.h"
 #include "terminal/terminal.h"
@@ -186,10 +185,9 @@ namespace PSX
         int error = 0;
         int port  = 1;
         for (auto &joy : joyDriver)
-        {
-            error = ioTest(joy.init(), PSX_JOYPAD_STR, port++, PSX_INIT_STR);
-            if (!error) services.registerDriver(&joy);
-        }
+            error = ioTest(
+                services.registerDriver(&joy) ? GV_OK : 1,
+                PSX_JOYPAD_STR, port++, PSX_INIT_STR);
 
         return error;
     }

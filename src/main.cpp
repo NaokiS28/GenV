@@ -19,6 +19,11 @@
 #include "common/services/services.hpp"
 #include "common/services/genv_sys.hpp"
 #include "common/services/perfmon.hpp"
+#include "common/services/video/color.hpp"
+#include <stdio.h>
+
+// #define PERFMON_US
+// #define PERFMON_PERCENT
 
 GenvSystemClass genv;
 
@@ -27,15 +32,38 @@ int main(int argc, char *argv[])
     genv.startup(); // This creates and inits the GenV engine session, core services etc.
 
     ServiceManager *serviceManager = getServiceManager();
-    Video::IVideo *video = serviceManager->getVideo(); // It is assumed the System class will have init'd the I/O driver.
-    Apps::AppManager *apps = Apps::getAppManager();    // App manager lifecycle owned by main
+    Video::IVideo *video           = serviceManager->getVideo(); // It is assumed the System class will have init'd the I/O driver.
+    Apps::AppManager *apps         = Apps::getAppManager();      // App manager lifecycle owned by main
 
-    if (!apps)
-        genv.halt();
+    if (!apps) genv.halt();
 
+    // char str[128]    = {0};
     uint8_t sm_state = System::SM_NORMAL;
     while (sm_state != System::SM_QUIT)
     {
+
+#ifndef NDEBUG
+#ifdef PERFMON_PERCENT
+        System::PerformanceGraph perfGraph = System::PerfMon.getPerformanceGraph(System::PERFMON_GRAPH_BAR);
+        snprintf(str, 128, "Loop: %d%%\r\nSys: %d%%\r\nBlock: %d%%\r\nInput: %d%%\r\nApp: %d%%\r\nRender: %d%%",
+                 perfGraph.loopTime,
+                 perfGraph.systemTime,
+                 perfGraph.storageTime,
+                 perfGraph.inputTime,
+                 perfGraph.appTime,
+                 perfGraph.renderTime);
+#elif defined(PERFMON_US)
+        System::PerformanceGraph perfGraph = System::PerfMon.getPerformanceGraph(System::PERFMON_GRAPH_TIME);
+        snprintf(str, 128, "Loop: %d\r\nSys: %d\r\nBlock: %d\r\nInput: %d\r\nApp: %d\r\nRender: %d",
+                 perfGraph.loopTime,
+                 perfGraph.systemTime,
+                 perfGraph.storageTime,
+                 perfGraph.inputTime,
+                 perfGraph.appTime,
+                 perfGraph.renderTime);
+#endif
+#endif
+
         System::PerfMon.loopStart();
         sm_state = serviceManager->update(); // System, IO, Storage
 
@@ -48,16 +76,22 @@ int main(int argc, char *argv[])
         {
             apps->render();
             System::PerfMon.finishRender();
+            // video->drawRect(0, 0, 80, 70, Video::Colors::DarkGray);
+            // video->drawText(str, 5, 5, (10 * 64), 10);
             video->endRender();
         }
 
-        if (serviceManager->updateCoroutines()) // These are run in a lower priority to vsync. If vsync happens, the update cycle pauses
-            video->doWaitForVSync();            // If Service manager runs out of services to update, then we pause for next cycle
-        System::PerfMon.finishCoroutines();
+        if (serviceManager->updateCoroutines())
+        { // These are run in a lower priority to vsync. If vsync happens, the update cycle pauses
+            System::PerfMon.finishCoroutines();
+            video->doWaitForVSync(); // If Service manager runs out of services to update, then we pause for next cycle
+        }
     }
 
     apps->shutdown();
     delete apps;
     genv.shutdown(); // Shuts down the driver services and deletes them
+
+    // Past this point, none of the standard GenV functions are expected to work correctly as the system class is gone.
     return 0;
 }
