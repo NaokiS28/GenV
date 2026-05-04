@@ -164,7 +164,27 @@ namespace Video
 
         inline virtual int setDefaultFont(Fonts::FontObject *fObj) { return 0; }
         virtual int drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) = 0;
-        virtual int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)                          = 0;
+        inline virtual int drawText(Fonts::FontObject *fObj, const char *str, RectWH box, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)
+        {
+            return drawText(fObj, str, box.x, box.y, box.w, box.h, color, mode);
+        }
+
+        virtual int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) = 0;
+        inline virtual int drawText(const char *str, RectWH box, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)
+        {
+            return drawText(str, box.x, box.y, box.w, box.h, color, mode);
+        }
+
+        inline virtual int drawChar(const char c, int x, int y, Color color = Colors::White)
+        {
+            char str[2] = {c, '\0'};
+            return drawText(str, x, y, 10, 20, color);
+        }
+        inline virtual int drawChar(Fonts::FontObject *fObj, const char c, int x, int y, Color color = Colors::White)
+        {
+            char str[2] = {c, '\0'};
+            return drawText(fObj, str, x, y, 10, 20, color);
+        }
 
         virtual Textures::TextureObject *createTexture(util::Hash objectID)
         {

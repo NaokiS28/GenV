@@ -19,8 +19,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "common/objects/font.hpp"
 #include "vesa.hpp"
-#include "color.hpp"
 
 namespace Video
 {
@@ -141,5 +141,7 @@ namespace Video
         void *dest, size_t destStride,
         const void *src, size_t srcStride,
         size_t width, size_t height);
+
+    size_t getStringWidth(Fonts::FontObject *fObj, const char *str);
 
 } // namespace Video

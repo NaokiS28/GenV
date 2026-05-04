@@ -719,7 +719,8 @@ namespace PSX::GPU
 
     int PSXGPU::drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
     {
-        if (!fObj || fObj->getObjectType() != Fonts::GENV_FONT_OBJ_TYPENAME)
+        // TODO: Seperate font renderer from PS1 core to generic video service
+        if (!fObj || fObj->getObjectType() != Fonts::GENV_FONT_OBJ_TYPENAME || str[0] == '\0')
             return V_ERROR(GV_ERR_INVALID_PARAM);
 
         auto *tObj = fObj->getTexture();
@@ -784,28 +785,6 @@ namespace PSX::GPU
             }
         }
 
-        // Pre-scan the string to count only renderable glyphs (control
-        // characters like \r, \n, \t and spaces don't emit GP0 commands).
-        int glyphCount = 0;
-        {
-            const char *scan = str;
-            for (;;)
-            {
-                auto ch = util::parseUTF8Character(scan);
-                if (!ch.length)
-                {
-                    scan++;
-                    continue;
-                }
-                if (!ch.codePoint) break;
-                scan += ch.length;
-
-                if (ch.codePoint != '\t' && ch.codePoint != '\r' &&
-                    ch.codePoint != '\n' && ch.codePoint != ' ')
-                    glyphCount++;
-            }
-        }
-
         // Precompute values that are invariant across all glyphs to avoid
         // recomputing shifts/divisions inside the per-character hot loop.
         const uint32_t rectCmd  = gp0_rgb(255, 255, 255) | gp0_rectangle(true, true, false);
@@ -813,75 +792,137 @@ namespace PSX::GPU
         const uint8_t tpOffsetX = ptObj->tpage.offsetX;
         const uint8_t tpOffsetY = ptObj->tpage.offsetY;
         const uint8_t fontH     = fHeader.fontSize;
+        bool textPageDone       = false;
+        bool finalLine          = false;
 
-        // Each renderable glyph emits 4 GP0 commands, +1 for the texpage command.
-        int totalCommands = (4 * glyphCount) + 1;
-        int startX        = x;
-        int tabWidth      = fHeader.tabWidth;
-        int lineTab       = 1; // When reading the TAB character, move to the next tab line, rather than just adding pixels to x
-        const char *cur   = str;
+        const char *scan = str;
 
-        // We only need to send the texture page command once. Also sending it means we potentially arent able to render
-        // a fourth glyph (We probably could, but to err on the side of caution)
-        bool textPageDone = false;
-        while (totalCommands > 0)
+        char line[256];
+        memset(line, '\0', sizeof(line));
+
+        // For each line of text
+        while (!finalLine)
         {
-            // The PSX GPU FIFO can only have a maximum of 16-word entries.
-            // If the string will overload that, break it up into managable chunks to not overflow the FIFO.
-            int chunkSize = (totalCommands > PSX_GPU_DMA_FIFO_SIZE) ? PSX_GPU_DMA_FIFO_SIZE : totalCommands;
+            // Pre-scan the line to count only renderable glyphs (control
+            // characters \t and spaces don't emit GP0 commands).
+            // Also scan for string length for centre + right justified text
+            int charCount   = 0;
+            int glyphCount  = 0;
+            int lineWidthPx = 0;
 
-            // If texture page needs to be added, and this will go over our limit,
-            // it must be accounted for by removing a command from the chunk packet
-            if (!textPageDone) chunkSize++;
-            if (chunkSize > PSX_GPU_DMA_FIFO_SIZE) chunkSize -= 4;
+            bool endLine      = false;
+            bool endLineFound = false;
 
-            GPUNUM(chunkSize);
-
-            int emitted = 0;
-            if (!textPageDone)
+            // Build up the next line to print
+            while (!endLineFound)
             {
-                GPUCMD(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), true, false));
-                textPageDone = true;
-                emitted++;
-            }
+                auto ch = util::parseUTF8Character(scan);
+                if (!ch.length) continue;
 
-            while (emitted + 4 <= chunkSize)
-            {
-                auto ch = util::parseUTF8Character(cur);
-                if (!ch.length)
+                char cp = ch.codePoint;
+                if (cp == '\0')
                 {
-                    cur++;
+                    finalLine    = true;
+                    endLineFound = true;
                     continue;
                 }
-                if (!ch.codePoint) break;
-                cur += ch.length;
 
-                switch (ch.codePoint)
+                if (cp == '\r' || cp == '\n')
+                    endLine = true;
+                else if (endLine)
                 {
-                // Non-renderable chars
-                case '\t': x = (tabWidth * lineTab); break;
-                case '\r':
-                    x       = startX;
-                    lineTab = 1;
-                    break;
-                case '\n': y += fontH; break;
-                case ' ': x += fHeader.spaceWidth; break;
-                default:
+                    endLineFound = true;
+                    continue;
+                }
+                else if (cp != '\t' && cp != ' ')
                 {
-                    // Render directly to help with the CPU pipeline
-                    auto c = fObj->get(ch.codePoint);
-                    GPUCMD(rectCmd);
-                    GPUCMD(gp0_xy(x, y));
-                    GPUCMD(gp0_uv(tpOffsetX + c.x, tpOffsetY + c.y, clutAttr));
-                    GPUCMD(gp0_xy(c.w, fontH));
-                    x += c.w;
-                    emitted += 4;
-                    break;
+                    lineWidthPx += fObj->get(cp).w;
+                    glyphCount++;
                 }
-                }
+
+                scan++;
+                line[charCount++] = cp;
             }
-            // Remove the count of emitted commands from the total count
-            totalCommands -= emitted;
+
+            // Each renderable glyph emits 4 GP0 commands, +1 for the texpage command.
+            int totalCommands = (4 * glyphCount) + (textPageDone ? 0 : 1);
+            int startX        = x;
+            int tabWidth      = fHeader.tabWidth;
+            int lineTab       = 1; // When reading the TAB character, move to the next tab line, rather than just adding pixels to x
+
+            if (mode == TALIGN_CENTER)
+                x -= (lineWidthPx / 2);
+            else if (mode == TALIGN_RIGHT)
+                x -= lineWidthPx;
+
+            // Print the whole line that we have scanned
+            int idx = 0;
+            while (idx < charCount)
+            {
+                // The PSX GPU FIFO can only have a maximum of 16-word entries.
+                // If the string will overload that, break it up into managable chunks to not overflow the FIFO.
+                int chunkSize   = (totalCommands > PSX_GPU_DMA_FIFO_SIZE) ? PSX_GPU_DMA_FIFO_SIZE : totalCommands;
+                bool drawGlyphs = (chunkSize > 0);
+                int emitted     = 0;
+
+                if (drawGlyphs)
+                {
+                    // If texture page needs to be added, and this will go over our limit,
+                    // it must be accounted for by removing a command from the chunk packet
+                    if (!textPageDone) chunkSize++;
+                    if (chunkSize > PSX_GPU_DMA_FIFO_SIZE) chunkSize -= 4;
+
+                    GPUNUM(chunkSize);
+
+                    // We only need to send the texture page command once. Also sending it means we potentially arent able to render
+                    // a fourth glyph (We probably could, but to err on the side of caution)
+                    if (!textPageDone)
+                    {
+                        GPUCMD(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), true, false));
+                        textPageDone = true;
+                        emitted++;
+                    }
+                }
+
+                do
+                {
+                    auto ch = util::parseUTF8Character(&line[idx++]);
+                    if (!ch.length) continue;
+
+                    char cp = ch.codePoint;
+                    switch (cp)
+                    {
+                    // Non-renderable chars
+                    case '\0': break;
+                    case '\t': x = (tabWidth * lineTab); break;
+                    case '\r':
+                        x       = startX;
+                        lineTab = 1;
+                        break;
+                    case '\n':
+                        y += fontH;
+                        break;
+                    case ' ': x += fHeader.spaceWidth; break;
+                    default:
+                    {
+                        // Render directly to help with the CPU pipeline
+                        if (drawGlyphs)
+                        {
+                            auto c = fObj->get(cp);
+                            GPUCMD(rectCmd);
+                            GPUCMD(gp0_xy(x, y));
+                            GPUCMD(gp0_uv(tpOffsetX + c.x, tpOffsetY + c.y, clutAttr));
+                            GPUCMD(gp0_xy(c.w, fontH));
+                            x += c.w;
+                            emitted += 4;
+                        }
+                        break;
+                    }
+                    }
+                } while (emitted + 4 <= chunkSize);
+                // Remove the count of emitted commands from the total count
+                totalCommands -= emitted;
+            }
         }
 
         // Restore pre-draw clut values
