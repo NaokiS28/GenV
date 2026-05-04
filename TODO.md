@@ -3,11 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-04-30 23:24:59.728316_
-
-#### [src/example/example.cpp](src/example/example.cpp)
-
-- [224](src/example/example.cpp?plain=1#L224): macOS - Sometimes this gets a random and invalid device pointer in the device list?
+_Generated on 2026-05-04 16:25:32.067322_
 
 #### [src/genv_common/app/appmgr.cpp](src/genv_common/app/appmgr.cpp)
 
@@ -123,6 +119,7 @@ _Generated on 2026-04-30 23:24:59.728316_
 #### [src/genv_hw/psx/common/drivers/video/video.cpp](src/genv_hw/psx/common/drivers/video/video.cpp)
 
 - [387](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L387): Cleanup?
+- [722](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L722): Seperate font renderer from PS1 core to generic video service
 - [247](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L247): Overflow protection — if the requested allocation would exceed
 
 #### [src/genv_hw/psx/common/drivers/video/video.hpp](src/genv_hw/psx/common/drivers/video/video.hpp)
@@ -136,9 +133,9 @@ _Generated on 2026-04-30 23:24:59.728316_
 
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
-- [81](src/genv_hw/psx/common/system.cpp?plain=1#L81): SIO1 driver will require interrupts in future, so this will need to change.
-- [159](src/genv_hw/psx/common/system.cpp?plain=1#L159): int error = 0; How to handle multiple driver failures?
-- [173](src/genv_hw/psx/common/system.cpp?plain=1#L173): Allow setting custom startup baud
+- [80](src/genv_hw/psx/common/system.cpp?plain=1#L80): SIO1 driver will require interrupts in future, so this will need to change.
+- [158](src/genv_hw/psx/common/system.cpp?plain=1#L158): int error = 0; How to handle multiple driver failures?
+- [172](src/genv_hw/psx/common/system.cpp?plain=1#L172): Allow setting custom startup baud
 
 #### [src/genv_hw/psx/common/system/serial.h](src/genv_hw/psx/common/system/serial.h)
 

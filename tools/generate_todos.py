@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 
 DEFAULT_OUTPUT_FILE = "TODOs.md"
-DEFAULT_TAGS = ["TODO", "FIXME", "HACK", "NOTE"]
+DEFAULT_TAGS = ["TODO", "FIXME", "HACK", "NOTE", "BUG", "BUGS", "ERROR"]
 
 HEADER_TEXT = """# TODO List
 
