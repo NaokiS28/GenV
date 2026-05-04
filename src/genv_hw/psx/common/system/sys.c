@@ -138,7 +138,7 @@ bool psx_testInterrupt(IRQChannel irq, bool ack)
     }
     else
     {
-        if (IRQ_STAT & (1 << irq))
+        if ((IRQ_STAT & IRQ_MASK) & (1 << irq))
         {
             if (ack) IRQ_STAT = ~(1 << irq);
             return true;

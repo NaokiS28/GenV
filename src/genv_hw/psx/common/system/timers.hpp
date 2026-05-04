@@ -106,7 +106,7 @@ namespace PSX
         enum class ClockSource : uint16_t
         {
             SYSTEM   = 0 << 8,
-            SYS_DIV8 = 1 << 8
+            SYS_DIV8 = 2 << 8
         };
     } // namespace Timer2
 

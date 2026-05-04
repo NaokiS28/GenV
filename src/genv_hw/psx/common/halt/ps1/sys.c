@@ -132,15 +132,16 @@ bool psx_testInterrupt(IRQChannel irq, bool ack)
         b = IRQ_STAT;
         if (a == b && a & (1 << irq))
         {
-            if (ack) IRQ_STAT = ~(1 << irq);
+            if (ack) IRQ_STAT = a & ~(1 << irq);
             return true;
         }
     }
     else
     {
-        if (IRQ_STAT & (1 << irq))
+        uint16_t stat = IRQ_STAT;
+        if (stat & (1 << irq))
         {
-            if (ack) IRQ_STAT = ~(1 << irq);
+            if (ack) IRQ_STAT = stat & ~(1 << irq);
             return true;
         }
     }
