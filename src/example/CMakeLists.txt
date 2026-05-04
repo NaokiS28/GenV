@@ -25,7 +25,8 @@ project(
 
 # GenV shared core headers
 add_library(game_code STATIC
-	example.cpp
+	genv_demo.cpp
+	input_page.cpp
 )
 
 target_include_directories(game_code PUBLIC

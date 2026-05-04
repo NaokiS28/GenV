@@ -18,7 +18,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "common/util/string.hpp"
-#include "common/util/templates.hpp"
 
 namespace util
 {

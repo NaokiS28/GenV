@@ -61,6 +61,11 @@ namespace Apps
 
     int GVSS::init()
     {
+#ifndef NDEBUG
+        setAppState(APP_STATE_QUIT);
+        return 0;
+#endif
+
         if (logo_ring && logo_v)
         {
             logo_ring->uploadTexture();
