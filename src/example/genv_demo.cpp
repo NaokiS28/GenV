@@ -96,7 +96,7 @@ void GenV_Demo::render()
     {
         gpu->drawText(info().name, titleBox, Video::Colors::White, Video::TALIGN_CENTER);
 
-        char sys[128];
+        char sys[128] = {0};
         snprintf(sys, sizeof(sys), "System: %s %s", getSystem()->getSysInfo()->make, getSystem()->getSysInfo()->name);
         gpu->drawText(sys, sysBox);
 
@@ -107,7 +107,6 @@ void GenV_Demo::render()
             if (idx == currentMenuPos)
                 gpu->drawChar('>', menuBox.x - 20, menuBox.y + y, Video::Colors::White);
 
-            // BUG: PSX: Doesn't draw page name once you leave a menu (PSX-GPU: unknown data word 0x00140054)
             gpu->drawText(page->info().name, menuBox, Video::Colors::White);
             y += 10;
             idx++;

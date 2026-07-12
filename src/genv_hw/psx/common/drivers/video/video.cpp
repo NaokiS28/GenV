@@ -244,7 +244,7 @@ namespace PSX::GPU
 
     uint32_t *PSXGPU::_allocatePacket(DMAChain *chain, int numCommands)
     {
-        // NOTE: Overflow protection — if the requested allocation would exceed
+        // Overflow protection — if the requested allocation would exceed
         // the DMA chain buffer, set the overflow flag and return nullptr. Draw
         // calls become no-ops for the rest of the frame. Warn once per overflow.
         uint32_t *end = &(chain->data)[iPSXDMAListSize];
@@ -868,9 +868,9 @@ namespace PSX::GPU
                 if (drawGlyphs)
                 {
                     // If texture page needs to be added, and this will go over our limit,
-                    // it must be accounted for by removing a command from the chunk packet
-                    if (!textPageDone) chunkSize++;
-                    if (chunkSize > PSX_GPU_DMA_FIFO_SIZE) chunkSize -= 4;
+                    // it must be accounted for by removing three commands from the chunk packet
+                    // as rectangle commands need to be next to each other in this code.
+                    if (!textPageDone && chunkSize == 16) chunkSize -= 3;
 
                     GPUNUM(chunkSize);
 
@@ -878,7 +878,7 @@ namespace PSX::GPU
                     // a fourth glyph (We probably could, but to err on the side of caution)
                     if (!textPageDone)
                     {
-                        GPUCMD(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), true, false));
+                        GPUCMD(gp0_texpage(gp0_page(ptObj->tpage.x, ptObj->tpage.y, GP0_BLEND_ADD, GP0_COLOR_4BPP), false, false));
                         textPageDone = true;
                         emitted++;
                     }

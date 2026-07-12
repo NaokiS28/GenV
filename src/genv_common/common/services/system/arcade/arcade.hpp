@@ -116,7 +116,8 @@ namespace System
     };
 } // namespace System
 
-// TODO: Is this macro of any real benefit now? GetArcadeInterface does the important thing.
+// Is this macro of any real benefit now? GetArcadeInterface does the important thing.
+// - Keep the macro for now, it still removes code from the end product.
 // This macro is a short hand to mean that this code should only be run if the system
 // is an arcade system. Otherwise it is skipped. Use Genv_Arcade to access arcade
 // system specific functions. Uses static_cast to avoid RTTI
