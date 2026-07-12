@@ -28,6 +28,12 @@ extern HaltColor ColorBlue;
 #define SYS573_HALT_X_POS 5
 #define SYS573_HALT_Y_POS (240 - 5)
 
+void sys573_halt_delay(HaltScreenFont *font);
+
+HSExtension sys573_extenstion = {
+    .show_halt = sys573_halt_delay,
+};
+
 void sys573_halt_delay(HaltScreenFont *font)
 {
     // Enable PIO/573 read/writing with delay slots. These are based on Konami's values
@@ -51,13 +57,13 @@ void sys573_halt_delay(HaltScreenFont *font)
                 lastSeconds  = seconds;
                 char str[32] = {0};
                 snprintf(str, 32, "Rebooting in ... %d second%c", seconds, (seconds > 1 ? 's' : ' '));
-                psx_gpu_rectangle(
+                genv_gpu_rectangle(
                     ColorBlue,
                     SYS573_HALT_X_POS,
                     (SYS573_HALT_Y_POS - font->fontSize),
                     320 - 5,
                     font->fontSize);
-                psx_gpu_drawText(
+                genv_gpu_drawText(
                     font,
                     str,
                     SYS573_HALT_X_POS, (SYS573_HALT_Y_POS - font->fontSize),
@@ -82,15 +88,17 @@ void sys573_halt_delay(HaltScreenFont *font)
     }
 
     puts("\r\nRebooting now!\r\n");
-    psx_gpu_rectangle(
+    genv_gpu_rectangle(
         ColorBlue,
         SYS573_HALT_X_POS,
         (SYS573_HALT_Y_POS - font->fontSize),
         320 - 5,
         font->fontSize);
-    psx_gpu_drawText(
+    genv_gpu_drawText(
         font,
         "Rebooting now!",
         SYS573_HALT_X_POS, (SYS573_HALT_Y_POS - font->fontSize),
         200, 20);
+
+    sys573_extenstion.cb_exit();
 }

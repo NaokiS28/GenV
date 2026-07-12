@@ -36,26 +36,37 @@
 # once the source image asset is checked in. For now the converted .bin files
 # are expected to be pre-generated and placed alongside this CMakeLists.txt.
 
-add_library(psx_halt_screen STATIC)
+add_library(genv_halt_screen STATIC)
 
 include(${CMAKE_SOURCE_DIR}/cmake/psx/tools.cmake)
 
-target_sources(psx_halt_screen PRIVATE
-    halt.c
-    ps1/sys.c
-    ps1/sys.s
+target_sources(genv_halt_screen PRIVATE
+    src/halt.c
+    src/sio1.c
+	src/unhandledexc.c
+    src/ps1/sys.c
+    src/ps1/sys.s
 )
 
-target_include_directories(psx_halt_screen PUBLIC
+target_compile_options(
+	genv_halt_screen PRIVATE
+	#-Wl
+	#--whole-archive
+)
+
+target_include_directories(genv_halt_screen PUBLIC
     # Expose this directory so consumers can #include "halt.h" via the path
     # "psx/common/halt/halt.h" relative to ${CMAKE_SOURCE_DIR}/src/genv_hw
-    ${CMAKE_SOURCE_DIR}/src/genv_hw
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${VENDOR_INCLUDE}
     ${LIBC_INCLUDE}
 )
+
 convertImage(
-	src/genv_hw/psx/common/halt/font.png 4
-	${PROJECT_BINARY_DIR}/haltscreen/fontTexture.dat
-	${PROJECT_BINARY_DIR}/haltscreen/fontPalette.dat
+	${CMAKE_CURRENT_SOURCE_DIR}/font.png 4
+	${CMAKE_CURRENT_BINARY_DIR}/fontTexture.dat
+	${CMAKE_CURRENT_BINARY_DIR}/fontPalette.dat
 )
-addBinaryFile(psx_halt_screen _halt_font_image "${PROJECT_BINARY_DIR}/haltscreen/fontTexture.dat")
-addBinaryFile(psx_halt_screen _halt_font_palette "${PROJECT_BINARY_DIR}/haltscreen/fontPalette.dat")
+
+addBinaryFile(genv_halt_screen _halt_font_image "${CMAKE_CURRENT_BINARY_DIR}/fontTexture.dat")
+addBinaryFile(genv_halt_screen _halt_font_palette "${CMAKE_CURRENT_BINARY_DIR}/fontPalette.dat")

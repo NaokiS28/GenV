@@ -18,9 +18,13 @@
 #include "halt.h"
 #include "ps1/registers.h"
 #include "ps1/gpucmd.h"
+#include "ps1/sys.h"
+#include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 
 #define DMA_MAX_CHUNK_SIZE 16
+#define HS_MAX_DRIVERS 6
 
 /* -------------------------------------------------------------------------
  * Font spritesheet
@@ -166,21 +170,39 @@ static const HaltGlyph fontGlyphs[] = {
 const HaltColor ColorRed   = {160, 0, 0};
 const HaltColor ColorGreen = {0, 160, 0};
 const HaltColor ColorBlue  = {0, 0, 128};
+const HaltColor ColorBlack = {0, 0, 0};
+
+/* -------------------------------------------------------------------------
+ * String helpers
+ * ------------------------------------------------------------------------- */
+
+inline static bool _charIsPrintable(const char c)
+{
+    if (c <= '~' && c >= ' ') return true;
+    return false;
+}
+
+inline static bool _charIsLetter(const char c)
+{
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) return true;
+    return false;
+}
 
 /* -------------------------------------------------------------------------
  * Low-level GPU helpers
  * ------------------------------------------------------------------------- */
+static void _genv_halt_wait_loop();
 
 static void _waitForGP0Ready(void)
 {
     while (!(GPU_GP1 & GP1_STAT_CMD_READY))
-        __asm__ volatile("");
+        _genv_halt_wait_loop();
 }
 
 static void _waitForDMADone(void)
 {
     while (DMA_CHCR(DMA_GPU) & DMA_CHCR_ENABLE)
-        __asm__ volatile("");
+        _genv_halt_wait_loop();
 }
 
 /* Send a block of data to VRAM via DMA slice mode. Data must be 4-byte aligned. */
@@ -211,20 +233,20 @@ static void _sendVRAMData(
  * Public GPU primitives
  * ------------------------------------------------------------------------- */
 
-void psx_gpu_rectangle(HaltColor color, uint16_t x, uint16_t y, uint16_t w, uint16_t h)
+void genv_gpu_rectangle(HaltColor color, uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
     _waitForGP0Ready();
-    GPU_GP0 = gp0_rgb(color.r, color.g, color.b) | gp0_vramFill();
+    GPU_GP0 = gp0_rgb(color.r, color.g, color.b) | gp0_rectangle(false, true, false);
     GPU_GP0 = gp0_xy(x, y);
     GPU_GP0 = gp0_xy(w, h);
 }
 
-void psx_gpu_fillScreen(HaltColor color, uint16_t x, uint16_t y)
+void genv_gpu_fillScreen(HaltColor color, uint16_t x, uint16_t y)
 {
-    psx_gpu_rectangle(color, x, y, SCREEN_W, SCREEN_H);
+    genv_gpu_rectangle(color, x, y, SCREEN_W, SCREEN_H);
 }
 
-int psx_gpu_drawText(
+int genv_gpu_drawText(
     HaltScreenFont *font,
     const char *str,
     int x, int y,
@@ -235,21 +257,45 @@ int psx_gpu_drawText(
     _waitForGP0Ready();
     GPU_GP0 = gp0_texpage(font->page, false, false);
 
-    int startX = x;
-    int startY = y;
-    int curX   = x;
-    int curY   = y;
+    int startX     = x;
+    int startY     = y;
+    int curX       = x;
+    int curY       = y;
+    bool wordStart = true;
 
     for (; *str; str++)
     {
         char ch = *str;
 
-        /* Wrap if we've exceeded the right bound */
-        if (curX >= (startX + w))
+        // Find the length of the current word and drop to a new line if
+        // the word would exceed the bounds. Prevents any word within a str
+        // ing being unintentionally cut off.
+        int word_w   = 0;
+        int word_idx = 0;
+        bool wordEnd = false;
+        while (wordStart && !wordEnd)
         {
-            curX = startX;
-            curY += font->fontSize;
+            char word_c = *(str + word_idx);
+
+            if (!_charIsLetter(word_c))
+                wordEnd = true;
+            else
+            {
+                const HaltGlyph *w_g = &fontGlyphs[(unsigned char)word_c - FONT_FIRST_CHAR];
+                word_w += w_g->width;
+                word_idx++;
+            }
         }
+        wordStart = false;
+
+        if (word_w + curX)
+
+            /* Wrap if we've exceeded the right bound */
+            if (curX + word_w >= (startX + w))
+            {
+                curX = startX;
+                curY += font->fontSize;
+            }
 
         /* Clip vertically */
         if ((curY - startY) + font->fontSize > h)
@@ -259,25 +305,32 @@ int psx_gpu_drawText(
         {
         case '\t':
             /* Advance to next tab stop */
-            curX += font->tabWidth - 1;
-            curX -= curX % font->tabWidth;
-            continue;
-
+            {
+                wordStart = true;
+                int t     = (curX / font->tabWidth);
+                curX      = font->tabWidth * (t + 1);
+                // curX -= curX % font->tabWidth;
+                continue;
+            }
         case '\r':
-            curX = startX;
+            wordStart = true;
+            curX      = startX;
             continue;
 
         case '\n':
-            curX = startX;
+            wordStart = true;
+            curX      = startX;
             curY += font->fontSize;
             continue;
 
         case ' ':
+            wordStart = true;
             curX += font->spaceWidth;
             continue;
 
         default:
             /* Map non-ASCII or below-table characters to the invalid glyph */
+            if (!_charIsLetter(ch)) wordStart = true;
             if ((unsigned char)ch < FONT_FIRST_CHAR || (unsigned char)ch > 0x7f)
                 ch = 0x7f;
             break;
@@ -370,27 +423,203 @@ static HaltScreenFont _uploadFont(void)
     font.v          = (uint8_t)(FONT_VRAM_Y % 256);
     font.fontSize   = 10; /* FONT_LINE_HEIGHT from the ps1-bare-metal example */
     font.spaceWidth = 4;
-    font.tabWidth   = 32;
+    font.tabWidth   = font.spaceWidth * 3;
     return font;
 }
 
 /* -------------------------------------------------------------------------
- * Post-halt callback
+ * Leaf variant extenstion callbacks
  * ------------------------------------------------------------------------- */
 
-static PostHaltFunc _phFunc = NULL;
+static HSExtension *_leaf_ext = NULL;
 
-void psx_halt_append_func(PostHaltFunc func)
+void _genv_exit_halt();
+int genv_halt_register_extension(HSExtension *ext)
 {
-    if (func) _phFunc = func;
+    // A valid driver device must have at least one function.
+    if (!ext || (!ext->init_halt && !ext->show_halt && !ext->exit_halt))
+        return HS_EXT_INVALID;
+    if (_leaf_ext != NULL)
+        return HS_EXT_ASSIGNED;
+
+    _leaf_ext    = ext;
+    ext->cb_exit = &_genv_exit_halt;
+    return HS_EXT_OK;
 }
+
+/* -------------------------------------------------------------------------
+ * Hardware driver register
+ * ------------------------------------------------------------------------- */
+
+static uint8_t _registered_drivers            = 0;
+static HSDriver *_driver_list[HS_MAX_DRIVERS] = {
+    NULL,
+};
+
+int genv_halt_register_driver(HSDriver *driver)
+{
+    // A valid driver device must have at least one function.
+    if (!driver || (!driver->init_driver && !driver->update_driver && !driver->end_driver))
+        return HS_DRIVER_INVALID;
+    if (_registered_drivers == HS_MAX_DRIVERS)
+        return HS_DRIVER_LIST_FULL;
+
+    _driver_list[_registered_drivers++] = driver;
+    return HS_DRIVER_OK;
+}
+static void _genv_halt_update_drivers()
+{
+    for (int i = 0; i < _registered_drivers; i++)
+        if (_driver_list[i] && _driver_list[i]->update_driver)
+            _driver_list[i]->update_driver();
+}
+
+#define HALT_TICKS_PER_REFRESH 1000 // On the PSX this doesn't matter, but on watchdog'd devices, this might need changing
+static int _halt_wait_tick_count = 0;
+
+static void _genv_halt_wait_loop()
+{
+    _halt_wait_tick_count++;
+    if (_halt_wait_tick_count >= HALT_TICKS_PER_REFRESH)
+    {
+        _genv_halt_update_drivers();
+        _halt_wait_tick_count = 0;
+    }
+}
+
+/* -------------------------------------------------------------------------
+ * Static memory for text
+ * ------------------------------------------------------------------------- */
+char genv_halt_text_detail[GENV_HALT_TEXT_DETAIL_LEN] = {0}; // Detailed info
+char genv_halt_text_title[GENV_HALT_TEXT_TITLE_LEN]   = {0}; // Short reason string - Divide by 0, etc.
+char genv_halt_text_short[GENV_HALT_TEXT_SHORT_LEN]   = {0}; // Short info
+
+void _genv_halt_sanitize_string(char *str, const int count)
+{
+    if (!str) return;
+
+    int i = 0;
+    while ((i < count) && str[i])
+    {
+        if (str[i] != '\r' && str[i] != '\n' && str[i] != '\t')
+            if (!_charIsPrintable(str[i]))
+                str[i] = ' ';
+
+        i++;
+    }
+    if (i >= count) str[0] = '\0';
+}
+
+/* -------------------------------------------------------------------------
+ * Serial/console port driver
+ * ------------------------------------------------------------------------- */
+
+static HSConsole *_console = NULL;
+static int _console_baud   = 115200;
+
+int genv_halt_set_console(HSConsole *console)
+{
+    // A valid driver device must have at least puts.
+    if (!console || !console->puts)
+        return HS_DRIVER_INVALID;
+
+    _console                   = console;
+    _console->driver_update_cb = &_genv_halt_update_drivers;
+    return HS_DRIVER_OK;
+}
+
+void genv_halt_set_console_baud(int baud)
+{
+    _console_baud = baud;
+}
+
+static void _genv_print_exception()
+{
+    if (!_console) return;
+    _console->puts("----------------------------------------");
+    _console->puts("SYSTEM HALTED:");
+    _console->puts(genv_halt_text_title);
+    //_console->puts(genv_halt_text_short);
+    _console->puts(genv_halt_text_detail);
+    _console->puts("----------------------------------------");
+}
+
+/* -------------------------------------------------------------------------
+ * Screen renderer
+ * ------------------------------------------------------------------------- */
+
+typedef struct RectWH
+{
+    int x, y, w, h;
+} RectWH;
+
+#define SCREEN_MARGIN 10
+
+#ifdef NDEBUG
+static RectWH _errorBox = {
+    .x = SCREEN_W / 10,
+    .y = SCREEN_H / 5,
+    .w = (SCREEN_W / 10) * 8,
+    .h = (SCREEN_H / 5) * 3};
+
+static RectWH _errorBoxText = {
+    .x = (SCREEN_W / 10) + 20,
+    .y = (SCREEN_H / 5) + 20,
+    .w = ((SCREEN_W / 10) * 8) - 40,
+    .h = ((SCREEN_H / 5) * 3) - 40};
+
+static void _genv_release_halt_screen(HaltScreenFont *font)
+{
+    genv_gpu_fillScreen(ColorBlack, 0, 0);
+    genv_gpu_rectangle(ColorRed, _errorBox.x, _errorBox.y, _errorBox.w, _errorBox.h);
+    genv_gpu_rectangle(ColorBlack, _errorBox.x + 5, _errorBox.y + 5, _errorBox.w - 10, _errorBox.h - 10);
+    genv_gpu_drawText(font, "CRITICAL ERROR", _errorBoxText.x, _errorBoxText.y, _errorBoxText.w, font->fontSize);
+    // Line
+    genv_gpu_rectangle(ColorRed, _errorBoxText.x, _errorBoxText.y + 13, _errorBoxText.w, 2);
+    genv_gpu_drawText(font, genv_halt_text_title, _errorBoxText.x, _errorBoxText.y + 20, _errorBoxText.w, font->fontSize);
+
+    genv_gpu_drawText(font, genv_halt_text_short, _errorBoxText.x, _errorBoxText.y + 40, _errorBoxText.w, font->fontSize * 3);
+    genv_gpu_drawText(font, "System halted.\r\nPlease turn power off and then back on.", _errorBoxText.x, _errorBoxText.y + _errorBoxText.h - 20, _errorBoxText.w, font->fontSize * 2);
+}
+#else
+static RectWH _debugTextBox = {
+    .x = SCREEN_MARGIN,
+    .y = SCREEN_MARGIN + 10,
+    .w = (SCREEN_W - (SCREEN_MARGIN * 2)),
+    .h = (SCREEN_H - (SCREEN_MARGIN * 2))};
+
+static void _genv_debug_halt_screen(HaltScreenFont *font)
+{
+    char str[64] = {"SYSTEM HALTED: "};
+    strncat(str, genv_halt_text_title, 32);
+    genv_gpu_fillScreen(ColorBlue, 0, 0);
+    genv_gpu_drawText(font, str, 5, 5, SCREEN_W - 10, font->fontSize * 2);
+    genv_gpu_drawText(font, genv_halt_text_detail, _debugTextBox.x, _debugTextBox.y, _debugTextBox.w, _debugTextBox.h);
+}
+#endif
 
 /* -------------------------------------------------------------------------
  * Public entry point
  * ------------------------------------------------------------------------- */
 
-void psx_halt_screen_show(const char *string)
+static bool _run_haltscreen = true;
+static bool _first_showing  = true;
+
+void __attribute__((noreturn)) _genv_halt_screen()
 {
+    // Disable any interrupts - We wont use them here.
+    psx_disableInterrupts();
+
+    // For all we know, garbage was placed here - Run through and make sure only basic ASCII is present
+    _genv_halt_sanitize_string(genv_halt_text_title, sizeof(genv_halt_text_title));
+    _genv_halt_sanitize_string(genv_halt_text_short, sizeof(genv_halt_text_short));
+    _genv_halt_sanitize_string(genv_halt_text_detail, sizeof(genv_halt_text_detail));
+
+    // If even the halt screen crashes, disable all extensions.
+    bool run_extensions = true;
+    if (!_first_showing) run_extensions = false;
+    _first_showing = false;
+
     /* Mask all IRQs at the controller level - we don't trust any handlers */
     IRQ_MASK = 0;
 
@@ -398,16 +627,88 @@ void psx_halt_screen_show(const char *string)
     _setupGPU();
     HaltScreenFont font = _uploadFont();
 
-    /* Draw a solid blue background */
-    psx_gpu_fillScreen(ColorBlue, 0, 0);
+    /* Draw a solid blue background - Do this in case any following steps hang */
+    genv_gpu_fillScreen(ColorBlue, 0, 0);
 
-    /* Print the error message, leaving a small margin */
-    psx_gpu_drawText(&font, string, 5, 5, SCREEN_W - 10, SCREEN_H - 10);
+    if (run_extensions)
+    {
+        /* Init console driver */
+        if (_console && _console->init_driver) _console->init_driver(_console_baud);
+
+        /* Init any additional drivers */
+        for (int i = 0; i < _registered_drivers; i++)
+            if (_driver_list[i] && _driver_list[i]->init_driver)
+            {
+                _driver_list[i]->init_driver();
+            }
+    }
+
+    _genv_print_exception();
+
+#ifdef NDEBUG
+    uint16_t _tx = _errorBox.x + 20;
+    uint16_t _ty = (_errorBox.y + _errorBox.h) - 20;
+    uint16_t _tw = _errorBox.w - 20;
+    uint16_t _th = 10;
+    _genv_release_halt_screen(&font);
+#else
+    uint16_t _tx = SCREEN_MARGIN;
+    uint16_t _ty = (SCREEN_H - SCREEN_MARGIN) - 10;
+    uint16_t _tw = (SCREEN_W - (SCREEN_MARGIN * 2));
+    uint16_t _th = 10;
+    _genv_debug_halt_screen(&font);
+#endif
+
+    /* Run any pre-halt handler - allows overdrawing */
+    if (run_extensions && _leaf_ext && _leaf_ext->init_halt)
+        _leaf_ext->init_halt(_driver_list);
+
+    /* Run any updates */
+    while (run_extensions && _run_haltscreen)
+    {
+        _genv_halt_update_drivers();
+        if (_leaf_ext && _leaf_ext->show_halt)
+            _leaf_ext->show_halt(&font, _tx, _ty, _tw, _th);
+    }
 
     /* Hand off to any platform-specific post-halt handler */
-    if (_phFunc) _phFunc(&font);
+    if (run_extensions && _leaf_ext && _leaf_ext->exit_halt)
+        _leaf_ext->exit_halt(&font, _tx, _ty, _tw, _th);
 
-    /* Spin forever */
+    /* Shutdown any hardware drivers if required */
+    if (run_extensions)
+    {
+        if (_console && _console->end_driver)
+            _console->end_driver();
+
+        for (int i = 0; i < _registered_drivers; i++)
+            if (_driver_list[i] && _driver_list[i]->end_driver)
+                _driver_list[i]->end_driver();
+    }
+
+    /* Spin forever - Done */
     for (;;)
         __asm__ volatile("");
+}
+
+/* -------------------------------------------------------------------------
+ * Private exit call back
+ * ------------------------------------------------------------------------- */
+
+void _genv_exit_halt()
+{
+    _run_haltscreen = false;
+}
+
+/* -------------------------------------------------------------------------
+ * Public (safe) screen starter
+ * ------------------------------------------------------------------------- */
+
+void genv_halt_screen_show(const char *string)
+{
+    strcpy(genv_halt_text_title, "System called halt");
+    strncpy(genv_halt_text_detail, string, sizeof(genv_halt_text_detail) - 1);
+    genv_halt_text_detail[GENV_HALT_TEXT_DETAIL_LEN - 1] = '\0';
+
+    _genv_halt_screen();
 }

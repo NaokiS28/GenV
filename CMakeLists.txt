@@ -142,7 +142,6 @@ endif()
 # ------------------------------------------------------------------------------
 
 add_subdirectory(src/genv_common/terminal)
-add_subdirectory(src/genv_common/halt_screen)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Generic")
     add_subdirectory(lib/libc)

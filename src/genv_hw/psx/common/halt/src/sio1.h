@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * halt.h - Created on 04-12-2025
+ * sio1.h - Created on 01-12-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,18 +15,23 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
-#ifndef GENV_573_HALT_H
-#define GENV_573_HALT_H
+// Self-contained terminal interface library for PSX. Reinits the SIO1 port 
+// Assumes all prior execution context is invalid - no dependencies on the rest of GenV.
 
-#include "psx/common/halt/halt.h"
+#pragma once
+
+#ifndef GENV_PSX_SIO0_H
+#define GENV_PSX_SIO0_H
+
+#include <stdint.h>
+#include "halt.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-    extern HSExtension sys573_extenstion;
+    extern HSConsole halt_console_psx_sio1; // Use this if you want crash details printed to the SIO1 port.
+    extern HSConsole halt_console_psx_null; // Use this if you do *NOT* want crash details printed to the SIO1 port.
 
 #ifdef __cplusplus
 }

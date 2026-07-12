@@ -60,14 +60,20 @@ function(addPS1ExecutableAdv name loadAddress stackTop region)
 endfunction()
 
 function(convertImage input bpp)
+	if(IS_ABSOLUTE "${input}")
+		set(_convertImage_input "${input}")
+	else()
+		set(_convertImage_input "${PROJECT_SOURCE_DIR}/${input}")
+	endif()
+
 	add_custom_command(
 		OUTPUT  ${ARGN}
-		DEPENDS "${PROJECT_SOURCE_DIR}/${input}"
+		DEPENDS "${_convertImage_input}"
 		COMMAND
 			"${Python3_EXECUTABLE}"
 			"${PROJECT_SOURCE_DIR}/tools/psx/convertImage.py"
 			-b ${bpp}
-			"${PROJECT_SOURCE_DIR}/${input}"
+			"${_convertImage_input}"
 			${ARGN}
 		VERBATIM
 	)
