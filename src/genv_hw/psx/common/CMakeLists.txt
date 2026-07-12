@@ -23,7 +23,6 @@ target_sources(genv_psx_core PUBLIC
 	cpu/cache.s
 	system/sys.c
 	system/sys.s
-	system/unhandledexc.c
 	system/serial.c
 	drivers/pcdrive/pcdrv.s
 	drivers/pcdrive/psx_pcdrv.cpp
@@ -46,5 +45,5 @@ target_include_directories(
 
 target_link_libraries(
 	genv_psx_core PUBLIC
-	psx_halt_screen
+	genv_halt_screen
 )

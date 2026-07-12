@@ -16,16 +16,17 @@
  */
 
 #pragma once
+#include "src/halt.h"
+
 #ifndef GENV_573_HALT_H
 #define GENV_573_HALT_H
-
-#include "psx/common/halt/halt.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+    extern HSDriver sys573_watchdog_driver;
     extern HSExtension sys573_extenstion;
 
 #ifdef __cplusplus

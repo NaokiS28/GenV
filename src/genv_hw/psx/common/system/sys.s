@@ -98,13 +98,13 @@ _exceptionHandler:
 
 .LotherException:
 	# If the exception was not triggered by a syscall nor by an interrupt call
-	# _unhandledException(), which will then display information about the
+	# genv_halt_unhandled_exception(), which will then display information about the
 	# exception and lock up.
 	sw    $k1, 0x00($k0)
 
-	mfc0  $a1, BADV # _unhandledException((CAUSE >> 2) & 0x1f, BADV)
+	mfc0  $a1, BADV # genv_halt_unhandled_exception((CAUSE >> 2) & 0x1f, BADV)
 	srl   $a0, $v0, 2
-	jal   _unhandledException
+	jal   genv_halt_unhandled_exception
 	addiu $sp, -8
 
 	b     .Lreturn

@@ -63,6 +63,7 @@ add_library(genv_services STATIC
 	services/storage/storemgr.cpp
 	services/video/fontman.cpp
 	services/video/video.cpp
+	services/video/text.cpp
 	services/video/nullvideo.cpp
 	services/audio/nullaudio.cpp
 	services/io/devicemgr.cpp

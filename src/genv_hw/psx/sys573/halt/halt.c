@@ -19,22 +19,13 @@
 #include <stdio.h>
 
 #include "halt.h"
-#include "psx/common/halt/halt.h"
-#include "psx/common/halt/ps1/registers.h"
-#include "psx/common/halt/ps1/sys.h"
+#include "psx/common/halt/src/halt_ext.h"
+#include "psx/common/halt/src/ps1/registers.h"
+#include "psx/common/halt/src/ps1/sys.h"
 
 extern HaltColor ColorBlue;
 
-#define SYS573_HALT_X_POS 5
-#define SYS573_HALT_Y_POS (240 - 5)
-
-void sys573_halt_delay(HaltScreenFont *font);
-
-HSExtension sys573_extenstion = {
-    .show_halt = sys573_halt_delay,
-};
-
-void sys573_halt_delay(HaltScreenFont *font)
+void sys573_halt_delay(HaltScreenFont *font, uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
     // Enable PIO/573 read/writing with delay slots. These are based on Konami's values
     // This needs to be done first else the RTC is inacessible
@@ -59,14 +50,14 @@ void sys573_halt_delay(HaltScreenFont *font)
                 snprintf(str, 32, "Rebooting in ... %d second%c", seconds, (seconds > 1 ? 's' : ' '));
                 genv_gpu_rectangle(
                     ColorBlue,
-                    SYS573_HALT_X_POS,
-                    (SYS573_HALT_Y_POS - font->fontSize),
+                    x,
+                    (y - font->fontSize),
                     320 - 5,
                     font->fontSize);
                 genv_gpu_drawText(
                     font,
                     str,
-                    SYS573_HALT_X_POS, (SYS573_HALT_Y_POS - font->fontSize),
+                    x, (y - font->fontSize),
                     200, 20);
 
                 if (seconds > 9)
@@ -90,15 +81,29 @@ void sys573_halt_delay(HaltScreenFont *font)
     puts("\r\nRebooting now!\r\n");
     genv_gpu_rectangle(
         ColorBlue,
-        SYS573_HALT_X_POS,
-        (SYS573_HALT_Y_POS - font->fontSize),
+        x,
+        (y - font->fontSize),
         320 - 5,
         font->fontSize);
     genv_gpu_drawText(
         font,
         "Rebooting now!",
-        SYS573_HALT_X_POS, (SYS573_HALT_Y_POS - font->fontSize),
+        x, (y - font->fontSize),
         200, 20);
 
-    sys573_extenstion.cb_exit();
+    if (sys573_extenstion.cb_exit)
+        sys573_extenstion.cb_exit();
 }
+
+void sys573_tick_watchdog(void)
+{
+    *_ADDR16(DEV0_BASE | 0x5c0000) = 0;
+}
+
+HSDriver sys573_watchdog_driver = {
+    .id            = "573WDT",
+    .update_driver = &sys573_tick_watchdog};
+
+HSExtension sys573_extenstion = {
+    .show_halt = sys573_halt_delay,
+};

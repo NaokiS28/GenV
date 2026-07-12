@@ -17,14 +17,12 @@
 
 #include <atomic>
 
-#include "halt_screen/halt_screen.h"
-
 #include "system.hpp"
 #include "common/return_codes.hpp"
 #include "common/services/services.hpp"
 #include "common/services/system/rtc/soft_rtc.hpp"
 
-#include "psx/common/halt/halt.h"
+#include "psx/common/halt/src/halt.h"
 #include "psx_strings.hpp"
 #include "system/pcsxhw.h"
 #include "system/sys.h"
@@ -86,13 +84,6 @@ namespace PSX
         tty_ops.write = &sio1_write;
         tty_ops.flush = &sio1_flush;
         genv_tty_register(&tty_ops);
-
-        // If at any point the system encounters a fatal exception, the PSX haltscreen will show.
-        // This haltscreen doesn't rely on GenV at all, so registering at construction will
-        // ensure we show *something* on screen in case of an error.
-        GenV_HaltScreenFuncs hs_ops;
-        hs_ops.show = &psx_halt_screen_show;
-        genv_halt_screen_register(&hs_ops);
 
         clock = new Time::SoftRTC; // New clock here so GenV boot logs have correct timestamps
     }

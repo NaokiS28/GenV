@@ -20,7 +20,7 @@
 #include "common/return_codes.hpp"
 #include "common/services/system/arcade/iface_arcade.hpp"
 #include "psx/common/system.hpp"
-#include "psx/common/halt/halt.h"
+#include "psx/common/halt/src/halt.h"
 #include "psx/common/system/sys.h"
 #include "psx/common/drivers/video/gpucmd.hpp"
 
@@ -30,6 +30,7 @@
 #include "common/services/services.hpp"
 #include "psx/sys573/io/io.hpp"
 #include "psx/sys573/registers573.hpp"
+#include "src/halt.h"
 
 namespace System573
 {
@@ -61,6 +62,9 @@ namespace System573
         if (clock)
             delete clock; // Remove the softclock
         clock = &m_rtc;
+
+        genv_halt_register_extension(&sys573_extenstion);
+        genv_halt_register_driver(&sys573_watchdog_driver);
 
         testSwitchLatching = false; // Test switch is push button
         tickWatchdog();
@@ -100,7 +104,6 @@ namespace System573
         error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
         if (!error) services.setVideo(adminKey, gpu);
-        psx_halt_append_func(sys573_halt_delay);
         tickWatchdog();
         return error;
     }

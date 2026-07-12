@@ -29,9 +29,7 @@
 
 #include "assert.h"
 
-#ifndef GENV_COMPUTER
-#include "halt_screen/halt_screen.h"
-#else
+#ifdef GENV_COMPUTER
 #include <stdexcept>
 #endif
 
@@ -111,13 +109,17 @@ void GenvSystemClass::shutdown()
     getServiceManager()->shutdown();
 }
 
+extern "C"
+{
+    void genv_halt_screen_show(const char *);
+}
+
 void GenvSystemClass::halt(int return_code)
 {
     shutdown();
 #ifndef GENV_COMPUTER
     GENV_LOG("GenV has halted.");
     genv_halt_screen_show("GenV has halted.");
-    while (1) {}
 #else
     throw std::runtime_error("GenV has halted.");
 #endif
