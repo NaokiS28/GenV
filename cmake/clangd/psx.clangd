@@ -4,8 +4,15 @@
 # fixes some edge cases (such as CMake emitting 8.3 format paths on Windows and
 # breaking clangd's target autodetection).
 
+# Compiler: clang++ is scoped to C++ files only; applying it globally causes
+# clangd to reject C-only flags like -std=gnu17 when processing .c files.
+If:
+  PathMatch: [.*\.(cpp|cxx|cc|hpp|hxx|hh)]
 CompileFlags:
   Compiler: clang++
+
+---
+CompileFlags:
   Add:    [ --target=mipsel-none-elf, -march=mips1 ]
   Remove: [ -march, -mno-llsc, -mdivide-breaks ]
 

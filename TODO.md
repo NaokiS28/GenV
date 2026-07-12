@@ -3,7 +3,11 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-05-04 16:25:32.067322_
+_Generated on 2026-07-12 23:13:37.906320_
+
+#### [src/example/input_page.cpp](src/example/input_page.cpp)
+
+- [232](src/example/input_page.cpp?plain=1#L232): macOS - Sometimes this gets a random and invalid device pointer in the device list?
 
 #### [src/genv_common/app/appmgr.cpp](src/genv_common/app/appmgr.cpp)
 
@@ -35,7 +39,7 @@ _Generated on 2026-05-04 16:25:32.067322_
 
 #### [src/genv_common/common/services/genv_sys.cpp](src/genv_common/common/services/genv_sys.cpp)
 
-- [77](src/genv_common/common/services/genv_sys.cpp?plain=1#L77): Allow setting custom startup baud
+- [75](src/genv_common/common/services/genv_sys.cpp?plain=1#L75): Allow setting custom startup baud
 
 #### [src/genv_common/common/services/system/arcade/arcade.cpp](src/genv_common/common/services/system/arcade/arcade.cpp)
 
@@ -45,10 +49,6 @@ _Generated on 2026-05-04 16:25:32.067322_
 - [144](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L144): Check IO service?
 - [149](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L149): Check IO service?
 - [154](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L154): Check IO service?
-
-#### [src/genv_common/common/services/system/arcade/arcade.hpp](src/genv_common/common/services/system/arcade/arcade.hpp)
-
-- [119](src/genv_common/common/services/system/arcade/arcade.hpp?plain=1#L119): Is this macro of any real benefit now? GetArcadeInterface does the important thing.
 
 #### [src/genv_common/common/services/video/fontman.cpp](src/genv_common/common/services/video/fontman.cpp)
 
@@ -120,22 +120,21 @@ _Generated on 2026-05-04 16:25:32.067322_
 
 - [387](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L387): Cleanup?
 - [722](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L722): Seperate font renderer from PS1 core to generic video service
-- [247](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L247): Overflow protection — if the requested allocation would exceed
 
 #### [src/genv_hw/psx/common/drivers/video/video.hpp](src/genv_hw/psx/common/drivers/video/video.hpp)
 
 - [83](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L83): Set true when the DMA chain is full. Draw calls become no-ops
 
-#### [src/genv_hw/psx/common/halt/ps1/sys.h](src/genv_hw/psx/common/halt/ps1/sys.h)
+#### [src/genv_hw/psx/common/halt/src/ps1/sys.h](src/genv_hw/psx/common/halt/src/ps1/sys.h)
 
-- [25](src/genv_hw/psx/common/halt/ps1/sys.h?plain=1#L25): Convert to C++
-- [159](src/genv_hw/psx/common/halt/ps1/sys.h?plain=1#L159): // void psx_delayMicroseconds(int time);	Make this function save the state of the Timer 2 variable so that it wont break things.
+- [25](src/genv_hw/psx/common/halt/src/ps1/sys.h?plain=1#L25): Convert to C++
+- [159](src/genv_hw/psx/common/halt/src/ps1/sys.h?plain=1#L159): // void psx_delayMicroseconds(int time);	Make this function save the state of the Timer 2 variable so that it wont break things.
 
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
-- [80](src/genv_hw/psx/common/system.cpp?plain=1#L80): SIO1 driver will require interrupts in future, so this will need to change.
-- [158](src/genv_hw/psx/common/system.cpp?plain=1#L158): int error = 0; How to handle multiple driver failures?
-- [172](src/genv_hw/psx/common/system.cpp?plain=1#L172): Allow setting custom startup baud
+- [78](src/genv_hw/psx/common/system.cpp?plain=1#L78): SIO1 driver will require interrupts in future, so this will need to change.
+- [149](src/genv_hw/psx/common/system.cpp?plain=1#L149): int error = 0; How to handle multiple driver failures?
+- [163](src/genv_hw/psx/common/system.cpp?plain=1#L163): Allow setting custom startup baud
 
 #### [src/genv_hw/psx/common/system/serial.h](src/genv_hw/psx/common/system/serial.h)
 
@@ -165,6 +164,5 @@ _Generated on 2026-05-04 16:25:32.067322_
 
 #### [src/genv_hw/win32/video/gpu-d3d.cpp](src/genv_hw/win32/video/gpu-d3d.cpp)
 
-- [482](src/genv_hw/win32/video/gpu-d3d.cpp?plain=1#L482): Narrowing of int to float
-- [576](src/genv_hw/win32/video/gpu-d3d.cpp?plain=1#L576): buff.second->Release();     Segfault on close due to race conditions and deleting non-existant textures
+- [576](src/genv_hw/win32/video/gpu-d3d.cpp?plain=1#L576): buff.second->Release(); Segfault on close due to race conditions and deleting non-existant textures
 
