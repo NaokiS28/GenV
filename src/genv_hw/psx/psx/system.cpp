@@ -34,14 +34,7 @@ namespace PSX
 
     int PSXSystem::initAudio()
     {
-        /*
-        int error = 0;
-        spu       = new Sound::PSXSPU;
-        error     = ioTest(spu, PSX_SPU_STR, PSX_CREATE_STR);
-        if (!error) ioTest(spu->init(), PSX_SPU_STR, PSX_INIT_STR);
-        if (!error) services.setAudio(adminKey, spu);
-        */
-        return 0;
+        return spu.init();
     }
 
     int PSXSystem::initStorage()

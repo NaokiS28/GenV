@@ -20,6 +20,7 @@
 #include <stdbool.h>
 
 #include "common/services/system/system.hpp"
+#include "psx/common/drivers/audio/spu.hpp"
 #include "psx/common/drivers/sio0/psx_joy.hpp"
 #include "psx/common/drivers/pcdrive/psx_pcdrv.hpp"
 #include "psx/common/psx_strings.hpp"
@@ -39,6 +40,7 @@ namespace PSX
             .name  = szPlaystation,
             .flags = SYS_No_Window_Mode};
 
+        PSX::SPUDriver spu;
         Storage::PSX_CDROM *cdDriver   = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
         Storage::PSX_PCDrive *pcDriver = nullptr; // Not always needed?
 
