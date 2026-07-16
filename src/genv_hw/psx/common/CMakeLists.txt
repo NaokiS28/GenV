@@ -29,7 +29,7 @@ target_sources(genv_psx_core PUBLIC
     drivers/video/video.cpp
     drivers/video/texmgr.cpp
     drivers/video/psxtex.cpp
-	drivers/spu.cpp
+	drivers/audio/spu.cpp
 	drivers/sio0/memcard.cpp
 	drivers/sio0/psx_joy.cpp
 	drivers/sio0/psx_mc.cpp
