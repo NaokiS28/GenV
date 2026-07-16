@@ -17,6 +17,7 @@
 
 #include "nullvideo.hpp"
 #include "common/services/video/color.hpp"
+#include "common/services/video/screen.hpp"
 namespace Video
 {
 
@@ -39,12 +40,12 @@ namespace Video
         return true;
     }
 
-    bool NullVideo::beginRender()
+    bool NullVideo::beginRender(Video::Screen &screen)
     {
         return true;
     }
 
-    bool NullVideo::endRender()
+    bool NullVideo::endRender(Video::Screen &screen)
     {
         return true;
     }
@@ -59,22 +60,22 @@ namespace Video
         return &VESA::BlankVideoList;
     }
 
-    void NullVideo::drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const
+    void NullVideo::drawAlpha(Video::Screen &screen, int x, int y, int w, int h, int sx, int sy, uint8_t a) const
     {
     }
 
-    void NullVideo::drawLine(int x1, int y1, int x2, int y2, int width, Color color) {}
-    void NullVideo::drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2) {}
-    void NullVideo::drawRect(int x, int y, int width, int height, Color color) {}
-    void NullVideo::drawGradientRectH(int x, int y, int w, int h, Color left, Color right) {}
-    void NullVideo::drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom) {}
-    void NullVideo::drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom) {}
+    void NullVideo::drawLine(Video::Screen &screen, int x1, int y1, int x2, int y2, int width, Color color) {}
+    void NullVideo::drawGradientLine(Video::Screen &screen, int x1, int y1, int x2, int y2, int width, Color c1, Color c2) {}
+    void NullVideo::drawRect(Video::Screen &screen, int x, int y, int width, int height, Color color) {}
+    void NullVideo::drawGradientRectH(Video::Screen &screen, int x, int y, int w, int h, Color left, Color right) {}
+    void NullVideo::drawGradientRectV(Video::Screen &screen, int x, int y, int w, int h, Color top, Color bottom) {}
+    void NullVideo::drawGradientRectD(Video::Screen &screen, int x, int y, int w, int h, Color top, Color middle, Color bottom) {}
 
-    void NullVideo::drawGradientRect(int x, int y, int w, int h, GPUGradientMode m) {}
-    void NullVideo::drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) {}
-    void NullVideo::drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) {}
+    void NullVideo::drawGradientRect(Video::Screen &screen, int x, int y, int w, int h, GPUGradientMode m) {}
+    void NullVideo::drawGradientRectHVar(Video::Screen &screen, int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) {}
+    void NullVideo::drawGradientRectVVar(Video::Screen &screen, int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) {}
 
-    int NullVideo::drawText(const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
+    int NullVideo::drawText(Video::Screen &screen, const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
     {
         return 0;
     }
@@ -88,10 +89,11 @@ namespace Video
         return 0;
     }
 
-    void NullVideo::drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) {}
-    void NullVideo::drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) {}
+    void NullVideo::drawSpriteObject(Video::Screen &screen, Sprites::SpriteObject *sObj, int x, int y, int w, int h) {}
+    void NullVideo::drawTileObject(Video::Screen &screen, Sprites::TileObject *sObj, int x, int y, int w, int h) {}
 
     int NullVideo::drawTextureObject(
+        Video::Screen &screen,
         const Textures::TextureObject *tObj,
         int x, int y, int w, int h,
         ifloat u1, ifloat v1,
@@ -101,6 +103,7 @@ namespace Video
     };
 
     int NullVideo::drawTextureObject(
+        Video::Screen &screen,
         const Textures::TextureObject *tObj,
         int x, int y,
         Vertex v[])

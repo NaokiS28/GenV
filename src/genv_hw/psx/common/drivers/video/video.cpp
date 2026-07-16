@@ -305,7 +305,7 @@ namespace PSX::GPU
         DMA_CHCR(DMA_GPU) = 0 | DMA_CHCR_WRITE | DMA_CHCR_MODE_LIST | DMA_CHCR_ENABLE;
     }
 
-    bool PSXGPU::beginRender()
+    bool PSXGPU::beginRender(Screen &screen)
     {
         // On Frame 0, chain is nullptr. After rendering the first frame,
         // we will send on the next call
@@ -314,7 +314,7 @@ namespace PSX::GPU
         return true;
     }
 
-    bool PSXGPU::endRender()
+    bool PSXGPU::endRender(Screen &screen)
     {
         *(chain->nextPacket) = gp0_endTag(0);
         _waitingForVsync     = true;
@@ -448,7 +448,7 @@ namespace PSX::GPU
     }
 
     void PSXGPU::drawRect(
-        int x, int y, int width, int height, Color color)
+        Screen &screen, int x, int y, int width, int height, Color color)
     {
         GPUNUM(3);
         GPUCMD(color.toBGR888() | gp0_rectangle(false, false, GP0_BLEND_SEMITRANS));
@@ -457,7 +457,7 @@ namespace PSX::GPU
     }
 
     void PSXGPU::drawGradientRectH(
-        int x, int y, int width, int height, Color left, Color right)
+        Screen &screen, int x, int y, int width, int height, Color left, Color right)
     {
         GPUNUM(8);
         GPUCMD(left.toRGB888() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
@@ -471,7 +471,7 @@ namespace PSX::GPU
     }
 
     void PSXGPU::drawGradientRectV(
-        int x, int y, int width, int height, Color top, Color bottom)
+        Screen &screen, int x, int y, int width, int height, Color top, Color bottom)
     {
         GPUNUM(8);
         GPUCMD(top.toRGB888() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
@@ -485,7 +485,7 @@ namespace PSX::GPU
     }
 
     void PSXGPU::drawGradientRectD(
-        int x, int y, int width, int height, Color top, Color middle, Color bottom)
+        Screen &screen, int x, int y, int width, int height, Color top, Color middle, Color bottom)
     {
         GPUNUM(8);
         GPUCMD(top.toRGB888() | gp0_shadedQuad(true, false, GP0_BLEND_SEMITRANS));
@@ -591,7 +591,7 @@ namespace PSX::GPU
         return result;
     }
 
-    void PSXGPU::drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint)
+    void PSXGPU::drawGradientRectHVar(Screen &screen, int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint)
     {
         GPUNUM((8 * 3));
         // Left square
@@ -625,7 +625,7 @@ namespace PSX::GPU
         GPUCMD(gp0_xy(x + w, y + h));
     }
 
-    void PSXGPU::drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint)
+    void PSXGPU::drawGradientRectVVar(Screen &screen, int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint)
     {
         GPUNUM((8 * 3));
         // Top square
@@ -659,7 +659,7 @@ namespace PSX::GPU
         GPUCMD(gp0_xy(x + w, y + h));
     }
 
-    void PSXGPU::drawLine(int x1, int y1, int x2, int y2, int width, Color color)
+    void PSXGPU::drawLine(Screen &screen, int x1, int y1, int x2, int y2, int width, Color color)
     {
         assert(width);
         switch (width)
@@ -686,7 +686,7 @@ namespace PSX::GPU
         }
     }
 
-    void PSXGPU::drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2)
+    void PSXGPU::drawGradientLine(Screen &screen, int x1, int y1, int x2, int y2, int width, Color c1, Color c2)
     {
         assert(width);
         switch (width)
@@ -717,7 +717,7 @@ namespace PSX::GPU
         }
     }
 
-    int PSXGPU::drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
+    int PSXGPU::drawText(Screen &screen, Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
     {
         // TODO: Seperate font renderer from PS1 core to generic video service
         if (!fObj || fObj->getObjectType() != Fonts::GENV_FONT_OBJ_TYPENAME || str[0] == '\0')
@@ -958,7 +958,7 @@ namespace PSX::GPU
         return 0;
     }
 
-    void PSXGPU::drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h)
+    void PSXGPU::drawSpriteObject(Screen &screen, Sprites::SpriteObject *sObj, int x, int y, int w, int h)
     {
         auto *tObj = sObj->getTexture();
         if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return; // GV_ERR_INVALID_PARAM;
@@ -979,6 +979,7 @@ namespace PSX::GPU
     }
 
     int PSXGPU::drawTextureObject(
+        Screen &screen,
         const Textures::TextureObject *tObj,
         int x, int y, int w, int h,
         ifloat u1, ifloat v1,

@@ -20,7 +20,7 @@
 
 namespace Apps
 {
-    Application::Application(IAppHost *host) : gpu(getServiceManager()->getVideo())
+    Application::Application(IAppHost *host)
     {
         m_host = host;
         state = APP_STATE_LOAD;
@@ -77,12 +77,6 @@ namespace Apps
         this->len = len;
     }
 
-    Application::Application(IAppHost *host, Video::IVideo *_gpu) : gpu(_gpu)
-    {
-        m_host = host;
-        state = APP_STATE_LOAD;
-    }
-
     int Application::loadProgress(const char *&str)
     {
         str = defaultLoadString;
@@ -92,7 +86,7 @@ namespace Apps
     /* Application Loader Preset */
 
     LoadScreenApp::LoadScreenApp(IAppHost *host, Application *appToLoad)
-        : Application(host, getServiceManager()->getVideo()),
+        : Application(host),
           _appToLoad(appToLoad)
     {
         m_host = host;
@@ -108,7 +102,7 @@ namespace Apps
     {
     }
 
-    ErrorScreenApp::ErrorScreenApp(IAppHost *host) : Application(host, getServiceManager()->getVideo())
+    ErrorScreenApp::ErrorScreenApp(IAppHost *host) : Application(host)
     {
         m_host = host;
         type = APP_TYPE_ERROR_SCREEN;
@@ -133,7 +127,7 @@ namespace Apps
 
     /* Arcade Test App Preset */
 
-    ArcadeTestApp::ArcadeTestApp(IAppHost *host) : Application(host, getServiceManager()->getVideo())
+    ArcadeTestApp::ArcadeTestApp(IAppHost *host) : Application(host)
     {
         m_host = host;
         aSystem = System::getArcadeInterface();

@@ -24,7 +24,7 @@ class DemoPage
     friend class GenV_Demo;
 
 protected:
-    System::IVideoDriver *gpu = nullptr;
+    Video::Screen *screen = nullptr;
 
 public:
     virtual const Apps::AppInfo &info() const = 0;

@@ -23,13 +23,17 @@
 
 #include "common/vendor/vendor.h"
 #include "common/services/services.hpp"
+#include "common/services/video/video.hpp"
 
 namespace Textures
 {
     TextureObject::~TextureObject()
     {
-        // RIX
-        // getServiceManager()->getVideo()->releaseTexture(this);
+        //!Review
+        // Was getServiceManager()->getVideo()->releaseTexture(this); the video service
+        // is gone - route through the Video:: resource seam (System-owned driver).
+        Video::releaseTexture(this);
+        //!End
         delete[] palette;
         delete[] bitmap;
     }
@@ -90,8 +94,9 @@ namespace Textures
 
     int TextureObject::uploadTexture()
     {
-        // return getServiceManager()->getVideo()->uploadTexture(this);
-        return 0;
+        //!Review
+        return Video::uploadTexture(this);
+        //!End
     }
 
     TextureObject *createDefaultTexture()
@@ -110,28 +115,18 @@ namespace Textures
 
     TextureObject *createTexture(util::Hash objectID)
     {
-        // RIX
-        // TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
-        // return tObj;
-        return nullptr;
+        //!Review
+        // Was getServiceManager()->getVideo()->createTexture(...); route through the
+        // Video:: resource seam. The driver mints the concrete (e.g. PSX) texture.
+        return Video::createTexture(objectID);
+        //!End
     }
 
     TextureObject *createTexture(util::Hash objectID, const char *filePath)
     {
-        // RIX
-        /*TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
-        if (tObj != nullptr)
-        {
-            if (tObj->loadTextureFromFile(filePath) == GV_OK)
-                return tObj;
-            else
-            {
-                delete tObj;
-                tObj = nullptr;
-            }
-        }
-        return tObj;*/
-        return nullptr;
+        //!Review
+        return Video::createTexture(objectID, filePath);
+        //!End
     }
 
     TextureObject *createTextureFromMem(
@@ -139,8 +134,8 @@ namespace Textures
         const uint8_t *data, const size_t length,
         const Video::Color *palette, const size_t paletteLength)
     {
-        // RIX
-        /*TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
+        //!Review
+        TextureObject *tObj = Video::createTexture(objectID);
         if (tObj != nullptr)
         {
             if (tObj->loadTextureFromMem(data, length, palette, paletteLength) == 0)
@@ -151,7 +146,7 @@ namespace Textures
                 tObj = nullptr;
             }
         }
-        return tObj;*/
-        return nullptr;
+        return tObj;
+        //!End
     }
 } // namespace Textures

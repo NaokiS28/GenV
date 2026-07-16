@@ -16,6 +16,7 @@
  */
 
 #include "perfmon.hpp"
+#include "common/services/video/video.hpp"
 
 namespace System
 {
@@ -23,8 +24,9 @@ namespace System
 
     PerformanceGraph &PerformanceMonitor::getPerformanceGraph(PerformanceGraphStyle style)
     {
-        // RIX
-        size_t frame = 0; // Video::frames();
+        //!Review
+        size_t frame = Video::frames();
+        //!End
         if (frame == lastFrame)
         {
             return lastGraph;

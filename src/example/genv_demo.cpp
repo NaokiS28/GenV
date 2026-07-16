@@ -31,7 +31,9 @@ int GenV_Demo::init()
     {
         if (int error = page->init(); error != GV_OK)
             LOG("GenV Demo", "%s page encountered init error %i", page->info().name, error);
-        page->gpu = gpu;
+        //!Review
+        page->screen = System::screen(0);
+        //!End
     }
     reload();
     setAppState(Apps::APP_STATE_RUN);
@@ -84,30 +86,33 @@ void GenV_Demo::update()
 
 void GenV_Demo::render()
 {
-    gpu->fillScreen(Video::Colors::Black);
+    //!Review
+    Video::Screen *screen = System::screen(0);
+    //!End
+    screen->fillScreen(Video::Colors::Black);
     if (currentPage != nullptr)
     {
         currentPage->render();
 
         // Draw page title
-        gpu->drawText(currentPage->info().name, titleBox, Video::Colors::White, Video::TALIGN_CENTER);
+        screen->drawText(currentPage->info().name, titleBox, Video::Colors::White, Video::TALIGN_CENTER);
     }
     else
     {
-        gpu->drawText(info().name, titleBox, Video::Colors::White, Video::TALIGN_CENTER);
+        screen->drawText(info().name, titleBox, Video::Colors::White, Video::TALIGN_CENTER);
 
         char sys[128] = {0};
         snprintf(sys, sizeof(sys), "System: %s %s", getSystem()->getSysInfo()->make, getSystem()->getSysInfo()->name);
-        gpu->drawText(sys, sysBox);
+        screen->drawText(sys, sysBox);
 
         int y       = 0;
         uint8_t idx = 0;
         for (auto page : genv_demoPageList)
         {
             if (idx == currentMenuPos)
-                gpu->drawChar('>', menuBox.x - 20, menuBox.y + y, Video::Colors::White);
+                screen->drawChar('>', menuBox.x - 20, menuBox.y + y, Video::Colors::White);
 
-            gpu->drawText(page->info().name, menuBox, Video::Colors::White);
+            screen->drawText(page->info().name, menuBox, Video::Colors::White);
             y += 10;
             idx++;
         }
@@ -116,25 +121,28 @@ void GenV_Demo::render()
     // Draw clock in bottom right
     char timeStr[32] = {0};
     Time::getTimeString(time, timeStr, sizeof(timeStr), true, true);
-    gpu->drawText(timeStr, timeBox, Video::Colors::White, Video::TALIGN_RIGHT);
+    screen->drawText(timeStr, timeBox, Video::Colors::White, Video::TALIGN_RIGHT);
 }
 
 void GenV_Demo::reload()
 {
+    //!Review
+    Video::Screen *screen = System::screen(0);
+    //!End
     if (currentPage != nullptr) currentPage->reload();
     titleBox = {
-        gpu->getHorizontalRes() / 2,
+        screen->getHorizontalRes() / 2,
         10,
         128, 10};
     timeBox = {
-        gpu->getHorizontalRes() - 10,
-        gpu->getVerticalRes() - 10,
+        screen->getHorizontalRes() - 10,
+        screen->getVerticalRes() - 10,
         128, 10};
     menuBox = {
         30, 20, 200, 200};
     sysBox = {
         10,
-        gpu->getVerticalRes() - 10,
+        screen->getVerticalRes() - 10,
         128, 10};
 }
 

@@ -105,8 +105,8 @@ namespace PSX::GPU
             return false;
         }
         bool update() override { return true; }
-        bool beginRender() override;
-        bool endRender() override;
+        bool beginRender(Screen &screen) override;
+        bool endRender(Screen &screen) override;
         void shutdown() override
         {
         }
@@ -135,27 +135,27 @@ namespace PSX::GPU
 
         void fillScreen(Screen &screen, Color color);
 
-        void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const override {
+        void drawAlpha(Screen &screen, int x, int y, int w, int h, int sx, int sy, uint8_t a) const override {
         };
 
-        void drawLine(int x1, int y1, int x2, int y2, int width, Color color) override;
-        void drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2) override;
+        void drawLine(Screen &screen, int x1, int y1, int x2, int y2, int width, Color color) override;
+        void drawGradientLine(Screen &screen, int x1, int y1, int x2, int y2, int width, Color c1, Color c2) override;
 
-        void drawRect(int x, int y, int w, int h, Color c) override;
-        void drawGradientRectH(int x, int y, int w, int h, Color left, Color right) override;
-        void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom) override;
-        void drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom) override;
+        void drawRect(Screen &screen, int x, int y, int w, int h, Color c) override;
+        void drawGradientRectH(Screen &screen, int x, int y, int w, int h, Color left, Color right) override;
+        void drawGradientRectV(Screen &screen, int x, int y, int w, int h, Color top, Color bottom) override;
+        void drawGradientRectD(Screen &screen, int x, int y, int w, int h, Color top, Color middle, Color bottom) override;
 
-        void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m) override {};
-        void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) override;
-        void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) override;
+        void drawGradientRect(Screen &screen, int x, int y, int w, int h, GPUGradientMode m) override {};
+        void drawGradientRectHVar(Screen &screen, int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) override;
+        void drawGradientRectVVar(Screen &screen, int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) override;
 
-        inline int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override
+        inline int drawText(Screen &screen, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override
         {
             Fonts::FontObject *fObj = getServiceManager()->getFontManager()->getCurrentFont();
-            return drawText(fObj, str, x, y, w, h, color, mode);
+            return drawText(screen, fObj, str, x, y, w, h, color, mode);
         }
-        int drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override;
+        int drawText(Screen &screen, Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override;
 
         int setDefaultFont(Fonts::FontObject *fObj) override;
 
@@ -164,18 +164,20 @@ namespace PSX::GPU
         int uploadTexture(Textures::TextureObject *tObj) override;
         int releaseTexture(Textures::TextureObject *tObj) override;
 
-        void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) override;
-        void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) override
+        void drawSpriteObject(Screen &screen, Sprites::SpriteObject *sObj, int x, int y, int w, int h) override;
+        void drawTileObject(Screen &screen, Sprites::TileObject *sObj, int x, int y, int w, int h) override
         {
         }
 
         int drawTextureObject(
+            Screen &screen,
             const Textures::TextureObject *tObj,
             int x, int y, int w, int h,
             ifloat u1, ifloat v1,
             ifloat u2, ifloat v2) override;
 
         int drawTextureObject(
+            Screen &screen,
             const Textures::TextureObject *tObj,
             int x, int y,
             Vertex v[]) override

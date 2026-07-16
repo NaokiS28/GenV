@@ -166,10 +166,64 @@ namespace Video
 
         void fillScreen(Color color)
         {
-            _gpu->drawRect(0, 0, res.width, res.height, color);
+            _gpu->drawRect(*this, 0, 0, res.width, res.height, color);
         }
 
+        //!Review
+        // Draw forwarders. A game draws by calling these on the Screen it holds; the
+        // Screen hands its own *this to the driver as the target Screen&, so the game
+        // never has to name a driver. Output only - resource ops (createTexture etc.)
+        // are driver-scoped and reached through getDriver().
+        inline bool beginRender() { return _gpu->beginRender(*this); }
+        inline bool endRender() { return _gpu->endRender(*this); }
+
+        inline void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) { _gpu->drawAlpha(*this, x, y, w, h, sx, sy, a); }
+
+        inline void drawLine(int x1, int y1, int x2, int y2, int width, Color color) { _gpu->drawLine(*this, x1, y1, x2, y2, width, color); }
+        inline void drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2) { _gpu->drawGradientLine(*this, x1, y1, x2, y2, width, c1, c2); }
+
+        inline void drawRect(int x, int y, int width, int height, Color color) { _gpu->drawRect(*this, x, y, width, height, color); }
+        inline void drawRect(RectWH rect, Color color) { _gpu->drawRect(*this, rect.x, rect.y, rect.w, rect.h, color); }
+
+        inline void drawGradientRectH(int x, int y, int w, int h, Color left, Color right) { _gpu->drawGradientRectH(*this, x, y, w, h, left, right); }
+        inline void drawGradientRectH(RectWH rect, Color left, Color right) { _gpu->drawGradientRectH(*this, rect.x, rect.y, rect.w, rect.h, left, right); }
+        inline void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom) { _gpu->drawGradientRectV(*this, x, y, w, h, top, bottom); }
+        inline void drawGradientRectV(RectWH rect, Color top, Color bottom) { _gpu->drawGradientRectV(*this, rect.x, rect.y, rect.w, rect.h, top, bottom); }
+        inline void drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom) { _gpu->drawGradientRectD(*this, x, y, w, h, top, middle, bottom); }
+        inline void drawGradientRectD(RectWH rect, Color top, Color middle, Color bottom) { _gpu->drawGradientRectD(*this, rect.x, rect.y, rect.w, rect.h, top, middle, bottom); }
+
+        inline void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m) { _gpu->drawGradientRect(*this, x, y, w, h, m); }
+        inline void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) { _gpu->drawGradientRectHVar(*this, x, y, w, h, left, right, startPoint, endPoint); }
+        inline void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) { _gpu->drawGradientRectVVar(*this, x, y, w, h, top, bottom, startPoint, endPoint); }
+
+        inline int drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) { return _gpu->drawText(*this, fObj, str, x, y, w, h, color, mode); }
+        inline int drawText(Fonts::FontObject *fObj, const char *str, RectWH box, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) { return _gpu->drawText(*this, fObj, str, box, color, mode); }
+        inline int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) { return _gpu->drawText(*this, str, x, y, w, h, color, mode); }
+        inline int drawText(const char *str, RectWH box, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) { return _gpu->drawText(*this, str, box, color, mode); }
+
+        inline int drawChar(const char c, int x, int y, Color color = Colors::White) { return _gpu->drawChar(*this, c, x, y, color); }
+        inline int drawChar(Fonts::FontObject *fObj, const char c, int x, int y, Color color = Colors::White) { return _gpu->drawChar(*this, fObj, c, x, y, color); }
+
+        inline int drawTextureObject(Textures::TextureObject *tObj, int x, int y, int w, int h, RectUV area) { return _gpu->drawTextureObject(*this, tObj, x, y, w, h, area); }
+        inline int drawTextureObject(Textures::TextureObject *tObj, RectWH rect, ifloat u1, ifloat v1, ifloat u2, ifloat v2) { return _gpu->drawTextureObject(*this, tObj, rect, u1, v1, u2, v2); }
+        inline int drawTextureObject(Textures::TextureObject *tObj, RectWH rect, RectUV area) { return _gpu->drawTextureObject(*this, tObj, rect, area); }
+        inline int drawTextureObject(const Textures::TextureObject *tObj, int x, int y, int w, int h, ifloat u1, ifloat v1, ifloat u2, ifloat v2) { return _gpu->drawTextureObject(*this, tObj, x, y, w, h, u1, v1, u2, v2); }
+        inline int drawTextureObject(const Textures::TextureObject *tObj, int x, int y, Vertex v[]) { return _gpu->drawTextureObject(*this, tObj, x, y, v); }
+
+        inline void drawSpriteObject(Sprites::SpriteObject *sObj) { _gpu->drawSpriteObject(*this, sObj); }
+        inline void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y) { _gpu->drawSpriteObject(*this, sObj, x, y); }
+        inline void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) { _gpu->drawSpriteObject(*this, sObj, x, y, w, h); }
+
+        inline void drawTileObject(Sprites::TileObject *tObj, int x, int y) { _gpu->drawTileObject(*this, tObj, x, y); }
+        inline void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) { _gpu->drawTileObject(*this, sObj, x, y, w, h); }
+        //!End
+
         // Returns a list of video output modes that the application can set and use
-        const virtual VideoModeList *getSupportedResolutions();
+        //!Review
+        // Inline body so Screen has no out-of-line key function (Screen has no .cpp);
+        // without it the vtable is never emitted and constructing a Screen fails to
+        // link. Resolution enumeration is not wired yet, so this returns null for now.
+        const virtual VideoModeList *getSupportedResolutions() { return nullptr; }
+        //!End
     };
 } // namespace Video
