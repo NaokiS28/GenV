@@ -20,34 +20,43 @@
 namespace Video
 {
 
-    NullVideo::NullVideo() : IVideo()
+    NullVideo::NullVideo() : IVideoDriver()
     {
     }
 
-    bool NullVideo::init()
+    int NullVideo::init()
+    {
+        return GV_OK;
+    }
+
+    bool NullVideo::update()
     {
         return true;
     }
+
     bool NullVideo::reset()
     {
         return true;
     }
+
     bool NullVideo::beginRender()
     {
         return true;
     }
+
     bool NullVideo::endRender()
     {
         return true;
     }
+
     void NullVideo::shutdown()
     {
     }
 
     // Returns a nulled list.
-    const VideoModeList *NullVideo::getSupportedResolutions()
+    const VESA::VideoModeList *NullVideo::getSupportedResolutions()
     {
-        return &BlankVideoList;
+        return &VESA::BlankVideoList;
     }
 
     void NullVideo::drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const

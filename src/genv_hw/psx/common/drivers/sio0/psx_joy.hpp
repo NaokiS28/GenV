@@ -22,7 +22,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "common/services/io/iface_driver.hpp"
+#include "common/services/system/iface_driver.hpp"
 #include "common/services/io/iface_input.hpp"
 #include "psx/common/drivers/sio0/psx_pads.hpp"
 #include "psx_sio0.hpp"
@@ -78,7 +78,7 @@ namespace PSX::IO
     {
     };
 
-    class PSX_Joypad : public ::IO::IDriver
+    class PSX_Joypad : public ::System::IDriver
     {
     private:
         SIO0_Bus *m_bus;

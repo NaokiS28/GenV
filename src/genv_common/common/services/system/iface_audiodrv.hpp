@@ -17,28 +17,28 @@
 
 #pragma once
 
-#include "common/objects/sound.hpp"
+#include "iface_driver.hpp"
 
 namespace Audio
 {
-    class IAudio
+    class SoundObject;
+}
+
+namespace System
+{
+
+    class IAudioDriver : public System::IDriver
     {
     public:
-        IAudio() = default;
-        virtual ~IAudio() = default;
-        virtual bool init() = 0;
-        virtual bool reset() = 0;
-        virtual void shutdown() = 0;
+        IAudioDriver()          = default;
+        virtual ~IAudioDriver() = default;
 
-        virtual bool play(Audio::SoundObject *sObj) = 0;
-        virtual bool stop(Audio::SoundObject *sObj) = 0;
-        virtual bool pause(Audio::SoundObject *sObj) = 0;
+        virtual bool play(Audio::SoundObject *sObj)      = 0;
+        virtual bool stop(Audio::SoundObject *sObj)      = 0;
+        virtual bool pause(Audio::SoundObject *sObj)     = 0;
         virtual bool isPlaying(Audio::SoundObject *sObj) = 0;
 
-        virtual Audio::SoundObject *createSample(util::Hash objectID, const char *filePath)
-        {
-            return Audio::createSample(objectID, filePath);
-        }
-        virtual int uploadSample(Audio::SoundObject *sObj) = 0;
+        virtual int uploadSample(Audio::SoundObject *sObj)                                  = 0;
+        virtual Audio::SoundObject *createSample(util::Hash objectID, const char *filePath) = 0;
     };
-} // namespace Audio
+} // namespace System

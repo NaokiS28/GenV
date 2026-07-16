@@ -19,8 +19,9 @@
 #include "common/services/services.hpp"
 #include "common/services/genv_sys.hpp"
 #include "common/services/perfmon.hpp"
-#include "common/services/video/color.hpp"
-#include <stdio.h>
+#include "common/services/system/iface_system.hpp"
+// #include "common/services/video/color.hpp"
+// #include <stdio.h>
 
 // #define PERFMON_US
 // #define PERFMON_PERCENT
@@ -32,8 +33,8 @@ int main(int argc, char *argv[])
     genv.startup(); // This creates and inits the GenV engine session, core services etc.
 
     ServiceManager *serviceManager = getServiceManager();
-    Video::IVideo *video           = serviceManager->getVideo(); // It is assumed the System class will have init'd the I/O driver.
-    Apps::AppManager *apps         = Apps::getAppManager();      // App manager lifecycle owned by main
+    System::ISystem *system        = serviceManager->getSystem(); // It is assumed the System class will have init'd the I/O driver.
+    Apps::AppManager *apps         = Apps::getAppManager();       // App manager lifecycle owned by main
 
     if (!apps) genv.halt();
 
@@ -72,19 +73,22 @@ int main(int argc, char *argv[])
         apps->update();
         System::PerfMon.finishAppExec();
 
-        if (video->beginRender())
+        /* RIX
+        if (system->beginRender())
         {
             apps->render();
             System::PerfMon.finishRender();
             // video->drawRect(0, 0, 80, 70, Video::Colors::DarkGray);
             // video->drawText(str, 5, 5, (10 * 64), 10);
-            video->endRender();
+            //system->endRender();
         }
+        */
 
         if (serviceManager->updateCoroutines())
         { // These are run in a lower priority to vsync. If vsync happens, the update cycle pauses
             System::PerfMon.finishCoroutines();
-            video->doWaitForVSync(); // If Service manager runs out of services to update, then we pause for next cycle
+            // RIX
+            // system->doWaitForVSync(); // If Service manager runs out of services to update, then we pause for next cycle
         }
     }
 

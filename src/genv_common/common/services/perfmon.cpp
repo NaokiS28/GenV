@@ -23,7 +23,8 @@ namespace System
 
     PerformanceGraph &PerformanceMonitor::getPerformanceGraph(PerformanceGraphStyle style)
     {
-        size_t frame = Video::frames();
+        // RIX
+        size_t frame = 0; // Video::frames();
         if (frame == lastFrame)
         {
             return lastGraph;
@@ -32,8 +33,8 @@ namespace System
         lastGraph = nextGraph;
         lastFrame = frame;
 
-        uint8_t screenRate = Video::getRefreshRate();
-        cycleTime          = (US_1HZ / screenRate);
+        // uint8_t screenRate = Video::getRefreshRate();
+        // cycleTime          = (US_1HZ / screenRate);
 
         size_t busyTime = systemExecTime + storageUpdateTime + inputUpdateTime + appExecTime + renderTime + coroutineUpdateTime;
         idleTime        = (busyTime < cycleTime) ? (cycleTime - busyTime) : 0;

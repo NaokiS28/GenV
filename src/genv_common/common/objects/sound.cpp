@@ -23,35 +23,21 @@ namespace Audio
 {
     bool SoundObject::play()
     {
-        return getServiceManager()->getAudio()->play(this);
-    }
-    bool SoundObject::stop()
-    {
-        return getServiceManager()->getAudio()->stop(this);
-    }
-    bool SoundObject::pause()
-    {
-        return getServiceManager()->getAudio()->pause(this);
-    }
-    bool SoundObject::isPlaying()
-    {
-        return getServiceManager()->getAudio()->isPlaying(this);
-    }
-    int SoundObject::uploadSample()
-    {
-        return getServiceManager()->getAudio()->uploadSample(this);
+        return driver->play(this);
     }
 
-    SoundObject *createSample(util::Hash objectID, const char *filePath)
+    bool SoundObject::stop()
     {
-        SoundObject *sObj = new SoundObject(objectID);
-        if (sObj != nullptr)
-        {
-            if (sObj->loadSoundFile(filePath) == GV_OK)
-                return sObj;
-            else
-                delete sObj;
-        }
-        return nullptr;
+        return driver->stop(this);
+    }
+
+    bool SoundObject::pause()
+    {
+        return driver->pause(this);
+    }
+
+    bool SoundObject::isPlaying()
+    {
+        return driver->isPlaying(this);
     }
 } // namespace Audio

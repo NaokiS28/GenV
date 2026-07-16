@@ -17,11 +17,10 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include "common/util/hash.hpp"
 #include "player.hpp"
-#include "iostrings.hpp"
-
-#include <cstdint>
 
 namespace IO
 {
@@ -31,6 +30,8 @@ namespace IO
 namespace Input
 {
     using namespace IO;
+
+    const char szNullInputDevice[] = "Null input device";
 
     // Tells the input mapper what the device class is.
     // Note: Mouse specifically implies a relative(delta) positioning device, whilst lightgun implies absolute positioning device.
@@ -63,8 +64,8 @@ namespace Input
 
     public:
         const char *name           = szNullInputDevice;   // Friendly printable name
-        util::Hash id              = idNull;              // Device ID - Usage is defined by the driver implementation
-        util::Hash subid           = idNull;              // Device SubID - Usage is defined by the driver implementation
+        util::Hash id              = util::idNull;        // Device ID - Usage is defined by the driver implementation
+        util::Hash subid           = util::idNull;        // Device SubID - Usage is defined by the driver implementation
         InputDeviceType type       = DEVICE_TYPE_NULL;    // Device Type - Tells the input mapper what class the device is
         InputDeviceSubType subtype = DEVICE_SUBTYPE_NULL; // Device Subtype - Not presently used
         uint8_t subBusID           = 0;                   // Sub Bus ID - Usage is defined by the driver implementation

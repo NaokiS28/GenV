@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 
+#include "common/services/services.hpp"
 #include "common/services/system/system.hpp"
 #include "psx/common/drivers/audio/spu.hpp"
 #include "psx/common/drivers/sio0/psx_joy.hpp"
@@ -45,7 +46,8 @@ namespace PSX
         Storage::PSX_PCDrive *pcDriver = nullptr; // Not always needed?
 
     public:
-        inline PSXSystem() {};
+        inline PSXSystem(ServiceManager &services)
+            : BasePSXSystem(services) {};
 
         virtual int initVideo() override;
         virtual int initAudio() override;

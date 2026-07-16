@@ -66,11 +66,11 @@ add_library(genv_services STATIC
 	services/video/text.cpp
 	services/video/nullvideo.cpp
 	services/audio/nullaudio.cpp
-	services/io/devicemgr.cpp
 	services/io/outputmgr.cpp
 	services/io/playermgr.cpp
 	services/system/timer.cpp
 	services/system/system.cpp
+	services/system/device_mgr.cpp
 	services/system/rtc/soft_rtc.cpp
 	services/system/arcade/arcade.cpp
 	services/system/arcade/nvram.cpp

@@ -25,7 +25,8 @@ namespace Sprites
 {
     SpriteObject::SpriteObject(util::Hash objectID)
     {
-        texture = getServiceManager()->getVideo()->createTexture(objectID);
+        // RIX
+        // texture = getServiceManager()->getVideo()->createTexture(objectID);
     }
 
     SpriteObject::SpriteObject(util::Hash objectID, Textures::TextureObject *tObj)
@@ -35,12 +36,13 @@ namespace Sprites
 
     SpriteObject::SpriteObject(util::Hash objectID, const char *filePath)
     {
-        texture = getServiceManager()->getVideo()->createTexture(objectID, filePath);
+        // RIX
+        // texture = getServiceManager()->getVideo()->createTexture(objectID, filePath);
     }
 
     void SpriteObject::draw(int x, int y, int w, int h)
     {
-        return getServiceManager()->getVideo()->drawSpriteObject(this, x, y, w, h);
+        // return getServiceManager()->getVideo()->drawSpriteObject(this, x, y, w, h);
     }
 
     int SpriteObject::loadTextureFromFile(const char *filePath)
@@ -50,7 +52,8 @@ namespace Sprites
 
     int SpriteObject::uploadTexture()
     {
-        return getServiceManager()->getVideo()->uploadTexture(texture);
+        // return getServiceManager()->getVideo()->uploadTexture(texture);
+        return 0;
     }
 
     SpriteObject *createSprite(util::Hash objectID, Textures::TextureObject *tObj)

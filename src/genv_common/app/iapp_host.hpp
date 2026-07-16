@@ -26,6 +26,8 @@ namespace Apps
 {
     using AppID = util::Hash;
 
+    using namespace ::Apps;
+
     typedef Application *(*AppFactory)(IAppHost *host);
     typedef LoadScreenApp *(*LoadScreenFactory)(IAppHost *host, Application *appToLoad);
     typedef ErrorScreenApp *(*ErrorScreenFactory)(IAppHost *host, ErrorScreenMessage *msg);
@@ -33,10 +35,10 @@ namespace Apps
 
     enum AppActionFlags : uint32_t
     {
-        APPACT_NONE = 0,
-        APPACT_REPLACE = 1u << 0,    // replace foreground
+        APPACT_NONE       = 0,
+        APPACT_REPLACE    = 1u << 0, // replace foreground
         APPACT_BACKGROUND = 1u << 1, // send current to background
-        APPACT_CLEANBG = 1u << 2,    // close background
+        APPACT_CLEANBG    = 1u << 2, // close background
     };
 
     enum AppScreenType : uint8_t
@@ -51,17 +53,17 @@ namespace Apps
     class IAppHost
     {
     public:
-        virtual void requestSwitch(AppID id, uint32_t flags) = 0;
-        virtual void requestSwitch(AppScreenType type, uint32_t flags) = 0;
-        virtual void requestQuitForeground() = 0;
-        virtual void requestError(ErrorScreenMessage *msg) = 0;
+        virtual void requestSwitch(AppID id, uint32_t flags)                                                                          = 0;
+        virtual void requestSwitch(AppScreenType type, uint32_t flags)                                                                = 0;
+        virtual void requestQuitForeground()                                                                                          = 0;
+        virtual void requestError(ErrorScreenMessage *msg)                                                                            = 0;
         virtual void requestError(const char *title, const char *text, uint32_t code, ErrorMessageStyle style, ErrorMessageIcon icon) = 0;
-        virtual void removeApplicationFactory(AppID id) = 0;
-        virtual void registerApplicationFactory(AppFactory factory, const AppInfo *info, AppScreenType type = APP_SCREEN_GENERIC) = 0;
-        virtual void registerErrorScreenFactory(ErrorScreenFactory factory, const AppInfo *info) = 0;
-        virtual void registerLoadingScreenFactory(LoadScreenFactory factory, const AppInfo *info) = 0;
-        virtual void registerGameTestModeFactory(ArcadeTestScreenFactory factory, const AppInfo *info) = 0;
-        virtual void registerSystemTestModeFactory(AdminClass_Key key, ArcadeTestScreenFactory factory, const AppInfo *info) = 0;
+        virtual void removeApplicationFactory(AppID id)                                                                               = 0;
+        virtual void registerApplicationFactory(AppFactory factory, const AppInfo *info, AppScreenType type = APP_SCREEN_GENERIC)     = 0;
+        virtual void registerErrorScreenFactory(ErrorScreenFactory factory, const AppInfo *info)                                      = 0;
+        virtual void registerLoadingScreenFactory(LoadScreenFactory factory, const AppInfo *info)                                     = 0;
+        virtual void registerGameTestModeFactory(ArcadeTestScreenFactory factory, const AppInfo *info)                                = 0;
+        virtual void registerSystemTestModeFactory(AdminClass_Key key, ArcadeTestScreenFactory factory, const AppInfo *info)          = 0;
 
     protected:
         ~IAppHost() {} // interface, non-owning

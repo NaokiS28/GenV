@@ -21,9 +21,9 @@
 
 using namespace Audio;
 
-IAudio *Win32::CreateAudioDriver(AudioType type, WindowObject *wObject)
+IAudioDriver *Win32::CreateAudioDriver(AudioType type, WindowObject *wObject)
 {
-    IAudio *driver = nullptr;
+    IAudioDriver *driver = nullptr;
     if (wObject)
     {
         switch (type)

@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "common/services/system/iface_audiodrv.hpp"
 #include "common/util/hash.hpp"
 #include "object.hpp"
 #include "file.hpp"
@@ -29,7 +30,7 @@ namespace Audio
 
     enum
     {
-        SO_BITDEPTH_8 = 8,
+        SO_BITDEPTH_8  = 8,
         SO_BITDEPTH_16 = 16,
         SO_BITDEPTH_32 = 32
     };
@@ -38,11 +39,11 @@ namespace Audio
 
     struct SampleMeta
     {
-        const char *name = nullptr; // Sample name, if needed
-        uint8_t channels = 0;       // Mono, Stereo
-        uint8_t bitDepth = 0;       // The bitdepth of the sound, IE 8-Bits per sample
-        uint32_t sampleRate = 0;    // The sample rate in Hz (eg 41,600)
-        size_t sampleLength = 0;    // How many samples long the sound is
+        const char *name    = nullptr; // Sample name, if needed
+        uint8_t channels    = 0;       // Mono, Stereo
+        uint8_t bitDepth    = 0;       // The bitdepth of the sound, IE 8-Bits per sample
+        uint32_t sampleRate = 0;       // The sample rate in Hz (eg 41,600)
+        size_t sampleLength = 0;       // How many samples long the sound is
     };
 
     // Returns the given sameple's play length in seconds.
@@ -54,8 +55,11 @@ namespace Audio
 
     class SoundObject : public ObjectBase
     {
+    private:
+        System::IAudioDriver *driver = nullptr;
+
     public:
-        SoundObject(util::Hash objectID) : ObjectBase(objectID)
+        SoundObject(util::Hash objectID, System::IAudioDriver *driver) : ObjectBase(objectID), driver(driver)
         {
             file = new Files::FileObject(objectID);
             setObjectType(GENV_SOUND_OBJ_TYPENAME);
@@ -70,9 +74,10 @@ namespace Audio
         SoundObject(Files::FileObject *fObj) : ObjectBase(fObj->getObjectID())
         {
             noDeleteFile = true;
-            file = fObj;
+            file         = fObj;
             setObjectType(GENV_SOUND_OBJ_TYPENAME);
         }
+
         virtual ~SoundObject()
         {
             if (!noDeleteFile)
@@ -124,15 +129,14 @@ namespace Audio
 
         const uint8_t *sampleData = nullptr;
 
-        bool valid = false;
-        bool loop = false;
-        uint8_t loopCount = 0;
+        bool valid            = false;
+        bool loop             = false;
+        uint8_t loopCount     = 0;
         size_t loopStartPoint = 0;
-        size_t loopEndPoint = 0;
-        size_t currentPos = 0;
-        size_t startPoint = 0;
-        size_t endPoint = 0;
+        size_t loopEndPoint   = 0;
+        size_t currentPos     = 0;
+        size_t startPoint     = 0;
+        size_t endPoint       = 0;
     };
 
-    SoundObject *createSample(util::Hash objectID, const char *filePath);
 } // namespace Audio

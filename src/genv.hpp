@@ -17,11 +17,11 @@
 
 #pragma once
 
-// namespace GenV
-//{
-#include "app/app.hpp"
-#include "app/iapp_host.hpp"
-#include "common/objects/texture.hpp"
-#include "common/services/system/system.hpp"
-#include "common/logger/log.hpp"
-//} // namespace GenV
+namespace GenV
+{
+#include "app/app.hpp"                       // IWYU pragma: export
+#include "app/iapp_host.hpp"                 // IWYU pragma: export
+#include "common/objects/texture.hpp"        // IWYU pragma: export
+#include "common/services/system/system.hpp" // IWYU pragma: export
+#include "common/logger/log.hpp"             // IWYU pragma: export
+} // namespace GenV

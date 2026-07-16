@@ -40,7 +40,7 @@ namespace System
     {
         LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
         VOID CALLBACK TimerRoutine(PVOID lpParam, BOOLEAN);
-    }
+    } // namespace WinAPI
 
     class WinTimer : public Timer
     {
@@ -87,13 +87,14 @@ namespace System
         bool setFullscreen(Video::FullscreenMode mode);
         bool toggleFullscreen();
 
-        const SystemInfo* getSysInfo() const override {
+        const SystemInfo *getSysInfo() const override
+        {
             return &siWindows;
         }
 
         size_t millis() override;
         size_t micros() override;
-        size_t getTime(){ return 0; }
+        size_t getTime() { return 0; }
 
         inline bool registerTimerFunc(TFunc func, TChannel timer, uint8_t freq)
         {
@@ -108,9 +109,10 @@ namespace System
             return false;
         }
 
-        inline void hardwareChanged(WPARAM wParam, LPARAM lParam){
+        inline void hardwareChanged(WPARAM wParam, LPARAM lParam)
+        {
             storage.hardwareChanged(wParam, lParam);
         }
     };
 
-}
+} // namespace System

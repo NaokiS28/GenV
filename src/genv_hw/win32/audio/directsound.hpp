@@ -23,14 +23,14 @@
 
 #include "common/objects/sound.hpp"
 
-class DirectSound : public IAudio
+class DirectSound : public IAudioDriver
 {
 private:
     WindowObject *gpuWnd;
 
     LPDIRECTSOUND8 dsdev = nullptr;
     std::unordered_map<uint32_t, LPDIRECTSOUNDBUFFER> dsbufferMap;
-    uint32_t nextSampleID = 1;      // start from 1 to reserve 0 for "invalid"
+    uint32_t nextSampleID = 1; // start from 1 to reserve 0 for "invalid"
 
     LPDIRECTSOUNDBUFFER getSoundBuffer(Audio::SoundObject *sObj);
 
@@ -49,7 +49,8 @@ public:
 
     int uploadSample(Audio::SoundObject *sObj) override;
 
-    inline bool pause(LPDIRECTSOUNDBUFFER buffer){
+    inline bool pause(LPDIRECTSOUNDBUFFER buffer)
+    {
         return (buffer == nullptr ? false : SUCCEEDED(buffer->Stop()));
     }
 };

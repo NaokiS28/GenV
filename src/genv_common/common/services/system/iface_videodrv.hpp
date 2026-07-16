@@ -19,41 +19,42 @@
 #include <stdint.h>
 
 #include "common/objects/font.hpp"
-#include "common/services/video/color.hpp"
+#include "iface_driver.hpp"
 #include "common/util/hash.hpp"
-#include "video.hpp"
 #include "common/util/rect.hpp"
 #include "common/objects/texture.hpp"
 #include "common/objects/sprite.hpp"
 #include "common/objects/tile.hpp"
 
+#include "common/services/video/video.hpp"
+#include "common/services/video/color.hpp"
+#include "common/services/video/text.hpp"
+
 #define V_ERROR(code) GV_ERROR(GV_SERVICE_VIDEO, GV_CATEGORY_GENERIC, code)
 
-namespace Video
+namespace System
 {
-    class IVideo
+    using namespace Video;
+
+    class IVideoDriver : public System::IDriver
     {
     protected:
-        Monitor _screen;
         size_t _frameCount    = 0;
         bool _useDoubleBuffer = true;
 
         Textures::TextureObject *defaultTexture = nullptr;
 
     public:
-        IVideo()          = default;
-        virtual ~IVideo() = default;
+        IVideoDriver()          = default;
+        virtual ~IVideoDriver() = default;
 
         virtual inline size_t getFrameCount()
         {
             return _frameCount;
         }
 
-        virtual bool init()        = 0;
-        virtual bool reset()       = 0;
         virtual bool beginRender() = 0;
         virtual bool endRender()   = 0;
-        virtual void shutdown()    = 0;
 
         virtual bool waitingForVSync() = 0;
         virtual void doWaitForVSync() {}
@@ -100,50 +101,6 @@ namespace Video
         inline void drawGradientRectVVar(RectWH &rect, Color top, Color bottom, int startPoint, int endPoint)
         {
             drawGradientRectVVar(rect.x, rect.y, rect.w, rect.h, top, bottom, startPoint, endPoint);
-        }
-
-        virtual void fillScreen(Color color)
-        {
-            drawRect(0, 0, _screen.res.width, _screen.res.height, color);
-        }
-
-        inline uint16_t getHorizontalRes() { return _screen.res.width; }
-        inline uint16_t getVerticalRes() { return _screen.res.height; }
-        inline uint16_t getRefreshRate() { return _screen.refreshRate; }
-        inline Ratio getAspectRatio() { return getAspectRatioParts(_screen.res.aspect); }
-        inline const char *getVideoModeName() { return _screen.res.name; }
-        inline const char *getMonitorName() { return _screen.screenName; }
-        inline int getDPI() { return _screen.dpi; }
-        virtual void getMonitorInfo(Monitor &m) const { m = _screen; }
-
-        inline int setResolution(VideoResolution v, bool updateWindow = true)
-        {
-            return setResolution(v.width, v.height, updateWindow);
-        }
-        virtual int setResolution(int _width, int _height, bool updateWindow = true)
-        {
-            this->_screen.res.width  = _width;
-            this->_screen.res.height = _height;
-            return true;
-        }
-
-        // Returns a list of video output modes that the application can set and use
-        const virtual VideoModeList *getSupportedResolutions() = 0;
-
-        // Attempts to set the fullscreen state and returns current fullscreen state
-        virtual bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0)
-        {
-            return false;
-        }
-
-        inline bool toggleFullscreen()
-        {
-            return setFullscreen(this->getFullscreenMode() != Video::Windowed ? Video::Windowed : Video::Fullscreen, 800, 600);
-        }
-
-        virtual FullscreenMode getFullscreenMode()
-        {
-            return FullscreenMode::Fullscreen;
         }
 
         virtual void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const = 0;
@@ -255,4 +212,4 @@ namespace Video
         }
         virtual void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) = 0;
     };
-} // namespace Video
+} // namespace System
