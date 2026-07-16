@@ -18,18 +18,24 @@
 #include "tile.hpp"
 
 #include "common/services/services.hpp"
+#include "common/services/video/video.hpp"
 
 namespace Sprites
 {
     TileObject::TileObject(util::Hash objectID)
     {
+        //!Review
+        // Mint the texture BEFORE resetTransform(), which reads texture->width/height.
+        texture = Video::createTexture(objectID);
+        //!End
         resetTransform();
-        // texture = getServiceManager()->getVideo()->createTexture(objectID);
     }
 
     TileObject::TileObject(util::Hash objectID, const char *filePath)
     {
-        // texture = getServiceManager()->getVideo()->createTexture(objectID, filePath);
+        //!Review
+        texture = Video::createTexture(objectID, filePath);
+        //!End
     }
 
     int TileObject::draw(int x, int y)
@@ -145,8 +151,9 @@ namespace Sprites
 
     int TileObject::uploadTexture()
     {
-        // RIX
-        // return getServiceManager()->getVideo()->uploadTexture(texture);
+        //!Review
+        return Video::uploadTexture(texture);
+        //!End
     }
 
     void TileObject::fillScreen(int x, int y)

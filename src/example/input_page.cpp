@@ -184,30 +184,30 @@ void GenV_Input::render()
     if (IO::playerManager()->playerCount() > 0)
     {
         snprintf(textStr, sizeof(textStr), "Page: %d / %d", currentPage + 1, maxPage + 1);
-        gpu->drawText(textStr, titleX, y, 200, 20, Video::Colors::White, Video::TALIGN_CENTER);
+        screen->drawText(textStr, titleX, y, 200, 20, Video::Colors::White, Video::TALIGN_CENTER);
         y += 20;
 
         if (currentPlayer != Input::Player::INVALID)
-            gpu->drawText(pageStr, x, y, 500, 500);
+            screen->drawText(pageStr, x, y, 500, 500);
     }
     else
     {
-        gpu->drawText("No registered inputs.", x, y, 500, 500, Video::Colors::White, Video::TALIGN_CENTER);
+        screen->drawText("No registered inputs.", x, y, 500, 500, Video::Colors::White, Video::TALIGN_CENTER);
     }
 
-    gpu->drawText("Hold P1 start to exit.", x, gpu->getVerticalRes() - 30, 500, 500);
+    screen->drawText("Hold P1 start to exit.", x, screen->getVerticalRes() - 30, 500, 500);
     if (startTimer != -1)
     {
         sprintf(textStr, "Exiting in %d second%s..", startTimer, (startTimer > 1 ? "s." : "."));
-        gpu->drawText(textStr, x, gpu->getVerticalRes() - 20, 500, 500);
+        screen->drawText(textStr, x, screen->getVerticalRes() - 20, 500, 500);
     }
 }
 
 void GenV_Input::reload()
 {
-    titleX     = (gpu->getHorizontalRes() / 2);
+    titleX     = (screen->getHorizontalRes() / 2);
     txtOrigin  = Video::Coord(titleX, 5);
-    timeOrigin = Video::Coord(gpu->getHorizontalRes() - 10, gpu->getVerticalRes() - 10);
+    timeOrigin = Video::Coord(screen->getHorizontalRes() - 10, screen->getVerticalRes() - 10);
 
     startTimer  = -1;
     ignoreStart = true;

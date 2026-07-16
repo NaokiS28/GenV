@@ -20,11 +20,29 @@
 #include <stddef.h>
 
 #include "common/objects/font.hpp"
+#include "common/util/hash.hpp"
+
+namespace Textures
+{
+    class TextureObject;
+}
 
 namespace Video
 {
-    // size_t msToFrames(size_t millis); // Returns how many frames should elapse within a given time
-    // size_t frames();                  // Returns the amount of frames that have been rendered
+    //!Review
+    // Resource + frame-count seam. These are the single redirection point the object
+    // layer (sprite/texture/tile) and perfmon call so they never reach the driver
+    // directly. Today they forward to the primary screen's driver
+    // (System::screen(0)->getDriver()); when a dedicated asset manager lands, only
+    // these bodies change, not every call site.
+    Textures::TextureObject *createTexture(util::Hash objectID);
+    Textures::TextureObject *createTexture(util::Hash objectID, const char *filePath);
+    int uploadTexture(Textures::TextureObject *tObj);
+    int releaseTexture(Textures::TextureObject *tObj);
+
+    size_t msToFrames(size_t millis); // Returns how many frames should elapse within a given time
+    size_t frames();                  // Returns the amount of frames that have been rendered
+    //!End
 
     inline int getRGB565Length(uint16_t w, uint16_t h)
     {

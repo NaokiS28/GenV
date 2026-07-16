@@ -91,32 +91,38 @@ namespace Apps
     void GVSS::render()
     {
         if (getState() == APP_STATE_ERROR) return;
-        gpu->fillScreen(Video::Colors::Black);
+        //!Review
+        Video::Screen *screen = System::screen(0);
+        //!End
+        screen->fillScreen(Video::Colors::Black);
         // logo_ring->draw(logoPos.x, logoPos.y);
-        if (drawLine) gpu->drawRect(linePos, Video::Colors::White);
+        if (drawLine) screen->drawRect(linePos, Video::Colors::White);
         logo_v->draw(logoVPos.x, logoVPos.y);
-        if (vBoxPos.w > 0) gpu->drawRect(vBoxPos, Video::Colors::Black);
+        if (vBoxPos.w > 0) screen->drawRect(vBoxPos, Video::Colors::Black);
         if (ringAlpha > 0) logo_ring->draw(logoRPos.x, logoRPos.y);
-        if (textAlpha > 0) gpu->drawText(GVSSText, textPos.x, textPos.y, textPos.w, textPos.h);
+        if (textAlpha > 0) screen->drawText(GVSSText, textPos.x, textPos.y, textPos.w, textPos.h);
         vStep++;
     }
 
     void GVSS::reload()
     {
+        //!Review
+        Video::Screen *screen = System::screen(0);
+        //!End
         logoRPos = {
-            static_cast<int>((gpu->getHorizontalRes() / 2) - (logo_ring->getTexture()->width / 2)),
-            static_cast<int>((gpu->getVerticalRes() / 2) - (logo_ring->getTexture()->height / 2)),
+            static_cast<int>((screen->getHorizontalRes() / 2) - (logo_ring->getTexture()->width / 2)),
+            static_cast<int>((screen->getVerticalRes() / 2) - (logo_ring->getTexture()->height / 2)),
             static_cast<int>(logo_ring->getTexture()->width),
             static_cast<int>(logo_ring->getTexture()->height)};
         logoVPos = {
-            static_cast<int>((gpu->getHorizontalRes() / 2) - (logo_v->getTexture()->width / 2)),
-            static_cast<int>((gpu->getVerticalRes() / 2) - (logo_v->getTexture()->height / 2)),
+            static_cast<int>((screen->getHorizontalRes() / 2) - (logo_v->getTexture()->width / 2)),
+            static_cast<int>((screen->getVerticalRes() / 2) - (logo_v->getTexture()->height / 2)),
             static_cast<int>(logo_v->getTexture()->width),
             static_cast<int>(logo_v->getTexture()->height)};
         vBoxPos = logoVPos;
         textPos = {
-            gpu->getHorizontalRes() / 2,
-            gpu->getVerticalRes() / 2 - 15,
+            screen->getHorizontalRes() / 2,
+            screen->getVerticalRes() / 2 - 15,
             500,
             60};
         linePos = {
@@ -130,6 +136,9 @@ namespace Apps
     {
         if (pStep == vStep) return;
 
+        //!Review
+        Video::Screen *screen = System::screen(0);
+        //!End
         switch (GVSSAnimStep)
         {
         case GVSS_Init:
@@ -174,7 +183,7 @@ namespace Apps
                 linePos.w += 4;
             else
             {
-                if ((linePos.x + linePos.w) < gpu->getHorizontalRes())
+                if ((linePos.x + linePos.w) < screen->getHorizontalRes())
                     linePos.x += 4;
                 else
                     GVSSAnimStep = GVSS_RingReveal;

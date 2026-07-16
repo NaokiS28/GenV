@@ -20,6 +20,7 @@
 #include "common/services/genv_sys.hpp"
 #include "common/services/perfmon.hpp"
 #include "common/services/system/iface_system.hpp"
+#include "common/services/system/system.hpp"
 // #include "common/services/video/color.hpp"
 // #include <stdio.h>
 
@@ -33,8 +34,7 @@ int main(int argc, char *argv[])
     genv.startup(); // This creates and inits the GenV engine session, core services etc.
 
     ServiceManager *serviceManager = getServiceManager();
-    System::ISystem *system        = serviceManager->getSystem(); // It is assumed the System class will have init'd the I/O driver.
-    Apps::AppManager *apps         = Apps::getAppManager();       // App manager lifecycle owned by main
+    Apps::AppManager *apps         = Apps::getAppManager(); // App manager lifecycle owned by main
 
     if (!apps) genv.halt();
 
@@ -73,22 +73,35 @@ int main(int argc, char *argv[])
         apps->update();
         System::PerfMon.finishAppExec();
 
-        /* RIX
-        if (system->beginRender())
+        //!Review
+        // Multi-screen render loop: begin every registered screen, let the apps draw
+        // (each grabs the screen(s) it wants), then end every screen. The loop shape is
+        // unchanged by SGMS - a single driver serving N screens just brackets N command
+        // streams. On PS1 this is one screen at slot 0.
+        for (uint8_t i = 0;; i++)
         {
-            apps->render();
-            System::PerfMon.finishRender();
-            // video->drawRect(0, 0, 80, 70, Video::Colors::DarkGray);
-            // video->drawText(str, 5, 5, (10 * 64), 10);
-            //system->endRender();
+            Video::Screen *s = System::screen(i);
+            if (!s) break;
+            s->beginRender();
         }
-        */
+        apps->render();
+        System::PerfMon.finishRender();
+        for (uint8_t i = 0;; i++)
+        {
+            Video::Screen *s = System::screen(i);
+            if (!s) break;
+            s->endRender();
+        }
+        //!End
 
         if (serviceManager->updateCoroutines())
         { // These are run in a lower priority to vsync. If vsync happens, the update cycle pauses
             System::PerfMon.finishCoroutines();
-            // RIX
-            // system->doWaitForVSync(); // If Service manager runs out of services to update, then we pause for next cycle
+            //!Review
+            // If Service manager runs out of services to update, pause for the next
+            // cycle. VSync wait is driver-scoped, reached through the primary screen.
+            if (Video::Screen *s = System::screen(0)) s->getDriver()->doWaitForVSync();
+            //!End
         }
     }
 

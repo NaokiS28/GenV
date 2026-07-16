@@ -32,6 +32,15 @@
 
 #define V_ERROR(code) GV_ERROR(GV_SERVICE_VIDEO, GV_CATEGORY_GENERIC, code)
 
+// Forward declaration only. screen.hpp includes this header, so this header must
+// not include screen.hpp (circular). Output methods take a Screen by reference so
+// a single driver can serve multiple screens (SGMS); resource methods are
+// driver-scoped and take no Screen.
+namespace Video
+{
+    class Screen;
+}
+
 namespace System
 {
     using namespace Video;
@@ -53,8 +62,8 @@ namespace System
             return _frameCount;
         }
 
-        virtual bool beginRender() = 0;
-        virtual bool endRender()   = 0;
+        virtual bool beginRender(Video::Screen &screen) = 0;
+        virtual bool endRender(Video::Screen &screen)   = 0;
 
         virtual bool waitingForVSync() = 0;
         virtual void doWaitForVSync() {}
@@ -77,70 +86,70 @@ namespace System
             _useDoubleBuffer = true;
         }
 
-        inline void drawRect(RectWH &rect, Color color)
+        inline void drawRect(Video::Screen &screen, RectWH &rect, Color color)
         {
-            drawRect(rect.x, rect.y, rect.w, rect.h, color);
+            drawRect(screen, rect.x, rect.y, rect.w, rect.h, color);
         }
-        inline void drawGradientRectH(RectWH &rect, Color left, Color right)
+        inline void drawGradientRectH(Video::Screen &screen, RectWH &rect, Color left, Color right)
         {
-            drawGradientRectH(rect.x, rect.y, rect.w, rect.h, left, right);
+            drawGradientRectH(screen, rect.x, rect.y, rect.w, rect.h, left, right);
         }
-        inline void drawGradientRectV(RectWH &rect, Color top, Color bottom)
+        inline void drawGradientRectV(Video::Screen &screen, RectWH &rect, Color top, Color bottom)
         {
-            drawGradientRectV(rect.x, rect.y, rect.w, rect.h, top, bottom);
+            drawGradientRectV(screen, rect.x, rect.y, rect.w, rect.h, top, bottom);
         }
-        inline void drawGradientRectD(RectWH &rect, Color top, Color middle, Color bottom)
+        inline void drawGradientRectD(Video::Screen &screen, RectWH &rect, Color top, Color middle, Color bottom)
         {
-            drawGradientRectD(rect.x, rect.y, rect.w, rect.h, top, middle, bottom);
-        }
-
-        inline void drawGradientRectHVar(RectWH &rect, Color left, Color right, int startPoint, int endPoint)
-        {
-            drawGradientRectHVar(rect.x, rect.y, rect.w, rect.h, left, right, startPoint, endPoint);
-        }
-        inline void drawGradientRectVVar(RectWH &rect, Color top, Color bottom, int startPoint, int endPoint)
-        {
-            drawGradientRectVVar(rect.x, rect.y, rect.w, rect.h, top, bottom, startPoint, endPoint);
+            drawGradientRectD(screen, rect.x, rect.y, rect.w, rect.h, top, middle, bottom);
         }
 
-        virtual void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const = 0;
+        inline void drawGradientRectHVar(Video::Screen &screen, RectWH &rect, Color left, Color right, int startPoint, int endPoint)
+        {
+            drawGradientRectHVar(screen, rect.x, rect.y, rect.w, rect.h, left, right, startPoint, endPoint);
+        }
+        inline void drawGradientRectVVar(Video::Screen &screen, RectWH &rect, Color top, Color bottom, int startPoint, int endPoint)
+        {
+            drawGradientRectVVar(screen, rect.x, rect.y, rect.w, rect.h, top, bottom, startPoint, endPoint);
+        }
+
+        virtual void drawAlpha(Video::Screen &screen, int x, int y, int w, int h, int sx, int sy, uint8_t a) const = 0;
 
         // void newLayer(int x, int y, int drawWidth, int drawHeight);
 
-        virtual void drawLine(int x1, int y1, int x2, int y2, int width, Color color)                = 0;
-        virtual void drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2) = 0;
+        virtual void drawLine(Video::Screen &screen, int x1, int y1, int x2, int y2, int width, Color color)                = 0;
+        virtual void drawGradientLine(Video::Screen &screen, int x1, int y1, int x2, int y2, int width, Color c1, Color c2) = 0;
 
-        virtual void drawRect(int x, int y, int width, int height, Color color)                           = 0;
-        virtual void drawGradientRectH(int x, int y, int w, int h, Color left, Color right)               = 0;
-        virtual void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom)               = 0;
-        virtual void drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom) = 0;
+        virtual void drawRect(Video::Screen &screen, int x, int y, int width, int height, Color color)                           = 0;
+        virtual void drawGradientRectH(Video::Screen &screen, int x, int y, int w, int h, Color left, Color right)               = 0;
+        virtual void drawGradientRectV(Video::Screen &screen, int x, int y, int w, int h, Color top, Color bottom)               = 0;
+        virtual void drawGradientRectD(Video::Screen &screen, int x, int y, int w, int h, Color top, Color middle, Color bottom) = 0;
 
-        virtual void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m)                                         = 0;
-        virtual void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) = 0;
-        virtual void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) = 0;
+        virtual void drawGradientRect(Video::Screen &screen, int x, int y, int w, int h, GPUGradientMode m)                                         = 0;
+        virtual void drawGradientRectHVar(Video::Screen &screen, int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) = 0;
+        virtual void drawGradientRectVVar(Video::Screen &screen, int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) = 0;
 
         inline virtual int setDefaultFont(Fonts::FontObject *fObj) { return 0; }
-        virtual int drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) = 0;
-        inline virtual int drawText(Fonts::FontObject *fObj, const char *str, RectWH box, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)
+        virtual int drawText(Video::Screen &screen, Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) = 0;
+        inline virtual int drawText(Video::Screen &screen, Fonts::FontObject *fObj, const char *str, RectWH box, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)
         {
-            return drawText(fObj, str, box.x, box.y, box.w, box.h, color, mode);
+            return drawText(screen, fObj, str, box.x, box.y, box.w, box.h, color, mode);
         }
 
-        virtual int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) = 0;
-        inline virtual int drawText(const char *str, RectWH box, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)
+        virtual int drawText(Video::Screen &screen, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) = 0;
+        inline virtual int drawText(Video::Screen &screen, const char *str, RectWH box, Color color = Colors::White, uint8_t mode = TALIGN_LEFT)
         {
-            return drawText(str, box.x, box.y, box.w, box.h, color, mode);
+            return drawText(screen, str, box.x, box.y, box.w, box.h, color, mode);
         }
 
-        inline virtual int drawChar(const char c, int x, int y, Color color = Colors::White)
+        inline virtual int drawChar(Video::Screen &screen, const char c, int x, int y, Color color = Colors::White)
         {
             char str[2] = {c, '\0'};
-            return drawText(str, x, y, 10, 20, color);
+            return drawText(screen, str, x, y, 10, 20, color);
         }
-        inline virtual int drawChar(Fonts::FontObject *fObj, const char c, int x, int y, Color color = Colors::White)
+        inline virtual int drawChar(Video::Screen &screen, Fonts::FontObject *fObj, const char c, int x, int y, Color color = Colors::White)
         {
             char str[2] = {c, '\0'};
-            return drawText(fObj, str, x, y, 10, 20, color);
+            return drawText(screen, fObj, str, x, y, 10, 20, color);
         }
 
         virtual Textures::TextureObject *createTexture(util::Hash objectID)
@@ -158,58 +167,63 @@ namespace System
         virtual int uploadTexture(Textures::TextureObject *tObj)  = 0;
         virtual int releaseTexture(Textures::TextureObject *tObj) = 0;
 
-        inline int drawTextureObject(Textures::TextureObject *tObj, int x, int y, int w, int h, RectUV area)
+        inline int drawTextureObject(Video::Screen &screen, Textures::TextureObject *tObj, int x, int y, int w, int h, RectUV area)
         {
             return drawTextureObject(
+                screen,
                 tObj,
                 x, y, w, h,
                 area.u1, area.v1, area.u2, area.v2);
         }
         inline int drawTextureObject(
-            Textures::TextureObject *tObj, RectWH rect,
+            Video::Screen &screen, Textures::TextureObject *tObj, RectWH rect,
             ifloat u1, ifloat v1, ifloat u2, ifloat v2)
         {
             return drawTextureObject(
+                screen,
                 tObj,
                 rect.x, rect.y, rect.w, rect.h,
                 u1, v1, u2, v2);
         }
-        inline int drawTextureObject(Textures::TextureObject *tObj, RectWH rect, RectUV area)
+        inline int drawTextureObject(Video::Screen &screen, Textures::TextureObject *tObj, RectWH rect, RectUV area)
         {
             return drawTextureObject(
+                screen,
                 tObj,
                 rect.x, rect.y, rect.w, rect.h,
                 area.u1, area.v1, area.u2, area.v2);
         }
         virtual int drawTextureObject(
+            Video::Screen &screen,
             const Textures::TextureObject *tObj,
             int x, int y, int w, int h,
             ifloat u1, ifloat v1,
             ifloat u2, ifloat v2) = 0;
 
         virtual int drawTextureObject(
+            Video::Screen &screen,
             const Textures::TextureObject *tObj,
             int x, int y,
             Vertex v[]) = 0;
 
-        inline void drawSpriteObject(Sprites::SpriteObject *sObj)
+        inline void drawSpriteObject(Video::Screen &screen, Sprites::SpriteObject *sObj)
         {
             Sprites::SpritePosition pos  = sObj->getPosition();
             Textures::TextureObject *tex = sObj->getTexture();
-            drawSpriteObject(sObj, (int)pos.x, (int)pos.y, tex->width, tex->height);
+            drawSpriteObject(screen, sObj, (int)pos.x, (int)pos.y, tex->width, tex->height);
         }
-        inline void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y)
+        inline void drawSpriteObject(Video::Screen &screen, Sprites::SpriteObject *sObj, int x, int y)
         {
             Textures::TextureObject *tex = sObj->getTexture();
-            drawSpriteObject(sObj, x, y, tex->width, tex->height);
+            drawSpriteObject(screen, sObj, x, y, tex->width, tex->height);
         }
-        virtual void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) = 0;
+        virtual void drawSpriteObject(Video::Screen &screen, Sprites::SpriteObject *sObj, int x, int y, int w, int h) = 0;
 
-        inline void drawTileObject(Sprites::TileObject *tObj, int x, int y)
+        inline void drawTileObject(Video::Screen &screen, Sprites::TileObject *tObj, int x, int y)
         {
             Textures::TextureObject *tex = tObj->getTexture();
-            drawTileObject(tObj, x, y, tex->width, tex->height);
+            drawTileObject(screen, tObj, x, y, tex->width, tex->height);
         }
-        virtual void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) = 0;
+        virtual void drawTileObject(Video::Screen &screen, Sprites::TileObject *sObj, int x, int y, int w, int h) = 0;
     };
 } // namespace System

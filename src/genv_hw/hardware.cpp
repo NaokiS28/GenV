@@ -43,7 +43,7 @@ namespace System
 {
     ISystem *makeNewSystem(ServiceManager &services)
     {
-        PSX::PSXSystem *system = new PSX::PSXSystem;
+        PSX::PSXSystem *system = new PSX::PSXSystem(services);
         return system;
     }
     IArcadeSystem *getArcadeInterface()

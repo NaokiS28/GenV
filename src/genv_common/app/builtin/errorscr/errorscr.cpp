@@ -20,6 +20,7 @@
 #include "app/app.hpp"
 #include "common/util/templates.hpp"
 #include "common/services/services.hpp"
+#include "common/services/system/system.hpp"
 #include "common/services/system/arcade/arcade.hpp"
 #include "common/services/system/arcade/errorcodes.hpp"
 
@@ -37,11 +38,14 @@ DefaultErrorScreen::DefaultErrorScreen(IAppHost *host, ErrorScreenMessage *msg)
 int DefaultErrorScreen::init()
 {
     setAppState(APP_STATE_RUN);
+    //!Review
+    Video::Screen *screen = System::screen(0);
+    //!End
     area = Video::RectWH(
-        gpu->getHorizontalRes() / 10,
-        gpu->getVerticalRes() / 4,
-        (gpu->getHorizontalRes() / 10) * 8,
-        gpu->getVerticalRes() / 2);
+        screen->getHorizontalRes() / 10,
+        screen->getVerticalRes() / 4,
+        (screen->getHorizontalRes() / 10) * 8,
+        screen->getVerticalRes() / 2);
 
     bgAlpha.setValue(
         Video::frames(),
@@ -51,7 +55,7 @@ int DefaultErrorScreen::init()
     jumpOut.setValue(0);
     jumpIn.setValue(
         Video::frames(),
-        getServiceManager()->getVideo()->getVerticalRes(),
+        screen->getVerticalRes(),
         0,
         Video::msToFrames(toastAnimTime));
     playSound = true;
@@ -124,15 +128,21 @@ void DefaultErrorScreen::update()
 
 void DefaultErrorScreen::reload()
 {
+    //!Review
+    Video::Screen *screen = System::screen(0);
+    //!End
     area = Video::RectWH(
-        gpu->getHorizontalRes() / 10,
-        gpu->getVerticalRes() / 4,
-        (gpu->getHorizontalRes() / 10) * 8,
-        gpu->getVerticalRes() / 2);
+        screen->getHorizontalRes() / 10,
+        screen->getVerticalRes() / 4,
+        (screen->getHorizontalRes() / 10) * 8,
+        screen->getVerticalRes() / 2);
 }
 
 void DefaultErrorScreen::render()
 {
+    //!Review
+    Video::Screen *screen = System::screen(0);
+    //!End
     Video::Color c1; // Animates
     Video::Color c2; // Not animates
     switch (msg->style)
@@ -169,25 +179,25 @@ void DefaultErrorScreen::render()
     }
 
     // Window
-    gpu->fillScreen(
+    screen->fillScreen(
         Video::Colors::Alpha(Video::Colors::Black, bgAlpha.getValue(Video::frames())));
-    gpu->drawRect(area.x, yOffset, area.w, area.h, c1);
-    gpu->drawRect(
+    screen->drawRect(area.x, yOffset, area.w, area.h, c1);
+    screen->drawRect(
         area.x + 5, yOffset + 5,
         area.w - 10, area.h - 10,
         Video::Colors::Black);
 
     // Contents
     //	Title
-    gpu->drawText(msg->title.str, area.x + 20, yOffset + 20, area.w - 20, 50, Video::Colors::White);
-    gpu->drawLine(area.x + 20, yOffset + 35, (area.x + area.w) - 20, yOffset + 35, 2, c2);
+    screen->drawText(msg->title.str, area.x + 20, yOffset + 20, area.w - 20, 50, Video::Colors::White);
+    screen->drawLine(area.x + 20, yOffset + 35, (area.x + area.w) - 20, yOffset + 35, 2, c2);
     //	Severity
-    gpu->drawText(eMsgStrList[msg->style].str, area.x + 20, yOffset + 40, area.w - 20, 100, c2);
+    screen->drawText(eMsgStrList[msg->style].str, area.x + 20, yOffset + 40, area.w - 20, 100, c2);
     //	Cause
-    gpu->drawText(msg->message.str, area.x + 20, yOffset + 60, area.w - 20, 100, Video::Colors::White);
+    screen->drawText(msg->message.str, area.x + 20, yOffset + 60, area.w - 20, 100, Video::Colors::White);
 
     // 	Button Options
-    if (msg->style != EM_STYLE_CRITICAL_ERROR) gpu->drawText(eMsgOptionList[msg->action].str, area.x + 20, (yOffset + area.h) - 40, area.w - 20, 100, Video::Colors::White);
+    if (msg->style != EM_STYLE_CRITICAL_ERROR) screen->drawText(eMsgOptionList[msg->action].str, area.x + 20, (yOffset + area.h) - 40, area.w - 20, 100, Video::Colors::White);
 }
 
 void DefaultErrorScreen::shutdown()
