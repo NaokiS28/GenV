@@ -63,8 +63,8 @@ bool DirectXGPU::init()
     d3d = Direct3DCreate9(D3D_SDK_VERSION);
 
     UINT iAdapators = 0;
-    iAdapators = d3d->GetAdapterCount();
-    adaptorList = new D3DAdaptor[iAdapators];
+    iAdapators      = d3d->GetAdapterCount();
+    adaptorList     = new D3DAdaptor[iAdapators];
     if (!adaptorList)
         return false;
 
@@ -76,7 +76,7 @@ bool DirectXGPU::init()
         MonitorInfo.cbSize = sizeof(MonitorInfo);
 
         adaptorList[idx].uiAdaptorIdx = idx;
-        adaptorList[idx].hMon = d3d->GetAdapterMonitor(idx);
+        adaptorList[idx].hMon         = d3d->GetAdapterMonitor(idx);
         d3d->GetAdapterIdentifier(idx, 0, &adaptorList[idx].d3dIdentifier);
         d3d->GetAdapterDisplayMode(idx, &adaptorList[idx].d3dMode);
         d3d->GetDeviceCaps(idx, D3DDEVTYPE_HAL, &adaptorList[idx].d3dCapabilities);
@@ -84,18 +84,18 @@ bool DirectXGPU::init()
         adaptorList[idx].szMonitorName = GetDisplayName(MonitorInfo.szDevice, 0);
     }
 
-    IVideo::screen.res.width = adaptorList[0].d3dMode.Width;
-    IVideo::screen.res.height = adaptorList[0].d3dMode.Height;
-    IVideo::screen.refreshRate = adaptorList[0].d3dMode.RefreshRate;
-    IVideo::screen.screenName = adaptorList[0].szMonitorName;
-    IVideo::screen.monitorNumber = adaptorList[0].uiAdaptorIdx;
+    IVideoDriver::screen.res.width     = adaptorList[0].d3dMode.Width;
+    IVideoDriver::screen.res.height    = adaptorList[0].d3dMode.Height;
+    IVideoDriver::screen.refreshRate   = adaptorList[0].d3dMode.RefreshRate;
+    IVideoDriver::screen.screenName    = adaptorList[0].szMonitorName;
+    IVideoDriver::screen.monitorNumber = adaptorList[0].uiAdaptorIdx;
 
     D3DPRESENT_PARAMETERS d3dpp = {};
     ZeroMemory(&d3dpp, sizeof(d3dpp));
 
-    d3dpp.Windowed = (gpuWnd->fsMode != Video::Fullscreen);
-    d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-    d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
+    d3dpp.Windowed             = (gpuWnd->fsMode != Video::Fullscreen);
+    d3dpp.SwapEffect           = D3DSWAPEFFECT_DISCARD;
+    d3dpp.BackBufferFormat     = D3DFMT_UNKNOWN;
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
 
     if (d3ddev)
@@ -144,7 +144,7 @@ int DirectXGPU::uploadTexture(Textures::TextureObject *tObj)
         return -2;
 
     IDirect3DTexture9 *texture = nullptr;
-    HRESULT hr = d3ddev->CreateTexture(
+    HRESULT hr                 = d3ddev->CreateTexture(
         tObj->width, tObj->height, 1, 0, D3DFMT_A8B8G8R8, D3DPOOL_MANAGED, &texture, nullptr);
 
     if (FAILED(hr))
@@ -160,7 +160,7 @@ int DirectXGPU::uploadTexture(Textures::TextureObject *tObj)
         return -1;
     }
 
-    BYTE *dest = static_cast<BYTE *>(lockedRect.pBits);
+    BYTE *dest      = static_cast<BYTE *>(lockedRect.pBits);
     const BYTE *src = static_cast<const BYTE *>(tObj->bitmap);
 
     int rowSize = tObj->width * 4;
@@ -211,7 +211,7 @@ int DirectXGPU::setResolution(int w, int h, bool updateWindow)
     if (gpuWnd->fsMode != Video::Windowed)
         return setFullscreen(gpuWnd->fsMode, w, h);
 
-    this->IVideo::setResolution(w, h, updateWindow);
+    this->IVideoDriver::setResolution(w, h, updateWindow);
     gpuWnd->Resize(w, h);
     D3DXMATRIX ortho;
     D3DXMatrixOrthoOffCenterLH(&ortho, 0, this->getHorizontalRes(), this->getVerticalRes(), 0, 0, 1);
@@ -231,13 +231,13 @@ bool DirectXGPU::setFullscreen(FullscreenMode mode, int w, int h)
     if (gpuWnd->fsMode != mode)
     {
         D3DPRESENT_PARAMETERS d3dpp = {};
-        d3dpp.Windowed = (mode != Video::Fullscreen);
-        d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-        d3dpp.BackBufferFormat = adaptorList[0].d3dMode.Format;
+        d3dpp.Windowed              = (mode != Video::Fullscreen);
+        d3dpp.SwapEffect            = D3DSWAPEFFECT_DISCARD;
+        d3dpp.BackBufferFormat      = adaptorList[0].d3dMode.Format;
         if (mode == Video::Fullscreen)
         {
-            d3dpp.BackBufferWidth = w;
-            d3dpp.BackBufferHeight = h;
+            d3dpp.BackBufferWidth            = w;
+            d3dpp.BackBufferHeight           = h;
             d3dpp.FullScreen_RefreshRateInHz = adaptorList[0].d3dMode.RefreshRate;
         }
         this->setResolution(adaptorList[0].d3dMode.Width, adaptorList[0].d3dMode.Height);
@@ -302,7 +302,7 @@ bool DirectXGPU::beginRender()
     // if (SUCCEEDED(hr) && backBuffer)
     //{
     //  d3ddev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-    Video::IVideo::frameCount++;
+    System::IVideoDriver::frameCount++;
     return true;
     //}
     // return 1;
@@ -314,7 +314,7 @@ void DirectXGPU::drawLine(int x1, int y1, int x2, int y2, int width, Color color
 
     if (width < 2)
     {
-        width = 1;
+        width    = 1;
         midPoint = 1;
     }
     else
@@ -455,7 +455,7 @@ void DirectXGPU::drawGradientRectVVar(int x, int y, int w, int h, Color top, Col
 void DirectXGPU::drawText(const char *str, int len, int x, int y, int w, int h, Color color, uint8_t mode)
 {
     RECT textRect = {x, y, x + w, y + h};
-    DWORD align = 0;
+    DWORD align   = 0;
     switch (mode)
     {
     default:
@@ -479,7 +479,6 @@ int DirectXGPU::drawTextureObject(
     ifloat u2, ifloat v2)
 {
 
-    // TODO: Narrowing of int to float
     D3DSpriteVertex sprite[] = {
         {static_cast<float>(x), static_cast<float>(y), 0.0f, 1.0f, u1, v1},                 // Top-left
         {static_cast<float>(x + w + 1), static_cast<float>(y), 0.0f, 1.0f, u2, v1},         // Top-right
@@ -526,7 +525,7 @@ void DirectXGPU::drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int
     };
 
     Textures::TextureObject *tex = sObj->getTexture();
-    LPDIRECT3DTEXTURE9 texture = getTexBuffer(tex);
+    LPDIRECT3DTEXTURE9 texture   = getTexBuffer(tex);
     d3ddev->SetTexture(0, texture);
     d3ddev->SetFVF(D3DSpriteVertex::FVF);
     d3ddev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, sprite, sizeof(D3DSpriteVertex));
@@ -544,7 +543,7 @@ void DirectXGPU::drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, 
     };
 
     Textures::TextureObject *tex = sObj->getTexture();
-    LPDIRECT3DTEXTURE9 texture = getTexBuffer(tex);
+    LPDIRECT3DTEXTURE9 texture   = getTexBuffer(tex);
     d3ddev->SetTexture(0, texture);
     d3ddev->SetFVF(D3DSpriteVertex::FVF);
     d3ddev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, sprite, sizeof(D3DSpriteVertex));
@@ -572,8 +571,9 @@ void DirectXGPU::shutdown()
     }
     for (auto buff : d3dTexMap)
     {
-        if (buff.second != nullptr){
-            buff.second->Release();     // TODO: Segfault on close due to race conditions and deleting non-existant textures
+        if (buff.second != nullptr)
+        {
+            buff.second->Release(); // TODO: Segfault on close due to race conditions and deleting non-existant textures
         }
     }
     reset();

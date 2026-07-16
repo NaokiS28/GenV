@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * inputman.cpp - Created on 22-08-2025
+ * device_mgr.cpp - Created on 22-08-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,15 +15,23 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "iostrings.hpp"
-#include "devicemgr.hpp"
-#include "common/logger/log.hpp"
 #include <string.h>
 
-#define ILOG(fmt, ...) LOG("inputman", fmt __VA_OPT__(, ) __VA_ARGS__)
+#include "device_mgr.hpp"
+#include "common/logger/log.hpp"
 
-namespace IO
+#define DM_LOG(fmt, ...) LOG("devmgr", fmt __VA_OPT__(, ) __VA_ARGS__)
+
+namespace System
 {
+    constexpr const char szDriverFailedFmt[] = "%s driver failed to %s: %s";
+    // constexpr const char szDriverErrorFmt[]  = "%s driver gave error whilst %s: %08X";
+    constexpr const char szDriverFmt[]  = "%s driver %sed.";
+    constexpr const char szInit[]       = "initialising";
+    constexpr const char szRegister[]   = "register";
+    constexpr const char szUnregister[] = "unregister";
+
+    constexpr const char szDeviceNull[] = "device pointer is null.";
 
     DeviceManager::~DeviceManager()
     {
@@ -62,18 +70,18 @@ namespace IO
     {
         if (!driver)
         {
-            ILOG(szInputFailedFmt, szInput, szDriver, szRegister, szDeviceNull);
+            DM_LOG(szDriverFailedFmt, szRegister, szDeviceNull);
             return false;
         }
 
         if (size_t r = driver->init(); r != GV_OK)
         {
-            ILOG(szInputErrorFmt, szInput, szDriver, szInit, r);
+            DM_LOG(szDriverFailedFmt, szInit, r);
             return false;
         }
 
         _driverList.append(driver);
-        ILOG(szInputFmt, driver->getName(), szDriver, szRegister);
+        DM_LOG(szDriverFmt, driver->getName(), szRegister);
         return true;
     }
 
@@ -81,12 +89,12 @@ namespace IO
     {
         if (!driver)
         {
-            ILOG(szInputFailedFmt, szInput, szDriver, szUnregister, szDeviceNull);
+            DM_LOG(szDriverFailedFmt, szUnregister, szDeviceNull);
             return false;
         }
         _driverList.remove(driver);
-        ILOG(szInputFmt, driver->getName(), szDriver, szUnregister);
+        DM_LOG(szDriverFmt, driver->getName(), szUnregister);
         return true;
     }
 
-} // namespace IO
+} // namespace System

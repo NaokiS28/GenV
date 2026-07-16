@@ -30,5 +30,5 @@ namespace Win32
         AD_WIN_WASAPI
     };
 
-    IAudio *CreateAudioDriver(AudioType type, WindowObject *wObject);
-}
+    IAudioDriver *CreateAudioDriver(AudioType type, WindowObject *wObject);
+} // namespace Win32

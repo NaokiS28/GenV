@@ -57,9 +57,9 @@ SPUSound::~SPUSound()
     shutdown();
 }
 
-bool SPUSound::init()
+int SPUSound::init()
 {
-    return true;
+    return GV_OK;
 }
 
 bool SPUSound::reset()

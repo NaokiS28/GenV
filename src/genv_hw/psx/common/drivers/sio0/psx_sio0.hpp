@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "common/services/io/iface_input.hpp"
+#include "common/services/io/player.hpp"
 
 #define BUS_START(bus, addr, port)                      \
     {                                                   \
@@ -203,7 +203,7 @@ namespace PSX::IO
 
         void update();
 
-        Input::Player psxPlayerSelect(SIO0_Port port, Multitap_Port subport);
+        ::IO::Player psxPlayerSelect(SIO0_Port port, Multitap_Port subport);
 
         // Multitap code - Set and used by the controller drivers, also used by memory card drivers
         inline bool multitapPresent(SIO0_Port port)

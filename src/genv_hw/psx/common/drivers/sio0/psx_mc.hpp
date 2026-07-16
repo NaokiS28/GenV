@@ -26,13 +26,13 @@
 #include "common/logger/log.hpp"
 #include "common/objects/file.hpp"
 #include "common/services/storage/iface_storage.hpp"
-#include "common/services/io/iface_driver.hpp"
+#include "common/services/system/iface_driver.hpp"
 
 // TODO: Implement memory card as a virtual file system complete with directory listing.
 
 namespace PSX::IO
 {
-    class PSX_MemoryCard : public Files::IStorageDriver, public ::IO::IDriver
+    class PSX_MemoryCard : public Files::IStorageDriver, public ::System::IDriver
     {
     private:
         SIO0_Bus *m_bus;

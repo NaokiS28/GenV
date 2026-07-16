@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * inputman.hpp - Created on 22-08-2025
+ * device_mgr.hpp - Created on 22-08-2025
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -17,13 +17,12 @@
 
 #pragma once
 
-#include "common/util/templates.hpp"
-#include "iface_driver.hpp"
-#include "playermgr.hpp"
-#include "common/services/adminkey.hpp"
 #include <string.h>
 
-namespace IO
+#include "iface_driver.hpp"
+#include "common/util/templates.hpp"
+
+namespace System
 {
     static constexpr const int initialDrivers = 16;
 
@@ -31,11 +30,9 @@ namespace IO
     {
     private:
         util::PointerList<IDriver *, initialDrivers> _driverList;
-        PlayerManager &_playerManager;
 
     public:
-        inline DeviceManager(AdminClass_Key key, PlayerManager &playerManager)
-            : _playerManager(playerManager) { assert(_driverList.ready()); }
+        inline DeviceManager() { assert(_driverList.ready()); }
         ~DeviceManager();
 
         int init();
@@ -54,4 +51,4 @@ namespace IO
 
         inline size_t count() { return _driverList.length(); }
     };
-} // namespace IO
+} // namespace System

@@ -26,8 +26,8 @@
 #include "common/objects/font.hpp"
 #include "common/return_codes.hpp"
 #include "common/services/video/color.hpp"
-#include "common/services/video/iface_video.hpp"
-#include "common/services/video/video.hpp"
+#include "common/services/system/iface_videodrv.hpp"
+#include "common/services/video/screen.hpp"
 #include "common/util/hash.hpp"
 #include "common/util/rect.hpp"
 
@@ -53,7 +53,7 @@ namespace PSX::GPU
     {
     }
 
-    bool PSXGPU::init()
+    int PSXGPU::init()
     {
         gpuMode = static_cast<GP1VideoMode>(GPU_GP1 & GP1_STAT_FB_MODE_BITMASK);
 
@@ -63,7 +63,7 @@ namespace PSX::GPU
         GPU_GP1 = gp1_vramSize(vramSize);
 
         // Set the default resolution (240P)
-        setResolution(320, 240);
+        // setResolution(320, 240);
 
         // Clear VRAM, since it's not uncommon to think something is working because the last action worked.
         _waitForGP0Ready();
@@ -101,7 +101,7 @@ namespace PSX::GPU
         return GV_OK;
     }
 
-    int PSXGPU::setResolution(int w, int h, bool updateWindow)
+    int PSXGPU::setResolution(Screen &screen, int w, int h, bool updateWindow)
     {
         // Set the origin of the displayed framebuffer. These "magic" values,
         // derived from the GPU's internal clocks, will center the picture on most
@@ -130,9 +130,9 @@ namespace PSX::GPU
                 result = V_RES_MODIFIED;
         }
 
-        _screen.res.width   = vidMode.width;
-        _screen.res.height  = vidMode.height;
-        _screen.refreshRate = (gpuMode == GP1_MODE_NTSC ? 60 : 50); // Refresh rate is constant.
+        //_screen.res.width   = vidMode.width;
+        //_screen.res.height  = vidMode.height;
+        //_screen.refreshRate = (gpuMode == GP1_MODE_NTSC ? 60 : 50); // Refresh rate is constant.
 
         // Set the resolution. The GPU provides a number of fixed horizontal (256,
         // 320, 368, 512, 640) and vertical (240-256, 480-512) resolutions to pick
@@ -177,14 +177,14 @@ namespace PSX::GPU
         return result;
     }
 
-    void PSXGPU::fillScreen(Color color)
+    void PSXGPU::fillScreen(Screen &screen, Color color)
     {
         if (_dmaOverflow) return;
 
         GPUNUM(3);
         GPUCMD(gp0_rgb(color.r, color.g, color.b) | gp0_vramFill());
         GPUCMD(gp0_xy(frameX, frameY));
-        GPUCMD(gp0_xy(_screen.res.width, _screen.res.height));
+        GPUCMD(gp0_xy(screen.getHorizontalRes(), screen.getVerticalRes()));
     }
 
     bool PSXGPU::waitingForVSync(void)
@@ -222,7 +222,7 @@ namespace PSX::GPU
         screenBufferPage = !screenBufferPage;
 
         frameX = 0;
-        frameY = (screenBufferPage ? _screen.res.height : 0);
+        frameY = (screenBufferPage ? _res.height : 0);
 
         // Reset the chain for building the new frame.
         chain->nextPacket = chain->data;
@@ -237,8 +237,8 @@ namespace PSX::GPU
         GPUCMD(gp0_texpage(0, true, false));
         GPUCMD(gp0_fbOffset1(frameX, frameY));
         GPUCMD(gp0_fbOffset2(
-            frameX + _screen.res.width - 1,
-            frameY + _screen.res.height - 1));
+            frameX + _res.width - 1,
+            frameY + _res.height - 1));
         GPUCMD(gp0_fbOrigin(frameX, frameY));
     }
 

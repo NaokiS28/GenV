@@ -110,7 +110,7 @@ namespace System573
 
     int Sys573System::initAudio()
     {
-        // IAudio *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND,
+        // IAudioDriver *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND,
         // gpuWnd); if (!aDriver || !aDriver->init())
         // S573 CD/DIO
         return 0;
@@ -122,7 +122,7 @@ namespace System573
         for (auto &mc : mcDriver)
         {
             int mcError = ioTest(mc.init(), PSX_MEMORY_CARD_STR, port, PSX_INIT_STR);
-            if (!mcError) services.registerDriver(&mc);
+            if (!mcError) registerDriver(&mc);
         }
 
 #ifndef NDEBUG
@@ -138,8 +138,8 @@ namespace System573
     int Sys573System::initIO()
     {
         BasePSXSystem::initIO();
-        services.registerDriver(&m_jamma);
-        services.registerDriver(&m_jvs);
+        registerDriver(&m_jamma);
+        registerDriver(&m_jvs);
         return GV_OK;
     }
 

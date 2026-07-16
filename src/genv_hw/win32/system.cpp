@@ -27,7 +27,7 @@ namespace System
     {
         return static_cast<IWinVideo *>(getServiceManager()->getVideo());
     }
-    IAudio *audio()
+    IAudioDriver *audio()
     {
         return getServiceManager()->getAudio();
     }
@@ -110,7 +110,7 @@ namespace System
         if (!gpuWnd)
             return -1;
 
-        IAudio *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND, gpuWnd);
+        IAudioDriver *aDriver = Win32::CreateAudioDriver(Win32::AD_WIN_DSOUND, gpuWnd);
         if (!aDriver || !aDriver->init())
             return -2;
 

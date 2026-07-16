@@ -33,8 +33,6 @@
 #include "drivers/sio0/psx_mc.hpp"
 #include "drivers/sio0/psx_sio0.hpp"
 
-#include "registers.hpp"
-
 namespace PSX
 {
     enum
@@ -122,7 +120,7 @@ namespace PSX
         // IO::SIO1_Bus sio1;	// Always part of the CPU
 
     public:
-        BasePSXSystem();
+        BasePSXSystem(ServiceManager &services);
         virtual ~BasePSXSystem();
 
         virtual int initCore() override;
@@ -132,11 +130,7 @@ namespace PSX
         virtual int initStorage() override;
 
         virtual int update() override;
-        virtual void shutdown() override;         // Prepare drivers and app for close
         virtual bool setResolution(int w, int h); // Sets window resolution (internal viewport)
-
-        inline bool setFullscreen(Video::FullscreenMode mode) { return false; }
-        inline bool toggleFullscreen() { return false; }
 
         inline virtual const System::SystemInfo *getSysInfo() const override
         {

@@ -18,11 +18,11 @@
 #pragma once
 
 #include "common/objects/file.hpp"
-#include "common/services/io/iface_driver.hpp"
+#include "common/services/system/iface_driver.hpp"
 
 namespace PSX::Storage
 {
-    class PSX_CDROM : public ::IO::IDriver
+    class PSX_CDROM : public ::System::IDriver
     {
     public:
         int init() override;

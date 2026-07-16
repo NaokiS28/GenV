@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 - 2026 NaokiS, spicyjpeg
- * demo_page.hpp - Created on 02-05-2026
+ * text.cpp - Created on 02-05-2026
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,23 +15,33 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "common/objects/font.hpp"
 
-#include "app/app.hpp"
-
-class DemoPage
+namespace Video
 {
-    friend class GenV_Demo;
 
-protected:
-    System::IVideoDriver *gpu = nullptr;
+    enum TextAlign
+    {
+        TALIGN_LEFT,
+        TALIGN_CENTER,
+        TALIGN_RIGHT
+    };
 
-public:
-    virtual const Apps::AppInfo &info() const = 0;
+    size_t getStringWidth(Fonts::FontObject *fObj, const char *str)
+    {
+        size_t w   = 0;
+        size_t len = strlen(str);
+        for (int i = 0; i < len; i++)
+        {
+            char c = str[i];
+            if (c == '\0' || c == '\n' || c == '\r') break;
+            auto g = fObj->get(c);
+            w += g.w;
+        }
+        return w;
+    }
 
-    virtual int init()    = 0;
-    virtual int update()  = 0;
-    virtual void render() = 0;
-    virtual void reload() {};
-    virtual void shutdown() {};
-};
+    size_t getLineHieght(Fonts::FontObject *fObj)
+    { return fObj->getHeader()->lineSpacing; }
+
+} // namespace Video

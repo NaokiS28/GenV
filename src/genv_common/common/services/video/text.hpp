@@ -1,6 +1,6 @@
 /*
- * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * hardware.hpp - Created on 24-04-2025
+ * GenV - Copyright (C) 2025 - 2026 NaokiS, spicyjpeg
+ * text.hpp - Created on 15-07-2026
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,17 +15,14 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// This file is used to include all hardware drives specific to the given platform.
 #pragma once
 
-#include "common/services/system/arcade/iface_arcade.hpp"
-#include "common/services/system/iface_system.hpp"
-
-class ServiceManager; // Forward declaration - in common/services/sevices.hpp
-
-namespace System
+namespace Video
 {
-    // System factory
-    ISystem *makeNewSystem(ServiceManager &services);
-    IArcadeSystem *getArcadeInterface();
-} // namespace System
+    enum TextAlign
+    {
+        TALIGN_LEFT,
+        TALIGN_CENTER,
+        TALIGN_RIGHT
+    };
+} // namespace Video

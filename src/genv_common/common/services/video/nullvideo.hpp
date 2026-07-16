@@ -20,22 +20,24 @@
 
 #include "common/objects/font.hpp"
 #include "common/services/video/color.hpp"
-#include "iface_video.hpp"
+#include "common/services/system/iface_videodrv.hpp"
 #include "common/util/rect.hpp"
 #include "common/objects/texture.hpp"
 #include "common/objects/sprite.hpp"
 #include "common/objects/tile.hpp"
+#include "common/services/video/vesa.hpp"
 
 namespace Video
 {
-    class NullVideo : public IVideo
+    class NullVideo : public System::IVideoDriver
     {
 
     public:
         NullVideo();
         ~NullVideo() = default;
 
-        bool init() override;
+        int init() override;
+        bool update() override;
         bool reset() override;
         bool beginRender() override;
         bool endRender() override;
@@ -44,7 +46,7 @@ namespace Video
         bool waitingForVSync() override { return false; }
 
         // Returns a list of video output modes that the application can set and use
-        const VideoModeList *getSupportedResolutions() override;
+        const VESA::VideoModeList *getSupportedResolutions();
 
         void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const override;
 

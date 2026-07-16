@@ -20,7 +20,6 @@
 
 #include "psx_sio0.hpp"
 #include "common/logger/log.hpp"
-#include "psx/common/registers.hpp"
 #include "psx/common/system/sys.h"
 
 // TODO: SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
@@ -35,6 +34,8 @@ namespace PSX::IO
     static constexpr int _SIO0_BAUD_RATE = 250000;
     static constexpr int _ACK_TIMEOUT    = 120;
     static constexpr int _CS_DELAY       = 60;
+
+    using namespace ::IO;
 
     int SIO0_Bus::init()
     {
@@ -170,17 +171,17 @@ namespace PSX::IO
         }
     }
 
-    Input::Player SIO0_Bus::psxPlayerSelect(SIO0_Port port, Multitap_Port subport)
+    Player SIO0_Bus::psxPlayerSelect(SIO0_Port port, Multitap_Port subport)
     {
         if (port == SIO0_Port::PORT1)
         {
             switch (subport)
             {
             default:
-            case Multitap_Port::PORTA: return Input::Player::PLAYER_1;
-            case Multitap_Port::PORTB: return Input::Player::PLAYER_2;
-            case Multitap_Port::PORTC: return Input::Player::PLAYER_3;
-            case Multitap_Port::PORTD: return Input::Player::PLAYER_4;
+            case Multitap_Port::PORTA: return Player::PLAYER_1;
+            case Multitap_Port::PORTB: return Player::PLAYER_2;
+            case Multitap_Port::PORTC: return Player::PLAYER_3;
+            case Multitap_Port::PORTD: return Player::PLAYER_4;
             }
         }
         else
@@ -190,10 +191,10 @@ namespace PSX::IO
                 switch (subport)
                 {
                 default:
-                case Multitap_Port::PORTA: return Input::Player::PLAYER_5;
-                case Multitap_Port::PORTB: return Input::Player::PLAYER_6;
-                case Multitap_Port::PORTC: return Input::Player::PLAYER_7;
-                case Multitap_Port::PORTD: return Input::Player::PLAYER_8;
+                case Multitap_Port::PORTA: return Player::PLAYER_5;
+                case Multitap_Port::PORTB: return Player::PLAYER_6;
+                case Multitap_Port::PORTC: return Player::PLAYER_7;
+                case Multitap_Port::PORTD: return Player::PLAYER_8;
                 }
             }
             else
@@ -201,10 +202,10 @@ namespace PSX::IO
                 switch (subport)
                 {
                 default:
-                case Multitap_Port::PORTA: return Input::Player::PLAYER_2;
-                case Multitap_Port::PORTB: return Input::Player::PLAYER_3;
-                case Multitap_Port::PORTC: return Input::Player::PLAYER_4;
-                case Multitap_Port::PORTD: return Input::Player::PLAYER_5;
+                case Multitap_Port::PORTA: return Player::PLAYER_2;
+                case Multitap_Port::PORTB: return Player::PLAYER_3;
+                case Multitap_Port::PORTC: return Player::PLAYER_4;
+                case Multitap_Port::PORTD: return Player::PLAYER_5;
                 }
             }
         }

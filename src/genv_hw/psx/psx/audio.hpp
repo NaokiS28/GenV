@@ -17,21 +17,20 @@
 
 #pragma once
 
-#include "common/services/services.hpp"
-#include "common/objects/sound.hpp"
+#include "common/services/system/iface_audiodrv.hpp"
 
 using namespace Audio;
 
-class SPUSound : public IAudio
+class SPUSound : public System::IAudioDriver
 {
 private:
-    uint32_t nextSampleID = 1;      // start from 1 to reserve 0 for "invalid"
+    uint32_t nextSampleID = 1; // start from 1 to reserve 0 for "invalid"
 
 public:
     SPUSound();
     ~SPUSound();
 
-    bool init() override;
+    int init() override;
     bool reset() override;
     void shutdown() override;
 
@@ -42,7 +41,8 @@ public:
 
     int uploadSample(Audio::SoundObject *sObj) override;
 
-    inline bool pause(){
-        return false; //return (buffer == nullptr ? false : SUCCEEDED(buffer->Stop()));
+    inline bool pause()
+    {
+        return false; // return (buffer == nullptr ? false : SUCCEEDED(buffer->Stop()));
     }
 };

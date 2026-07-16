@@ -20,6 +20,7 @@
 
 namespace Video
 {
+    /*
     size_t msToFrames(size_t millis)
     {
         size_t framerate = getServiceManager()->getVideo()->getRefreshRate();
@@ -32,24 +33,12 @@ namespace Video
         size_t msPerFrame = (1000 / framerate);
         return (millis / msPerFrame);
     }
+        */
 
-    size_t frames()
-    {
-        return getServiceManager()->getVideo()->getFrameCount();
-    }
-
-    uint16_t getHorizontalRes()
-    {
-        return getServiceManager()->getVideo()->getHorizontalRes();
-    }
-    uint16_t getVerticalRes()
-    {
-        return getServiceManager()->getVideo()->getVerticalRes();
-    }
-    uint16_t getRefreshRate()
-    {
-        return getServiceManager()->getVideo()->getRefreshRate();
-    }
+    // size_t frames()
+    //{
+    //    return getServiceManager()->getVideo()->getFrameCount();
+    //}
 
     // RGB888 -> RGB565 (3 bytes -> 2 bytes per pixel)
     int toRGB565(void *dest, const void *src, size_t pixelCount)

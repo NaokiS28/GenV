@@ -22,7 +22,7 @@
 
 using namespace Video;
 
-class IWinVideo : public IVideo
+class IWinVideo : public IVideoDriver
 {
 public:
     virtual bool setWindow(WindowObject *wObj) = 0;
@@ -37,4 +37,4 @@ namespace Win32
     };
 
     IWinVideo *CreateVideoDriver(VideoType type, WindowObject *wObject);
-}
+} // namespace Win32

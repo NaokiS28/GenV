@@ -176,16 +176,16 @@ namespace Fonts
         int fontIdx = _getFontIndex(fontsetId);
         if (fontIdx >= 0)
         {
-            _currentFont.id = fontsetId;
+            _currentFont.id    = fontsetId;
             _currentFont.index = fontIdx;
-            _currentFont.size = size;
+            _currentFont.size  = size;
 
             int idx = _fontList[fontIdx]->find(size, flags);
             if (idx >= 0)
             {
                 _currentFont.entry = idx;
-                auto &fObj = _fontList[fontIdx]->fontAt(idx);
-                size_t paramData = 0;
+                auto &fObj         = _fontList[fontIdx]->fontAt(idx);
+                size_t paramData   = 0;
                 if (!fObj.getParam(Textures::TextureUploaded, paramData) || paramData != true)
                 {
                     fObj.uploadTexture();
@@ -197,7 +197,7 @@ namespace Fonts
                     fObj.setParam(Textures::TextureUploaded, true);
 
                     // TODO: TESTING ONLY
-                    getServiceManager()->getVideo()->setDefaultFont(&fObj);
+                    // getServiceManager()->getVideo()->setDefaultFont(&fObj);
                 }
                 else
                 {

@@ -17,9 +17,26 @@
 
 #include "system.hpp"
 #include "../services.hpp"
+#include "common/return_codes.hpp"
+#include "common/services/adminkey.hpp"
+#include "common/services/system/device_mgr.hpp"
+#include "common/services/system/iface_system.hpp"
 
 namespace System
 {
+    // Public verbs
+    ISystem *shared_sys_ptr = nullptr;
+
+    //!Review
+    // Route the free-function accessor through the active system. Returns nullptr when
+    // there is no system yet or the index is unregistered (the old body returned nothing
+    // -> undefined behaviour on every call).
+    Screen *screen(uint8_t idx)
+    {
+        return shared_sys_ptr ? shared_sys_ptr->getScreen(idx) : nullptr;
+    }
+    //!End
+
     size_t millis()
     {
         ISystem *sys = getServiceManager()->getSystem();
@@ -57,6 +74,48 @@ namespace System
         return 0;
     }
 
-    BaseSystem::BaseSystem() : services(*getServiceManager()), adminKey(AdminClass_Key()) {}
+    BaseSystem::BaseSystem(ServiceManager &services)
+        : adminKey(AdminClass_Key()),
+          services(services),
+          deviceManager()
+    {
+        // Was `assert(shared_sys_ptr)` - inverted. The singleton pointer must be EMPTY
+        // before this system claims it; asserting it is already set fires on the only
+        // legitimate construction.
+        assert(!shared_sys_ptr);
+        shared_sys_ptr = this;
+    }
 
+    int BaseSystem::initCore()
+    {
+        deviceManager.init();
+        s_screens.init();
+        return GV_OK;
+    }
+
+    int BaseSystem::initVideo()
+    {
+        return GV_OK;
+    }
+
+    int BaseSystem::initAudio()
+    {
+        return GV_OK;
+    }
+
+    int BaseSystem::initIO()
+    {
+        return GV_OK;
+    }
+
+    int BaseSystem::update()
+    {
+        deviceManager.update();
+        return GV_OK;
+    }
+
+    void BaseSystem::shutdown()
+    {
+        deviceManager.shutdown();
+    }
 } // namespace System

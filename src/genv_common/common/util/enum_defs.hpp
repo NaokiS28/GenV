@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
 
 #define ENABLE_BITWISE_OPS(T)                                                                \
     constexpr T operator|(T a, T b)                                                          \
@@ -43,6 +43,16 @@
     constexpr T &operator&=(T &a, T b)                                                       \
     {                                                                                        \
         return a = a & b;                                                                    \
+    }                                                                                        \
+    constexpr T operator^(T a, T b)                                                          \
+    {                                                                                        \
+        return static_cast<T>(                                                               \
+            static_cast<__underlying_type(T)>(a) ^                                           \
+            static_cast<__underlying_type(T)>(b));                                           \
+    }                                                                                        \
+    constexpr T &operator^=(T &a, T b)                                                       \
+    {                                                                                        \
+        return a = a ^ b;                                                                    \
     }                                                                                        \
     constexpr bool operator<(T a, T b)                                                       \
     {                                                                                        \

@@ -28,7 +28,8 @@ namespace Textures
 {
     TextureObject::~TextureObject()
     {
-        getServiceManager()->getVideo()->releaseTexture(this);
+        // RIX
+        // getServiceManager()->getVideo()->releaseTexture(this);
         delete[] palette;
         delete[] bitmap;
     }
@@ -89,7 +90,8 @@ namespace Textures
 
     int TextureObject::uploadTexture()
     {
-        return getServiceManager()->getVideo()->uploadTexture(this);
+        // return getServiceManager()->getVideo()->uploadTexture(this);
+        return 0;
     }
 
     TextureObject *createDefaultTexture()
@@ -108,13 +110,16 @@ namespace Textures
 
     TextureObject *createTexture(util::Hash objectID)
     {
-        TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
-        return tObj;
+        // RIX
+        // TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
+        // return tObj;
+        return nullptr;
     }
 
     TextureObject *createTexture(util::Hash objectID, const char *filePath)
     {
-        TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
+        // RIX
+        /*TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
         if (tObj != nullptr)
         {
             if (tObj->loadTextureFromFile(filePath) == GV_OK)
@@ -125,7 +130,8 @@ namespace Textures
                 tObj = nullptr;
             }
         }
-        return tObj;
+        return tObj;*/
+        return nullptr;
     }
 
     TextureObject *createTextureFromMem(
@@ -133,7 +139,8 @@ namespace Textures
         const uint8_t *data, const size_t length,
         const Video::Color *palette, const size_t paletteLength)
     {
-        TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
+        // RIX
+        /*TextureObject *tObj = getServiceManager()->getVideo()->createTexture(objectID);
         if (tObj != nullptr)
         {
             if (tObj->loadTextureFromMem(data, length, palette, paletteLength) == 0)
@@ -144,6 +151,7 @@ namespace Textures
                 tObj = nullptr;
             }
         }
-        return tObj;
+        return tObj;*/
+        return nullptr;
     }
 } // namespace Textures

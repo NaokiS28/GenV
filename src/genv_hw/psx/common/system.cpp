@@ -22,7 +22,7 @@
 #include "common/services/services.hpp"
 #include "common/services/system/rtc/soft_rtc.hpp"
 
-#include "psx/common/halt/src/halt.h"
+#include "common/services/system/system.hpp"
 #include "psx_strings.hpp"
 #include "system/pcsxhw.h"
 #include "system/sys.h"
@@ -72,8 +72,9 @@ namespace PSX
         return returnVal;
     }
 
-    BasePSXSystem::BasePSXSystem()
-        : sm_state(System::SM_NORMAL)
+    BasePSXSystem::BasePSXSystem(ServiceManager &services)
+        : System::BaseSystem(services),
+          sm_state(System::SM_NORMAL)
     {
         // TODO: SIO1 driver will require interrupts in future, so this will need to change.
         // We need to do this here (or change the boot process in GenV) so that boot logs are written.
@@ -97,6 +98,7 @@ namespace PSX
 
     int BasePSXSystem::initCore()
     {
+        System::BaseSystem::initCore();
         if (pcsx_present()) LOG_SYS(szRedux);
 
         // Prior to this point, we are using the Sony BIOS for interrupts
@@ -119,7 +121,7 @@ namespace PSX
             return false;
 
         sm_state = System::SM_RESIZE;
-        return gpu->setResolution(w, h);
+        return true; // gpu->setResolution(w, h); // RIX
     }
 
     int BasePSXSystem::initVideo()
@@ -128,7 +130,6 @@ namespace PSX
         gpu       = new GPU::PSXGPU();
         error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
-        if (!error) services.setVideo(adminKey, gpu);
         return error;
     }
 
@@ -152,7 +153,7 @@ namespace PSX
         for (auto &mc : mcDriver)
         {
             int mcError = ioTest(mc.init(), PSX_MEMORY_CARD_STR, port, PSX_INIT_STR);
-            if (!mcError) services.registerDriver(&mc);
+            if (!mcError) registerDriver(&mc);
         }
 
         return error;
@@ -177,7 +178,7 @@ namespace PSX
         int port  = 1;
         for (auto &joy : joyDriver)
             error = ioTest(
-                services.registerDriver(&joy) ? GV_OK : 1,
+                registerDriver(&joy) ? GV_OK : 1,
                 PSX_JOYPAD_STR, port++, PSX_INIT_STR);
 
         return error;
@@ -225,6 +226,7 @@ namespace PSX
 
     int BasePSXSystem::update()
     {
+        System::BaseSystem::update();
         sm_state = System::SM_NORMAL;
         if (doRTCtick && clock)
         {
@@ -232,10 +234,6 @@ namespace PSX
             doRTCtick = false;
         }
         return sm_state;
-    }
-
-    void BasePSXSystem::shutdown()
-    {
     }
 
     const char *BasePSXSystem::getWorkingDirectory()

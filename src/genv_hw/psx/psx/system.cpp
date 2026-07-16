@@ -28,7 +28,6 @@ namespace PSX
         gpu       = new GPU::PSXGPU();
         error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
-        if (!error) services.setVideo(adminKey, gpu);
         return error;
     }
 
@@ -51,14 +50,14 @@ namespace PSX
         cdDriver  = new Storage::PSX_CDROM();
         error     = ioTest(cdDriver, PSX_CDROM_DRIVE_STR, PSX_CREATE_STR);
         if (!error) error = ioTest(cdDriver->init(), PSX_CDROM_DRIVE_STR, PSX_INIT_STR);
-        if (!error) services.registerDriver(cdDriver);
+        if (!error) registerDriver(cdDriver);
 
 #ifndef NDEBUG
         int pcError = 0;
         pcDriver    = new Storage::PSX_PCDrive();
         pcError     = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
         if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
-        if (!pcError) services.registerDriver(pcDriver);
+        if (!pcError) registerDriver(pcDriver);
 #endif
         return error;
     }

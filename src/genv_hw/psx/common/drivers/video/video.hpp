@@ -19,6 +19,8 @@
 
 #include <stdint.h>
 
+#include "common/services/video/screen.hpp"
+#include "common/services/video/vesa.hpp"
 #include "psx/common/system/registers.h"
 #include "texmgr.hpp"
 #include "resolutions.hpp"
@@ -28,7 +30,7 @@
 #include "common/util/rect.hpp"
 #include "common/objects/font.hpp"
 #include "common/services/services.hpp"
-#include "common/services/video/iface_video.hpp"
+#include "common/services/system/iface_videodrv.hpp"
 
 namespace PSX
 {
@@ -41,7 +43,7 @@ namespace PSX::GPU
 
     uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t w, uint16_t h, uint16_t r = 60);
 
-    class PSXGPU : public IVideo
+    class PSXGPU : public System::IVideoDriver
     {
         friend class PSX::BasePSXSystem;
 
@@ -55,6 +57,8 @@ namespace PSX::GPU
         bool screenBufferPage = 0;
         uint16_t dmaPtrIdx    = 0;
         DMAChain dmaChains[2];
+
+        VideoResolution _res;
 
         GP1VRAMSize vramSize = GP1_VRAM_1MB;
         GP1VideoMode gpuMode = GP1_MODE_NTSC;
@@ -90,18 +94,17 @@ namespace PSX::GPU
         void _sendVRAMData(const void *data, int length, RectWH);
         int _uploadPalette(PSXTextureObject *ptObj);
 
-        void registerHaltScreen();
-
     public:
         PSXGPU();
         PSXGPU(GP1VRAMSize vram_size);
         ~PSXGPU() override = default;
 
-        bool init() override;
+        int init() override;
         bool reset() override
         {
             return false;
         }
+        bool update() override { return true; }
         bool beginRender() override;
         bool endRender() override;
         void shutdown() override
@@ -119,18 +122,18 @@ namespace PSX::GPU
         }
         GraphicsData allocate(size_t length) override;
 
-        const VideoModeList *getSupportedResolutions() override
+        const VideoModeList *getSupportedResolutions()
         {
             return &PSX_Video_Modes;
         }
 
-        int setResolution(int w, int h, bool updateWindow = true) override;
-        bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0) override
+        int setResolution(Screen &screen, int w, int h, bool updateWindow = true);
+        bool setFullscreen(Screen &screen, FullscreenMode mode, int w = 0, int h = 0)
         {
             return false;
         }
 
-        void fillScreen(Color color) override;
+        void fillScreen(Screen &screen, Color color);
 
         void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const override {
         };

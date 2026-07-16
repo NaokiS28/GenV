@@ -17,8 +17,7 @@
 
 #pragma once
 
-#include <cstdint>
-#include "iostrings.hpp"
+#include <stdint.h>
 #include "common/util/hash.hpp"
 #include "player.hpp"
 
@@ -30,6 +29,8 @@ namespace IO
 namespace Output
 {
     using namespace IO;
+
+    const char szNullInputDevice[] = "Null output device";
 
     enum class OutputType : uint8_t
     {
@@ -49,7 +50,7 @@ namespace Output
 
     public:
         bool hasChanged   = false;
-        util::Hash portId = idNull;
+        util::Hash portId = util::idNull;
 
         const OutputType type;
         constexpr OutputPortBase(
@@ -140,8 +141,8 @@ namespace Output
 
     public:
         const char *name     = szNullInputDevice; // Friendly printable name
-        util::Hash id        = idNull;            // Device ID - Usage is defined by the driver implementation
-        util::Hash subid     = idNull;            // Device SubID - Usage is defined by the driver implementation
+        util::Hash id        = util::idNull;      // Device ID - Usage is defined by the driver implementation
+        util::Hash subid     = util::idNull;      // Device SubID - Usage is defined by the driver implementation
         OutputType type      = OutputType::None;  // Device Type - Tells the input mapper what class the device is
         uint8_t subBusID     = 0;                 // Sub Bus ID - Usage is defined by the driver implementation
         uint8_t numFeedback  = 0;                 // Number of feedback/output drivers

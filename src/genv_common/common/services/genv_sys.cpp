@@ -24,9 +24,6 @@
 #include "common/logger/log.hpp"
 #include "terminal/terminal.h"
 
-#include "video/nullvideo.hpp"
-#include "audio/nullaudio.hpp"
-
 #include "assert.h"
 
 #ifdef GENV_COMPUTER
@@ -59,17 +56,11 @@ constexpr const char failedToInitFmt[] = "%s failed to init with error: %X";
 void GenvSystemClass::startup()
 {
     auto services = getServiceManager();
-
     assert(services != nullptr);
 
-    System::ISystem *system = System::makeNewSystem();
-    Audio::IAudio *audio    = new Audio::NullAudio();
-    Video::IVideo *video    = new Video::NullVideo();
-
+    System::ISystem *system = System::makeNewSystem(*services);
     assert(system != nullptr);
 
-    services->setAudio(adminKey, audio);
-    services->setVideo(adminKey, video);
     services->setSystem(adminKey, system);
 
     // TODO: Allow setting custom startup baud

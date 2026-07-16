@@ -466,7 +466,7 @@ void MetalGPU::shutdown()
 // ----------------------------------------------------------------------------
 int MetalGPU::setResolution(int w, int h, bool updateWindow)
 {
-    IVideo::setResolution(w, h, updateWindow);
+    IVideoDriver::setResolution(w, h, updateWindow);
 
     if (updateWindow)
     {

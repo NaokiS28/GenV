@@ -25,7 +25,7 @@
 #include "common/services/services.hpp"
 namespace System
 {
-    ISystem *makeNewSystem()
+    ISystem *makeNewSystem(ServiceManager &services)
     {
         System573::Sys573System *system = new System573::Sys573System;
         return system;
@@ -41,7 +41,7 @@ namespace System
 #include "psx/psx/system.hpp"
 namespace System
 {
-    ISystem *makeNewSystem()
+    ISystem *makeNewSystem(ServiceManager &services)
     {
         PSX::PSXSystem *system = new PSX::PSXSystem;
         return system;
@@ -58,7 +58,7 @@ namespace System
 #include "win32/system.hpp"
 namespace System
 {
-    ISystem *makeNewSystem()
+    ISystem *makeNewSystem(ServiceManager &services)
     {
         WinSystem *system = new WinSystem();
         return system;
@@ -72,7 +72,7 @@ namespace System
 #include "mac/osx/system.hpp"
 namespace System
 {
-    ISystem *makeNewSystem()
+    ISystem *makeNewSystem(ServiceManager &services)
     {
         OSXSystem *system = new OSXSystem();
         return system;
@@ -86,7 +86,7 @@ namespace System
 #include "mac/osx/system.hpp"
 namespace System
 {
-    ISystem *makeNewSystem()
+    ISystem *makeNewSystem(ServiceManager &services)
     {
         OS9System *system = new OS9System();
         return system;

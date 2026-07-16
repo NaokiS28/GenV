@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "common/services/io/iface_driver.hpp"
+#include "common/services/system/iface_driver.hpp"
 #include "common/services/io/iface_input.hpp"
 #include "common/services/system/arcade/iface_arcade.hpp"
 #include "common/util/templates.hpp"
@@ -40,7 +40,7 @@ namespace System573::IO
         uint8_t data[maxJVSDataSize]; // Contains sum
     };
 
-    class JVS : public IDriver
+    class JVS : public System::IDriver
     {
     private:
         void processPackets_();

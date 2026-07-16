@@ -56,7 +56,7 @@ namespace util
         do
         {
             auto entry = &table[index];
-            index = entry->getChained();
+            index      = entry->getChained();
 
             if (entry->getHash() == id)
                 return entry;
@@ -64,6 +64,8 @@ namespace util
 
         return nullptr;
     }
+
+    constexpr util::Hash idNull = util::hashEmpty;
 
     /* CRC calculation */
 
