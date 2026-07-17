@@ -24,12 +24,10 @@
 
 #include "timer.hpp"
 
-//!Review
 namespace Video
 {
     class Screen; // System owns the drivers and exposes their screens
 }
-//!End
 
 #define SYSTEM_CALLBACK(name, type, func)                 \
     {                                                     \
@@ -78,12 +76,10 @@ namespace System
         virtual int update()    = 0; // Update system manager
         virtual void shutdown() = 0; // Prepare for app shutdown
 
-        //!Review
         // Returns the screen (render context) at the given index, or nullptr if no
         // screen is registered there. Null is a checkable "failed access" - callers
         // must guard it (Screen draw calls forward straight into the driver).
         virtual Video::Screen *getScreen(uint8_t idx) = 0;
-        //!End
 
         virtual void enterCriticalSection() = 0;
         virtual void leaveCriticalSection() = 0;

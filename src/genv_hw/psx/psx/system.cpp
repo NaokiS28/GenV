@@ -27,7 +27,7 @@ namespace PSX
         int error = 0;
         gpu       = new GPU::PSXGPU();
         error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
-        //!Review
+        //! Review
         // Mint and register screen 0 wrapping the GPU BEFORE gpu->init(). init()
         // creates the default texture through the Video:: resource seam, which resolves
         // the driver via System::screen(0)->getDriver(), so the screen must exist first.
@@ -37,7 +37,7 @@ namespace PSX
             Video::Screen *screen0 = new Video::Screen(gpu, VESA::QVGA, 60, Video::DPI_96, nullptr, 0);
             s_screens.append(screen0);
         }
-        //!End
+        //! End
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
         return error;
     }

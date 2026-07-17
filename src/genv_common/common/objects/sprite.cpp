@@ -26,9 +26,7 @@ namespace Sprites
 {
     SpriteObject::SpriteObject(util::Hash objectID)
     {
-        //!Review
         texture = Video::createTexture(objectID);
-        //!End
     }
 
     SpriteObject::SpriteObject(util::Hash objectID, Textures::TextureObject *tObj)
@@ -38,9 +36,7 @@ namespace Sprites
 
     SpriteObject::SpriteObject(util::Hash objectID, const char *filePath)
     {
-        //!Review
         texture = Video::createTexture(objectID, filePath);
-        //!End
     }
 
     void SpriteObject::draw(int x, int y, int w, int h)
@@ -55,9 +51,7 @@ namespace Sprites
 
     int SpriteObject::uploadTexture()
     {
-        //!Review
         return Video::uploadTexture(texture);
-        //!End
     }
 
     SpriteObject *createSprite(util::Hash objectID, Textures::TextureObject *tObj)

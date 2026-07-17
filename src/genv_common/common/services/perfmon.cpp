@@ -24,9 +24,7 @@ namespace System
 
     PerformanceGraph &PerformanceMonitor::getPerformanceGraph(PerformanceGraphStyle style)
     {
-        //!Review
         size_t frame = Video::frames();
-        //!End
         if (frame == lastFrame)
         {
             return lastGraph;

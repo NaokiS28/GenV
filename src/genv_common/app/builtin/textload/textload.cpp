@@ -30,19 +30,15 @@ namespace Apps
 
     void TextLoader::render()
     {
-        //!Review
         Video::Screen *screen = System::screen(0);
-        //!End
         screen->fillScreen(Video::Colors::Black);
         screen->drawText(loadingText, textPos.x, textPos.y, textPos.w, textPos.h, Video::Colors::White, Video::TALIGN_CENTER);
     }
 
     void TextLoader::reload()
     {
-        //!Review
         Video::Screen *screen = System::screen(0);
-        //!End
-        textPos = {
+        textPos               = {
             screen->getHorizontalRes() / 2 - 250,
             screen->getVerticalRes() / 2 - 10,
             500,

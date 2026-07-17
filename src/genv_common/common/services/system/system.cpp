@@ -27,7 +27,6 @@ namespace System
     // Public verbs
     ISystem *shared_sys_ptr = nullptr;
 
-    //!Review
     // Route the free-function accessor through the active system. Returns nullptr when
     // there is no system yet or the index is unregistered (the old body returned nothing
     // -> undefined behaviour on every call).
@@ -35,7 +34,6 @@ namespace System
     {
         return shared_sys_ptr ? shared_sys_ptr->getScreen(idx) : nullptr;
     }
-    //!End
 
     size_t millis()
     {

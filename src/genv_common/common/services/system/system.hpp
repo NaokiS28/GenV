@@ -164,21 +164,14 @@ namespace System
         virtual int update() override;
         virtual void shutdown() override;
 
-        //!Review
-        // Screens live in s_screens, owned here; at() is bounds-checked (null on OOB).
+        // Screens live in s_screens, owned here; at() is bounds-checked.
         virtual Video::Screen *getScreen(uint8_t idx) override { return s_screens.at(idx); }
-        //!End
 
-        inline virtual bool setFullscreen(Video::FullscreenMode mode) { return false; }
+        inline virtual bool setFullscreen(System::FullscreenMode mode) { return false; }
         inline virtual bool toggleFullscreen() { return false; }
     };
 
     // Public verbs
-    //!Review
-    // Was `Screen &screen(...)` - changed to a pointer so an out-of-range index is a
-    // checkable null (per the 2026-07-14 "failed access returns null" decision); a
-    // reference could not express that.
     Screen *screen(uint8_t idx);
-    //!End
 
 } // namespace System

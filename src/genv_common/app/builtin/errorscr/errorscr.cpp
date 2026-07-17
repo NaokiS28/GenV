@@ -38,10 +38,8 @@ DefaultErrorScreen::DefaultErrorScreen(IAppHost *host, ErrorScreenMessage *msg)
 int DefaultErrorScreen::init()
 {
     setAppState(APP_STATE_RUN);
-    //!Review
     Video::Screen *screen = System::screen(0);
-    //!End
-    area = Video::RectWH(
+    area                  = Video::RectWH(
         screen->getHorizontalRes() / 10,
         screen->getVerticalRes() / 4,
         (screen->getHorizontalRes() / 10) * 8,
@@ -128,10 +126,8 @@ void DefaultErrorScreen::update()
 
 void DefaultErrorScreen::reload()
 {
-    //!Review
     Video::Screen *screen = System::screen(0);
-    //!End
-    area = Video::RectWH(
+    area                  = Video::RectWH(
         screen->getHorizontalRes() / 10,
         screen->getVerticalRes() / 4,
         (screen->getHorizontalRes() / 10) * 8,
@@ -140,9 +136,7 @@ void DefaultErrorScreen::reload()
 
 void DefaultErrorScreen::render()
 {
-    //!Review
     Video::Screen *screen = System::screen(0);
-    //!End
     Video::Color c1; // Animates
     Video::Color c2; // Not animates
     switch (msg->style)
