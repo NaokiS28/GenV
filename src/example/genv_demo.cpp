@@ -31,9 +31,7 @@ int GenV_Demo::init()
     {
         if (int error = page->init(); error != GV_OK)
             LOG("GenV Demo", "%s page encountered init error %i", page->info().name, error);
-        //!Review
         page->screen = System::screen(0);
-        //!End
     }
     reload();
     setAppState(Apps::APP_STATE_RUN);
@@ -86,9 +84,7 @@ void GenV_Demo::update()
 
 void GenV_Demo::render()
 {
-    //!Review
     Video::Screen *screen = System::screen(0);
-    //!End
     screen->fillScreen(Video::Colors::Black);
     if (currentPage != nullptr)
     {
@@ -126,9 +122,7 @@ void GenV_Demo::render()
 
 void GenV_Demo::reload()
 {
-    //!Review
     Video::Screen *screen = System::screen(0);
-    //!End
     if (currentPage != nullptr) currentPage->reload();
     titleBox = {
         screen->getHorizontalRes() / 2,

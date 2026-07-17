@@ -91,9 +91,7 @@ namespace Apps
     void GVSS::render()
     {
         if (getState() == APP_STATE_ERROR) return;
-        //!Review
         Video::Screen *screen = System::screen(0);
-        //!End
         screen->fillScreen(Video::Colors::Black);
         // logo_ring->draw(logoPos.x, logoPos.y);
         if (drawLine) screen->drawRect(linePos, Video::Colors::White);
@@ -106,10 +104,8 @@ namespace Apps
 
     void GVSS::reload()
     {
-        //!Review
         Video::Screen *screen = System::screen(0);
-        //!End
-        logoRPos = {
+        logoRPos              = {
             static_cast<int>((screen->getHorizontalRes() / 2) - (logo_ring->getTexture()->width / 2)),
             static_cast<int>((screen->getVerticalRes() / 2) - (logo_ring->getTexture()->height / 2)),
             static_cast<int>(logo_ring->getTexture()->width),
@@ -136,9 +132,7 @@ namespace Apps
     {
         if (pStep == vStep) return;
 
-        //!Review
         Video::Screen *screen = System::screen(0);
-        //!End
         switch (GVSSAnimStep)
         {
         case GVSS_Init:

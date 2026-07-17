@@ -73,7 +73,6 @@ int main(int argc, char *argv[])
         apps->update();
         System::PerfMon.finishAppExec();
 
-        //!Review
         // Multi-screen render loop: begin every registered screen, let the apps draw
         // (each grabs the screen(s) it wants), then end every screen. The loop shape is
         // unchanged by SGMS - a single driver serving N screens just brackets N command
@@ -92,16 +91,13 @@ int main(int argc, char *argv[])
             if (!s) break;
             s->endRender();
         }
-        //!End
 
         if (serviceManager->updateCoroutines())
         { // These are run in a lower priority to vsync. If vsync happens, the update cycle pauses
             System::PerfMon.finishCoroutines();
-            //!Review
             // If Service manager runs out of services to update, pause for the next
             // cycle. VSync wait is driver-scoped, reached through the primary screen.
             if (Video::Screen *s = System::screen(0)) s->getDriver()->doWaitForVSync();
-            //!End
         }
     }
 
