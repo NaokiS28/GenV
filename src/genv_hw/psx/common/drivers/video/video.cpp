@@ -36,6 +36,7 @@
 
 #include "common/logger/log.hpp"
 #include "psx/common/drivers/video/resolutions.hpp"
+#include "psx/common/psx_strings.hpp"
 #include "psx/common/system/registers.h"
 #include "psxtex.hpp"
 #include "texmgr.hpp"
@@ -54,6 +55,7 @@ namespace PS1::GPU
           _screen(this, VESA::QVGA, 60, Video::DPI_96, nullptr, 0),
           _texmgr(vramSize)
     {
+        _name = PS1_PS_GPU_STR;
     }
 
     PS1GPU::PS1GPU(System::ISystem &sys, GP1VRAMSize vram_size)
@@ -62,6 +64,7 @@ namespace PS1::GPU
           vramSize(vram_size),
           _texmgr(vram_size)
     {
+        _name = PS1_PS_GPU_STR;
     }
 
     int PS1GPU::init()

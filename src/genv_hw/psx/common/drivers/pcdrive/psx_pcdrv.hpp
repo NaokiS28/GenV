@@ -20,13 +20,17 @@
 #include "common/objects/file.hpp"
 #include "common/services/storage/iface_storage.hpp"
 #include "common/services/system/iface_driver.hpp"
+#include "psx/common/psx_strings.hpp"
 
 namespace PS1::Storage
 {
     class PS1_PCDrive : public System::IDriver
     {
     public:
-        inline PS1_PCDrive(::System::ISystem &sys) : ::System::IDriver(sys) {}
+        inline PS1_PCDrive(::System::ISystem &sys) : ::System::IDriver(sys)
+        {
+            _name = PS1_PS_PCDRV_STR;
+        }
         int init() override;
         bool update() override;
         bool reset() override;

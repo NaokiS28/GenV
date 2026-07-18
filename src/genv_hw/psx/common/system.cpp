@@ -23,6 +23,7 @@
 #include "common/services/system/rtc/soft_rtc.hpp"
 
 #include "common/services/system/system.hpp"
+#include "psx/common/system/registers.h"
 #include "psx_strings.hpp"
 #include "system/pcsxhw.h"
 #include "system/sys.h"
@@ -112,7 +113,7 @@ namespace PS1
             this);
 
         psx_enableInterrupts();
-        return PS1_SYS_OK;
+        return GV_OK;
     }
 
     bool BasePS1System::setResolution(int w, int h)
@@ -131,39 +132,24 @@ namespace PS1
         // (via System::assignScreen); see PS1GPU::init().
         gpu   = new GPU::PS1GPU(*this); // Inits a V2 GPU
         error = ioTest(gpu, PS1_GPU_STR, PS1_CREATE_STR);
-        if (!error) ioTest(gpu->init(), PS1_GPU_STR, PS1_INIT_STR);
+        if (!error) ioTest(registerDriver(gpu), PS1_GPU_STR, PS1_INIT_STR);
         return error;
-    }
-
-    int BasePS1System::initAudio()
-    {
-        /*
-        int error = 0;
-        spu       = new Sound::PS1SPU;
-        error     = ioTest(spu, PS1_SPU_STR, PS1_CREATE_STR);
-        if (!error) ioTest(spu->init(), PS1_SPU_STR, PS1_INIT_STR);
-        if (!error) services.setAudio(adminKey, spu);
-        */
-        return 0;
     }
 
     int BasePS1System::initStorage()
     {
-        int error = 0; // TODO: How to handle multiple driver failures?
-
-        int port = 1;
+        int error = 0;
+        int port  = 1;
         for (auto &mc : mcDriver)
-        {
-            int mcError = ioTest(mc.init(), PS1_MEMORY_CARD_STR, port, PS1_INIT_STR);
-            if (!mcError) registerDriver(&mc);
-        }
-
+            error = ioTest(
+                registerDriver(&mc) ? GV_OK : 1,
+                PS1_PS_MEMCARD_STR, port++, PS1_INIT_STR);
         return error;
     }
 
     int BasePS1System::initIO()
     {
-        // TODO: Allow setting custom startup baud
+        // TODO: Allow setting custom startup baud - This is a GenV common issue
         sio1_init(115200);
         Timer0::Ctrl = (uint16_t)Timer0::ClockSource::SYSTEM;
         Timer1::Ctrl = (uint16_t)Timer1::ClockSource::SYSTEM;
@@ -174,7 +160,8 @@ namespace PS1
         Timer1::Value = 0;
         Timer2::Value = 0;
 
-        sio0.init();
+        registerDriver(&sio0);
+        registerDriver(&sio1);
 
         int error = 0;
         int port  = 1;
@@ -190,7 +177,12 @@ namespace PS1
     {
         if (psx_testInterrupt(IRQ_VSYNC, true)) isr_vsync_();
         if (psx_testInterrupt(IRQ_TIMER2, true)) isr_timer2_();
-        if (psx_testInterrupt(IRQ_SIO0, isr_sio0_autoAck) && isr_sio0.isValid()) isr_sio0.call();
+        // if (psx_testInterrupt(IRQ_DMA, true)) isr_dma_();
+        if (psx_testInterrupt(IRQ_CDROM, isr_cdrom.autoAck()) && isr_cdrom.isValid()) isr_cdrom.call();
+        if (psx_testInterrupt(IRQ_SIO0, isr_sio0.autoAck()) && isr_sio0.isValid()) isr_sio0.call();
+        if (psx_testInterrupt(IRQ_SIO1, isr_sio1.autoAck()) && isr_sio1.isValid()) isr_sio1.call();
+        if (psx_testInterrupt(IRQ_SPU, isr_spu.autoAck()) && isr_spu.isValid()) isr_spu.call();
+        if (psx_testInterrupt(IRQ_PIO, isr_pio.autoAck()) && isr_pio.isValid()) isr_pio.call();
     }
 
     void BasePS1System::isr_vsync_()
@@ -244,15 +236,23 @@ namespace PS1
         return nullptr;
     }
 
-    IRQChannel BasePS1System::registerISR(System::Callback callback, IRQChannel irq, bool autoAck)
+    IRQChannel BasePS1System::registerISR(
+        IRQChannel irq,
+        const char *name,
+        System::CallbackFunction func,
+        bool autoAck,
+        void *arg)
     {
+        if (func == nullptr) return IRQ_INVALID;
         switch (irq)
         {
-        case IRQ_SIO0:
-            isr_sio0         = callback;
-            isr_sio0_autoAck = autoAck;
-            return (callback.isValid() ? irq : IRQ_INVALID);
+        case IRQ_SIO0: isr_sio0 = IRQCallback(name, func, autoAck, arg); break;
+        case IRQ_SIO1: isr_sio1 = IRQCallback(name, func, autoAck, arg); break;
+        case IRQ_CDROM: isr_cdrom = IRQCallback(name, func, autoAck, arg); break;
+        case IRQ_SPU: isr_spu = IRQCallback(name, func, autoAck, arg); break;
+        case IRQ_PIO: isr_pio = IRQCallback(name, func, autoAck, arg); break;
         default: return IRQ_INVALID;
         }
+        return irq;
     }
 } // namespace PS1

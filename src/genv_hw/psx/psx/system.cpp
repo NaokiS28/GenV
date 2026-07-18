@@ -49,14 +49,12 @@ namespace PS1
         int error = 0; // TODO: How to handle multiple driver failures?
         cdDriver  = new Storage::PS1_CDROM(*this);
         error     = ioTest(cdDriver, PS1_CDROM_DRIVE_STR, PS1_CREATE_STR);
-        if (!error) error = ioTest(cdDriver->init(), PS1_CDROM_DRIVE_STR, PS1_INIT_STR);
         if (!error) registerDriver(cdDriver);
 
 #ifndef NDEBUG
         int pcError = 0;
         pcDriver    = new Storage::PS1_PCDrive(*this);
         pcError     = ioTest(pcDriver, PS1_PC_DRIVE_STR, PS1_CREATE_STR);
-        if (!pcError) pcError = ioTest(pcDriver->init(), PS1_PC_DRIVE_STR, PS1_INIT_STR);
         if (!pcError) registerDriver(pcDriver);
 #endif
         return error;

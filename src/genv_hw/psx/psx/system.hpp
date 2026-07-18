@@ -40,8 +40,11 @@ namespace PS1
             .name  = szPlaystation,
             .flags = SYS_No_Window_Mode};
 
-        Storage::PS1_CDROM *cdDriver   = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
+        Storage::PS1_CDROM *cdDriver = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers?
+
+#ifndef NDEBUG
         Storage::PS1_PCDrive *pcDriver = nullptr; // Not always needed?
+#endif
 
     public:
         inline PS1System(ServiceManager &services)
