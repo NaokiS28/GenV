@@ -28,11 +28,11 @@
 #include "psx/common/system.hpp"
 #include "psx_cdrom.hpp"
 
-namespace PSX
+namespace PS1
 {
     using namespace System;
 
-    class PSXSystem : public BasePSXSystem
+    class PS1System : public BasePS1System
     {
     protected:
         SystemInfo siPS1 = {
@@ -41,13 +41,18 @@ namespace PSX
             .name  = szPlaystation,
             .flags = SYS_No_Window_Mode};
 
+<<<<<<< HEAD
         PSX::SPUDriver spu;
         Storage::PSX_CDROM *cdDriver   = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
         Storage::PSX_PCDrive *pcDriver = nullptr; // Not always needed?
+=======
+        Storage::PS1_CDROM *cdDriver   = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
+        Storage::PS1_PCDrive *pcDriver = nullptr; // Not always needed?
+>>>>>>> ee53a70 (* Major: Renamed all instances of PSX to PS1 - Because the meme is old and GenV should be more descriptive.)
 
     public:
-        inline PSXSystem(ServiceManager &services)
-            : BasePSXSystem(services) {};
+        inline PS1System(ServiceManager &services)
+            : BasePS1System(services) {};
 
         virtual int initVideo() override;
         virtual int initAudio() override;
@@ -59,4 +64,4 @@ namespace PSX
         }
     };
 
-} // namespace PSX
+} // namespace PS1

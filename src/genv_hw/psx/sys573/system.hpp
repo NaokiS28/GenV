@@ -37,7 +37,7 @@ namespace System573
         constexpr const char *szMakeName   = "KONAMI";
     } // namespace KSYS573
 
-    class Sys573System : public PSX::BasePSXSystem, public System::BaseArcadeSystem
+    class Sys573System : public PS1::BasePS1System, public System::BaseArcadeSystem
     {
     private:
         System::SystemInfo si573 = {
@@ -53,7 +53,7 @@ namespace System573
         IO::JVS m_jvs;
 
     public:
-        Sys573System();
+        Sys573System(ServiceManager &services);
         ~Sys573System();
 
         int initCore() override;

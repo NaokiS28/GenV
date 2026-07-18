@@ -34,9 +34,9 @@
 
 #define BOOL(val) ((val) > 0 ? 1 : 0)
 
-namespace PSX::IO
+namespace PS1::IO
 {
-    uint8_t PSX_Joypad::m_driverCount = 0;
+    uint8_t PS1_Joypad::m_driverCount = 0;
 
     // All controllers seem to use the same "base" map
     constexpr VJoy_Input controllerButtonMap[] = {
@@ -58,7 +58,7 @@ namespace PSX::IO
         VJoy_Input::Button_3,  // □
     };
 
-    // TODO: Add support for PSX mouse in VMouse.
+    // TODO: Add support for PS1 mouse in VMouse.
     // constexpr VJoy_Input mouseButtonMap[] = {};
 
     IInputDevice makePad(
@@ -68,7 +68,7 @@ namespace PSX::IO
     {
         return IInputDevice(
             name,
-            PSX_PAD_HASH,
+            PS1_PAD_HASH,
             type,
             Input::DEVICE_TYPE_CONTROLLER,
             Input::DEVICE_SUBTYPE_STANDARD,
@@ -83,7 +83,7 @@ namespace PSX::IO
     {
         return IInputDevice(
             name,
-            PSX_PAD_HASH,
+            PS1_PAD_HASH,
             type,
             Input::DEVICE_TYPE_LIGHTGUN,
             Input::DEVICE_SUBTYPE_STANDARD,
@@ -95,9 +95,9 @@ namespace PSX::IO
     IInputDevice makeMouse(Multitap_Port subport, uint32_t *digital, int16_t *delta)
     {
         return IInputDevice(
-            PSX_MOUSE_STR,
-            PSX_PAD_HASH,
-            PSX_MOUSE_HASH,
+            PS1_MOUSE_STR,
+            PS1_PAD_HASH,
+            PS1_MOUSE_HASH,
             Input::DEVICE_TYPE_MOUSE,
             Input::DEVICE_SUBTYPE_STANDARD,
             static_cast<uint8_t>(subport),
@@ -114,21 +114,21 @@ namespace PSX::IO
     {
         switch (resp.id8[0])
         {
-        case PAD_DIGITAL: return makePad(PSX_DIGITAL_STR, PSX_DIGITAL_HASH, subport, digital, 14);
-        case PAD_ANALOG: return makePad(PSX_ANALOG_STR, PSX_ANALOG_HASH, subport, digital, 16, analog, 4);
-        case PAD_DUALSHOCK2: return makePad(PSX_DUALSHOCK2_STR, PSX_DUALSHOCK2_HASH, subport, digital, 16, analog, 10);
-        case PAD_TWINSTICK: return makePad(PSX_TWINSTICK_STR, PSX_TWINSTICK_HASH, subport, digital, 14, analog, 4);
-        case PAD_GUNCON: return makeGun(PSX_GUNCON_STR, PSX_GUNCON_HASH, subport, digital, analog);
-        case PAD_KONAMI_GUN: return makeGun(PSX_JUSTIFIER_STR, PSX_JUSTIFIER_HASH, subport, digital, analog);
+        case PAD_DIGITAL: return makePad(PS1_DIGITAL_STR, PS1_DIGITAL_HASH, subport, digital, 14);
+        case PAD_ANALOG: return makePad(PS1_ANALOG_STR, PS1_ANALOG_HASH, subport, digital, 16, analog, 4);
+        case PAD_DUALSHOCK2: return makePad(PS1_DUALSHOCK2_STR, PS1_DUALSHOCK2_HASH, subport, digital, 16, analog, 10);
+        case PAD_TWINSTICK: return makePad(PS1_TWINSTICK_STR, PS1_TWINSTICK_HASH, subport, digital, 14, analog, 4);
+        case PAD_GUNCON: return makeGun(PS1_GUNCON_STR, PS1_GUNCON_HASH, subport, digital, analog);
+        case PAD_KONAMI_GUN: return makeGun(PS1_JUSTIFIER_STR, PS1_JUSTIFIER_HASH, subport, digital, analog);
         case PAD_MOUSE: return makeMouse(subport, digital, analog);
         // case PAD_KEYBOARD: break;
-        case PAD_NEGCON: return makePad(PSX_NEGCON_STR, PSX_NEGCON_HASH, subport, digital, 7, analog, 4);
+        case PAD_NEGCON: return makePad(PS1_NEGCON_STR, PS1_NEGCON_HASH, subport, digital, 7, analog, 4);
         // case PAD_JOGCON: return psxJogcon(player, subport, digital, delta);
         default: return IInputDevice();
         }
     }
 
-    void PSX_Joypad::m_padChange(PSX_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport)
+    void PS1_Joypad::m_padChange(PS1_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport)
     {
         // Device changed
         LOG("makepad", "Controller changed on port %d:%c to 0x%04X (%s)",
@@ -181,7 +181,7 @@ namespace PSX::IO
         memset(pad.rotary, (int)0, sizeof(m_pads->rotary));
     }
 
-    void PSX_Joypad::m_padDisconnect(PSX_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport)
+    void PS1_Joypad::m_padDisconnect(PS1_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport)
     {
         // If Controller 1-A dissapears, the multi-tap stops responding.
         if (subport == Multitap_Port::PORTA && m_bus->multitapPresent(m_portNumber))
@@ -196,7 +196,7 @@ namespace PSX::IO
                         multitapPortLetter(subport));
 
                     playerManager()->detachInputDevice(&thisPad.device);
-                    thisPad = PSX_PadData(); // Null it out
+                    thisPad = PS1_PadData(); // Null it out
                 }
             }
             m_bus->setMultitapState(m_portNumber, MT_TEST_PRESENCE);
@@ -210,12 +210,12 @@ namespace PSX::IO
             if (pad.device.type != Input::DEVICE_TYPE_NULL)
                 playerManager()->detachInputDevice(&pad.device);
 
-            pad = PSX_PadData(); // Null it out
+            pad = PS1_PadData(); // Null it out
             if (subport == Multitap_Port::PORTA) m_bus->setMultitapState(m_portNumber, MT_TEST_PRESENCE);
         }
     }
 
-    bool PSX_Joypad::update()
+    bool PS1_Joypad::update()
     {
         int result = GV_OK;
 
@@ -288,24 +288,24 @@ namespace PSX::IO
         return result;
     }
 
-    int PSX_Joypad::init()
+    int PS1_Joypad::init()
     {
         LOG("makepad", "Init PlayStation Controller driver on port %d", sioPortNumber(m_portNumber));
         return m_bus->init();
     }
 
-    bool PSX_Joypad::reset()
+    bool PS1_Joypad::reset()
     {
         for (auto &pad : m_pads)
         {
             playerManager()->detachInputDevice(&pad.device);
-            pad = PSX_PadData(); // Null device
+            pad = PS1_PadData(); // Null device
         }
         return true;
     }
 
     // Enter or exit controller config mode. Only works on DualShock and above
-    int PSX_Joypad::m_configMode(bool state, uint8_t subport)
+    int PS1_Joypad::m_configMode(bool state, uint8_t subport)
     {
         uint8_t request[4]{CMD_CONFIG, 0, state, 0};
         uint8_t response[8];
@@ -322,7 +322,7 @@ namespace PSX::IO
     }
 
     // Enables setting analog button and locking it. Only works on DualShock and above
-    int PSX_Joypad::m_setAnalog(bool state, bool lock, uint8_t subport)
+    int PS1_Joypad::m_setAnalog(bool state, bool lock, uint8_t subport)
     {
         const uint8_t request[4]{CMD_SET_ANALOG, 0, state, (uint8_t)(lock ? 0x3 : 0x0)};
         uint8_t response[8];
@@ -339,7 +339,7 @@ namespace PSX::IO
     }
 
     // Enables dual motors. Only works on DualShock and above
-    int PSX_Joypad::m_setDualshock(bool state, uint8_t subport)
+    int PS1_Joypad::m_setDualshock(bool state, uint8_t subport)
     {
         const uint8_t request[]{CMD_REQ_CONFIG, 0, 0, state, 0xFF, 0xFF, 0xFF, 0xFF};
         uint8_t response[8];
@@ -357,7 +357,7 @@ namespace PSX::IO
 
     // Enables reading analog buttons. Only works on DualShock2
     // Configures how the normal controller response sequence works
-    int PSX_Joypad::m_setDS2Analog(uint32_t bitmask, uint8_t subport)
+    int PS1_Joypad::m_setDS2Analog(uint32_t bitmask, uint8_t subport)
     {
         uint8_t mask[] = {
             (uint8_t)(bitmask & 0xFF),
@@ -380,7 +380,7 @@ namespace PSX::IO
     }
 
     // Polls a standard controller on given subport (of multitap)
-    int PSX_Joypad::poll(ControllerReadResponse &resp, Multitap_Port subport)
+    int PS1_Joypad::poll(ControllerReadResponse &resp, Multitap_Port subport)
     {
         // Send a poll command. Also send a multitap enable command. If MT is not present, controller will respond
         // and we detect this (or MT will respond with ID) and then we turn off this test. When we get NO_ACK from
@@ -447,8 +447,8 @@ namespace PSX::IO
         return SIO0_OKAY;
     }
 
-    void PSX_Joypad::m_processPackets()
+    void PS1_Joypad::m_processPackets()
     {
     }
 
-} // namespace PSX::IO
+} // namespace PS1::IO

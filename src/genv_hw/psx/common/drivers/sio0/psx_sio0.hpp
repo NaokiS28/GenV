@@ -40,7 +40,7 @@
             return 2;                      \
     }
 
-namespace PSX::IO
+namespace PS1::IO
 {
     enum SIO0_Address : uint8_t
     {
@@ -176,7 +176,7 @@ namespace PSX::IO
 
     class SIO0_Bus : public ::System::IDriver
     {
-        friend class PSX_BaseSystem;
+        friend class PS1_BaseSystem;
 
     private:
         bool _initialised = false;
@@ -191,9 +191,7 @@ namespace PSX::IO
         void m_sioISR();
 
     public:
-        //! Review
         inline SIO0_Bus(::System::ISystem &sys) : ::System::IDriver(sys) {}
-        //! End
         int init() override;
         int start(uint8_t address, SIO0_Port port);
         void stop();
@@ -230,4 +228,4 @@ namespace PSX::IO
 
         void mouseFix();
     };
-} // namespace PSX::IO
+} // namespace PS1::IO

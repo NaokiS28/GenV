@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-07-18 12:26:25.134905_
+_Generated on 2026-07-18 16:18:15.038691_
 
 #### [src/example/input_page.cpp](src/example/input_page.cpp)
 
@@ -50,6 +50,10 @@ _Generated on 2026-07-18 12:26:25.134905_
 - [149](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L149): Check IO service?
 - [154](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L154): Check IO service?
 
+#### [src/genv_common/common/services/system/iface_videodrv.hpp](src/genv_common/common/services/system/iface_videodrv.hpp)
+
+- [77](src/genv_common/common/services/system/iface_videodrv.hpp?plain=1#L77): Would be better to use tuples if possible?
+
 #### [src/genv_common/common/services/video/fontman.cpp](src/genv_common/common/services/video/fontman.cpp)
 
 - [44](src/genv_common/common/services/video/fontman.cpp?plain=1#L44): if (loadFontsetFromMemory(spice_data, spice_len) == GV_OK) Configure by header rather than hardcoded here
@@ -63,7 +67,7 @@ _Generated on 2026-07-18 12:26:25.134905_
 
 #### [src/genv_common/common/services/video/screen.hpp](src/genv_common/common/services/video/screen.hpp)
 
-- [151](src/genv_common/common/services/video/screen.hpp?plain=1#L151): Should this be a system call? Logically it's a screen function, but realistically all GPUs should go full screen
+- [163](src/genv_common/common/services/video/screen.hpp?plain=1#L163): Should this be a system call? Logically it's a screen function, but realistically all GPUs should go full screen
 
 #### [src/genv_hw/mac/osx/README.md](src/genv_hw/mac/osx/README.md)
 
@@ -85,7 +89,7 @@ _Generated on 2026-07-18 12:26:25.134905_
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp)
 
-- [61](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L61): Add support for PSX mouse in VMouse.
+- [61](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L61): Add support for PS1 mouse in VMouse.
 - [225](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L225): Trim pad polling code down and use per-frame pacing
 - [226](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L226): If controller in multitap with controller 1:B is connected whilst Port 2:A also connected to a controller prior, both are assigned player 2. Does not happen in reverse
 - [262](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L262): Mouse "button" bits 8&9 are signs for rotary?
@@ -122,12 +126,12 @@ _Generated on 2026-07-18 12:26:25.134905_
 
 #### [src/genv_hw/psx/common/drivers/video/video.cpp](src/genv_hw/psx/common/drivers/video/video.cpp)
 
-- [388](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L388): Cleanup?
-- [723](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L723): Seperate font renderer from PS1 core to generic video service
+- [400](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L400): Cleanup?
+- [735](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L735): Seperate font renderer from PS1 core to generic video service
 
 #### [src/genv_hw/psx/common/drivers/video/video.hpp](src/genv_hw/psx/common/drivers/video/video.hpp)
 
-- [87](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L87): Set true when the DMA chain is full. Draw calls become no-ops
+- [92](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L92): Set true when the DMA chain is full. Draw calls become no-ops
 
 #### [src/genv_hw/psx/common/halt/src/ps1/sys.h](src/genv_hw/psx/common/halt/src/ps1/sys.h)
 
@@ -137,8 +141,8 @@ _Generated on 2026-07-18 12:26:25.134905_
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
 - [79](src/genv_hw/psx/common/system.cpp?plain=1#L79): SIO1 driver will require interrupts in future, so this will need to change.
-- [150](src/genv_hw/psx/common/system.cpp?plain=1#L150): int error = 0; How to handle multiple driver failures?
-- [164](src/genv_hw/psx/common/system.cpp?plain=1#L164): Allow setting custom startup baud
+- [152](src/genv_hw/psx/common/system.cpp?plain=1#L152): int error = 0; How to handle multiple driver failures?
+- [166](src/genv_hw/psx/common/system.cpp?plain=1#L166): Allow setting custom startup baud
 
 #### [src/genv_hw/psx/common/system/serial.h](src/genv_hw/psx/common/system/serial.h)
 
@@ -151,7 +155,7 @@ _Generated on 2026-07-18 12:26:25.134905_
 
 #### [src/genv_hw/psx/psx/system.cpp](src/genv_hw/psx/psx/system.cpp)
 
-- [60](src/genv_hw/psx/psx/system.cpp?plain=1#L60): int error = 0; How to handle multiple driver failures?
+- [49](src/genv_hw/psx/psx/system.cpp?plain=1#L49): int error = 0; How to handle multiple driver failures?
 
 #### [src/genv_hw/psx/sys573/io/jamma/adc083x.hpp](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp)
 

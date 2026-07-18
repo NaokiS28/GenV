@@ -4,7 +4,7 @@ The PlayStation driver is used for all retail PS1 consoles (and emulators... in 
 GenV Status:
 <table>
 	<tr>
-		<td> PSX Core </td>
+		<td> PS1 Core </td>
 		<td> Please check the <a href="../common/README.md">hardware core README</a> to see for implementation status. </td>
 	</tr>
 	<tr>

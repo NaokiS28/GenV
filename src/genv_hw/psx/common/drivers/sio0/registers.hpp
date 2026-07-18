@@ -19,7 +19,7 @@
 
 #include "psx/common/registers.hpp"
 #include <cstdint>
-namespace PSX::IO::SIO
+namespace PS1::IO::SIO
 {
     enum StatusFlag : uint16_t
     {
@@ -105,4 +105,4 @@ namespace PSX::IO::SIO
     {
         return *reinterpret_cast<volatile uint16_t *>((IO_BASE | 0x04E) + (16 * n));
     }
-} // namespace PSX::IO::SIO
+} // namespace PS1::IO::SIO

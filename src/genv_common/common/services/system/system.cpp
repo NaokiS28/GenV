@@ -87,9 +87,8 @@ namespace System
 
     //! Review
     // Allocate a screen for a video driver: take the next free slot, default its name
-    // from the DISPLAY table when the driver didn't specify one, mint + own the Screen
-    // and hand it back. Screens are stored index-keyed in s_screens (System owns their
-    // lifecycle). Returns nullptr if the backing list can't grow.
+    // from the DISPLAY table when the driver didn't specify one.
+    // Returns nullptr if the backing list can't grow.
     Video::Screen *BaseSystem::assignScreen(System::IVideoDriver *driver, const Video::ScreenConfig &cfg)
     {
         size_t slot      = s_screens.length();
@@ -103,6 +102,20 @@ namespace System
         return s;
     }
     //! End
+
+    Video::Screen *BaseSystem::registerScreen(System::IVideoDriver *driver, Video::Screen *screen)
+    {
+        size_t slot = s_screens.length();
+        if (!screen->getName())
+        {
+            auto name = (slot < Video::kMaxDisplays ? Video::GV_DISPLAY_NAME(slot) : "DISPLAY");
+            screen->setName(adminKey, name);
+        }
+        // PointerList auto-expands; append only fails on allocation failure (OOM), at
+        // which point the system is already dead, so no cleanup path is worthwhile.
+        s_screens.append(screen);
+        return screen;
+    }
 
     int BaseSystem::initCore()
     {

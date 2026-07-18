@@ -21,21 +21,21 @@
 #include "common/vendor/vendor.h"
 #include "common/objects/texture/missingtex.h"
 
-namespace PSX::GPU
+namespace PS1::GPU
 {
-    PSXTextureObject::PSXTextureObject(util::Hash objectID) : Textures::TextureObject(objectID)
+    PS1TextureObject::PS1TextureObject(util::Hash objectID) : Textures::TextureObject(objectID)
     {
-        setObjectType(GENV_PSX_TEXTURE_TYPE_NAME);
+        setObjectType(GENV_PS1_TEXTURE_TYPE_NAME);
     }
 
-    PSXTextureObject::~PSXTextureObject()
+    PS1TextureObject::~PS1TextureObject()
     {
         size_t temp = 0;
-        if (getParam(PSXFONT_PALETTE_PTR, temp))
+        if (getParam(PS1FONT_PALETTE_PTR, temp))
         {
             FontColorTable *fcTable = (FontColorTable *)temp;
             delete fcTable;
-            deleteParam(PSXFONT_PALETTE_PTR);
+            deleteParam(PS1FONT_PALETTE_PTR);
         }
     }
-} // namespace PSX::GPU
+} // namespace PS1::GPU

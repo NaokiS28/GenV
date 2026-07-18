@@ -19,7 +19,7 @@
 #include "common/services/system/arcade/iface_arcade.hpp"
 #include "common/services/system/iface_system.hpp"
 
-#if defined(GENV_PSX)
+#if defined(GENV_PS1)
 #if defined(GENV_SYS573)
 #include "psx/sys573/system.hpp"
 #include "common/services/services.hpp"
@@ -43,7 +43,7 @@ namespace System
 {
     ISystem *makeNewSystem(ServiceManager &services)
     {
-        PSX::PSXSystem *system = new PSX::PSXSystem(services);
+        PS1::PS1System *system = new PS1::PS1System(services);
         return system;
     }
     IArcadeSystem *getArcadeInterface()

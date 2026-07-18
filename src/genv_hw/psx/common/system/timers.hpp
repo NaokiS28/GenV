@@ -23,7 +23,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-namespace PSX
+namespace PS1
 {
     constexpr int TimerMStoClock(int ms, int div)
     {
@@ -110,4 +110,4 @@ namespace PSX
         };
     } // namespace Timer2
 
-} // namespace PSX
+} // namespace PS1

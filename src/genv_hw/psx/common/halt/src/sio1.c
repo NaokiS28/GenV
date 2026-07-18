@@ -15,7 +15,7 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Self-contained terminal interface library for PSX. Reinits the SIO1 port 
+// Self-contained terminal interface library for PS1. Reinits the SIO1 port
 // Assumes all prior execution context is invalid - no dependencies on the rest of GenV.
 
 #include <stdint.h>
@@ -24,16 +24,17 @@
 #include "sio1.h"
 #include "ps1/registers.h"
 
-#define SIO1_TICKS_PER_REFRESH 1000 // On the PSX this doesn't matter, but on watchdog'd devices, this might need changing
+#define SIO1_TICKS_PER_REFRESH 1000 // On the PS1 this doesn't matter, but on watchdog'd devices, this might need changing
 static int _sio1_tick_count = 0;
 
 static void _halt_psx_sio1_tick()
 {
     _sio1_tick_count++;
-        if(_sio1_tick_count >= SIO1_TICKS_PER_REFRESH){
-            if(halt_console_psx_sio1.driver_update_cb) halt_console_psx_sio1.driver_update_cb();
-            _sio1_tick_count = 0;
-        }
+    if (_sio1_tick_count >= SIO1_TICKS_PER_REFRESH)
+    {
+        if (halt_console_psx_sio1.driver_update_cb) halt_console_psx_sio1.driver_update_cb();
+        _sio1_tick_count = 0;
+    }
 }
 
 static int halt_psx_sio1_init(int baud)
@@ -48,16 +49,17 @@ static int halt_psx_sio1_init(int baud)
 
 static void halt_psx_sio1_putchar(const char c)
 {
-    if(c == '\n') halt_psx_sio1_putchar('\r');
+    if (c == '\n') halt_psx_sio1_putchar('\r');
     _halt_psx_sio1_tick();
-    while(!(SIO_STAT(1) & SIO_STAT_TX_NOT_FULL))
+    while (!(SIO_STAT(1) & SIO_STAT_TX_NOT_FULL))
         _halt_psx_sio1_tick();
     SIO_DATA(1) = c;
 }
 
 static void halt_psx_sio1_puts(const char *str)
 {
-    while(*str){
+    while (*str)
+    {
         halt_psx_sio1_putchar(*str);
         str++;
     }
@@ -82,12 +84,10 @@ static void halt_psx_sio1_null_c(const char arg)
 
 HSConsole halt_console_psx_sio1 = {
     .init_driver = &halt_psx_sio1_init,
-    .puts = &halt_psx_sio1_puts,
-    .putchar = &halt_psx_sio1_putchar
-};
+    .puts        = &halt_psx_sio1_puts,
+    .putchar     = &halt_psx_sio1_putchar};
 
 HSConsole halt_console_psx_null = {
     .init_driver = &halt_psx_sio1_null_i,
-    .puts = &halt_psx_sio1_null_cs,
-    .putchar = &halt_psx_sio1_null_c
-};
+    .puts        = &halt_psx_sio1_null_cs,
+    .putchar     = &halt_psx_sio1_null_c};

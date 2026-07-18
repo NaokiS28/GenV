@@ -15,13 +15,13 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Self-contained halt screen library for PSX. Resets the GPU and renders an
+// Self-contained halt screen library for PS1. Resets the GPU and renders an
 // error message using a built-in font spritesheet. Assumes all prior execution
 // context is invalid - no dependencies on the rest of GenV.
 
 #pragma once
-#ifndef GENV_PSX_HALT_H
-#define GENV_PSX_HALT_H
+#ifndef GENV_PS1_HALT_H
+#define GENV_PS1_HALT_H
 
 #include <stdint.h>
 
@@ -49,25 +49,25 @@ extern "C"
         uint8_t r;
         uint8_t g;
         uint8_t b;
-        uint8_t attr;   // Not used
+        uint8_t attr; // Not used
 
     } HaltColor;
 
     typedef struct HSConsole
     {
-        int  (*const init_driver)(int baud);    // Called by Halt Screen when starting, Data is always 8N1
-        void (*driver_update_cb)();             // Set by Halt Screen, driver should call this at minimum every 10ms
-        void (*const puts)(const char *str);    // Print string function for Halt Screen
-        void (*const putchar)(const char c);    // Print char function for Halt Screen
-        void (*const end_driver)();             // Called by Halt Screen when closing
+        int (*const init_driver)(int baud);  // Called by Halt Screen when starting, Data is always 8N1
+        void (*driver_update_cb)();          // Set by Halt Screen, driver should call this at minimum every 10ms
+        void (*const puts)(const char *str); // Print string function for Halt Screen
+        void (*const putchar)(const char c); // Print char function for Halt Screen
+        void (*const end_driver)();          // Called by Halt Screen when closing
     } HSConsole;
 
     typedef struct HSDriver
     {
-        char id[8];                     // 7 Character ID - Not currently used
-        int (*const init_driver)();     // Called by Halt Screen when starting
-        void (*const update_driver)();  // Called by Halt Screen (or console) during update pass
-        void (*const end_driver)();     // Called by Halt Screen when closing
+        char id[8];                    // 7 Character ID - Not currently used
+        int (*const init_driver)();    // Called by Halt Screen when starting
+        void (*const update_driver)(); // Called by Halt Screen (or console) during update pass
+        void (*const end_driver)();    // Called by Halt Screen when closing
     } HSDriver;
 
     typedef enum HSDriverError : int
@@ -79,10 +79,10 @@ extern "C"
 
     typedef struct HSExtension
     {
-        void (*const init_halt)(HSDriver **list);   // Called by Halt Screen when starting
-        void (*const show_halt)(HaltScreenFont *font, uint16_t x, uint16_t y, uint16_t w, uint16_t h);  // Called by Halt Screen when drawing
-        void (*const exit_halt)(HaltScreenFont *font, uint16_t x, uint16_t y, uint16_t w, uint16_t h);  // Called by Halt Screen when closing
-        void (*cb_exit)(); // This is provided by the main haltscreen to allow the extension to exit.
+        void (*const init_halt)(HSDriver **list);                                                      // Called by Halt Screen when starting
+        void (*const show_halt)(HaltScreenFont *font, uint16_t x, uint16_t y, uint16_t w, uint16_t h); // Called by Halt Screen when drawing
+        void (*const exit_halt)(HaltScreenFont *font, uint16_t x, uint16_t y, uint16_t w, uint16_t h); // Called by Halt Screen when closing
+        void (*cb_exit)();                                                                             // This is provided by the main haltscreen to allow the extension to exit.
     } HSExtension;
 
     typedef enum HSExtensionError : int
@@ -110,12 +110,12 @@ extern "C"
     // Tells GenV's haltscreen what baud rate to use. Format is always 8N1
     void genv_halt_set_console_baud(int baud);
 
-    #define GENV_HALT_TEXT_DETAIL_LEN 1024
-    #define GENV_HALT_TEXT_TITLE_LEN 64
-    #define GENV_HALT_TEXT_SHORT_LEN 128
+#define GENV_HALT_TEXT_DETAIL_LEN 1024
+#define GENV_HALT_TEXT_TITLE_LEN 64
+#define GENV_HALT_TEXT_SHORT_LEN 128
     extern char genv_halt_text_detail[]; // Detailed info
-    extern char genv_halt_text_title[]; // Short reason string - Divide by 0, etc.
-    extern char genv_halt_text_short[]; // Short info
+    extern char genv_halt_text_title[];  // Short reason string - Divide by 0, etc.
+    extern char genv_halt_text_short[];  // Short info
 
 #ifdef __cplusplus
 }

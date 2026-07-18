@@ -34,8 +34,8 @@
 
 namespace System573
 {
-    using namespace PSX;
-    Sys573System::Sys573System() : BasePSXSystem()
+    using namespace PS1;
+    Sys573System::Sys573System(ServiceManager &services) : BasePS1System(services)
     {
     }
 
@@ -48,7 +48,7 @@ namespace System573
 
     int Sys573System::initCore()
     {
-        BasePSXSystem::initCore();
+        BasePS1System::initCore();
 
         // Enable PIO/573 read/writing with delay slots. These are based on Konami's values
         // This needs to be done first else the RTC is inacessible - In theory already setup, but just in case.
@@ -100,10 +100,9 @@ namespace System573
     int Sys573System::initVideo()
     {
         int error = 0;
-        gpu       = new GPU::PSXGPU(GP1_VRAM_1MB);
-        error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
-        if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
-        if (!error) services.setVideo(adminKey, gpu);
+        gpu       = new GPU::PS1GPU(*this, GP1_VRAM_1MB);
+        error     = ioTest(gpu, PS1_GPU_STR, PS1_CREATE_STR);
+        if (!error) ioTest(gpu->init(), PS1_GPU_STR, PS1_INIT_STR);
         tickWatchdog();
         return error;
     }
@@ -121,15 +120,15 @@ namespace System573
         int port = 1;
         for (auto &mc : mcDriver)
         {
-            int mcError = ioTest(mc.init(), PSX_MEMORY_CARD_STR, port, PSX_INIT_STR);
+            int mcError = ioTest(mc.init(), PS1_MEMORY_CARD_STR, port, PS1_INIT_STR);
             if (!mcError) registerDriver(&mc);
         }
 
 #ifndef NDEBUG
         // int pcError = 0;
-        // pcDriver = new Storage::PSX_PCDrive();
-        // pcError = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
-        // if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
+        // pcDriver = new Storage::PS1_PCDrive();
+        // pcError = ioTest(pcDriver, PS1_PC_DRIVE_STR, PS1_CREATE_STR);
+        // if (!pcError) pcError = ioTest(pcDriver->init(), PS1_PC_DRIVE_STR, PS1_INIT_STR);
         // if (!pcError) services.registerStorageDriver(pcDriver);
 #endif
         return GV_OK;
@@ -137,7 +136,7 @@ namespace System573
 
     int Sys573System::initIO()
     {
-        BasePSXSystem::initIO();
+        BasePS1System::initIO();
         registerDriver(&m_jamma);
         registerDriver(&m_jvs);
         return GV_OK;

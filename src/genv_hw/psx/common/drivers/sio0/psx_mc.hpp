@@ -30,9 +30,9 @@
 
 // TODO: Implement memory card as a virtual file system complete with directory listing.
 
-namespace PSX::IO
+namespace PS1::IO
 {
-    class PSX_MemoryCard : public Files::IStorageDriver, public ::System::IDriver
+    class PS1_MemoryCard : public Files::IStorageDriver, public ::System::IDriver
     {
     private:
         SIO0_Bus *m_bus;
@@ -40,10 +40,10 @@ namespace PSX::IO
         const SIO0_Port _portNumber;
 
     public:
-        inline PSX_MemoryCard(::System::ISystem &sys, SIO0_Bus *bus, SIO0_Port port) : ::System::IDriver(sys), m_bus(bus), _portNumber(port)
+        inline PS1_MemoryCard(::System::ISystem &sys, SIO0_Bus *bus, SIO0_Port port) : ::System::IDriver(sys), m_bus(bus), _portNumber(port)
         {
             assert(driverCount < 2);
-            name = PSX_PS_MEMCARD_STR;
+            name = PS1_PS_MEMCARD_STR;
         };
 
         int init() override
@@ -75,4 +75,4 @@ namespace PSX::IO
         // Gets a list of drives present in the system and returns the total count.
         int getDriveList(Files::IStorageDevice *list, uint8_t &count);
     };
-} // namespace PSX::IO
+} // namespace PS1::IO

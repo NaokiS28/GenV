@@ -30,27 +30,31 @@
 #include "common/util/rect.hpp"
 #include "common/objects/font.hpp"
 #include "common/services/services.hpp"
-#include "common/services/system/iface_videodrv.hpp"
+#include "common/services/video/basevideo.hpp"
 
-namespace PSX
+/*
+
+*/
+
+namespace PS1
 {
-    class BasePSXSystem;
+    class BasePS1System;
 }
 
-namespace PSX::GPU
+namespace PS1::GPU
 {
     using namespace Video;
 
     uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t w, uint16_t h, uint16_t r = 60);
 
-    class PSXGPU : public System::IVideoDriver
+    class PS1GPU : public Video::BaseVideoDriver
     {
-        friend class PSX::BasePSXSystem;
+        friend class PS1::BasePS1System;
 
     protected:
         typedef struct DMAChain
         {
-            uint32_t data[iPSXDMAListSize] = {gp0_endTag(0)};
+            uint32_t data[iPS1DMAListSize] = {gp0_endTag(0)};
             uint32_t *nextPacket           = nullptr;
         } DMAChain;
 
@@ -58,6 +62,7 @@ namespace PSX::GPU
         uint16_t dmaPtrIdx    = 0;
         DMAChain dmaChains[2];
 
+        Screen _screen;
         VideoResolution _res;
 
         GP1VRAMSize vramSize = GP1_VRAM_1MB;
@@ -92,12 +97,12 @@ namespace PSX::GPU
         void _enableDMA(bool state);
 
         void _sendVRAMData(const void *data, int length, RectWH);
-        int _uploadPalette(PSXTextureObject *ptObj);
+        int _uploadPalette(PS1TextureObject *ptObj);
 
     public:
-        PSXGPU(System::ISystem &sys);
-        PSXGPU(System::ISystem &sys, GP1VRAMSize vram_size);
-        ~PSXGPU() override = default;
+        PS1GPU(System::ISystem &sys);
+        PS1GPU(System::ISystem &sys, GP1VRAMSize vram_size);
+        ~PS1GPU() override = default;
 
         int init() override;
         bool reset() override
@@ -114,22 +119,26 @@ namespace PSX::GPU
         bool waitingForVSync() override;
         void doWaitForVSync() override;
 
-        const VESA::VideoModeList *getSupportedResolutions(Video::Screen &screen) override { return &PSX_Video_Modes; }
+        const VESA::VideoModeList *getSupportedResolutions(Video::Screen &screen) override { return &PS1_Video_Modes; }
 
         // PS1 buffers to DMA must be aligned to the chunk size and be null terminated
         inline size_t getBufferSize(size_t length) override
         {
-            constexpr const int DMABytesPerChunk = (bPSXDMAChunkSize * sizeof(uint32_t)) - 1;
+            constexpr const int DMABytesPerChunk = (bPS1DMAChunkSize * sizeof(uint32_t)) - 1;
             return (length + DMABytesPerChunk) & ~DMABytesPerChunk;
         }
         GraphicsData allocate(size_t length) override;
 
         const VideoModeList *getSupportedResolutions()
         {
-            return &PSX_Video_Modes;
+            return &PS1_Video_Modes;
         }
 
-        int setResolution(Screen &screen, VESA::VideoResolution &newMode, int w, int h, bool updateWindow = true) override;
+        inline int setResolution(Screen &screen, VideoResolution mode, bool updateWindow = true) override
+        {
+            return setResolution(screen, mode.width, mode.height, updateWindow);
+        }
+        int setResolution(Screen &screen, int w, int h, bool updateWindow = true) override;
         bool setFullscreen(Screen &screen, System::FullscreenMode mode, int w = 0, int h = 0) override
         {
             return false;
@@ -187,4 +196,4 @@ namespace PSX::GPU
             return 0;
         }
     };
-} // namespace PSX::GPU
+} // namespace PS1::GPU

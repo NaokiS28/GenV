@@ -24,7 +24,7 @@ target_sources(genv_hw_psx PUBLIC
 
 target_compile_definitions(
 	genv_hw_psx PRIVATE
-	GENV_PSX_VRAM_SIZE=1	# I know this is a problem as the 573 overwrites it or tries to.
+	GENV_PS1_VRAM_SIZE=1	# I know this is a problem as the 573 overwrites it or tries to.
 )
 
 target_include_directories(

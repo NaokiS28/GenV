@@ -27,12 +27,12 @@
 #include "psx/common/drivers/sio0/psx_pads.hpp"
 #include "psx_sio0.hpp"
 
-namespace PSX
+namespace PS1
 {
-    class PSXSystem;
+    class PS1System;
 }
 
-namespace PSX::IO
+namespace PS1::IO
 {
     using namespace ::Input;
 
@@ -74,11 +74,11 @@ namespace PSX::IO
         }
     };
 
-    enum PSX_Joypad_Init_Sequence : uint8_t
+    enum PS1_Joypad_Init_Sequence : uint8_t
     {
     };
 
-    class PSX_Joypad : public ::System::IDriver
+    class PS1_Joypad : public ::System::IDriver
     {
     private:
         SIO0_Bus *m_bus;
@@ -86,7 +86,7 @@ namespace PSX::IO
 
         const SIO0_Port m_portNumber;
 
-        struct PSX_PadData
+        struct PS1_PadData
         {
             uint32_t digital         = 0;
             int16_t analog[10]       = {0};
@@ -104,17 +104,17 @@ namespace PSX::IO
         int m_setDualshock(bool state = true, uint8_t subport = 0);
         int m_setDS2Analog(uint32_t bitmask = 0x3FFFF, uint8_t subport = 0);
 
-        void m_padChange(PSX_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport);
-        void m_padDisconnect(PSX_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport);
+        void m_padChange(PS1_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport);
+        void m_padDisconnect(PS1_PadData &pad, const ControllerReadResponse &resp, const Multitap_Port subport);
 
         void m_processPackets();
 
     public:
-        inline PSX_Joypad(::System::ISystem &sys, SIO0_Bus *bus, SIO0_Port port)
+        inline PS1_Joypad(::System::ISystem &sys, SIO0_Bus *bus, SIO0_Port port)
             : ::System::IDriver(sys), m_bus(bus), m_portNumber(port)
         {
             assert(m_driverCount < 2);
-            _name = PSX_PS_CONTROLLER_STR;
+            _name = PS1_PS_CONTROLLER_STR;
         };
 
         int poll(ControllerReadResponse &resp, Multitap_Port subport);
@@ -126,5 +126,5 @@ namespace PSX::IO
         {
             reset();
         }
-    }; // namespace PSX::IO
-} // namespace PSX::IO
+    }; // namespace PS1::IO
+} // namespace PS1::IO

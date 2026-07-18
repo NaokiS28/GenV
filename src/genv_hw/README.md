@@ -23,7 +23,7 @@ GenV Status:
         </td>
     </tr>
 	<tr>
-        <td> PSX Based </td>
+        <td> PS1 Based </td>
         <td>
             <table>
                 <tr>

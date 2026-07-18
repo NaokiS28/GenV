@@ -1,7 +1,7 @@
 # Sony PlayStation Based Cores
 
 This folder contains the abstraction interfaces for platforms based on the Sony PlayStation released in 1995.
-The Sony PlayStation (herein reffered to by the names of PS1 or PSX in subsequent documents) has the following technical specs:
+The Sony PlayStation (herein reffered to by the names of PS1 or PS1 in subsequent documents) has the following technical specs:
 
 * CPU: MIPS R3000A-compatible 32-bit RISC CPU MIPS R3051 with 5 KB L1 cache @ 33.8688 MHz
   * 2MB EDO Work RAM

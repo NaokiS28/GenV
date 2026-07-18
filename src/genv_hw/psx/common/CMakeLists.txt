@@ -15,7 +15,7 @@
 
 add_subdirectory(halt)
 
-## PSX Core Library
+## PS1 Core Library
 add_library(genv_psx_core STATIC)
 target_sources(genv_psx_core PUBLIC
     system.cpp

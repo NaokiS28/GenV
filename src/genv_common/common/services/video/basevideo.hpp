@@ -1,6 +1,6 @@
 /*
- * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * vendor_conf.h - Created on 09-06-2025
+ * GenV - Copyright (C) 2025 - 2026 NaokiS, spicyjpeg
+ * basevideo.hpp - Created on 18-07-2026
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -16,12 +16,22 @@
  */
 
 #pragma once
+#include <stdint.h>
 
-#define LODEPNG_NO_COMPILE_DISK
-#define LODEPNG_NO_COMPILE_CPP
-#define LODEPNG_NO_COMPILE_ENCODER
+#include "common/services/system/iface_videodrv.hpp"
+#include "common/services/video/screen.hpp"
+#include "common/services/video/vesa.hpp"
 
-#ifdef GENV_PS1
-#define GIFN_NO_STDIO
+namespace Video
+{
+    class BaseVideoDriver : public System::IVideoDriver
+    {
+    protected:
+        int setScreenConfig(Screen &screen, ScreenConfig &config);
+        int setScreenResolution(Screen &screen, VideoResolution mode);
 
-#endif
+    public:
+        BaseVideoDriver(System::ISystem &sys) : System::IVideoDriver(sys) {}
+        ~BaseVideoDriver() = default;
+    };
+} // namespace Video

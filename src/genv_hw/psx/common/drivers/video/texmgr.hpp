@@ -30,7 +30,7 @@
 
 #define TM_ERROR(code) GV_ERROR(GV_SERVICE_VIDEO, GV_CATEGORY_GENERIC, code)
 
-namespace PSX::GPU
+namespace PS1::GPU
 {
 
     /*
@@ -264,17 +264,17 @@ namespace PSX::GPU
         int markFrameBuffer(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h);
 
         // Allocate space in the texture page for a CLUT
-        inline int allocateCLUT(PSXTextureObject *ptObj)
+        inline int allocateCLUT(PS1TextureObject *ptObj)
         {
             return allocateCLUT(ptObj->bpp, ptObj->clutX, ptObj->clutY);
         };
         int allocateCLUT(uint8_t bpp, uint16_t &x, uint16_t &y);
 
         // Allocate space in the texture page for a texture
-        int allocateTexture(PSXTextureObject *ptObj);
+        int allocateTexture(PS1TextureObject *ptObj);
 
         // Deallocates space reserved for a texture and CLUT (if used)
-        int deallocateTexture(PSXTextureObject *ptObj);
+        int deallocateTexture(PS1TextureObject *ptObj);
 
         // Deallocates ALL VRAM
         inline void clearAll(void)
@@ -282,4 +282,4 @@ namespace PSX::GPU
             _vramBitmap.clear_all();
         }
     };
-} // namespace PSX::GPU
+} // namespace PS1::GPU

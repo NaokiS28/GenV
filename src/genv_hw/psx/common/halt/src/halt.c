@@ -474,7 +474,7 @@ static void _genv_halt_update_drivers()
             _driver_list[i]->update_driver();
 }
 
-#define HALT_TICKS_PER_REFRESH 1000 // On the PSX this doesn't matter, but on watchdog'd devices, this might need changing
+#define HALT_TICKS_PER_REFRESH 1000 // On the PS1 this doesn't matter, but on watchdog'd devices, this might need changing
 static int _halt_wait_tick_count = 0;
 
 static void _genv_halt_wait_loop()

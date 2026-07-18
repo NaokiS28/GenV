@@ -14,7 +14,7 @@
 		{
 			"type": "gdb",
 			"request": "attach",
-			"name": "GenV (PSX-gdb)",
+			"name": "GenV (PS1-gdb)",
 			"target": "localhost:3333",
 			"remote": true,
 			"stopAtConnect": true,
@@ -58,7 +58,7 @@
 			"valuesFormatting": "parseText"
 		},
 		{
-			"name": "PyTerm (PSX)",
+			"name": "PyTerm (PS1)",
 			"type": "debugpy",
 			"request": "launch",
 			"program": "${workspaceFolder}/scripts/pyterm.py",
@@ -96,14 +96,14 @@
 	],
 	"compounds": [
 		{
-			"name": "GenV-PSX + PyTerm",
+			"name": "GenV-PS1 + PyTerm",
 			"configurations": [
-				"GenV (PSX-gdb)",
-				"PyTerm (PSX)"
+				"GenV (PS1-gdb)",
+				"PyTerm (PS1)"
 			],
 			"presentation": {
 				"hidden": false,
-				"group": "PSX",
+				"group": "PS1",
 				"order": 1
 			},
 			"preLaunchTask": "CMake: build",
@@ -113,11 +113,11 @@
 			"name": "GenV-573 + PyTerm",
 			"configurations": [
 				"GenV (573-gdb)",
-				"PyTerm (PSX)"
+				"PyTerm (PS1)"
 			],
 			"presentation": {
 				"hidden": false,
-				"group": "PSX",
+				"group": "PS1",
 				"order": 1
 			},
 			"preLaunchTask": "CMake: build",

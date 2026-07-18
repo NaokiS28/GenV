@@ -19,7 +19,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-namespace PSX::IO::PCDrive
+namespace PS1::IO::PCDrive
 {
     enum OpenMode : uint8_t
     {
@@ -69,4 +69,4 @@ namespace PSX::IO::PCDrive
     int FindFirst(const char *path, DirectoryEntry *entry);
     int FindNext(int fd, DirectoryEntry *entry);
     int Rename(const char *path, const char *newPath);
-} // namespace PSX::IO::PCDrive
+} // namespace PS1::IO::PCDrive
