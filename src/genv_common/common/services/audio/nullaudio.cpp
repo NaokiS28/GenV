@@ -16,10 +16,11 @@
  */
 
 #include "nullaudio.hpp"
+#include "common/services/audio/baseaudio.hpp"
 
 namespace Audio
 {
-    NullAudio::NullAudio(System::ISystem &sys) : IAudioDriver(sys) {}
+    NullAudio::NullAudio(System::ISystem &sys) : BaseAudioDriver(sys) {}
     NullAudio::~NullAudio() {}
     int NullAudio::init()
     {
