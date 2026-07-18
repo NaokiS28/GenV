@@ -24,7 +24,7 @@ target_sources(genv_hw_sys573 PRIVATE
 
 target_compile_definitions(
 	genv_hw_sys573 PRIVATE
-	GENV_PSX_VRAM_SIZE=2
+	GENV_PS1_VRAM_SIZE=2
 )
 
 target_include_directories(

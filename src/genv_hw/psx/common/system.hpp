@@ -33,16 +33,16 @@
 #include "drivers/sio0/psx_mc.hpp"
 #include "drivers/sio0/psx_sio0.hpp"
 
-namespace PSX
+namespace PS1
 {
     enum
     {
-        PSX_SYS_OK,
-        PSX_SYS_VIDEO_INIT_FAIL,
-        PSX_SYS_SOUND_INIT_FAIL,
-        PSX_SYS_CDROM_INIT_FAIL,
-        PSX_SYS_FILE_INIT_FAIL,
-        PSX_SYS_IO_INIT_FAIL,
+        PS1_SYS_OK,
+        PS1_SYS_VIDEO_INIT_FAIL,
+        PS1_SYS_SOUND_INIT_FAIL,
+        PS1_SYS_CDROM_INIT_FAIL,
+        PS1_SYS_FILE_INIT_FAIL,
+        PS1_SYS_IO_INIT_FAIL,
     };
 
     constexpr int maxRegisteredISRs = 5;
@@ -66,7 +66,7 @@ namespace PSX
     int ioTest(int returnVal, const char *device, int port, const char *string);
 
     /*
-     * PSX System base class
+     * PS1 System base class
      * This system implements the code neccesary to run GenV on a PlayStation 1.
      * Any system that is based on the PlayStation 1 can be derrived from this
      * class, where the Audio, Video, Input and File storage modules can be changed
@@ -78,7 +78,7 @@ namespace PSX
      * and GPU are the same, but the audio, input and files system change (audio is
      * expanded upon with the Digital Sound IO board)
      */
-    class BasePSXSystem : public System::BaseSystem
+    class BasePS1System : public System::BaseSystem
     {
     protected:
         Time::IRTC *clock; // Pointer so can be overidden
@@ -113,20 +113,15 @@ namespace PSX
             .flags = System::SYS_No_Window_Mode};
 
         // Pointers to control the life cycle of items. TODO: Do these strictly *need* to be pointers?
-        GPU::PSXGPU *gpu = nullptr; // GPU probably needs to stay as pointer for V0/V2 GPU differences
-        //! Review
-        // Drivers take their owning system by reference (IDriver). *this is the
-        // BasePSXSystem under construction (an ISystem); drivers only store the
-        // reference at construction (never call into it), so *this here is safe.
+        GPU::PS1GPU *gpu = nullptr; // GPU probably needs to stay as pointer for V0/V2 GPU differences
         IO::SIO0_Bus sio0{*this};
-        IO::PSX_Joypad joyDriver[2]    = {{*this, &sio0, IO::SIO0_Port::PORT1}, {*this, &sio0, IO::SIO0_Port::PORT2}}; // <-| These are part of the CPU and thus can always be "present"
-        IO::PSX_MemoryCard mcDriver[2] = {{*this, &sio0, IO::SIO0_Port::PORT1}, {*this, &sio0, IO::SIO0_Port::PORT2}}; // <-/
-        //! End
+        IO::PS1_Joypad joyDriver[2]    = {{*this, &sio0, IO::SIO0_Port::PORT1}, {*this, &sio0, IO::SIO0_Port::PORT2}}; // <-| These are part of the CPU and thus can always be "present"
+        IO::PS1_MemoryCard mcDriver[2] = {{*this, &sio0, IO::SIO0_Port::PORT1}, {*this, &sio0, IO::SIO0_Port::PORT2}}; // <-/
         // IO::SIO1_Bus sio1;	// Always part of the CPU
 
     public:
-        BasePSXSystem(ServiceManager &services);
-        virtual ~BasePSXSystem();
+        BasePS1System(ServiceManager &services);
+        virtual ~BasePS1System();
 
         virtual int initCore() override;
         virtual int initVideo() override;
@@ -149,7 +144,7 @@ namespace PSX
             constexpr int tdiv  = 21168;
             static_assert(((Timer2::ClockFreq * tmult) / tdiv) == 1000, "");
 
-            return (uint64_t(::PSX::Timer2::Value | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
+            return (uint64_t(::PS1::Timer2::Value | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
         }
 
         size_t micros() override
@@ -159,7 +154,7 @@ namespace PSX
             constexpr int tdiv  = 2646;
             static_assert(((uint64_t(Timer2::ClockFreq) * tmult) / tdiv) == 1000000, "");
 
-            return (uint64_t(::PSX::Timer2::Value | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
+            return (uint64_t(::PS1::Timer2::Value | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
         }
 
         bool getTime(tm &time) override
@@ -191,4 +186,4 @@ namespace PSX
         IRQChannel registerISR(System::Callback callback, IRQChannel irq, bool autoAck = true);
     };
 
-} // namespace PSX
+} // namespace PS1

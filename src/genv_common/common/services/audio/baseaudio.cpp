@@ -1,6 +1,6 @@
 /*
- * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * vendor_conf.h - Created on 09-06-2025
+ * GenV - Copyright (C) 2025 - 2026 NaokiS, spicyjpeg
+ * baseaudio.cpp - Created on 18-07-2026
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,13 +15,10 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "baseaudio.hpp"
+#include "common/return_codes.hpp"
 
-#define LODEPNG_NO_COMPILE_DISK
-#define LODEPNG_NO_COMPILE_CPP
-#define LODEPNG_NO_COMPILE_ENCODER
+namespace audio
+{
 
-#ifdef GENV_PS1
-#define GIFN_NO_STDIO
-
-#endif
+} // namespace audio

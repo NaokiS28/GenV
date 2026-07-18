@@ -45,7 +45,7 @@ Click on a system or category to learn more about their current status within Ge
 		 <td> <img src="https://img.shields.io/badge/Unimplemented-darkred?style=for-the-badge"> </td>
 	</tr>
 	<tr>
-		<td rowspan=3> <a href="src/genv_hw/psx/">PSX Based</a> </td>
+		<td rowspan=3> <a href="src/genv_hw/psx/">PS1 Based</a> </td>
 		<td> <a href="src/genv_hw/psx/common/README.md">Core:</a> </td>
 		<td> <img src="https://img.shields.io/badge/Preliminary-red?style=for-the-badge"> 
 	</tr>
@@ -99,7 +99,7 @@ This project has come about from the desire to dive into the world of game devel
 * [The Ultimate DirectX Tutorial by Chris 'dastopher'](http://www.directxtutorial.com/LessonList.aspx?listid=9)
 * spicyjpeg - [ps1-bare-metal](https://github.com/spicyjpeg/ps1-bare-metal), [573in1](https://github.com/spicyjpeg/573in1)
 * [psx-spx](https://psx-spx.consoledev.net/)
-* [PSX.Dev Discord](https://discord.gg/QByKPpH)
+* [PS1.Dev Discord](https://discord.gg/QByKPpH)
 
 ## Notice of Non-Affiliation and Disclaimer
 GenV and this core is not in any way affiliated, associated, authorized, endorsed by, or in any way officially connected with the following companies or any of its subsidiaries or its affiliates. All names as well as related names, marks, emblems and images are registered trademarks of their respective owners.

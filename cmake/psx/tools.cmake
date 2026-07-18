@@ -80,25 +80,25 @@ function(convertImage input bpp)
 endfunction()
 
 # Let CMake locate psxavenc automatically (or rely on the user overriding it by
-# passing -DPSXAVENC_PATH=...) and define a helper function to encode audio
+# passing -DPS1AVENC_PATH=...) and define a helper function to encode audio
 # samples if available.
 find_program(
-	PSXAVENC_PATH psxavenc
+	PS1AVENC_PATH psxavenc
 	DOC "Path to psxavenc executable (if not present in PATH)"
 )
 
 function(convertAudioSample input sampleRate output)
-	if("${PSXAVENC_PATH}" STREQUAL "PSXAVENC_PATH-NOTFOUND")
+	if("${PS1AVENC_PATH}" STREQUAL "PS1AVENC_PATH-NOTFOUND")
 		message(FATAL_ERROR "Unable to find psxavenc. Ensure your PATH \
 environment variable includes the full path to the directory containing it, or \
-pass -DPSXAVENC_PATH=... to CMake to specify its location manually.")
+pass -DPS1AVENC_PATH=... to CMake to specify its location manually.")
 	endif()
 
 	add_custom_command(
 		OUTPUT  "${output}"
 		DEPENDS "${PROJECT_SOURCE_DIR}/${input}"
 		COMMAND
-			"${PSXAVENC_PATH}"
+			"${PS1AVENC_PATH}"
 			-t spu
 			-f ${sampleRate}
 			"${PROJECT_SOURCE_DIR}/${input}"

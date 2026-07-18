@@ -63,9 +63,7 @@ namespace System
         Textures::TextureObject *defaultTexture = nullptr;
 
     public:
-        //! Review
         IVideoDriver(ISystem &sys) : IDriver(sys) {}
-        //! End
         virtual ~IVideoDriver() = default;
 
         virtual inline size_t getFrameCount()
@@ -77,9 +75,13 @@ namespace System
         virtual bool endRender(Video::Screen &screen)   = 0;
 
         // NOTE: Would be better to use tuples if possible?
-        virtual const VESA::VideoModeList *getSupportedResolutions(Video::Screen &screen)                                 = 0;
-        virtual int setResolution(Screen &screen, VESA::VideoResolution &newMode, int w, int h, bool updateWindow = true) = 0;
-        virtual bool setFullscreen(Screen &screen, FullscreenMode mode, int w = 0, int h = 0)                             = 0;
+        virtual const VESA::VideoModeList *getSupportedResolutions(Video::Screen &screen) = 0;
+        inline virtual int setResolution(Screen &screen, VESA::VideoResolution mode, bool updateWindow = true)
+        {
+            return setResolution(screen, mode.width, mode.height, updateWindow);
+        }
+        virtual int setResolution(Screen &screen, int w, int h, bool updateWindow = true)     = 0;
+        virtual bool setFullscreen(Screen &screen, FullscreenMode mode, int w = 0, int h = 0) = 0;
 
         virtual bool waitingForVSync() = 0;
         virtual void doWaitForVSync() {}

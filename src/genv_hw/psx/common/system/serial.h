@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef PSX_SIO_H
-#define PSX_SIO_H
+#ifndef PS1_SIO_H
+#define PS1_SIO_H
 #include <stdint.h>
 #include <stddef.h>
 

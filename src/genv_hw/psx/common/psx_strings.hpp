@@ -17,36 +17,36 @@
 
 #pragma once
 
-namespace PSX
+namespace PS1
 {
     constexpr const char szPlaystation[] = "PlayStation";
     constexpr const char szSony[]        = "Sony";
 
     constexpr const char szRedux[] = "Detected host as PCSX-Redux.";
 
-    constexpr const char PSX_IO_ERROR_FMT[]      = "Failed to %s PSX %s driver.";
-    constexpr const char PSX_IO_PORT_ERROR_FMT[] = "Failed to %s PSX %s driver on port %d.";
-    constexpr const char PSX_GPU_STR[]           = "PlayStation GPU";
-    constexpr const char PSX_CDROM_DRIVE_STR[]   = "CD-ROM drive";
-    constexpr const char PSX_PC_DRIVE_STR[]      = "PC drive";
-    constexpr const char PSX_MEMORY_CARD_STR[]   = "memory card";
-    constexpr const char PSX_JOYPAD_STR[]        = "joypad";
-    constexpr const char PSX_CREATE_STR[]        = "create";
-    constexpr const char PSX_INIT_STR[]          = "init";
+    constexpr const char PS1_IO_ERROR_FMT[]      = "Failed to %s PS1 %s driver.";
+    constexpr const char PS1_IO_PORT_ERROR_FMT[] = "Failed to %s PS1 %s driver on port %d.";
+    constexpr const char PS1_GPU_STR[]           = "PlayStation GPU";
+    constexpr const char PS1_CDROM_DRIVE_STR[]   = "CD-ROM drive";
+    constexpr const char PS1_PC_DRIVE_STR[]      = "PC drive";
+    constexpr const char PS1_MEMORY_CARD_STR[]   = "memory card";
+    constexpr const char PS1_JOYPAD_STR[]        = "joypad";
+    constexpr const char PS1_CREATE_STR[]        = "create";
+    constexpr const char PS1_INIT_STR[]          = "init";
 
-    constexpr const char PSX_PS_CONTROLLER_STR[] = "PlayStation Controller";
-    constexpr const char PSX_PS_MEMCARD_STR[]    = "PlayStation Memory Card";
+    constexpr const char PS1_PS_CONTROLLER_STR[] = "PlayStation Controller";
+    constexpr const char PS1_PS_MEMCARD_STR[]    = "PlayStation Memory Card";
 
-    constexpr const char PSX_PLAYSTATION_STR[] = "PlayStation";
-    constexpr const char PSX_DIGITAL_STR[]     = "PlayStation Digital";
-    constexpr const char PSX_ANALOG_STR[]      = "PlayStation Dual Analog/Shock";
-    constexpr const char PSX_MOUSE_STR[]       = "PlayStation Mouse";
-    constexpr const char PSX_TWINSTICK_STR[]   = "PlayStation TwinStick";
-    constexpr const char PSX_GUNCON_STR[]      = "Namco GunCon";
-    constexpr const char PSX_JUSTIFIER_STR[]   = "Konami Justifier";
-    constexpr const char PSX_DUALSHOCK_STR[]   = "PlayStation DualShock";
-    constexpr const char PSX_DUALSHOCK2_STR[]  = "PlayStation DualShock2";
-    constexpr const char PSX_NEGCON_STR[]      = "Namco NegCon";
-    constexpr const char PSX_JOGCON_STR[]      = "Namco JogCon";
+    constexpr const char PS1_PLAYSTATION_STR[] = "PlayStation";
+    constexpr const char PS1_DIGITAL_STR[]     = "PlayStation Digital";
+    constexpr const char PS1_ANALOG_STR[]      = "PlayStation Dual Analog/Shock";
+    constexpr const char PS1_MOUSE_STR[]       = "PlayStation Mouse";
+    constexpr const char PS1_TWINSTICK_STR[]   = "PlayStation TwinStick";
+    constexpr const char PS1_GUNCON_STR[]      = "Namco GunCon";
+    constexpr const char PS1_JUSTIFIER_STR[]   = "Konami Justifier";
+    constexpr const char PS1_DUALSHOCK_STR[]   = "PlayStation DualShock";
+    constexpr const char PS1_DUALSHOCK2_STR[]  = "PlayStation DualShock2";
+    constexpr const char PS1_NEGCON_STR[]      = "Namco NegCon";
+    constexpr const char PS1_JOGCON_STR[]      = "Namco JogCon";
 
-} // namespace PSX
+} // namespace PS1

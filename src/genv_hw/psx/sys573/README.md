@@ -12,7 +12,7 @@ The KONAMI System 573 is an arcade board which is heavily based on the PS1, whic
 GenV Status:
 <table>
 	<tr>
-		<td> PSX Core </td>
+		<td> PS1 Core </td>
 		<td> Please check the <a href="../common/README.md">hardware core README</a> to see for implementation status. </td>
 	</tr>
 	<tr>

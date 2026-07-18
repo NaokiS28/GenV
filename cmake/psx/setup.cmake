@@ -84,7 +84,7 @@ target_link_options(
 
 add_compile_definitions(GENV_NO_FLOAT)
 
-# Copy the PSX clangd config to the workspace root so clangd picks it up.
+# Copy the PS1 clangd config to the workspace root so clangd picks it up.
 file(
     COPY_FILE
     "${CMAKE_CURRENT_LIST_DIR}/../clangd/psx.clangd"

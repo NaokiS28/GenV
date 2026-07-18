@@ -19,6 +19,7 @@
 #include <stdint.h>
 
 #include "common/objects/font.hpp"
+#include "common/services/video/basevideo.hpp"
 #include "common/services/video/color.hpp"
 #include "common/services/system/iface_videodrv.hpp"
 #include "common/util/rect.hpp"
@@ -29,7 +30,7 @@
 
 namespace Video
 {
-    class NullVideo : public System::IVideoDriver
+    class NullVideo : public BaseVideoDriver
     {
 
     public:

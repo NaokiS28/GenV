@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include "registers.hpp"
 
-namespace PSX
+namespace PS1
 {
 
     static constexpr uint32_t DUMMY_BLOCK_OFFSET = 0x1000;
@@ -84,4 +84,4 @@ namespace PSX
         Channel play(uint16_t left, uint16_t right, Channel ch) const;
     };
 
-} // namespace PSX
+} // namespace PS1

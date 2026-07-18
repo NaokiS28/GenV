@@ -20,7 +20,7 @@
 #include "registers.hpp"
 #include "psx/common/system/sys.h"
 
-namespace PSX
+namespace PS1
 {
     using namespace SPU;
 
@@ -212,4 +212,4 @@ namespace PSX
         return ch;
     }
 
-} // namespace PSX
+} // namespace PS1

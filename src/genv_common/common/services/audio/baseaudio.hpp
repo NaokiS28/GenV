@@ -1,6 +1,6 @@
 /*
- * GenV - Copyright (C) 2025 NaokiS, spicyjpeg
- * nullaudio.hpp - Created on 09-08-2025
+ * GenV - Copyright (C) 2025 - 2026 NaokiS, spicyjpeg
+ * baseaudio.hpp - Created on 18-07-2026
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -16,25 +16,17 @@
  */
 
 #pragma once
+#include <stdint.h>
 
-#include "common/services/audio/baseaudio.hpp"
 #include "common/services/system/iface_audiodrv.hpp"
 
 namespace Audio
 {
-    class NullAudio : public BaseAudioDriver
+    class BaseAudioDriver : public System::IAudioDriver
     {
+    protected:
     public:
-        NullAudio(System::ISystem &sys);
-        ~NullAudio();
-        int init() override;
-        bool reset() override;
-        bool update() override;
-        void shutdown() override;
-        bool play(Audio::SoundObject *sObj) override;
-        bool stop(Audio::SoundObject *sObj) override;
-        bool pause(Audio::SoundObject *sObj) override;
-        bool isPlaying(Audio::SoundObject *sObj) override;
-        int uploadSample(Audio::SoundObject *sObj) override;
+        BaseAudioDriver(System::ISystem &sys) : System::IAudioDriver(sys) {}
+        ~BaseAudioDriver() = default;
     };
 } // namespace Audio

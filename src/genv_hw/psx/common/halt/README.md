@@ -27,9 +27,9 @@ And to use them, just place them in the platform's System driver:
 int Sys573System::initVideo()
 {
     int error = 0;
-    gpu       = new GPU::PSXGPU(GP1_VRAM_1MB);
-    error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
-    if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
+    gpu       = new GPU::PS1GPU(GP1_VRAM_1MB);
+    error     = ioTest(gpu, PS1_GPU_STR, PS1_CREATE_STR);
+    if (!error) ioTest(gpu->init(), PS1_GPU_STR, PS1_INIT_STR);
     if (!error) services.setVideo(adminKey, gpu);
     psx_halt_append_func(sys573_halt_delay); // Added here - the watchdog will now be kicked.
     tickWatchdog();

@@ -20,51 +20,46 @@
 #include "psx/common/system.hpp"
 #include "psx/common/psx_strings.hpp"
 
-namespace PSX
+namespace PS1
 {
-    int PSXSystem::initVideo()
+    int PS1System::initVideo()
     {
         int error = 0;
-        //! Review
-        // The GPU driver now allocates its own screen(s) inside init() via
-        // System::assignScreen, so the system just constructs the driver (injecting
-        // itself with *this) and inits it. Screen 0 registration moved into PSXGPU::init().
-        gpu   = new GPU::PSXGPU(*this);
-        error = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
-        if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
-        //! End
+        gpu       = new GPU::PS1GPU(*this);
+        error     = ioTest(gpu, PS1_GPU_STR, PS1_CREATE_STR);
+        if (!error) ioTest(gpu->init(), PS1_GPU_STR, PS1_INIT_STR);
         return error;
     }
 
-    int PSXSystem::initAudio()
+    int PS1System::initAudio()
     {
         /*
         int error = 0;
-        spu       = new Sound::PSXSPU;
-        error     = ioTest(spu, PSX_SPU_STR, PSX_CREATE_STR);
-        if (!error) ioTest(spu->init(), PSX_SPU_STR, PSX_INIT_STR);
+        spu       = new Sound::PS1SPU;
+        error     = ioTest(spu, PS1_SPU_STR, PS1_CREATE_STR);
+        if (!error) ioTest(spu->init(), PS1_SPU_STR, PS1_INIT_STR);
         if (!error) services.setAudio(adminKey, spu);
         */
         return 0;
     }
 
-    int PSXSystem::initStorage()
+    int PS1System::initStorage()
     {
-        BasePSXSystem::initStorage();
+        BasePS1System::initStorage();
         int error = 0; // TODO: How to handle multiple driver failures?
-        cdDriver  = new Storage::PSX_CDROM(*this);
-        error     = ioTest(cdDriver, PSX_CDROM_DRIVE_STR, PSX_CREATE_STR);
-        if (!error) error = ioTest(cdDriver->init(), PSX_CDROM_DRIVE_STR, PSX_INIT_STR);
+        cdDriver  = new Storage::PS1_CDROM(*this);
+        error     = ioTest(cdDriver, PS1_CDROM_DRIVE_STR, PS1_CREATE_STR);
+        if (!error) error = ioTest(cdDriver->init(), PS1_CDROM_DRIVE_STR, PS1_INIT_STR);
         if (!error) registerDriver(cdDriver);
 
 #ifndef NDEBUG
         int pcError = 0;
-        pcDriver    = new Storage::PSX_PCDrive(*this);
-        pcError     = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
-        if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
+        pcDriver    = new Storage::PS1_PCDrive(*this);
+        pcError     = ioTest(pcDriver, PS1_PC_DRIVE_STR, PS1_CREATE_STR);
+        if (!pcError) pcError = ioTest(pcDriver->init(), PS1_PC_DRIVE_STR, PS1_INIT_STR);
         if (!pcError) registerDriver(pcDriver);
 #endif
         return error;
     }
 
-} // namespace PSX
+} // namespace PS1

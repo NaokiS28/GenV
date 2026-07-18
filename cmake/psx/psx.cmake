@@ -1,1 +1,1 @@
-add_definitions(-DGENV_PSX)
+add_definitions(-DGENV_PS1)

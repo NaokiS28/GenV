@@ -15,13 +15,13 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Self-contained terminal interface library for PSX. Reinits the SIO1 port 
+// Self-contained terminal interface library for PS1. Reinits the SIO1 port
 // Assumes all prior execution context is invalid - no dependencies on the rest of GenV.
 
 #pragma once
 
-#ifndef GENV_PSX_SIO0_H
-#define GENV_PSX_SIO0_H
+#ifndef GENV_PS1_SIO0_H
+#define GENV_PS1_SIO0_H
 
 #include <stdint.h>
 #include "halt.h"

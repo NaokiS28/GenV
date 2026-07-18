@@ -21,8 +21,8 @@
 
 // NOTE: 4096 words (16KB per chain, 32KB total for double-buffer). Increased
 // from 1024 to support heavy text rendering (e.g. 8 controllers on screen).
-constexpr const int iPSXDMAListSize      = 4096;
-constexpr const uint8_t bPSXDMAChunkSize = 16;
+constexpr const int iPS1DMAListSize      = 4096;
+constexpr const uint8_t bPS1DMAChunkSize = 16;
 
 /* DMA tags */
 

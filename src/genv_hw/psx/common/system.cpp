@@ -31,14 +31,14 @@
 #include "system/serial.h"
 #include "terminal/terminal.h"
 
-namespace PSX
+namespace PS1
 {
 
     int ioTest(void *ptr, const char *device, const char *string)
     {
         if (ptr == nullptr)
         {
-            LOG_SYS(PSX_IO_ERROR_FMT, string, device);
+            LOG_SYS(PS1_IO_ERROR_FMT, string, device);
             return GV_ERROR(GV_SERVICE_GENERIC, GV_CATEGORY_GENERIC, GV_ERR_CREATE_FAILED);
         }
         return GV_OK;
@@ -48,7 +48,7 @@ namespace PSX
     {
         if (returnVal != GV_OK)
         {
-            LOG_SYS(PSX_IO_ERROR_FMT, string, device);
+            LOG_SYS(PS1_IO_ERROR_FMT, string, device);
         }
         return returnVal;
     }
@@ -57,7 +57,7 @@ namespace PSX
     {
         if (ptr == nullptr)
         {
-            LOG_SYS(PSX_IO_ERROR_FMT, string, device, port);
+            LOG_SYS(PS1_IO_ERROR_FMT, string, device, port);
             return GV_ERROR(GV_SERVICE_GENERIC, GV_CATEGORY_GENERIC, GV_ERR_CREATE_FAILED);
         }
         return GV_OK;
@@ -67,18 +67,18 @@ namespace PSX
     {
         if (returnVal != GV_OK)
         {
-            LOG_SYS(PSX_IO_ERROR_FMT, string, device, port);
+            LOG_SYS(PS1_IO_ERROR_FMT, string, device, port);
         }
         return returnVal;
     }
 
-    BasePSXSystem::BasePSXSystem(ServiceManager &services)
+    BasePS1System::BasePS1System(ServiceManager &services)
         : System::BaseSystem(services),
           sm_state(System::SM_NORMAL)
     {
         // TODO: SIO1 driver will require interrupts in future, so this will need to change.
         // We need to do this here (or change the boot process in GenV) so that boot logs are written.
-        // Suggest using PSX BIOS puts/gets as PSX BIOS handler is still running at this point.
+        // Suggest using PS1 BIOS puts/gets as PS1 BIOS handler is still running at this point.
         GenV_TerminalFuncs tty_ops;
         tty_ops.init  = &sio1_init;
         tty_ops.read  = &sio1_read;
@@ -89,14 +89,14 @@ namespace PSX
         clock = new Time::SoftRTC; // New clock here so GenV boot logs have correct timestamps
     }
 
-    BasePSXSystem::~BasePSXSystem()
+    BasePS1System::~BasePS1System()
     {
-        // Restore the PSX BIOS handler (Unlikely to happen, but just in case)
+        // Restore the PS1 BIOS handler (Unlikely to happen, but just in case)
         psx_uninstallExceptionHandler();
         if (clock) delete clock;
     }
 
-    int BasePSXSystem::initCore()
+    int BasePS1System::initCore()
     {
         System::BaseSystem::initCore();
         if (pcsx_present()) LOG_SYS(szRedux);
@@ -106,16 +106,16 @@ namespace PSX
         psx_setInterruptHandler(
             [](void *arg)
             {
-                auto app = reinterpret_cast<BasePSXSystem *>(arg);
+                auto app = reinterpret_cast<BasePS1System *>(arg);
                 app->interruptHandler(); // etc.
             },
             this);
 
         psx_enableInterrupts();
-        return PSX_SYS_OK;
+        return PS1_SYS_OK;
     }
 
-    bool BasePSXSystem::setResolution(int w, int h)
+    bool BasePS1System::setResolution(int w, int h)
     {
         if (!gpu)
             return false;
@@ -124,46 +124,44 @@ namespace PSX
         return true; // gpu->setResolution(w, h); // RIX
     }
 
-    int BasePSXSystem::initVideo()
+    int BasePS1System::initVideo()
     {
         int error = 0;
-        //! Review
         // GPU driver injects *this and allocates its own screen 0 in init()
-        // (via System::assignScreen); see PSXGPU::init().
-        gpu   = new GPU::PSXGPU(*this);
-        error = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
-        if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
-        //! End
+        // (via System::assignScreen); see PS1GPU::init().
+        gpu   = new GPU::PS1GPU(*this); // Inits a V2 GPU
+        error = ioTest(gpu, PS1_GPU_STR, PS1_CREATE_STR);
+        if (!error) ioTest(gpu->init(), PS1_GPU_STR, PS1_INIT_STR);
         return error;
     }
 
-    int BasePSXSystem::initAudio()
+    int BasePS1System::initAudio()
     {
         /*
         int error = 0;
-        spu       = new Sound::PSXSPU;
-        error     = ioTest(spu, PSX_SPU_STR, PSX_CREATE_STR);
-        if (!error) ioTest(spu->init(), PSX_SPU_STR, PSX_INIT_STR);
+        spu       = new Sound::PS1SPU;
+        error     = ioTest(spu, PS1_SPU_STR, PS1_CREATE_STR);
+        if (!error) ioTest(spu->init(), PS1_SPU_STR, PS1_INIT_STR);
         if (!error) services.setAudio(adminKey, spu);
         */
         return 0;
     }
 
-    int BasePSXSystem::initStorage()
+    int BasePS1System::initStorage()
     {
         int error = 0; // TODO: How to handle multiple driver failures?
 
         int port = 1;
         for (auto &mc : mcDriver)
         {
-            int mcError = ioTest(mc.init(), PSX_MEMORY_CARD_STR, port, PSX_INIT_STR);
+            int mcError = ioTest(mc.init(), PS1_MEMORY_CARD_STR, port, PS1_INIT_STR);
             if (!mcError) registerDriver(&mc);
         }
 
         return error;
     }
 
-    int BasePSXSystem::initIO()
+    int BasePS1System::initIO()
     {
         // TODO: Allow setting custom startup baud
         sio1_init(115200);
@@ -183,19 +181,19 @@ namespace PSX
         for (auto &joy : joyDriver)
             error = ioTest(
                 registerDriver(&joy) ? GV_OK : 1,
-                PSX_JOYPAD_STR, port++, PSX_INIT_STR);
+                PS1_JOYPAD_STR, port++, PS1_INIT_STR);
 
         return error;
     }
 
-    void BasePSXSystem::interruptHandler(void)
+    void BasePS1System::interruptHandler(void)
     {
         if (psx_testInterrupt(IRQ_VSYNC, true)) isr_vsync_();
         if (psx_testInterrupt(IRQ_TIMER2, true)) isr_timer2_();
         if (psx_testInterrupt(IRQ_SIO0, isr_sio0_autoAck) && isr_sio0.isValid()) isr_sio0.call();
     }
 
-    void BasePSXSystem::isr_vsync_()
+    void BasePS1System::isr_vsync_()
     {
         std::atomic_signal_fence(std::memory_order_acquire);
         gpu->_waitingForVsync = false;
@@ -203,10 +201,10 @@ namespace PSX
         std::atomic_signal_fence(std::memory_order_release);
     }
 
-    void BasePSXSystem::isr_timer2_()
+    void BasePS1System::isr_timer2_()
     {
         std::atomic_signal_fence(std::memory_order_acquire);
-        ::PSX::Timer2::Ctrl |= ::PSX::CTRL_ACK_IRQ;
+        ::PS1::Timer2::Ctrl |= ::PS1::CTRL_ACK_IRQ;
         // Timer 2 is used for millis/seconds but will drift out of sync
         //  as the timer is not a perfect division of time for seconds.
         //  This will account for this and add an extra every so often to
@@ -228,7 +226,7 @@ namespace PSX
         std::atomic_signal_fence(std::memory_order_release);
     }
 
-    int BasePSXSystem::update()
+    int BasePS1System::update()
     {
         System::BaseSystem::update();
         sm_state = System::SM_NORMAL;
@@ -240,13 +238,13 @@ namespace PSX
         return sm_state;
     }
 
-    const char *BasePSXSystem::getWorkingDirectory()
+    const char *BasePS1System::getWorkingDirectory()
     {
         // Figure out how to get a path which the program started at, more often than not ODD0:
         return nullptr;
     }
 
-    IRQChannel BasePSXSystem::registerISR(System::Callback callback, IRQChannel irq, bool autoAck)
+    IRQChannel BasePS1System::registerISR(System::Callback callback, IRQChannel irq, bool autoAck)
     {
         switch (irq)
         {
@@ -257,4 +255,4 @@ namespace PSX
         default: return IRQ_INVALID;
         }
     }
-} // namespace PSX
+} // namespace PS1

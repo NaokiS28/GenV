@@ -19,16 +19,16 @@
 #include "common/util/hash.hpp"
 #include "common/objects/texture.hpp"
 
-namespace PSX::GPU
+namespace PS1::GPU
 {
-    static constexpr util::Hash GENV_PSX_TEXTURE_TYPE_NAME = "GenVPSXTextureObject"_h;
+    static constexpr util::Hash GENV_PS1_TEXTURE_TYPE_NAME = "GenVPS1TextureObject"_h;
 
-    class PSXTextureObject : public Textures::TextureObject
+    class PS1TextureObject : public Textures::TextureObject
     {
     public:
-        PSXTextureObject(util::Hash objectID);
-        PSXTextureObject(util::Hash objectID, const char *filePath);
-        ~PSXTextureObject() override;
+        PS1TextureObject(util::Hash objectID);
+        PS1TextureObject(util::Hash objectID, const char *filePath);
+        ~PS1TextureObject() override;
 
         struct
         {
@@ -46,7 +46,7 @@ namespace PSX::GPU
         uint16_t clutY = 0; // Line that CLUT lives in vram in px.
     };
 
-    static constexpr util::Hash PSXFONT_PALETTE_PTR = "PSXFONT_PALETTE_PTR"_h;
+    static constexpr util::Hash PS1FONT_PALETTE_PTR = "PS1FONT_PALETTE_PTR"_h;
 
     struct FontPaletteEntry
     {
@@ -84,4 +84,4 @@ namespace PSX::GPU
             return false;
         }
     };
-} // namespace PSX::GPU
+} // namespace PS1::GPU

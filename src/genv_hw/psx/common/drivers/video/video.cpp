@@ -25,6 +25,8 @@
 #include "common/objects/texture.hpp"
 #include "common/objects/font.hpp"
 #include "common/return_codes.hpp"
+#include "common/services/system/system.hpp"
+#include "common/services/video/basevideo.hpp"
 #include "common/services/video/color.hpp"
 #include "common/services/system/iface_videodrv.hpp"
 #include "common/services/video/screen.hpp"
@@ -42,20 +44,27 @@
 #define GPUCMD(cmd) \
     if (!_dmaOverflow) { gpuListPtr[dmaPtrIdx++] = cmd; }
 
-namespace PSX::GPU
+namespace PS1::GPU
 {
-    constexpr const size_t PSX_GPU_VSYNC_TIMEOUT = 0x000FFFFF;
-    constexpr const int PSX_GPU_DMA_FIFO_SIZE    = 16;
+    constexpr const size_t PS1_GPU_VSYNC_TIMEOUT = 0x000FFFFF;
+    constexpr const int PS1_GPU_DMA_FIFO_SIZE    = 16;
 
-    PSXGPU::PSXGPU(System::ISystem &sys) : System::IVideoDriver(sys), _texmgr(vramSize)
+    PS1GPU::PS1GPU(System::ISystem &sys)
+        : System::BaseVideoDriver(sys),
+          _screen(this, VESA::QVGA, 60, Video::DPI_96, nullptr, 0),
+          _texmgr(vramSize)
     {
     }
 
-    PSXGPU::PSXGPU(System::ISystem &sys, GP1VRAMSize vram_size) : System::IVideoDriver(sys), vramSize(vram_size), _texmgr(vram_size)
+    PS1GPU::PS1GPU(System::ISystem &sys, GP1VRAMSize vram_size)
+        : System::BaseVideoDriver(sys),
+          _screen(this, VESA::QVGA, 60, Video::DPI_96, nullptr, 0),
+          vramSize(vram_size),
+          _texmgr(vram_size)
     {
     }
 
-    int PSXGPU::init()
+    int PS1GPU::init()
     {
         gpuMode = static_cast<GP1VideoMode>(GPU_GP1 & GP1_STAT_FB_MODE_BITMASK);
 
@@ -65,7 +74,10 @@ namespace PSX::GPU
         GPU_GP1 = gp1_vramSize(vramSize);
 
         // Set the default resolution (240P)
-        // setResolution(320, 240);
+        // Register this driver's screen.
+        // PS1 = single GPU / single screen -> one screen at slot 0 (name defaults to DISPLAY1).
+        _system.registerScreen(this, &_screen);
+        setResolution(_screen, PS1_Resolutions[PS1_320x240P]);
 
         // Clear VRAM, since it's not uncommon to think something is working because the last action worked.
         _waitForGP0Ready();
@@ -79,14 +91,6 @@ namespace PSX::GPU
         GPU_GP0 = (gp0_fbOffset1(0, 0));
         GPU_GP0 = (gp0_fbOffset2(320 - 1, 240 - 1));
         GPU_GP0 = (gp0_fbOrigin(0, 0));
-
-        //! Review
-        // Register this driver's screen through the owning system BEFORE creating the
-        // default texture: createDefaultTexture reaches back through
-        // System::screen(0)->getDriver(), so screen 0 must exist first. PS1 = single
-        // GPU / single screen -> one screen at slot 0 (name defaults to DISPLAY1).
-        _system.assignScreen(this, Video::ScreenConfig{VESA::QVGA, 60, Video::DPI_96, nullptr});
-        //! End
 
         defaultTexture = Textures::createDefaultTexture();
         uploadTexture(defaultTexture);
@@ -111,7 +115,7 @@ namespace PSX::GPU
         return GV_OK;
     }
 
-    int PSXGPU::setResolution(Screen &screen, VESA::VideoResolution &newMode, int w, int h, bool updateWindow)
+    int PS1GPU::setResolution(Screen &screen, int w, int h, bool updateWindow)
     {
         // Set the origin of the displayed framebuffer. These "magic" values,
         // derived from the GPU's internal clocks, will center the picture on most
@@ -125,15 +129,14 @@ namespace PSX::GPU
         w = (w > 640 ? 640 : w);
         h = (h > 480 ? 480 : h);
 
-        uint32_t mode = findNearestVideoMode(&PSX_Video_Modes, w, h);
+        uint32_t mode = findNearestVideoMode(&PS1_Video_Modes, w, h);
         if (mode < 0)
         {
-            LOG("psxgpu", "findNearestVideoMode(%u,%u,%u) failed with %u.", &PSX_Video_Modes, w, h, mode);
-            newMode = _res;
+            LOG("psxgpu", "findNearestVideoMode(%u,%u,%u) failed with %u.", &PS1_Video_Modes, w, h, mode);
             return mode;
         }
 
-        Video::VideoResolution vidMode = PSX_Video_Modes.resList[(mode & 0x7F)];
+        Video::VideoResolution vidMode = PS1_Video_Modes.resList[(mode & 0x7F)];
         if (mode & V_RES_MODIFIED)
         {
             LOG("psxgpu", "requested %ux%u, but this is not a valid mode. Using %ux%u instead.", w, h, vidMode.width, vidMode.height);
@@ -181,13 +184,13 @@ namespace PSX::GPU
         const uint16_t rh = GPURawVerticalResolution[((mode & 0x7F) >= 10)];
         _texmgr.markFrameBuffer(0, 0, rw, rh);
 
-        _res    = vidMode;
-        newMode = _res;
+        _res = vidMode;
+        BaseVideoDriver::setScreenResolution(screen, vidMode);
 
         return mode;
     }
 
-    void PSXGPU::fillScreen(Screen &screen, Color color)
+    void PS1GPU::fillScreen(Screen &screen, Color color)
     {
         if (_dmaOverflow) return;
 
@@ -197,9 +200,9 @@ namespace PSX::GPU
         GPUCMD(gp0_xy(screen.getHorizontalRes(), screen.getVerticalRes()));
     }
 
-    bool PSXGPU::waitingForVSync(void)
+    bool PS1GPU::waitingForVSync(void)
     {
-        static uint32_t timeout = PSX_GPU_VSYNC_TIMEOUT;
+        static uint32_t timeout = PS1_GPU_VSYNC_TIMEOUT;
         if (_waitingForVsync)
         {
             if (timeout)
@@ -207,23 +210,23 @@ namespace PSX::GPU
             else
             {
                 LOG("psxgpu", "WARNING: VSync interrupt timeout.");
-                timeout = PSX_GPU_VSYNC_TIMEOUT;
+                timeout = PS1_GPU_VSYNC_TIMEOUT;
                 IRQ_MASK |= (1 << IRQ_VSYNC); // Reset the interrupt mask just incase it somehow was cleared
             }
         }
-        else if (!_waitingForVsync && timeout < PSX_GPU_VSYNC_TIMEOUT)
+        else if (!_waitingForVsync && timeout < PS1_GPU_VSYNC_TIMEOUT)
         {
-            timeout = PSX_GPU_VSYNC_TIMEOUT;
+            timeout = PS1_GPU_VSYNC_TIMEOUT;
         }
         return _waitingForVsync;
     }
 
-    void PSXGPU::doWaitForVSync()
+    void PS1GPU::doWaitForVSync()
     {
         while (waitingForVSync()) {}
     }
 
-    void PSXGPU::_swapFrameBuffer()
+    void PS1GPU::_swapFrameBuffer()
     {
         // Pick which DMA chain and framebuffer area to use for the new frame.
         // The chain index alternates so we never overwrite a chain that DMA may
@@ -252,12 +255,12 @@ namespace PSX::GPU
         GPUCMD(gp0_fbOrigin(frameX, frameY));
     }
 
-    uint32_t *PSXGPU::_allocatePacket(DMAChain *chain, int numCommands)
+    uint32_t *PS1GPU::_allocatePacket(DMAChain *chain, int numCommands)
     {
         // Overflow protection — if the requested allocation would exceed
         // the DMA chain buffer, set the overflow flag and return nullptr. Draw
         // calls become no-ops for the rest of the frame. Warn once per overflow.
-        uint32_t *end = &(chain->data)[iPSXDMAListSize];
+        uint32_t *end = &(chain->data)[iPS1DMAListSize];
         if (chain->nextPacket + numCommands + 1 >= end)
         {
             if (!_dmaOverflow)
@@ -284,7 +287,7 @@ namespace PSX::GPU
         return &ptr[1];
     }
 
-    void PSXGPU::_sendLinkedList(const void *data)
+    void PS1GPU::_sendLinkedList(const void *data)
     {
         // Wait until the GPU's DMA unit has finished sending data and is ready.
         _waitForDMADone();
@@ -315,7 +318,7 @@ namespace PSX::GPU
         DMA_CHCR(DMA_GPU) = 0 | DMA_CHCR_WRITE | DMA_CHCR_MODE_LIST | DMA_CHCR_ENABLE;
     }
 
-    bool PSXGPU::beginRender(Screen &screen)
+    bool PS1GPU::beginRender(Screen &screen)
     {
         // On Frame 0, chain is nullptr. After rendering the first frame,
         // we will send on the next call
@@ -324,7 +327,7 @@ namespace PSX::GPU
         return true;
     }
 
-    bool PSXGPU::endRender(Screen &screen)
+    bool PS1GPU::endRender(Screen &screen)
     {
         *(chain->nextPacket) = gp0_endTag(0);
         _waitingForVsync     = true;
@@ -332,15 +335,15 @@ namespace PSX::GPU
         return true;
     }
 
-    Textures::TextureObject *PSXGPU::createTexture(util::Hash objectID)
+    Textures::TextureObject *PS1GPU::createTexture(util::Hash objectID)
     {
-        PSXTextureObject *ptObj = new PSXTextureObject(objectID);
+        PS1TextureObject *ptObj = new PS1TextureObject(objectID);
         return (ptObj != nullptr ? ptObj : defaultTexture);
     }
 
-    Textures::TextureObject *PSXGPU::createTexture(util::Hash objectID, const char *filePath)
+    Textures::TextureObject *PS1GPU::createTexture(util::Hash objectID, const char *filePath)
     {
-        PSXTextureObject *ptObj = new PSXTextureObject(objectID);
+        PS1TextureObject *ptObj = new PS1TextureObject(objectID);
         if (ptObj != nullptr)
         {
             if (ptObj->loadTextureFromFile(filePath) == GV_OK)
@@ -354,16 +357,16 @@ namespace PSX::GPU
         return (ptObj != nullptr ? ptObj : defaultTexture);
     }
 
-    int PSXGPU::uploadTexture(Textures::TextureObject *tObj)
+    int PS1GPU::uploadTexture(Textures::TextureObject *tObj)
     {
         // Apps must always use PSTexture objects from Video::createTexture()
         if (!tObj ||
-            tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME ||
+            tObj->getObjectType() != GENV_PS1_TEXTURE_TYPE_NAME ||
             tObj->bpp == 0 ||
             (tObj->height == 0 || tObj->width == 0))
             return V_ERROR(GV_ERR_INVALID_PARAM);
 
-        PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
+        PS1TextureObject *ptObj = static_cast<PS1TextureObject *>(tObj);
         if (ptObj->vramX != 0 || ptObj->vramY != 0)
             return V_ERROR(GV_ERR_BAD_OBJECT);
 
@@ -390,7 +393,7 @@ namespace PSX::GPU
         return GV_OK;
     }
 
-    int PSXGPU::_uploadPalette(PSXTextureObject *ptObj)
+    int PS1GPU::_uploadPalette(PS1TextureObject *ptObj)
     {
         uint16_t clutWidth = TextureManager::clutWidth(ptObj->bpp);
 
@@ -404,14 +407,14 @@ namespace PSX::GPU
         return GV_OK;
     }
 
-    int PSXGPU::releaseTexture(Textures::TextureObject *tObj)
+    int PS1GPU::releaseTexture(Textures::TextureObject *tObj)
     {
-        PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
+        PS1TextureObject *ptObj = static_cast<PS1TextureObject *>(tObj);
         _texmgr.deallocateTexture(ptObj);
         return GV_OK;
     }
 
-    PSXGPU::GraphicsData PSXGPU::allocate(size_t length)
+    PS1GPU::GraphicsData PS1GPU::allocate(size_t length)
     {
         size_t _l    = getBufferSize(length);
         uint8_t *ptr = new uint8_t[_l];
@@ -419,7 +422,7 @@ namespace PSX::GPU
         return ptr;
     }
 
-    void PSXGPU::_sendVRAMData(const void *data, int length, RectWH r)
+    void PS1GPU::_sendVRAMData(const void *data, int length, RectWH r)
     {
         _waitForDMADone();
         assert(!((uint32_t)data % 4) || !(length / 4));
@@ -427,17 +430,17 @@ namespace PSX::GPU
         size_t chunkSize, numChunks;
         uint32_t len32 = length / 4; // To adjust for DMA packets, must be in multiples of 32-bit words
 
-        if (len32 < bPSXDMAChunkSize)
+        if (len32 < bPS1DMAChunkSize)
         {
             chunkSize = len32;
             numChunks = 1;
         }
         else
         {
-            chunkSize = bPSXDMAChunkSize;
-            numChunks = len32 / bPSXDMAChunkSize;
+            chunkSize = bPS1DMAChunkSize;
+            numChunks = len32 / bPS1DMAChunkSize;
 
-            assert(!(len32 % bPSXDMAChunkSize));
+            assert(!(len32 % bPS1DMAChunkSize));
         }
 
         GPU_GP1 = gp1_dmaRequestMode(GP1_DREQ_NONE);
@@ -457,7 +460,7 @@ namespace PSX::GPU
         DMA_CHCR(DMA_GPU) = 0 | DMA_CHCR_WRITE | DMA_CHCR_MODE_SLICE | DMA_CHCR_ENABLE;
     }
 
-    void PSXGPU::drawRect(
+    void PS1GPU::drawRect(
         Screen &screen, int x, int y, int width, int height, Color color)
     {
         GPUNUM(3);
@@ -466,7 +469,7 @@ namespace PSX::GPU
         GPUCMD(gp0_xy(width, height));
     }
 
-    void PSXGPU::drawGradientRectH(
+    void PS1GPU::drawGradientRectH(
         Screen &screen, int x, int y, int width, int height, Color left, Color right)
     {
         GPUNUM(8);
@@ -480,7 +483,7 @@ namespace PSX::GPU
         GPUCMD(gp0_xy(x + width, y + height));
     }
 
-    void PSXGPU::drawGradientRectV(
+    void PS1GPU::drawGradientRectV(
         Screen &screen, int x, int y, int width, int height, Color top, Color bottom)
     {
         GPUNUM(8);
@@ -494,7 +497,7 @@ namespace PSX::GPU
         GPUCMD(gp0_xy(x + width, y + height));
     }
 
-    void PSXGPU::drawGradientRectD(
+    void PS1GPU::drawGradientRectD(
         Screen &screen, int x, int y, int width, int height, Color top, Color middle, Color bottom)
     {
         GPUNUM(8);
@@ -601,7 +604,7 @@ namespace PSX::GPU
         return result;
     }
 
-    void PSXGPU::drawGradientRectHVar(Screen &screen, int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint)
+    void PS1GPU::drawGradientRectHVar(Screen &screen, int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint)
     {
         GPUNUM((8 * 3));
         // Left square
@@ -635,7 +638,7 @@ namespace PSX::GPU
         GPUCMD(gp0_xy(x + w, y + h));
     }
 
-    void PSXGPU::drawGradientRectVVar(Screen &screen, int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint)
+    void PS1GPU::drawGradientRectVVar(Screen &screen, int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint)
     {
         GPUNUM((8 * 3));
         // Top square
@@ -669,7 +672,7 @@ namespace PSX::GPU
         GPUCMD(gp0_xy(x + w, y + h));
     }
 
-    void PSXGPU::drawLine(Screen &screen, int x1, int y1, int x2, int y2, int width, Color color)
+    void PS1GPU::drawLine(Screen &screen, int x1, int y1, int x2, int y2, int width, Color color)
     {
         assert(width);
         switch (width)
@@ -696,7 +699,7 @@ namespace PSX::GPU
         }
     }
 
-    void PSXGPU::drawGradientLine(Screen &screen, int x1, int y1, int x2, int y2, int width, Color c1, Color c2)
+    void PS1GPU::drawGradientLine(Screen &screen, int x1, int y1, int x2, int y2, int width, Color c1, Color c2)
     {
         assert(width);
         switch (width)
@@ -727,15 +730,15 @@ namespace PSX::GPU
         }
     }
 
-    int PSXGPU::drawText(Screen &screen, Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
+    int PS1GPU::drawText(Screen &screen, Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color, uint8_t mode)
     {
         // TODO: Seperate font renderer from PS1 core to generic video service
         if (!fObj || fObj->getObjectType() != Fonts::GENV_FONT_OBJ_TYPENAME || str[0] == '\0')
             return V_ERROR(GV_ERR_INVALID_PARAM);
 
         auto *tObj = fObj->getTexture();
-        if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
-        PSXTextureObject *ptObj = static_cast<PSXTextureObject *>(tObj);
+        if (!tObj || tObj->getObjectType() != GENV_PS1_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
+        PS1TextureObject *ptObj = static_cast<PS1TextureObject *>(tObj);
         auto &fHeader           = *fObj->getHeader();
 
         bool clutModified   = false;
@@ -751,7 +754,7 @@ namespace PSX::GPU
         {
             // Get the color table, if it exists
             FontColorTable *fcTable = nullptr;
-            if (fObj->getParam(PSXFONT_PALETTE_PTR, temp))
+            if (fObj->getParam(PS1FONT_PALETTE_PTR, temp))
             {
                 fcTable = (FontColorTable *)temp;
             }
@@ -760,7 +763,7 @@ namespace PSX::GPU
                 // Create a Font Color Table and store the pointer to it
                 fcTable = new FontColorTable;
                 if (fcTable)
-                    fObj->setParam(PSXFONT_PALETTE_PTR, (size_t)fcTable);
+                    fObj->setParam(PS1FONT_PALETTE_PTR, (size_t)fcTable);
             }
 
             if (fcTable)
@@ -869,9 +872,9 @@ namespace PSX::GPU
             int idx = 0;
             while (idx < charCount)
             {
-                // The PSX GPU FIFO can only have a maximum of 16-word entries.
+                // The PS1 GPU FIFO can only have a maximum of 16-word entries.
                 // If the string will overload that, break it up into managable chunks to not overflow the FIFO.
-                int chunkSize   = (totalCommands > PSX_GPU_DMA_FIFO_SIZE) ? PSX_GPU_DMA_FIFO_SIZE : totalCommands;
+                int chunkSize   = (totalCommands > PS1_GPU_DMA_FIFO_SIZE) ? PS1_GPU_DMA_FIFO_SIZE : totalCommands;
                 bool drawGlyphs = (chunkSize > 0);
                 int emitted     = 0;
 
@@ -945,13 +948,13 @@ namespace PSX::GPU
         return GV_OK;
     }
 
-    int PSXGPU::setDefaultFont(Fonts::FontObject *fObj)
+    int PS1GPU::setDefaultFont(Fonts::FontObject *fObj)
     {
         /*
         if (!fObj) return GV_ERR_INVALID_PARAM;
         auto *tObj = fObj->getTexture();
-        if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
-        const PSXTextureObject *ptObj = reinterpret_cast<const PSXTextureObject *>(tObj);
+        if (!tObj || tObj->getObjectType() != GENV_PS1_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
+        const PS1TextureObject *ptObj = reinterpret_cast<const PS1TextureObject *>(tObj);
 
         static HaltScreenFont failFont = HaltScreenFont(
             {ptObj->tpage.x, ptObj->tpage.y, ptObj->tpage.offsetX, ptObj->tpage.offsetY},
@@ -968,11 +971,11 @@ namespace PSX::GPU
         return 0;
     }
 
-    void PSXGPU::drawSpriteObject(Screen &screen, Sprites::SpriteObject *sObj, int x, int y, int w, int h)
+    void PS1GPU::drawSpriteObject(Screen &screen, Sprites::SpriteObject *sObj, int x, int y, int w, int h)
     {
         auto *tObj = sObj->getTexture();
-        if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return; // GV_ERR_INVALID_PARAM;
-        const PSXTextureObject *ptObj = reinterpret_cast<const PSXTextureObject *>(tObj);
+        if (!tObj || tObj->getObjectType() != GENV_PS1_TEXTURE_TYPE_NAME) return; // GV_ERR_INVALID_PARAM;
+        const PS1TextureObject *ptObj = reinterpret_cast<const PS1TextureObject *>(tObj);
 
         GP0ColorDepth colorDepth = GP0_COLOR_16BPP;
         if (sObj->getTexture()->bpp == Textures::BPP_8BIT)
@@ -988,15 +991,15 @@ namespace PSX::GPU
         GPUCMD(gp0_xy(w, h));
     }
 
-    int PSXGPU::drawTextureObject(
+    int PS1GPU::drawTextureObject(
         Screen &screen,
         const Textures::TextureObject *tObj,
         int x, int y, int w, int h,
         ifloat u1, ifloat v1,
         ifloat u2, ifloat v2)
     {
-        if (!tObj || tObj->getObjectType() != GENV_PSX_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
-        const PSXTextureObject *ptObj = reinterpret_cast<const PSXTextureObject *>(tObj);
+        if (!tObj || tObj->getObjectType() != GENV_PS1_TEXTURE_TYPE_NAME) return GV_ERR_INVALID_PARAM;
+        const PS1TextureObject *ptObj = reinterpret_cast<const PS1TextureObject *>(tObj);
 
         GPUNUM(4);
         GPUCMD(gp0_rgb(255, 255, 255) | gp0_rectangle(true, true, false));
@@ -1006,4 +1009,4 @@ namespace PSX::GPU
         return GV_OK;
     }
 
-} // namespace PSX::GPU
+} // namespace PS1::GPU

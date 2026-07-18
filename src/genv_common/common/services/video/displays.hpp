@@ -23,16 +23,12 @@
 
 namespace Video
 {
-    //! Review
     // Slot-derived default screen identities. Screen slot i carries the default
-    // name "DISPLAY{i+1}" - 0-based slot index, 1-based human name. Both the string
-    // and its hash are folded at compile time, so the PS1 pays zero runtime hashing.
+    // name "DISPLAY{i+1}" - 0-based slot index, 1-based human name.
     //
     // When a screen registers without an explicit name, the allocator stamps
     // GV_DISPLAY(slot); an explicit name ("MARQUEE"_h) given at register time
-    // overrides the slot default. Storing the hash here does NOT dictate storage
-    // layout - screens stay index-keyed; the hash only makes name comparison cheap
-    // once by-name lookup lands with the ScreenObject pass.
+    // overrides the slot default.
     constexpr size_t kMaxDisplays = 8;
 
     constexpr const char *const kDisplayName[kMaxDisplays] = {
@@ -44,7 +40,8 @@ namespace Video
         "DISPLAY5"_h, "DISPLAY6"_h, "DISPLAY7"_h, "DISPLAY8"_h};
 
     // 0-based slot accessors. GV_DISPLAY(0) == hash of "DISPLAY1".
-    constexpr util::Hash GV_DISPLAY(size_t slot) { return kDisplayHash[slot]; }
-    constexpr const char *GV_DISPLAY_NAME(size_t slot) { return kDisplayName[slot]; }
-    //! End
+    constexpr util::Hash GV_DISPLAY(size_t slot)
+    { return kDisplayHash[slot]; }
+    constexpr const char *GV_DISPLAY_NAME(size_t slot)
+    { return kDisplayName[slot]; }
 } // namespace Video

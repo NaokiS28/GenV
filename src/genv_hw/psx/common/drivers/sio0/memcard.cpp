@@ -18,7 +18,7 @@
 #include "memcard.hpp"
 #include <printf.h>
 
-uint8_t PSX_MemoryCard_xor(void *data, size_t len)
+uint8_t PS1_MemoryCard_xor(void *data, size_t len)
 {
     uint8_t sum = 0;
     for (size_t i = 0; i < len; i++)
@@ -28,7 +28,7 @@ uint8_t PSX_MemoryCard_xor(void *data, size_t len)
     return sum;
 }
 
-void PSX_MemoryCard_format_filename(
+void PS1_MemoryCard_format_filename(
     char **out,
     uint32_t titleID,
     const char *filename,

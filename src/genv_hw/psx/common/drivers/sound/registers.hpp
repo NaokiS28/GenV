@@ -94,7 +94,7 @@
 #define SPU_REVERB_VLIN _MMIO16(IO_BASE | 0xdfc)
 #define SPU_REVERB_VRIN _MMIO16(IO_BASE | 0xdfe)
 
-namespace PSX::SPU
+namespace PS1::SPU
 {
     enum StatusFlag : uint16_t
     {
@@ -131,4 +131,4 @@ namespace PSX::SPU
         SPU_CTRL_UNMUTE         = 1 << 14,
         SPU_CTRL_ENABLE         = 1 << 15
     };
-} // namespace PSX::SPU
+} // namespace PS1::SPU

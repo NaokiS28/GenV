@@ -24,12 +24,12 @@
 
 // TODO: SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
 
-namespace PSX
+namespace PS1
 {
-    class PSXSystem;
+    class PS1System;
 }
 
-namespace PSX::IO
+namespace PS1::IO
 {
     static constexpr int _SIO0_BAUD_RATE = 250000;
     static constexpr int _ACK_TIMEOUT    = 120;
@@ -49,7 +49,7 @@ namespace PSX::IO
         mouseFix();
         _initialised = true;
 
-        // static_cast<PSX::BasePSXSystem *>(getSystem())->registerISR(SYSTEM_CALLBACK("SIO0 ISR", SIO0_Bus, m_sioISR), IRQ_SIO0);
+        // static_cast<PS1::BasePS1System *>(getSystem())->registerISR(SYSTEM_CALLBACK("SIO0 ISR", SIO0_Bus, m_sioISR), IRQ_SIO0);
 
         _initResult = 0;
         return _initResult;
@@ -58,7 +58,7 @@ namespace PSX::IO
     // The primary function of update_() is just to make sure the official Sony PS1 mouse doesn't
     // lock up the bus. It's probably not required but none the less. Because both the Joypad and
     // memory card drivers will ping this, we have to take any expected max time out and multiply
-    // by 4 since there's two instances of PSXJoy and PSXMemCard. 4 frames * 4 = 16 outta be plenty.
+    // by 4 since there's two instances of PS1Joy and PS1MemCard. 4 frames * 4 = 16 outta be plenty.
     bool SIO0_Bus::update()
     {
         static int ackCount = 0;
@@ -76,7 +76,7 @@ namespace PSX::IO
         return true;
     }
 
-    // To help with PSX mouse when /ACK is stuck low
+    // To help with PS1 mouse when /ACK is stuck low
     void SIO0_Bus::mouseFix()
     {
         start(ADDR_CONTROLLER, SIO0_Port::PORT1);
@@ -211,4 +211,4 @@ namespace PSX::IO
             }
         }
     }
-} // namespace PSX::IO
+} // namespace PS1::IO

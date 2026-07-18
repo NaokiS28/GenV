@@ -35,7 +35,6 @@ int GenV_Demo::init()
     }
     //! Review
     // Temporary test-harness entry: boot straight into the Video test page (slot 1)
-    // so redux can capture the video test output without menu-input injection.
     // Revert once input-driven navigation is wired.
     currentMenuPos = 1;
     currentPage    = genv_demoPageList[currentMenuPos];

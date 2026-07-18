@@ -26,7 +26,7 @@
 #include "gpucmd.hpp"
 #include "common/return_codes.hpp"
 
-namespace PSX::GPU
+namespace PS1::GPU
 {
     int TextureManager::VRAM_Bitmap_POD::init(GP1VRAMSize _vram)
     {
@@ -344,7 +344,7 @@ namespace PSX::GPU
         return r;
     }
 
-    int TextureManager::allocateTexture(PSXTextureObject *ptObj)
+    int TextureManager::allocateTexture(PS1TextureObject *ptObj)
     {
         if (!ptObj || !ptObj->width || !ptObj->height)
             return TM_ERROR(GV_ERR_INVALID_PARAM);
@@ -386,7 +386,7 @@ namespace PSX::GPU
         return GV_OK;
     }
 
-    int TextureManager::deallocateTexture(PSXTextureObject *ptObj)
+    int TextureManager::deallocateTexture(PS1TextureObject *ptObj)
     {
         if (!ptObj)
             return TM_ERROR(GV_ERR_INVALID_PARAM);
@@ -410,4 +410,4 @@ namespace PSX::GPU
 
         return r;
     }
-} // namespace PSX::GPU
+} // namespace PS1::GPU

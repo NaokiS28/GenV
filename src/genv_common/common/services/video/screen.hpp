@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "common/services/adminkey.hpp"
 #include "vesa.hpp"
 #include "common/services/system/iface_videodrv.hpp"
 
@@ -101,7 +102,7 @@ namespace Video
      */
     class Screen
     {
-        friend class System::IVideoDriver;
+        friend class BaseVideoDriver;
 
     private:
         System::IVideoDriver *const _gpu;
@@ -153,10 +154,9 @@ namespace Video
         {
             return setResolution(v.width, v.height, updateWindow);
         }
-        int setResolution(int _width, int _height, bool updateWindow = true)
+        inline int setResolution(int _width, int _height, bool updateWindow = true)
         {
-            VESA::VideoResolution newRes;
-            return _gpu->setResolution(*this, newRes, _width, _height);
+            return _gpu->setResolution(*this, _width, _height);
         }
 
         // Attempts to set the fullscreen state and returns current fullscreen state
@@ -230,5 +230,14 @@ namespace Video
         // link. Resolution enumeration is not wired yet, so this returns null for now.
         const virtual VideoModeList *getSupportedResolutions() { return nullptr; }
         //! End
+
+        // Inline for ISystem classes to set the screen name
+        // Only the GPU can set parameters arbitrarily. System can only set name outside
+        // of creation.
+        inline void setName(AdminClass_Key key, const char *name)
+        {
+            (void)key;
+            this->name = name;
+        }
     };
 } // namespace Video
