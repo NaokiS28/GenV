@@ -19,6 +19,7 @@
 #include <stdint.h>
 
 #include "common/objects/font.hpp"
+#include "common/services/video/vesa.hpp"
 #include "iface_driver.hpp"
 #include "common/util/hash.hpp"
 #include "common/util/rect.hpp"
@@ -45,6 +46,14 @@ namespace System
 {
     using namespace Video;
 
+    enum FullscreenMode : uint8_t
+    {
+        Windowed,       // App is in window mode
+        Borderless,     // App is in borderless fullscreen mode
+        Fullscreen,     // App is in dedicated, resolution switching fullscreen mode
+        Fullscreen_Only // Current video driver only supports fullscreen mode.
+    };
+
     class IVideoDriver : public System::IDriver
     {
     protected:
@@ -64,6 +73,11 @@ namespace System
 
         virtual bool beginRender(Video::Screen &screen) = 0;
         virtual bool endRender(Video::Screen &screen)   = 0;
+
+        // NOTE: Would be better to use tuples if possible?
+        virtual const VESA::VideoModeList *getSupportedResolutions(Video::Screen &screen)                                 = 0;
+        virtual int setResolution(Screen &screen, VESA::VideoResolution &newMode, int w, int h, bool updateWindow = true) = 0;
+        virtual bool setFullscreen(Screen &screen, FullscreenMode mode, int w = 0, int h = 0)                             = 0;
 
         virtual bool waitingForVSync() = 0;
         virtual void doWaitForVSync() {}

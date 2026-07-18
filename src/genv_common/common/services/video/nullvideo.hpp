@@ -46,7 +46,7 @@ namespace Video
         bool waitingForVSync() override { return false; }
 
         // Returns a list of video output modes that the application can set and use
-        const VESA::VideoModeList *getSupportedResolutions();
+        const VESA::VideoModeList *getSupportedResolutions(Video::Screen &screen) override;
 
         void drawAlpha(Video::Screen &screen, int x, int y, int w, int h, int sx, int sy, uint8_t a) const override;
 

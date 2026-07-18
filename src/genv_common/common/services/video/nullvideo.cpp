@@ -55,7 +55,7 @@ namespace Video
     }
 
     // Returns a nulled list.
-    const VESA::VideoModeList *NullVideo::getSupportedResolutions()
+    const VESA::VideoModeList *NullVideo::getSupportedResolutions(Video::Screen &screen)
     {
         return &VESA::BlankVideoList;
     }
