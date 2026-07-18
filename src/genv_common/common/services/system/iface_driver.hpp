@@ -22,16 +22,27 @@
 
 namespace System
 {
+    class ISystem; // forward decl - every driver holds a reference to its owning system
+
     // Base class for all drivers. A driver represents a hardware bus, device or chip.
     class IDriver
     {
     protected:
+        //! Review
+        // Injected reference to the owning System, set at construction. A reference
+        // (not a pointer) because a driver without a system is meaningless - this
+        // makes a driver impossible to default-construct or reseat, and lets it reach
+        // system services (e.g. screen allocation) without going through a global.
+        ISystem &_system;
+        //! End
         const char *_name = nullptr;
         util::Hash id;
 
     public:
-        IDriver() = default;
-        IDriver(util::Hash id) : id(id) {}
+        //! Review
+        IDriver(ISystem &sys) : _system(sys) {}
+        IDriver(ISystem &sys, util::Hash id) : _system(sys), id(id) {}
+        //! End
         virtual ~IDriver() = default;
         virtual int init() { return GV_OK; };
         virtual bool update() = 0;

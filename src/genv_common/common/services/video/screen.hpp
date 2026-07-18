@@ -78,6 +78,18 @@ namespace Video
         return dpi_table[0]; // fallback to 96 DPI
     }
 
+    //! Review
+    // Config a video driver hands System::assignScreen when registering a screen.
+    // name == nullptr -> the allocator stamps the slot's DISPLAY default (displays.hpp).
+    struct ScreenConfig
+    {
+        VideoResolution res;
+        uint16_t refresh = 60;
+        uint16_t dpi     = DPI_96;
+        const char *name = nullptr;
+    };
+    //! End
+
     /*
      * Screen Class
      * ==============

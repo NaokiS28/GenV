@@ -21,6 +21,7 @@
 #include "common/services/adminkey.hpp"
 #include "common/services/system/device_mgr.hpp"
 #include "common/services/system/iface_system.hpp"
+#include "common/services/video/displays.hpp"
 
 namespace System
 {
@@ -83,6 +84,25 @@ namespace System
         assert(!shared_sys_ptr);
         shared_sys_ptr = this;
     }
+
+    //! Review
+    // Allocate a screen for a video driver: take the next free slot, default its name
+    // from the DISPLAY table when the driver didn't specify one, mint + own the Screen
+    // and hand it back. Screens are stored index-keyed in s_screens (System owns their
+    // lifecycle). Returns nullptr if the backing list can't grow.
+    Video::Screen *BaseSystem::assignScreen(System::IVideoDriver *driver, const Video::ScreenConfig &cfg)
+    {
+        size_t slot      = s_screens.length();
+        const char *name = cfg.name ? cfg.name
+                                    : (slot < Video::kMaxDisplays ? Video::GV_DISPLAY_NAME(slot) : "DISPLAY");
+        Video::Screen *s = new Video::Screen(
+            driver, cfg.res, cfg.refresh, cfg.dpi, name, static_cast<uint8_t>(slot));
+        // PointerList auto-expands; append only fails on allocation failure (OOM), at
+        // which point the system is already dead, so no cleanup path is worthwhile.
+        s_screens.append(s);
+        return s;
+    }
+    //! End
 
     int BaseSystem::initCore()
     {

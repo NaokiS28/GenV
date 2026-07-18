@@ -40,7 +40,7 @@ namespace PSX::IO
         const SIO0_Port _portNumber;
 
     public:
-        inline PSX_MemoryCard(SIO0_Bus *bus, SIO0_Port port) : m_bus(bus), _portNumber(port)
+        inline PSX_MemoryCard(::System::ISystem &sys, SIO0_Bus *bus, SIO0_Port port) : ::System::IDriver(sys), m_bus(bus), _portNumber(port)
         {
             assert(driverCount < 2);
             name = PSX_PS_MEMCARD_STR;

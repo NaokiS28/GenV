@@ -26,6 +26,9 @@ namespace PSX::Storage
     class PSX_PCDrive : public System::IDriver
     {
     public:
+        //! Review
+        inline PSX_PCDrive(::System::ISystem &sys) : ::System::IDriver(sys) {}
+        //! End
         int init() override;
         bool update() override;
         bool reset() override;

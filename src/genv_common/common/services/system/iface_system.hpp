@@ -27,6 +27,7 @@
 namespace Video
 {
     class Screen; // System owns the drivers and exposes their screens
+    struct ScreenConfig; //! Review - config a driver hands assignScreen
 }
 
 #define SYSTEM_CALLBACK(name, type, func)                 \
@@ -42,6 +43,7 @@ namespace Video
 namespace System
 {
     struct SystemInfo;
+    class IVideoDriver; //! Review - assignScreen wires a screen to its video driver
 
     typedef void (*CallbackFunction)(void *arg);
     class Callback
@@ -80,6 +82,13 @@ namespace System
         // screen is registered there. Null is a checkable "failed access" - callers
         // must guard it (Screen draw calls forward straight into the driver).
         virtual Video::Screen *getScreen(uint8_t idx) = 0;
+
+        //! Review
+        // A video driver calls this from its init() to register the screen(s) it
+        // drives. The system allocates the slot, mints + owns the Screen and returns
+        // it (nullptr on failure). cfg.name == nullptr -> the slot's DISPLAY default.
+        virtual Video::Screen *assignScreen(IVideoDriver *driver, const Video::ScreenConfig &cfg) = 0;
+        //! End
 
         virtual void enterCriticalSection() = 0;
         virtual void leaveCriticalSection() = 0;

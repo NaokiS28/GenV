@@ -114,9 +114,14 @@ namespace PSX
 
         // Pointers to control the life cycle of items. TODO: Do these strictly *need* to be pointers?
         GPU::PSXGPU *gpu = nullptr; // GPU probably needs to stay as pointer for V0/V2 GPU differences
-        IO::SIO0_Bus sio0;
-        IO::PSX_Joypad joyDriver[2]    = {{&sio0, IO::SIO0_Port::PORT1}, {&sio0, IO::SIO0_Port::PORT2}}; // <-| These are part of the CPU and thus can always be "present"
-        IO::PSX_MemoryCard mcDriver[2] = {{&sio0, IO::SIO0_Port::PORT1}, {&sio0, IO::SIO0_Port::PORT2}}; // <-/
+        //! Review
+        // Drivers take their owning system by reference (IDriver). *this is the
+        // BasePSXSystem under construction (an ISystem); drivers only store the
+        // reference at construction (never call into it), so *this here is safe.
+        IO::SIO0_Bus sio0{*this};
+        IO::PSX_Joypad joyDriver[2]    = {{*this, &sio0, IO::SIO0_Port::PORT1}, {*this, &sio0, IO::SIO0_Port::PORT2}}; // <-| These are part of the CPU and thus can always be "present"
+        IO::PSX_MemoryCard mcDriver[2] = {{*this, &sio0, IO::SIO0_Port::PORT1}, {*this, &sio0, IO::SIO0_Port::PORT2}}; // <-/
+        //! End
         // IO::SIO1_Bus sio1;	// Always part of the CPU
 
     public:

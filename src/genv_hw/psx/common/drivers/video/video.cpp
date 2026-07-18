@@ -28,6 +28,7 @@
 #include "common/services/video/color.hpp"
 #include "common/services/system/iface_videodrv.hpp"
 #include "common/services/video/screen.hpp"
+#include "common/services/system/iface_system.hpp"
 #include "common/util/hash.hpp"
 #include "common/util/rect.hpp"
 
@@ -46,11 +47,11 @@ namespace PSX::GPU
     constexpr const size_t PSX_GPU_VSYNC_TIMEOUT = 0x000FFFFF;
     constexpr const int PSX_GPU_DMA_FIFO_SIZE    = 16;
 
-    PSXGPU::PSXGPU() : _texmgr(vramSize)
+    PSXGPU::PSXGPU(System::ISystem &sys) : System::IVideoDriver(sys), _texmgr(vramSize)
     {
     }
 
-    PSXGPU::PSXGPU(GP1VRAMSize vram_size) : vramSize(vram_size), _texmgr(vram_size)
+    PSXGPU::PSXGPU(System::ISystem &sys, GP1VRAMSize vram_size) : System::IVideoDriver(sys), vramSize(vram_size), _texmgr(vram_size)
     {
     }
 
@@ -78,6 +79,14 @@ namespace PSX::GPU
         GPU_GP0 = (gp0_fbOffset1(0, 0));
         GPU_GP0 = (gp0_fbOffset2(320 - 1, 240 - 1));
         GPU_GP0 = (gp0_fbOrigin(0, 0));
+
+        //! Review
+        // Register this driver's screen through the owning system BEFORE creating the
+        // default texture: createDefaultTexture reaches back through
+        // System::screen(0)->getDriver(), so screen 0 must exist first. PS1 = single
+        // GPU / single screen -> one screen at slot 0 (name defaults to DISPLAY1).
+        _system.assignScreen(this, Video::ScreenConfig{VESA::QVGA, 60, Video::DPI_96, nullptr});
+        //! End
 
         defaultTexture = Textures::createDefaultTexture();
         uploadTexture(defaultTexture);

@@ -33,7 +33,7 @@ namespace Video
     {
 
     public:
-        NullVideo();
+        NullVideo(System::ISystem &sys);
         ~NullVideo() = default;
 
         int init() override;

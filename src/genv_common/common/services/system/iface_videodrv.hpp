@@ -63,7 +63,9 @@ namespace System
         Textures::TextureObject *defaultTexture = nullptr;
 
     public:
-        IVideoDriver()          = default;
+        //! Review
+        IVideoDriver(ISystem &sys) : IDriver(sys) {}
+        //! End
         virtual ~IVideoDriver() = default;
 
         virtual inline size_t getFrameCount()

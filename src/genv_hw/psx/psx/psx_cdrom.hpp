@@ -25,6 +25,9 @@ namespace PSX::Storage
     class PSX_CDROM : public ::System::IDriver
     {
     public:
+        //! Review
+        inline PSX_CDROM(::System::ISystem &sys) : ::System::IDriver(sys) {}
+        //! End
         int init() override;
         bool update() override;
         bool reset() override;
