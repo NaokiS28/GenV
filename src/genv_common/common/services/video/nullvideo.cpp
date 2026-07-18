@@ -16,12 +16,13 @@
  */
 
 #include "nullvideo.hpp"
+#include "common/services/video/basevideo.hpp"
 #include "common/services/video/color.hpp"
 #include "common/services/video/screen.hpp"
 namespace Video
 {
 
-    NullVideo::NullVideo(System::ISystem &sys) : IVideoDriver(sys)
+    NullVideo::NullVideo(System::ISystem &sys) : BaseVideoDriver(sys)
     {
     }
 
