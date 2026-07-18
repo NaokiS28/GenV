@@ -3,11 +3,11 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-07-12 23:13:37.906320_
+_Generated on 2026-07-18 12:26:25.134905_
 
 #### [src/example/input_page.cpp](src/example/input_page.cpp)
 
-- [232](src/example/input_page.cpp?plain=1#L232): macOS - Sometimes this gets a random and invalid device pointer in the device list?
+- [185](src/example/input_page.cpp?plain=1#L185): macOS - Sometimes this gets a random and invalid device pointer in the device list?
 
 #### [src/genv_common/app/appmgr.cpp](src/genv_common/app/appmgr.cpp)
 
@@ -35,11 +35,11 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_common/common/objects/tile.cpp](src/genv_common/common/objects/tile.cpp)
 
-- [121](src/genv_common/common/objects/tile.cpp?plain=1#L121): This just assumes you're using a 2D array.
+- [127](src/genv_common/common/objects/tile.cpp?plain=1#L127): This just assumes you're using a 2D array.
 
 #### [src/genv_common/common/services/genv_sys.cpp](src/genv_common/common/services/genv_sys.cpp)
 
-- [75](src/genv_common/common/services/genv_sys.cpp?plain=1#L75): Allow setting custom startup baud
+- [66](src/genv_common/common/services/genv_sys.cpp?plain=1#L66): Allow setting custom startup baud
 
 #### [src/genv_common/common/services/system/arcade/arcade.cpp](src/genv_common/common/services/system/arcade/arcade.cpp)
 
@@ -61,13 +61,17 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 - [31](src/genv_common/common/services/video/fontman.hpp?plain=1#L31): Support loading from raw data - We need to have a safe-fall back font.
 
+#### [src/genv_common/common/services/video/screen.hpp](src/genv_common/common/services/video/screen.hpp)
+
+- [151](src/genv_common/common/services/video/screen.hpp?plain=1#L151): Should this be a system call? Logically it's a screen function, but realistically all GPUs should go full screen
+
 #### [src/genv_hw/mac/osx/README.md](src/genv_hw/mac/osx/README.md)
 
 - [4](src/genv_hw/mac/osx/README.md?plain=1#L4): Add documentation and support status
 
 #### [src/genv_hw/mac/osx/system.mm](src/genv_hw/mac/osx/system.mm)
 
-- [263](src/genv_hw/mac/osx/system.mm?plain=1#L263): create and register an Audio::IAudio driver (e.g. CoreAudio).
+- [263](src/genv_hw/mac/osx/system.mm?plain=1#L263): create and register an Audio::IAudioDriver driver (e.g. CoreAudio).
 - [274](src/genv_hw/mac/osx/system.mm?plain=1#L274): create and register IO drivers (keyboard, gamepad via IOKit / GCController).
 - [284](src/genv_hw/mac/osx/system.mm?plain=1#L284): initialise file/storage manager for macOS paths.
 - [369](src/genv_hw/mac/osx/system.mm?plain=1#L369): use an NSLock or os_unfair_lock for thread safety.
@@ -94,7 +98,7 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp)
 
-- [26](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp?plain=1#L26): SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
+- [25](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp?plain=1#L25): SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
 
 #### [src/genv_hw/psx/common/drivers/video/gpucmd.hpp](src/genv_hw/psx/common/drivers/video/gpucmd.hpp)
 
@@ -118,12 +122,12 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_hw/psx/common/drivers/video/video.cpp](src/genv_hw/psx/common/drivers/video/video.cpp)
 
-- [387](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L387): Cleanup?
-- [722](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L722): Seperate font renderer from PS1 core to generic video service
+- [388](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L388): Cleanup?
+- [723](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L723): Seperate font renderer from PS1 core to generic video service
 
 #### [src/genv_hw/psx/common/drivers/video/video.hpp](src/genv_hw/psx/common/drivers/video/video.hpp)
 
-- [83](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L83): Set true when the DMA chain is full. Draw calls become no-ops
+- [87](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L87): Set true when the DMA chain is full. Draw calls become no-ops
 
 #### [src/genv_hw/psx/common/halt/src/ps1/sys.h](src/genv_hw/psx/common/halt/src/ps1/sys.h)
 
@@ -132,9 +136,9 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
-- [78](src/genv_hw/psx/common/system.cpp?plain=1#L78): SIO1 driver will require interrupts in future, so this will need to change.
-- [149](src/genv_hw/psx/common/system.cpp?plain=1#L149): int error = 0; How to handle multiple driver failures?
-- [163](src/genv_hw/psx/common/system.cpp?plain=1#L163): Allow setting custom startup baud
+- [79](src/genv_hw/psx/common/system.cpp?plain=1#L79): SIO1 driver will require interrupts in future, so this will need to change.
+- [150](src/genv_hw/psx/common/system.cpp?plain=1#L150): int error = 0; How to handle multiple driver failures?
+- [164](src/genv_hw/psx/common/system.cpp?plain=1#L164): Allow setting custom startup baud
 
 #### [src/genv_hw/psx/common/system/serial.h](src/genv_hw/psx/common/system/serial.h)
 
@@ -147,7 +151,7 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_hw/psx/psx/system.cpp](src/genv_hw/psx/psx/system.cpp)
 
-- [50](src/genv_hw/psx/psx/system.cpp?plain=1#L50): int error = 0; How to handle multiple driver failures?
+- [60](src/genv_hw/psx/psx/system.cpp?plain=1#L60): int error = 0; How to handle multiple driver failures?
 
 #### [src/genv_hw/psx/sys573/io/jamma/adc083x.hpp](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp)
 
