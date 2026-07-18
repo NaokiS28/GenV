@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 - 2026 NaokiS, spicyjpeg
- * main_menu_list.hpp - Created on 02-05-2026
+ * input_page.hpp - Created on 02-05-2026
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -14,20 +14,35 @@
  * You should have received a copy of the GNU General Public License along with
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
+
 #pragma once
 
-#include "audio_page.hpp"
 #include "demo_page.hpp"
-#include "input_page.hpp"
-#include "video_page.hpp"
 
-DemoPage *const genv_demoPageList[] = {
-    &genv_demo_inputPage,
-    &genv_demo_videoPage,
-    &genv_demo_audioPage,
-#ifdef GENV_ARCADE_SYSTEM
+#include "common/services/io/player.hpp"
+#include <genv.hpp>
 
-#endif
+using namespace Apps;
+
+class GenV_Video : public DemoPage
+{
+private:
+    static constexpr AppInfo appInfo = makeAppInfo(
+        "GenV Video Test",  // name
+        "NaokisRC",         // maker
+        AppVersion(0, 0, 1) // version
+    );
+
+public:
+    const AppInfo &info() const override
+    {
+        return appInfo;
+    }
+
+    int init() override;
+    int update() override;
+    void render() override;
+    void reload() override;
 };
 
-constexpr auto genv_demoPageListSize = sizeof(genv_demoPageList) / sizeof(DemoPage *);
+extern GenV_Video genv_demo_videoPage;

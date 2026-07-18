@@ -30,13 +30,6 @@
 
 using namespace Apps;
 
-Video::Coord txtOrigin;
-Video::Coord timeOrigin;
-size_t startTimerBegin      = 0;
-int8_t startTimer           = -1;
-bool ignoreStart            = true;
-const uint8_t startTimerMax = 3;
-
 GenV_Input genv_demo_inputPage;
 
 int GenV_Input::init()
@@ -81,35 +74,6 @@ int GenV_Input::update()
 
     static uint32_t lastInputs = 0;
     uint32_t inputs            = IO::player(IO::Player::PLAYER_1).getDigital();
-
-    // Player 1 start being held exits test
-    if (ignoreStart && !(inputs & static_cast<uint32_t>(VJoy_Input::Start)))
-    {
-        ignoreStart = false;
-    }
-    else if (!ignoreStart)
-    {
-        if (inputs & static_cast<uint32_t>(VJoy_Input::Start))
-        {
-            if (startTimer == -1)
-            {
-                startTimer      = startTimerMax;
-                startTimerBegin = System::millis();
-            }
-        }
-        else
-        {
-            startTimer      = -1;
-            startTimerBegin = 0;
-        }
-    }
-
-    if (startTimer != -1)
-    {
-        auto m     = System::millis() - startTimerBegin;
-        startTimer = startTimerMax - (m / 1000);
-        if (startTimer == 0) exitCode = 1;
-    }
 
     // If the input states change, update the page
     if (lastInputs != inputs)
@@ -184,7 +148,7 @@ void GenV_Input::render()
     if (IO::playerManager()->playerCount() > 0)
     {
         snprintf(textStr, sizeof(textStr), "Page: %d / %d", currentPage + 1, maxPage + 1);
-        screen->drawText(textStr, titleX, y, 200, 20, Video::Colors::White, Video::TALIGN_CENTER);
+        screen->drawText(textStr, screen->getVerticalRes() / 2, y, 200, 20, Video::Colors::White, Video::TALIGN_CENTER);
         y += 20;
 
         if (currentPlayer != Input::Player::INVALID)
@@ -194,23 +158,12 @@ void GenV_Input::render()
     {
         screen->drawText("No registered inputs.", x, y, 500, 500, Video::Colors::White, Video::TALIGN_CENTER);
     }
-
-    screen->drawText("Hold P1 start to exit.", x, screen->getVerticalRes() - 30, 500, 500);
-    if (startTimer != -1)
-    {
-        sprintf(textStr, "Exiting in %d second%s..", startTimer, (startTimer > 1 ? "s." : "."));
-        screen->drawText(textStr, x, screen->getVerticalRes() - 20, 500, 500);
-    }
 }
 
 void GenV_Input::reload()
 {
-    titleX     = (screen->getHorizontalRes() / 2);
-    txtOrigin  = Video::Coord(titleX, 5);
-    timeOrigin = Video::Coord(screen->getHorizontalRes() - 10, screen->getVerticalRes() - 10);
-
-    startTimer  = -1;
-    ignoreStart = true;
+    auto vres = screen->getHorizontalRes();
+    txtOrigin = Video::RectWH(10, 20, vres - 20, 200);
 }
 
 void GenV_Input::getControllerData(Input::Player player)

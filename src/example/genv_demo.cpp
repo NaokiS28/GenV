@@ -46,10 +46,45 @@ void GenV_Demo::update()
     {
         if (currentPage->update() != GV_OK)
             currentPage = nullptr;
+
+        uint32_t inputs = IO::player(IO::Player::PLAYER_1).getDigital();
+
+        // Player 1 start being held exits test
+        if (ignoreStart && !(inputs & static_cast<uint32_t>(VJoy_Input::Start)))
+        {
+            ignoreStart = false;
+        }
+        else if (!ignoreStart)
+        {
+            if (inputs & static_cast<uint32_t>(VJoy_Input::Start))
+            {
+                if (startTimer == -1)
+                {
+                    startTimer      = startTimerMax;
+                    startTimerBegin = System::millis();
+                }
+            }
+            else
+            {
+                startTimer      = -1;
+                startTimerBegin = 0;
+            }
+        }
+
+        if (startTimer != -1)
+        {
+            auto m     = System::millis() - startTimerBegin;
+            startTimer = startTimerMax - (m / 1000);
+            if (startTimer == 0) currentPage = nullptr;
+        }
     }
     else
     {
-        uint32_t inputs = IO::player(IO::Player::PLAYER_1).getDigital();
+        static uint32_t lastInputs = 0;
+        uint32_t raw_inputs        = IO::player(IO::Player::PLAYER_1).getDigital();
+        uint32_t inputs            = (raw_inputs & (raw_inputs ^ lastInputs));
+        lastInputs                 = raw_inputs;
+
         // Player 1 down moves pointer down
         if (inputs & static_cast<uint32_t>(VJoy_Input::D_Down))
         {
@@ -71,6 +106,8 @@ void GenV_Demo::update()
         // Player 1 B1/Start selects page
         if (!selectIgnore && inputs & static_cast<uint32_t>(VJoy_Input::Button_1 | VJoy_Input::Start))
         {
+            startTimer  = -1;
+            ignoreStart = true;
             currentPage = genv_demoPageList[currentMenuPos];
             currentPage->reload();
             selectIgnore = true;
@@ -92,6 +129,14 @@ void GenV_Demo::render()
 
         // Draw page title
         screen->drawText(currentPage->info().name, titleBox, Video::Colors::White, Video::TALIGN_CENTER);
+
+        screen->drawText("Hold P1 start to exit.", 10, screen->getVerticalRes() - 30, 500, 500);
+        if (startTimer != -1)
+        {
+            char textStr[32] = {0};
+            snprintf(textStr, sizeof(textStr), "Exiting in %d second%s..", startTimer, (startTimer > 1 ? "s." : "."));
+            screen->drawText(textStr, 10, screen->getVerticalRes() - 20, 500, 500);
+        }
     }
     else
     {
@@ -108,16 +153,16 @@ void GenV_Demo::render()
             if (idx == currentMenuPos)
                 screen->drawChar('>', menuBox.x - 20, menuBox.y + y, Video::Colors::White);
 
-            screen->drawText(page->info().name, menuBox, Video::Colors::White);
+            screen->drawText(page->info().name, menuBox.x, menuBox.y + y, menuBox.w, menuBox.h, Video::Colors::White);
             y += 10;
             idx++;
         }
-    }
 
-    // Draw clock in bottom right
-    char timeStr[32] = {0};
-    Time::getTimeString(time, timeStr, sizeof(timeStr), true, true);
-    screen->drawText(timeStr, timeBox, Video::Colors::White, Video::TALIGN_RIGHT);
+        // Draw clock in bottom right
+        char timeStr[32] = {0};
+        Time::getTimeString(time, timeStr, sizeof(timeStr), true, true);
+        screen->drawText(timeStr, timeBox, Video::Colors::White, Video::TALIGN_RIGHT);
+    }
 }
 
 void GenV_Demo::reload()
