@@ -114,6 +114,8 @@ namespace PSX::GPU
         bool waitingForVSync() override;
         void doWaitForVSync() override;
 
+        const VESA::VideoModeList *getSupportedResolutions(Video::Screen &screen) override { return &PSX_Video_Modes; }
+
         // PS1 buffers to DMA must be aligned to the chunk size and be null terminated
         inline size_t getBufferSize(size_t length) override
         {
@@ -127,8 +129,8 @@ namespace PSX::GPU
             return &PSX_Video_Modes;
         }
 
-        int setResolution(Screen &screen, int w, int h, bool updateWindow = true);
-        bool setFullscreen(Screen &screen, FullscreenMode mode, int w = 0, int h = 0)
+        int setResolution(Screen &screen, VESA::VideoResolution &newMode, int w, int h, bool updateWindow = true) override;
+        bool setFullscreen(Screen &screen, System::FullscreenMode mode, int w = 0, int h = 0) override
         {
             return false;
         }

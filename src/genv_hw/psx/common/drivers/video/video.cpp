@@ -32,6 +32,7 @@
 #include "common/util/rect.hpp"
 
 #include "common/logger/log.hpp"
+#include "psx/common/drivers/video/resolutions.hpp"
 #include "psx/common/system/registers.h"
 #include "psxtex.hpp"
 #include "texmgr.hpp"
@@ -101,7 +102,7 @@ namespace PSX::GPU
         return GV_OK;
     }
 
-    int PSXGPU::setResolution(Screen &screen, int w, int h, bool updateWindow)
+    int PSXGPU::setResolution(Screen &screen, VESA::VideoResolution &newMode, int w, int h, bool updateWindow)
     {
         // Set the origin of the displayed framebuffer. These "magic" values,
         // derived from the GPU's internal clocks, will center the picture on most
@@ -119,6 +120,7 @@ namespace PSX::GPU
         if (mode < 0)
         {
             LOG("psxgpu", "findNearestVideoMode(%u,%u,%u) failed with %u.", &PSX_Video_Modes, w, h, mode);
+            newMode = _res;
             return mode;
         }
 
@@ -129,10 +131,6 @@ namespace PSX::GPU
             if (!result)
                 result = V_RES_MODIFIED;
         }
-
-        //_screen.res.width   = vidMode.width;
-        //_screen.res.height  = vidMode.height;
-        //_screen.refreshRate = (gpuMode == GP1_MODE_NTSC ? 60 : 50); // Refresh rate is constant.
 
         // Set the resolution. The GPU provides a number of fixed horizontal (256,
         // 320, 368, 512, 640) and vertical (240-256, 480-512) resolutions to pick
@@ -174,7 +172,10 @@ namespace PSX::GPU
         const uint16_t rh = GPURawVerticalResolution[((mode & 0x7F) >= 10)];
         _texmgr.markFrameBuffer(0, 0, rw, rh);
 
-        return result;
+        _res    = vidMode;
+        newMode = _res;
+
+        return mode;
     }
 
     void PSXGPU::fillScreen(Screen &screen, Color color)

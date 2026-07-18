@@ -27,13 +27,6 @@ namespace Video
 {
     using namespace VESA;
 
-    enum FullscreenMode : uint8_t
-    {
-        Windowed,   // App is in window mode
-        Borderless, // App is in borderless fullscreen mode
-        Fullscreen  // App is in dedicated, resolution switching fullscreen mode
-    };
-
     enum VideoResult : int
     {
         V_RES_UNSUPPORTED  = -3,
@@ -96,6 +89,8 @@ namespace Video
      */
     class Screen
     {
+        friend class System::IVideoDriver;
+
     private:
         System::IVideoDriver *const _gpu;
 
@@ -129,47 +124,46 @@ namespace Video
         inline const char *getName() { return name; }
         inline int getDPI() { return dpi; }
 
-        //!Review
         // The associated GPU driver for this screen. Screen does NOT own it: the
         // System class owns the driver's lifecycle. This pointer is a convenience
         // handle so draw forwarders reach the driver without per-call indirection.
         inline System::IVideoDriver *getDriver() const { return _gpu; }
         inline uint8_t getNumber() const { return number; }
-        //!End
-
-        inline int setResolution(VESA::VideoResolution v, bool updateWindow = true)
-        {
-            return setResolution(v.width, v.height, updateWindow);
-        }
-        int setResolution(int _width, int _height, bool updateWindow = true)
-        {
-            this->res.width  = _width;
-            this->res.height = _height;
-            return true;
-        }
-
-        // Attempts to set the fullscreen state and returns current fullscreen state
-        bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0)
-        {
-            return false;
-        }
-
-        inline bool toggleFullscreen()
-        {
-            return setFullscreen(this->getFullscreenMode() != Video::Windowed ? Video::Windowed : Video::Fullscreen, 800, 600);
-        }
-
-        FullscreenMode getFullscreenMode()
-        {
-            return FullscreenMode::Fullscreen;
-        }
 
         void fillScreen(Color color)
         {
             _gpu->drawRect(*this, 0, 0, res.width, res.height, color);
         }
 
-        //!Review
+        // Non-draw forwarders.
+        //
+        inline int setResolution(VESA::VideoResolution v, bool updateWindow = true)
+        {
+            return setResolution(v.width, v.height, updateWindow);
+        }
+        int setResolution(int _width, int _height, bool updateWindow = true)
+        {
+            VESA::VideoResolution newRes;
+            return _gpu->setResolution(*this, newRes, _width, _height);
+        }
+
+        // Attempts to set the fullscreen state and returns current fullscreen state
+        // TODO: Should this be a system call? Logically it's a screen function, but realistically all GPUs should go full screen
+        bool setFullscreen(System::FullscreenMode mode, int w = 0, int h = 0)
+        {
+            return false;
+        }
+
+        inline bool toggleFullscreen()
+        {
+            return setFullscreen(this->getFullscreenMode() != System::Windowed ? System::Windowed : System::Fullscreen, 800, 600);
+        }
+
+        System::FullscreenMode getFullscreenMode()
+        {
+            return System::FullscreenMode::Fullscreen;
+        }
+
         // Draw forwarders. A game draws by calling these on the Screen it holds; the
         // Screen hands its own *this to the driver as the target Screen&, so the game
         // never has to name a driver. Output only - resource ops (createTexture etc.)
@@ -216,14 +210,13 @@ namespace Video
 
         inline void drawTileObject(Sprites::TileObject *tObj, int x, int y) { _gpu->drawTileObject(*this, tObj, x, y); }
         inline void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) { _gpu->drawTileObject(*this, sObj, x, y, w, h); }
-        //!End
 
         // Returns a list of video output modes that the application can set and use
-        //!Review
+        //! Review
         // Inline body so Screen has no out-of-line key function (Screen has no .cpp);
         // without it the vtable is never emitted and constructing a Screen fails to
         // link. Resolution enumeration is not wired yet, so this returns null for now.
         const virtual VideoModeList *getSupportedResolutions() { return nullptr; }
-        //!End
+        //! End
     };
 } // namespace Video
