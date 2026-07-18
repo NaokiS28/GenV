@@ -34,7 +34,7 @@ namespace PSX
         // The PS1 is single-GPU/single-screen, so slot 0 is the only display.
         if (!error)
         {
-            Video::Screen *screen0 = new Video::Screen(gpu, VESA::QVGA, 60, Video::DPI_96, nullptr, 0);
+            Video::Screen *screen0 = new Video::Screen(gpu, VESA::QVGA, 60, Video::DPI_96, "DISPLAY1", 0);
             s_screens.append(screen0);
         }
         //! End
