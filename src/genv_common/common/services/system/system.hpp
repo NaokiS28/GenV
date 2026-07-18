@@ -167,6 +167,10 @@ namespace System
         // Screens live in s_screens, owned here; at() is bounds-checked.
         virtual Video::Screen *getScreen(uint8_t idx) override { return s_screens.at(idx); }
 
+        //! Review
+        virtual Video::Screen *assignScreen(System::IVideoDriver *driver, const Video::ScreenConfig &cfg) override;
+        //! End
+
         inline virtual bool setFullscreen(System::FullscreenMode mode) { return false; }
         inline virtual bool toggleFullscreen() { return false; }
     };

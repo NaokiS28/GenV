@@ -95,8 +95,8 @@ namespace PSX::GPU
         int _uploadPalette(PSXTextureObject *ptObj);
 
     public:
-        PSXGPU();
-        PSXGPU(GP1VRAMSize vram_size);
+        PSXGPU(System::ISystem &sys);
+        PSXGPU(System::ISystem &sys, GP1VRAMSize vram_size);
         ~PSXGPU() override = default;
 
         int init() override;

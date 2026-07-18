@@ -24,7 +24,7 @@ namespace Audio
     class NullAudio : public System::IAudioDriver
     {
     public:
-        NullAudio();
+        NullAudio(System::ISystem &sys);
         ~NullAudio();
         int init() override;
         bool reset() override;

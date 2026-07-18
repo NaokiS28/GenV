@@ -59,7 +59,7 @@ namespace PSX::IO
     // lock up the bus. It's probably not required but none the less. Because both the Joypad and
     // memory card drivers will ping this, we have to take any expected max time out and multiply
     // by 4 since there's two instances of PSXJoy and PSXMemCard. 4 frames * 4 = 16 outta be plenty.
-    void SIO0_Bus::update()
+    bool SIO0_Bus::update()
     {
         static int ackCount = 0;
         if (IRQ_STAT & (1 << IRQ_SIO0))
@@ -73,6 +73,7 @@ namespace PSX::IO
             mouseFix();
             ackCount = 0;
         }
+        return true;
     }
 
     // To help with PSX mouse when /ACK is stuck low

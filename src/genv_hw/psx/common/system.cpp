@@ -127,9 +127,13 @@ namespace PSX
     int BasePSXSystem::initVideo()
     {
         int error = 0;
-        gpu       = new GPU::PSXGPU();
-        error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
+        //! Review
+        // GPU driver injects *this and allocates its own screen 0 in init()
+        // (via System::assignScreen); see PSXGPU::init().
+        gpu   = new GPU::PSXGPU(*this);
+        error = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
         if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
+        //! End
         return error;
     }
 

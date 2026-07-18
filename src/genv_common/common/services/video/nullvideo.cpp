@@ -21,7 +21,7 @@
 namespace Video
 {
 
-    NullVideo::NullVideo() : IVideoDriver()
+    NullVideo::NullVideo(System::ISystem &sys) : IVideoDriver(sys)
     {
     }
 

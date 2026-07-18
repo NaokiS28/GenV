@@ -110,8 +110,8 @@ namespace PSX::IO
         void m_processPackets();
 
     public:
-        inline PSX_Joypad(SIO0_Bus *bus, SIO0_Port port)
-            : m_bus(bus), m_portNumber(port)
+        inline PSX_Joypad(::System::ISystem &sys, SIO0_Bus *bus, SIO0_Port port)
+            : ::System::IDriver(sys), m_bus(bus), m_portNumber(port)
         {
             assert(m_driverCount < 2);
             _name = PSX_PS_CONTROLLER_STR;

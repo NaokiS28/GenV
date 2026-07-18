@@ -30,7 +30,9 @@ namespace System
     class IAudioDriver : public System::IDriver
     {
     public:
-        IAudioDriver()          = default;
+        //! Review
+        IAudioDriver(System::ISystem &sys) : System::IDriver(sys) {}
+        //! End
         virtual ~IAudioDriver() = default;
 
         virtual bool play(Audio::SoundObject *sObj)      = 0;

@@ -19,7 +19,7 @@
 
 namespace Audio
 {
-    NullAudio::NullAudio() : IAudioDriver() {}
+    NullAudio::NullAudio(System::ISystem &sys) : IAudioDriver(sys) {}
     NullAudio::~NullAudio() {}
     int NullAudio::init()
     {
