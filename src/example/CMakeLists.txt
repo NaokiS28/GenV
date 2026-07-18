@@ -27,6 +27,8 @@ project(
 add_library(game_code STATIC
 	genv_demo.cpp
 	input_page.cpp
+	video_page.cpp
+	audio_page.cpp
 )
 
 target_include_directories(game_code PUBLIC

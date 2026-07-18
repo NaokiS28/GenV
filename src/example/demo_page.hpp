@@ -18,6 +18,7 @@
 #pragma once
 
 #include "app/app.hpp"
+#include "common/util/rect.hpp"
 
 class DemoPage
 {
@@ -25,6 +26,12 @@ class DemoPage
 
 protected:
     Video::Screen *screen = nullptr;
+    Video::RectWH txtOrigin;
+
+    int currentPage = 0;
+    int maxPage     = 0;
+
+    char pageStr[256] = {'\0'};
 
 public:
     virtual const Apps::AppInfo &info() const = 0;

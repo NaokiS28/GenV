@@ -47,6 +47,11 @@ private:
 
     Video::RectWH menuBox;
 
+    size_t startTimerBegin      = 0;
+    int8_t startTimer           = -1;
+    bool ignoreStart            = true;
+    const uint8_t startTimerMax = 3;
+
 public:
     static Application *createApp(IAppHost *host)
     {
