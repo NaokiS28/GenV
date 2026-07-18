@@ -41,14 +41,11 @@ namespace PS1
             .name  = szPlaystation,
             .flags = SYS_No_Window_Mode};
 
-<<<<<<< HEAD
-        PSX::SPUDriver spu;
-        Storage::PSX_CDROM *cdDriver   = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
-        Storage::PSX_PCDrive *pcDriver = nullptr; // Not always needed?
-=======
-        Storage::PS1_CDROM *cdDriver   = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
+        Storage::PS1_CDROM *cdDriver = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers?
+
+#ifndef NDEBUG
         Storage::PS1_PCDrive *pcDriver = nullptr; // Not always needed?
->>>>>>> ee53a70 (* Major: Renamed all instances of PSX to PS1 - Because the meme is old and GenV should be more descriptive.)
+#endif
 
     public:
         inline PS1System(ServiceManager &services)

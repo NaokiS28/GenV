@@ -35,7 +35,13 @@ namespace PS1
     constexpr const char PS1_INIT_STR[]          = "init";
 
     constexpr const char PS1_PS_CONTROLLER_STR[] = "PlayStation Controller";
+    constexpr const char PS1_PS_MULTITAP_STR[]   = "PlayStation Multitap";
     constexpr const char PS1_PS_MEMCARD_STR[]    = "PlayStation Memory Card";
+    constexpr const char PS1_PS_SIO0_STR[]       = "PlayStation SIO0";
+    constexpr const char PS1_PS_SIO1_STR[]       = "PlayStation SIO1";
+    constexpr const char PS1_PS_SPU_STR[]        = "PlayStation SPU";
+    constexpr const char PS1_PS_GPU_STR[]        = "PlayStation GPU";
+    constexpr const char PS1_PS_PCDRV_STR[]      = "PlayStation PC Drive";
 
     constexpr const char PS1_PLAYSTATION_STR[] = "PlayStation";
     constexpr const char PS1_DIGITAL_STR[]     = "PlayStation Digital";

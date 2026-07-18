@@ -32,7 +32,7 @@
 
 namespace PS1::IO
 {
-    class PS1_MemoryCard : public Files::IStorageDriver, public ::System::IDriver
+    class PS1_MemoryCard : public Files::IStorageDriver
     {
     private:
         SIO0_Bus *m_bus;
@@ -40,16 +40,16 @@ namespace PS1::IO
         const SIO0_Port _portNumber;
 
     public:
-        inline PS1_MemoryCard(::System::ISystem &sys, SIO0_Bus *bus, SIO0_Port port) : ::System::IDriver(sys), m_bus(bus), _portNumber(port)
+        inline PS1_MemoryCard(::System::ISystem &sys, SIO0_Bus *bus, SIO0_Port port) : Files::IStorageDriver(sys), m_bus(bus), _portNumber(port)
         {
             assert(driverCount < 2);
-            name = PS1_PS_MEMCARD_STR;
+            _name = PS1_PS_MEMCARD_STR;
         };
 
         int init() override
         {
             LOG("psxmcd", "Init PlayStation Memory Card driver on port %d", (_portNumber == SIO0_Port::PORT1 ? 1 : 2));
-            return 0;
+            return GV_OK;
         }
 
         bool update() override

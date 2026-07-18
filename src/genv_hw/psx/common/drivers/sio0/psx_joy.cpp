@@ -186,7 +186,7 @@ namespace PS1::IO
         // If Controller 1-A dissapears, the multi-tap stops responding.
         if (subport == Multitap_Port::PORTA && m_bus->multitapPresent(m_portNumber))
         {
-            LOG("makepad", "Multitap disconnected on port %d", sioPortNumber(m_portNumber));
+            LOG("makepad", "%s disconnected on port %d", PS1_PS_MULTITAP_STR, sioPortNumber(m_portNumber));
             for (auto &thisPad : m_pads)
             {
                 if (thisPad.device.type != DEVICE_TYPE_NULL)
@@ -290,8 +290,8 @@ namespace PS1::IO
 
     int PS1_Joypad::init()
     {
-        LOG("makepad", "Init PlayStation Controller driver on port %d", sioPortNumber(m_portNumber));
-        return m_bus->init();
+        LOG("makepad", "Init %s driver on port %d", PS1_PS_CONTROLLER_STR, sioPortNumber(m_portNumber));
+        return GV_OK;
     }
 
     bool PS1_Joypad::reset()
@@ -434,13 +434,13 @@ namespace PS1::IO
         {
             if (resp.id8[0] == PAD_MULTITAP)
             {
-                LOG("makepad", "Found PlayStation multitap on port %d", sioPortNumber(m_portNumber));
+                LOG("makepad", "Found %s on port %d", PS1_PS_MULTITAP_STR, sioPortNumber(m_portNumber));
                 m_bus->setMultitapState(m_portNumber, MT_IS_PRESENT);
                 resp = ControllerReadResponse(&response[2], respLength); // Port A data
             }
             else
             {
-                LOG("makepad", "Did not find PlayStation multitap on port %d: 0x%04X", sioPortNumber(m_portNumber), resp.id);
+                LOG("makepad", "Did not find %s on port %d: 0x%04X", PS1_PS_MULTITAP_STR, sioPortNumber(m_portNumber), resp.id);
                 m_bus->setMultitapState(m_portNumber, MT_NOT_PRESENT);
             }
         }

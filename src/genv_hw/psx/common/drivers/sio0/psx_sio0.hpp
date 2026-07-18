@@ -21,6 +21,7 @@
 
 #include "common/services/io/player.hpp"
 #include "common/services/system/iface_driver.hpp"
+#include "psx/common/psx_strings.hpp"
 
 #define BUS_START(bus, addr, port)                      \
     {                                                   \
@@ -191,7 +192,10 @@ namespace PS1::IO
         void m_sioISR();
 
     public:
-        inline SIO0_Bus(::System::ISystem &sys) : ::System::IDriver(sys) {}
+        inline SIO0_Bus(::System::ISystem &sys) : ::System::IDriver(sys)
+        {
+            _name = PS1_PS_SIO0_STR;
+        }
         int init() override;
         int start(uint8_t address, SIO0_Port port);
         void stop();

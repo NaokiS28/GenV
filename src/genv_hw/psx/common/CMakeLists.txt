@@ -34,6 +34,7 @@ target_sources(genv_psx_core PUBLIC
 	drivers/sio0/psx_joy.cpp
 	drivers/sio0/psx_mc.cpp
 	drivers/sio0/psx_sio0.cpp
+	drivers/sio1/psx_sio1.cpp
 )
 
 target_include_directories(

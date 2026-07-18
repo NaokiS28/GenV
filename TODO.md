@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-07-18 16:18:15.038691_
+_Generated on 2026-07-18 17:52:51.742775_
 
 #### [src/example/input_page.cpp](src/example/input_page.cpp)
 
@@ -126,8 +126,8 @@ _Generated on 2026-07-18 16:18:15.038691_
 
 #### [src/genv_hw/psx/common/drivers/video/video.cpp](src/genv_hw/psx/common/drivers/video/video.cpp)
 
-- [400](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L400): Cleanup?
-- [735](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L735): Seperate font renderer from PS1 core to generic video service
+- [403](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L403): Cleanup?
+- [738](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L738): Seperate font renderer from PS1 core to generic video service
 
 #### [src/genv_hw/psx/common/drivers/video/video.hpp](src/genv_hw/psx/common/drivers/video/video.hpp)
 
@@ -140,9 +140,8 @@ _Generated on 2026-07-18 16:18:15.038691_
 
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
-- [79](src/genv_hw/psx/common/system.cpp?plain=1#L79): SIO1 driver will require interrupts in future, so this will need to change.
-- [152](src/genv_hw/psx/common/system.cpp?plain=1#L152): int error = 0; How to handle multiple driver failures?
-- [166](src/genv_hw/psx/common/system.cpp?plain=1#L166): Allow setting custom startup baud
+- [80](src/genv_hw/psx/common/system.cpp?plain=1#L80): SIO1 driver will require interrupts in future, so this will need to change.
+- [152](src/genv_hw/psx/common/system.cpp?plain=1#L152): Allow setting custom startup baud - This is a GenV common issue
 
 #### [src/genv_hw/psx/common/system/serial.h](src/genv_hw/psx/common/system/serial.h)
 
