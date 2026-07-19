@@ -24,10 +24,10 @@
 
 namespace System
 {
-    constexpr const char szDriverFailedFmt[] = "%s driver failed to %s: %s";
+    constexpr const char szDriverFailedFmt[] = "%s driver failed to %s: %08X";
     // constexpr const char szDriverErrorFmt[]  = "%s driver gave error whilst %s: %08X";
     constexpr const char szDriverFmt[]  = "%s driver %sed.";
-    constexpr const char szInit[]       = "initialising";
+    constexpr const char szInit[]       = "initialise";
     constexpr const char szRegister[]   = "register";
     constexpr const char szUnregister[] = "unregister";
 
@@ -70,13 +70,13 @@ namespace System
     {
         if (!driver)
         {
-            DM_LOG(szDriverFailedFmt, szRegister, szDeviceNull);
+            DM_LOG(szDriverFailedFmt, driver->getName(), szRegister, szDeviceNull);
             return false;
         }
 
         if (size_t r = driver->init(); r != GV_OK)
         {
-            DM_LOG(szDriverFailedFmt, szInit, r);
+            DM_LOG(szDriverFailedFmt, driver->getName(), szInit, r);
             return false;
         }
 
