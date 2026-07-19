@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-07-18 17:52:51.742775_
+_Generated on 2026-07-19 14:02:56.944747_
 
 #### [src/example/input_page.cpp](src/example/input_page.cpp)
 
@@ -104,6 +104,10 @@ _Generated on 2026-07-18 17:52:51.742775_
 
 - [25](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp?plain=1#L25): SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
 
+#### [src/genv_hw/psx/common/drivers/sio1/psx_sio1.cpp](src/genv_hw/psx/common/drivers/sio1/psx_sio1.cpp)
+
+- [24](src/genv_hw/psx/common/drivers/sio1/psx_sio1.cpp?plain=1#L24): SIO1
+
 #### [src/genv_hw/psx/common/drivers/video/gpucmd.hpp](src/genv_hw/psx/common/drivers/video/gpucmd.hpp)
 
 - [22](src/genv_hw/psx/common/drivers/video/gpucmd.hpp?plain=1#L22): 4096 words (16KB per chain, 32KB total for double-buffer). Increased
@@ -141,7 +145,7 @@ _Generated on 2026-07-18 17:52:51.742775_
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
 - [80](src/genv_hw/psx/common/system.cpp?plain=1#L80): SIO1 driver will require interrupts in future, so this will need to change.
-- [152](src/genv_hw/psx/common/system.cpp?plain=1#L152): Allow setting custom startup baud - This is a GenV common issue
+- [160](src/genv_hw/psx/common/system.cpp?plain=1#L160): Allow setting custom startup baud - This is a GenV common issue
 
 #### [src/genv_hw/psx/common/system/serial.h](src/genv_hw/psx/common/system/serial.h)
 
