@@ -50,13 +50,6 @@ namespace PS1
         cdDriver  = new Storage::PS1_CDROM(*this);
         error     = ioTest(cdDriver, PS1_CDROM_DRIVE_STR, PS1_CREATE_STR);
         if (!error) registerDriver(cdDriver);
-
-#ifndef NDEBUG
-        int pcError = 0;
-        pcDriver    = new Storage::PS1_PCDrive(*this);
-        pcError     = ioTest(pcDriver, PS1_PC_DRIVE_STR, PS1_CREATE_STR);
-        if (!pcError) registerDriver(pcDriver);
-#endif
         return error;
     }
 
