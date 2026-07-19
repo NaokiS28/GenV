@@ -18,8 +18,7 @@
 #pragma once
 
 #include "common/util/enum_defs.hpp"
-#include "psx/common/registers.hpp"    // IWYU pragma: keep
-#include "psx/sys573/registers573.hpp" // IWYU pragma: keep
+#include "psx/common/registers.hpp" // IWYU pragma: keep
 #include <stdint.h>
 #include <stdbool.h>
 

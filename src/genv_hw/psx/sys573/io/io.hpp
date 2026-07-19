@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "psx/sys573/registers573.hpp" // IWYU pragma: keep
+#include "common/util/enum_defs.hpp"
 #include "psx/sys573/io/asic.hpp"
 
 #include "jamma/jamma.hpp"      // IWYU pragma: export
