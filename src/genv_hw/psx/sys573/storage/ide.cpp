@@ -23,6 +23,9 @@ namespace System573::IO::IDE
 {
     constexpr int IDE_RESET_TIME = 100;
 
+    static volatile uint16_t &CS0 = *_ADDR16(DEV0_BASE | 0x480000);
+    static volatile uint16_t &CS1 = *_ADDR16(DEV0_BASE | 0x4C0000);
+
     void SetReset(bool state)
     {
         ASIC::Regs::IdeReset = !state;

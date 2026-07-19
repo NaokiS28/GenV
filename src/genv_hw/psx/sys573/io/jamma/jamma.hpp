@@ -22,6 +22,7 @@
 #include "adc083x.hpp"
 #include "common/services/system/iface_driver.hpp"
 #include "common/services/io/iface_input.hpp"
+#include "common/services/system/iface_system.hpp"
 
 namespace System573::IO
 {
@@ -84,7 +85,7 @@ namespace System573::IO
         IInputDevice _devs[3];
 
     public:
-        inline JAMMA() { _name = "System 573 JAMMA"; }
+        inline JAMMA(System::ISystem &system) : System::IDriver(system) { _name = "System 573 JAMMA"; }
 
         int init() override;
         bool update() override;
