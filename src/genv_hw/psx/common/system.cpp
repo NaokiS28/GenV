@@ -144,6 +144,14 @@ namespace PS1
             error = ioTest(
                 registerDriver(&mc) ? GV_OK : 1,
                 PS1_PS_MEMCARD_STR, port++, PS1_INIT_STR);
+
+#ifndef NDEBUG
+        int pcError = 0;
+        pcDriver    = new Storage::PS1_PCDrive(*this);
+        pcError     = ioTest(pcDriver, PS1_PC_DRIVE_STR, PS1_CREATE_STR);
+        if (!pcError) registerDriver(pcDriver);
+#endif
+
         return error;
     }
 
