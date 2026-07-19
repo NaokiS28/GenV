@@ -37,6 +37,23 @@ namespace System
         return reinterpret_cast<System573::Sys573System *>(sys);
     }
 } // namespace System
+#elif defined(GENV_GV999)
+#include "psx/gv999/system.hpp"
+#include "common/services/services.hpp"
+namespace System
+{
+    ISystem *makeNewSystem(ServiceManager &services)
+    {
+        SystemGV::GV999System *system = new SystemGV::GV999System(services);
+        return system;
+    }
+    IArcadeSystem *getArcadeInterface()
+    {
+        static ISystem *sys = nullptr;
+        if (!sys) sys = getServiceManager()->getSystem();
+        return reinterpret_cast<SystemGV::GV999System *>(sys);
+    }
+} // namespace System
 #else
 #include "psx/psx/system.hpp"
 namespace System

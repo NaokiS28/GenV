@@ -36,7 +36,7 @@ int GenV_Demo::init()
     //! Review
     // Temporary test-harness entry: boot straight into the Video test page (slot 1)
     // Revert once input-driven navigation is wired.
-    currentMenuPos = 1;
+    currentMenuPos = 0;
     currentPage    = genv_demoPageList[currentMenuPos];
     //! End
     reload();

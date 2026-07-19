@@ -75,6 +75,17 @@
 			}
 		},
 		{
+			"name": "base-gv999",
+			"hidden": true,
+			"inherits": "base-common",
+			"binaryDir": "${sourceDir}/build/psx/gv999",
+			"cacheVariables": {
+				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/psx/toolchain.cmake",
+				"GENV_PLATFORM": "psx",
+				"GENV_SUBPLATFORM": "gv999"
+			}
+		},
+		{
 			"name": "base-macos-universal",
 			"hidden": true,
 			"inherits": "base-common",
@@ -180,6 +191,21 @@
 			"name": "sys573-minsizerel",
 			"displayName": "System 573 MinSizeRel",
 			"inherits": [ "base-sys573", "base-minsizerel" ]
+		},
+		{
+			"name": "gv999-debug",
+			"displayName": "GV999 Debug",
+			"inherits": [ "base-gv999", "base-debug" ]
+		},
+		{
+			"name": "gv999-release",
+			"displayName": "GV999 Release",
+			"inherits": [ "base-gv999", "base-release" ]
+		},
+		{
+			"name": "gv999-minsizerel",
+			"displayName": "GV999 MinSizeRel",
+			"inherits": [ "base-gv999", "base-minsizerel" ]
 		}
 	]
 }
