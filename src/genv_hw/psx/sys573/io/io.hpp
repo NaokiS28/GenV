@@ -30,14 +30,17 @@
 
 namespace System573::IO
 {
+    static volatile uint16_t &Watchdog = *_ADDR16(DEV0_BASE | 0x5c0000);
+    static volatile uint16_t &ExtOut   = *_ADDR16(DEV0_BASE | 0x600000);
+
     inline uint8_t DIP()
     {
         return (ASIC::Regs::DipCart & 0x0F);
     }
 
-    inline void TickWatchdog()
+    inline void __attribute__((always_inline)) TickWatchdog()
     {
-        ASIC::Regs::Watchdog = 0;
+        Watchdog = 0;
     }
 
     // ----------
@@ -49,57 +52,5 @@ namespace System573::IO
         uint8_t ReadState();
         void SetBit(uint8_t bit, bool state); // Sets/Unsets a single bit of the output data
     } // namespace EXTOUT
-
-    // ----------
-    // Cart FIFO
-    // ----------
-    namespace SecurityCart
-    {
-        enum class GPIODir : bool
-        {
-            Input  = true,
-            Output = false
-        };
-
-        int SetOutPort(uint8_t data);
-        int GetInPort(uint8_t *data);
-
-        inline bool InPortAvailable()
-        {
-            return (ASIC::Regs::MiscIn & ASIC::IN_CART_IRDY) != ASIC::IN_NONE;
-        }
-
-        inline bool OutPortFull()
-        {
-            return (ASIC::Regs::MiscIn & ASIC::IN_CART_DRDY) != ASIC::IN_NONE;
-        }
-
-        // ----------
-        // Cart GPIO
-        // ----------
-        inline bool GetGPIOState()
-        {
-            return (ASIC::Regs::MiscIn & ASIC::IN_CART_SDA) != ASIC::IN_NONE;
-        }
-
-        // Writes to D0 of the output port. Note this will trigger the DRDY flag
-        int SetGPIOState(bool state);
-
-        // Inside of flash.cpp GPIO direction function as need to track bank select
-        extern void SetGPIODirection(GPIODir state);
-
-    } // namespace SecurityCart
-
-    namespace Flash
-    {
-        enum FlashBank : uint8_t
-        {
-            FLASH   = 0,
-            PCMCIA1 = 16,
-            PCMCIA2 = 32
-        };
-
-        extern void SetBank(uint8_t bank);
-    } // namespace Flash
 
 } // namespace System573::IO

@@ -18,7 +18,6 @@
 #include "rtc.hpp"
 #include "common/logger/log.hpp" // IWYU pragma: keep
 #include "common/services/system/rtc/soft_rtc.hpp"
-#include "registers573.hpp"
 #include "common/util/misc.hpp"
 #include "common/util/time.hpp"
 #include "common/util/date.hpp"
@@ -58,11 +57,11 @@ namespace System573::RTC
             return 1;
         Regs::Ctrl |= CTRL_WRITE;
 
-        bool century    = year > 1999;
-        Regs::Weekday   = (Date::getDayOfWeek(year, month, day) & (century << 4));
-        Regs::Year      = util::dec2bcd(year);
-        Regs::Month     = util::dec2bcd(month);
-        Regs::Day       = (util::dec2bcd(day) & (DAY_TENS_BITMASK | DAY_UNITS_BITMASK));
+        bool century  = year > 1999;
+        Regs::Weekday = (Date::getDayOfWeek(year, month, day) & (century << 4));
+        Regs::Year    = util::dec2bcd(year);
+        Regs::Month   = util::dec2bcd(month);
+        Regs::Day     = (util::dec2bcd(day) & (DAY_TENS_BITMASK | DAY_UNITS_BITMASK));
         Regs::Ctrl &= ~(CTRL_WRITE);
 
         if (!rtc_is_ok) LOG_RTC(Time::rtcSetWithBadBattFmt, Time::rtcDateString, Time::rtcDateString);

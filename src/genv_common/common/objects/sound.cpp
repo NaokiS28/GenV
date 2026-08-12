@@ -40,4 +40,9 @@ namespace Audio
     {
         return driver->isPlaying(this);
     }
+
+    int SoundObject::uploadSample()
+    {
+        return GV_OK;
+    }
 } // namespace Audio

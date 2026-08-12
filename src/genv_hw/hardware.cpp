@@ -27,7 +27,7 @@ namespace System
 {
     ISystem *makeNewSystem(ServiceManager &services)
     {
-        System573::Sys573System *system = new System573::Sys573System;
+        System573::Sys573System *system = new System573::Sys573System(services);
         return system;
     }
     IArcadeSystem *getArcadeInterface()

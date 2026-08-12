@@ -17,9 +17,41 @@
 
 #pragma once
 
-#include "psx/sys573/registers573.hpp"
+#include "psx/common/system/registers.h"
+#include "psx/sys573/io/asic.hpp"
 
-namespace System573::Cartridge
+namespace System573::IO::Cartridge
 {
+    enum class GPIODir : bool
+    {
+        Input  = true,
+        Output = false
+    };
 
-}
+    int SetOutPort(uint8_t data);
+    int GetInPort(uint8_t *data);
+
+    inline bool InPortAvailable()
+    {
+        return (ASIC::Regs::MiscIn & ASIC::IN_CART_IRDY) != ASIC::IN_NONE;
+    }
+
+    inline bool OutPortFull()
+    {
+        return (ASIC::Regs::MiscIn & ASIC::IN_CART_DRDY) != ASIC::IN_NONE;
+    }
+
+    // ----------
+    // Cart GPIO
+    // ----------
+    inline bool GetGPIOState()
+    {
+        return (ASIC::Regs::MiscIn & ASIC::IN_CART_SDA) != ASIC::IN_NONE;
+    }
+
+    // Writes to D0 of the output port. Note this will trigger the DRDY flag
+    int SetGPIOState(bool state);
+
+    // Inside of flash.cpp GPIO direction function as need to track bank select
+    extern void SetGPIODirection(GPIODir state);
+} // namespace System573::IO::Cartridge

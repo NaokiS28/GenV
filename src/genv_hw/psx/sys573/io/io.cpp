@@ -28,8 +28,8 @@ namespace System573::IO
 
         void SetState(uint8_t data)
         {
-            ext_out_state      = data;
-            ASIC::Regs::ExtOut = ext_out_state;
+            ext_out_state = data;
+            ExtOut        = ext_out_state;
         }
 
         uint8_t GetState()
@@ -44,48 +44,12 @@ namespace System573::IO
                 ext_out_state |= (1 << bit);
             else
                 ext_out_state &= ~(1 << bit);
-            ASIC::Regs::ExtOut = ext_out_state;
+            ExtOut = ext_out_state;
         }
     } // namespace EXTOUT
 
     namespace SecurityCart
     {
-        constexpr uint8_t OutPortGPIOMask = ~(1 << 0);
-        uint8_t OutPortState              = 0;
 
-        int SetGPIOState(bool state)
-        {
-            auto x = ASIC::Regs::MiscIn & ASIC::IN_CART_DRDY;
-            if (x != ASIC::IN_NONE)
-            {
-                OutPortState        = (OutPortState & OutPortGPIOMask) | state;
-                ASIC::Regs::CartOut = OutPortState;
-                return 0;
-            }
-            return 1;
-        }
-
-        int SetOutPort(uint8_t data)
-        {
-            auto x = ASIC::Regs::MiscIn & ASIC::IN_CART_DRDY;
-            if (x != ASIC::IN_NONE)
-            {
-                OutPortState        = data;
-                ASIC::Regs::CartOut = OutPortState;
-                return 0;
-            }
-            return 1;
-        }
-
-        int GetInPort(uint8_t *data)
-        {
-            auto x = ASIC::Regs::MiscIn & ASIC::IN_CART_IRDY;
-            if (x != ASIC::IN_NONE)
-            {
-                *data = (ASIC::Regs::DipCart & 0xFF00) >> 8;
-                return 0;
-            }
-            return 1;
-        }
     } // namespace SecurityCart
 } // namespace System573::IO

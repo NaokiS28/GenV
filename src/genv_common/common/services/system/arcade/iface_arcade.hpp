@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include "common/services/io/player.hpp"
+#include "common/services/io/vjoy.hpp"
 #include "common/util/enum_defs.hpp"
 #include "nvram.hpp"
 
@@ -93,6 +94,7 @@ namespace System
     class IArcadeSystem
     {
     protected:
+        bool _countersPaused                                                                 = false;
         virtual CoinSlot setPhysicalCoinSlots(CoinSlot slots)                                = 0;
         virtual CoinSlot addCoin(CoinSlot slot, uint8_t amount)                              = 0;
         virtual CoinSlot addServiceCoin(CoinSlot slot = CoinSlot::Coin1, uint8_t amount = 1) = 0;
@@ -101,6 +103,14 @@ namespace System
 
     public:
         virtual ~IArcadeSystem() = default;
+
+        // Pauses the automatic advancement of coin counters in both the coin distribution system
+        // and physical coin counter outputs for when running in test mode.
+        inline bool pauseCoinCounters(bool state)
+        {
+            _countersPaused = state;
+            return _countersPaused;
+        }
 
         // Get the virtual NVRAM data for read/writing
         virtual NVRAM &getNVRAM(void) = 0;
