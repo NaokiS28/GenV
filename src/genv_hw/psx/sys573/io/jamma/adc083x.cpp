@@ -17,7 +17,6 @@
 
 #include "adc083x.hpp"
 #include "psx/sys573/io/asic.hpp"
-#include "psx/sys573/registers573.hpp"
 
 namespace System573::IO
 {

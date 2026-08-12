@@ -1,6 +1,6 @@
 /*
  * GenV - Copyright (C) 2025 - 2026 NaokiS, spicyjpeg
- * expbus.hpp - Created on 21-02-2026
+ * ide_bus.cpp - Created on 24-07-2026
  *
  * GenV is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -15,12 +15,33 @@
  * GenV. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "ide_bus.hpp"
+#include "common/return_codes.hpp"
 
-#include "psx/common/system/registers.h"
-#include <stdint.h>
-
-namespace System573::IO::Expansion
+namespace IDE
 {
-    static volatile uint16_t &BaseAddress = *_ADDR16(DEV0_BASE | 0x640000);
-}
+    int BaseIDEDriver::init()
+    {
+        return GV_OK;
+    }
+
+    bool BaseIDEDriver::reset()
+    {
+        return true;
+    }
+
+    bool BaseIDEDriver::update()
+    {
+        return true;
+    }
+
+    void BaseIDEDriver::shutdown()
+    {
+    }
+
+    void BaseIDEDriver::isr()
+    {
+        // IDE Device asserted IRQ
+    }
+
+} // namespace IDE

@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "common/services/io/vjoy.hpp"
 #include "nvram.hpp"
 #include "hardware.hpp" // IWYU pragma: export
 #include "common/services/system/arcade/iface_arcade.hpp"

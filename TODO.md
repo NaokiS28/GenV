@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-07-19 14:02:56.944747_
+_Generated on 2026-08-12 22:30:58.718152_
 
 #### [src/example/input_page.cpp](src/example/input_page.cpp)
 
@@ -43,12 +43,12 @@ _Generated on 2026-07-19 14:02:56.944747_
 
 #### [src/genv_common/common/services/system/arcade/arcade.cpp](src/genv_common/common/services/system/arcade/arcade.cpp)
 
-- [128](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L128): Check IO service?
-- [134](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L134): Check IO service?
+- [132](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L132): Check IO service?
 - [139](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L139): Check IO service?
 - [144](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L144): Check IO service?
 - [149](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L149): Check IO service?
 - [154](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L154): Check IO service?
+- [159](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L159): Check IO service?
 
 #### [src/genv_common/common/services/system/iface_videodrv.hpp](src/genv_common/common/services/system/iface_videodrv.hpp)
 
@@ -162,8 +162,8 @@ _Generated on 2026-07-19 14:02:56.944747_
 
 #### [src/genv_hw/psx/sys573/io/jamma/adc083x.hpp](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp)
 
-- [27](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp?plain=1#L27): Does not support differential mode. But is this worth supporting?
-- [28](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp?plain=1#L28): Critical: Implementation does not work. Require logic probing.
+- [26](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp?plain=1#L26): Does not support differential mode. But is this worth supporting?
+- [27](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp?plain=1#L27): Critical: Implementation does not work. Require logic probing.
 
 #### [src/genv_hw/win32/README.md](src/genv_hw/win32/README.md)
 

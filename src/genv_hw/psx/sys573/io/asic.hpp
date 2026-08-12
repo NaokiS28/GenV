@@ -26,20 +26,16 @@ namespace System573::IO::ASIC
 {
     namespace Regs
     {
-        static volatile uint16_t &MiscOut    = *_ADDR16(DEV0_BASE | 0x400000);
-        static volatile uint16_t &DipCart    = *_ADDR16(DEV0_BASE | 0x400004);
-        static volatile uint16_t &MiscIn     = *_ADDR16(DEV0_BASE | 0x400006);
-        static volatile uint16_t &JammaMain  = *_ADDR16(DEV0_BASE | 0x400008);
-        static volatile uint16_t &JvsRxData  = *_ADDR16(DEV0_BASE | 0x40000a);
-        static volatile uint16_t &JammaExt1  = *_ADDR16(DEV0_BASE | 0x40000c);
-        static volatile uint16_t &JammaExt2  = *_ADDR16(DEV0_BASE | 0x40000e);
-        static volatile uint16_t &BankCtrl   = *_ADDR16(DEV0_BASE | 0x500000);
-        static volatile uint16_t &JvsIrdyAck = *_ADDR16(DEV0_BASE | 0x520000);
-        static volatile uint16_t &IdeReset   = *_ADDR16(DEV0_BASE | 0x560000);
-        static volatile uint16_t &Watchdog   = *_ADDR16(DEV0_BASE | 0x5c0000);
-        static volatile uint16_t &ExtOut     = *_ADDR16(DEV0_BASE | 0x600000);
-        static volatile uint16_t &JvsTxData  = *_ADDR16(DEV0_BASE | 0x680000);
-        static volatile uint16_t &CartOut    = *_ADDR16(DEV0_BASE | 0x6a0000);
+        static volatile uint16_t &MiscOut   = *_ADDR16(DEV0_BASE | 0x400000);
+        static volatile uint16_t &DipCart   = *_ADDR16(DEV0_BASE | 0x400004);
+        static volatile uint16_t &MiscIn    = *_ADDR16(DEV0_BASE | 0x400006);
+        static volatile uint16_t &JammaMain = *_ADDR16(DEV0_BASE | 0x400008);
+        static volatile uint16_t &JvsRxData = *_ADDR16(DEV0_BASE | 0x40000a);
+        static volatile uint16_t &JammaExt1 = *_ADDR16(DEV0_BASE | 0x40000c);
+        static volatile uint16_t &JammaExt2 = *_ADDR16(DEV0_BASE | 0x40000e);
+
+        static volatile uint16_t &IdeReset  = *_ADDR16(DEV0_BASE | 0x560000);
+        static volatile uint16_t &JvsTxData = *_ADDR16(DEV0_BASE | 0x680000);
     } // namespace Regs
 
     enum MiscOutput : uint16_t

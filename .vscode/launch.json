@@ -60,6 +60,29 @@
 		{
 			"type": "gdb",
 			"request": "attach",
+			"name": "GenV (MAME-gdb)",
+			"target": "localhost:23946",
+			"remote": true,
+			"stopAtConnect": true,
+			"executable": "./bin/debug/psx/sys573/GenV-debug.elf",
+			"gdbpath": "/opt/homebrew/bin/gdb",
+			"preLaunchTask": "CMake: build",
+			"windows": {
+				"gdbpath": "gdb-multiarch.exe",
+			},
+			"cwd": "${workspaceRoot}",
+			"autorun": [
+				"set substitute-path /project .",
+				"monitor reset shellhalt",
+				"load ./bin/debug/psx/sys573/GenV-debug.elf",
+				"tbreak main",
+				"continue",
+			],
+			"valuesFormatting": "parseText"
+		},
+		{
+			"type": "gdb",
+			"request": "attach",
 			"name": "GenV (GV999-gdb)",
 			"target": "localhost:3333",
 			"remote": true,

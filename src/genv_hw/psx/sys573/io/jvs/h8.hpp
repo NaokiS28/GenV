@@ -20,11 +20,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "psx/sys573/registers573.hpp"
 #include "psx/sys573/io/asic.hpp"
+#include "psx/sys573/io/jvs/jvs.hpp"
 
 namespace System573::IO::H8
 {
+    static volatile uint16_t &JvsIrdyAck = *_ADDR16(DEV0_BASE | 0x520000);
+
     enum StatusFlag : uint8_t
     {
         STATUS_WAITING              = 0,
@@ -46,7 +48,7 @@ namespace System573::IO::H8
     // the single stage FIFO
     inline void Ack()
     {
-        ASIC::Regs::JvsIrdyAck = 0;
+        JvsIrdyAck = 0;
     }
 
     inline bool TxReady()

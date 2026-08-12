@@ -219,6 +219,10 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 
 endif()
 
+#if (GENV_DISC EQUAL 1)
+#add_custom_target(cdrom ALL DEPENDS "${RELEASE_NAME}.iso")
+#endif()
+
 # ------------------------------------------------------------------------------
 # Copy compile_commands.json to build/ root for clangd fallback
 # ------------------------------------------------------------------------------

@@ -29,13 +29,15 @@
 
 #include "common/services/services.hpp"
 #include "psx/sys573/io/io.hpp"
-#include "psx/sys573/registers573.hpp"
 #include "src/halt.h"
 
 namespace System573
 {
     using namespace PS1;
-    Sys573System::Sys573System(ServiceManager &services) : BasePS1System(services)
+    Sys573System::Sys573System(ServiceManager &services)
+        : BasePS1System(services),
+          m_jamma(*this),
+          m_jvs(*this)
     {
     }
 
@@ -172,9 +174,9 @@ namespace System573
         if (outputNumber < 8)
         {
             if (state)
-                IO::ASIC::Regs::ExtOut |= (uint8_t)(state << outputNumber);
+                IO::ExtOut |= (uint8_t)(state << outputNumber);
             else
-                IO::ASIC::Regs::ExtOut &= ~(uint8_t)(state << outputNumber);
+                IO::ExtOut &= ~(uint8_t)(state << outputNumber);
             return outputNumber;
         }
         else

@@ -16,8 +16,19 @@
  */
 
 #pragma once
+#include <stdint.h>
+
+#include "psx/common/system/registers.h"
 
 namespace System573::IO::Flash
 {
 
-}
+    enum FlashBank : uint8_t
+    {
+        FLASH   = 0,
+        PCMCIA1 = 16,
+        PCMCIA2 = 32
+    };
+
+    extern void SetBank(uint8_t bank);
+} // namespace System573::IO::Flash

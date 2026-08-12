@@ -9,6 +9,7 @@ add_library(genv_hw_gv999 STATIC)
 
 target_sources(genv_hw_gv999 PRIVATE
     system.cpp
+	io/io.cpp
 	io/jamma/jamma.cpp
 	storage/scsi.cpp
 	halt/halt.c
