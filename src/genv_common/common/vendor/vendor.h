@@ -21,7 +21,6 @@
 
 #include "vendor_conf.h" // IWYU pragma: export
 
-#include "lodepng.h"   // IWYU pragma: export
 #include "gifn/gifn.h" // IWYU pragma: export
 
 #endif

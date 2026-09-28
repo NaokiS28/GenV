@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-07-12 23:13:37.906320_
+_Generated on 2026-09-28 21:15:37.458157_
 
 #### [src/example/input_page.cpp](src/example/input_page.cpp)
 
@@ -19,11 +19,8 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_common/common/formats/image_file.cpp](src/genv_common/common/formats/image_file.cpp)
 
-- [88](src/genv_common/common/formats/image_file.cpp?plain=1#L88): Pallete loading might be borked.
-- [113](src/genv_common/common/formats/image_file.cpp?plain=1#L113): Dont do this
-- [124](src/genv_common/common/formats/image_file.cpp?plain=1#L124): Dont do this
-- [175](src/genv_common/common/formats/image_file.cpp?plain=1#L175): Animated image support
-- [311](src/genv_common/common/formats/image_file.cpp?plain=1#L311): // case Genv_RAW_type: return loadRAW_memory(objectID, data, length);	Implement raw format loading (asks GPU core to handle this)
+- [67](src/genv_common/common/formats/image_file.cpp?plain=1#L67): Animated image support
+- [198](src/genv_common/common/formats/image_file.cpp?plain=1#L198): // case Genv_RAW_type: return loadRAW_memory(objectID, data, length);	Implement raw format loading (asks GPU core to handle this)
 
 #### [src/genv_common/common/formats/wav.cpp](src/genv_common/common/formats/wav.cpp)
 
@@ -166,7 +163,7 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_hw/psx/psx/system.cpp](src/genv_hw/psx/psx/system.cpp)
 
-- [50](src/genv_hw/psx/psx/system.cpp?plain=1#L50): int error = 0; How to handle multiple driver failures?
+- [42](src/genv_hw/psx/psx/system.cpp?plain=1#L42): int error = 0; How to handle multiple driver failures?
 
 #### [src/genv_hw/psx/sys573/io/jamma/adc083x.hpp](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp)
 

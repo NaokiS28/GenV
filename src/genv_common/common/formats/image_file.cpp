@@ -22,12 +22,10 @@
 #include "common/formats/typenames.hpp"
 #include "common/objects/file.hpp"
 #include "common/objects/texture.hpp"
-#include "common/services/services.hpp"
 #include "common/services/video/color.hpp"
 #include "common/util/hash.hpp"
 
 #include "common/vendor/gifn/gifn.h"
-#include "common/vendor/lodepng.h"
 #include "common/logger/log.hpp"
 
 namespace Textures
@@ -36,7 +34,6 @@ namespace Textures
     enum class ecImageFormat
     {
         IF_RAW, // RAW format, assume target native format
-        IF_PNG, // PNG image
         IF_BMP, // Windows style Bitmap image
         IF_GIF, // GIF image (indexed + animation)
         IF_END
@@ -49,115 +46,10 @@ namespace Textures
     };
 
     constexpr const ImageFileFormat ifRawFile         = {".raw", ecImageFormat::IF_RAW};
-    constexpr const ImageFileFormat ifPngFile         = {".png", ecImageFormat::IF_PNG};
     constexpr const ImageFileFormat ifBmpFile         = {".bmp", ecImageFormat::IF_BMP};
     constexpr const ImageFileFormat ifGifFile         = {".gif", ecImageFormat::IF_GIF};
     constexpr const ImageFileFormat ImageFormatList[] = {
-        ifRawFile, ifPngFile, ifBmpFile, ifGifFile};
-
-    Textures::TextureObject *loadPNG_memory(util::Hash objectID, const uint8_t *data, size_t length)
-    {
-        // ServiceManager &services = *getServiceManager();
-
-        if (data == nullptr || length == 0)
-            return nullptr;
-
-        Textures::TextureObject *tObj = Textures::createTexture(objectID);
-        if (!tObj) return nullptr;
-
-        LodePNGState state;
-        unsigned int w = 0, h = 0;
-        uint8_t *bitmap = nullptr;
-
-        auto fail = [&tObj, &state, &bitmap](int err)
-        {
-            LOG("pngDecode", "Failed to open PNG file, error:", err);
-            delete tObj;
-            if (bitmap) delete[] bitmap;
-            lodepng_state_cleanup(&state);
-            return (Textures::TextureObject *)nullptr;
-        };
-
-        lodepng_state_init(&state);
-        if (lodepng_inspect(&w, &h, &state, data, length))
-            return fail(1);
-
-        if (lodepng_decode(&bitmap, &w, &h, &state, data, length))
-            return fail(2);
-
-        // TODO: Pallete loading might be borked.
-        if (state.info_png.color.colortype == LCT_PALETTE)
-        {
-            const LodePNGColorMode *pal = &state.info_png.color;
-            if (pal->palettesize == 0)
-                return fail(3);
-
-            auto *paletteBuffer = new Video::Color[pal->palettesize];
-            if (!paletteBuffer)
-                return fail(4);
-
-            for (unsigned i = 0; i < pal->palettesize; i++)
-            {
-                uint8_t r        = pal->palette[i * 4 + 0];
-                uint8_t g        = pal->palette[i * 4 + 1];
-                uint8_t b        = pal->palette[i * 4 + 2];
-                uint8_t a        = pal->palette[i * 4 + 3];
-                paletteBuffer[i] = {
-                    a, r, g, b};
-            }
-
-            tObj->bpp           = state.info_raw.bitdepth;
-            tObj->palette       = paletteBuffer;
-            tObj->paletteLength = pal->palettesize;
-
-            // TODO: Dont do this
-            // tObj->bitmapLength = services.gfx_size(w * h);
-            // uint8_t *dst = (uint8_t *)services.gfx_alloc(w * h);
-            // memcpy(dst, bitmap, tObj->bitmapLength);
-            // delete[] bitmap;
-            // Seriously
-
-            // tObj->bitmap = dst;
-        }
-        else
-        {
-            // TODO: Dont do this
-            // int bitmapLen = services.gfx_size(w * h * 2);
-            // uint8_t *dst = (uint8_t *)services.gfx_alloc(w * h * 2);
-            // if (!dst)
-            //    return fail(4);
-
-            // memset(dst, 0, bitmapLen);
-            unsigned numPixels = w * h;
-            for (unsigned i = 0; i < numPixels; i++)
-            {
-                uint8_t r = bitmap[i * 4 + 0];
-                uint8_t g = bitmap[i * 4 + 1];
-                uint8_t b = bitmap[i * 4 + 2];
-                uint8_t a = bitmap[i * 4 + 3];
-
-                // Alpha bit only for semi-transparent
-                uint16_t px = ((a < 127 ? 0x8000 : 0) |
-                               ((r & 0xF8) << 7) |
-                               ((g & 0xF8) << 2) |
-                               ((b & 0xF8) >> 3));
-                // dst[i * 2 + 0] = (px & 0xFF);
-                // dst[i * 2 + 1] = ((px >> 8) & 0xFF);
-            }
-            delete[] bitmap;
-            // bitmap = dst;
-
-            tObj->bitmap = bitmap;
-            // tObj->bitmapLength = bitmapLen;
-            tObj->bpp = 16;
-        }
-
-        tObj->width  = w;
-        tObj->height = h;
-
-        lodepng_state_cleanup(&state);
-        return tObj;
-    }
+        ifRawFile, ifBmpFile, ifGifFile};
 
     Textures::TextureObject *loadGIF_memory(util::Hash objectID, const uint8_t *data, const size_t length)
     {
@@ -280,11 +172,6 @@ namespace Textures
             {
                 switch (af.format)
                 {
-                case ecImageFormat::IF_PNG:
-                    return loadPNG_memory(
-                        objectID,
-                        fObj->getRawData(),
-                        fObj->size());
                 case ecImageFormat::IF_BMP:
                     break;
                 case ecImageFormat::IF_GIF:
@@ -309,7 +196,6 @@ namespace Textures
         switch (type)
         {
         // case Genv_RAW_type: return loadRAW_memory(objectID, data, length);	// TODO: Implement raw format loading (asks GPU core to handle this)
-        case Genv_PNG_Image_type: return loadPNG_memory(objectID, data, length);
         case Genv_GIF_Image_type: return loadGIF_memory(objectID, data, length);
         default: return nullptr;
         }

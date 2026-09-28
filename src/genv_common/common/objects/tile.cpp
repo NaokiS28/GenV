@@ -24,18 +24,14 @@ namespace Sprites
 {
     TileObject::TileObject(util::Hash objectID)
     {
-        //!Review
         // Mint the texture BEFORE resetTransform(), which reads texture->width/height.
         texture = Video::createTexture(objectID);
-        //!End
         resetTransform();
     }
 
     TileObject::TileObject(util::Hash objectID, const char *filePath)
     {
-        //!Review
         texture = Video::createTexture(objectID, filePath);
-        //!End
     }
 
     int TileObject::draw(int x, int y)
@@ -151,9 +147,7 @@ namespace Sprites
 
     int TileObject::uploadTexture()
     {
-        //!Review
         return Video::uploadTexture(texture);
-        //!End
     }
 
     void TileObject::fillScreen(int x, int y)
