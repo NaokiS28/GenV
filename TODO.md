@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-09-28 20:00:14.196671_
+_Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/example/input_page.cpp](src/example/input_page.cpp)
 
@@ -166,7 +166,7 @@ _Generated on 2026-09-28 20:00:14.196671_
 
 #### [src/genv_hw/psx/psx/system.cpp](src/genv_hw/psx/psx/system.cpp)
 
-- [42](src/genv_hw/psx/psx/system.cpp?plain=1#L42): int error = 0; How to handle multiple driver failures?
+- [50](src/genv_hw/psx/psx/system.cpp?plain=1#L50): int error = 0; How to handle multiple driver failures?
 
 #### [src/genv_hw/psx/sys573/io/jamma/adc083x.hpp](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp)
 
