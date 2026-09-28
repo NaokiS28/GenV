@@ -33,18 +33,7 @@ namespace PS1
 
     int PS1System::initAudio()
     {
-<<<<<<< HEAD
         return spu.init();
-=======
-        /*
-        int error = 0;
-        spu       = new Sound::PS1SPU;
-        error     = ioTest(spu, PS1_SPU_STR, PS1_CREATE_STR);
-        if (!error) ioTest(spu->init(), PS1_SPU_STR, PS1_INIT_STR);
-        if (!error) services.setAudio(adminKey, spu);
-        */
-        return 0;
->>>>>>> ee53a70 (* Major: Renamed all instances of PSX to PS1 - Because the meme is old and GenV should be more descriptive.)
     }
 
     int PS1System::initStorage()

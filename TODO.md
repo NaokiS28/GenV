@@ -3,7 +3,7 @@
 This file is auto-generated.
 Do not edit manually.
 
-_Generated on 2026-08-12 22:30:58.718152_
+_Generated on 2026-09-28 20:00:14.196671_
 
 #### [src/example/input_page.cpp](src/example/input_page.cpp)
 
@@ -87,6 +87,14 @@ _Generated on 2026-08-12 22:30:58.718152_
 - [527](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L527): render text using a sprite font or CoreText.
 - [543](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L543): create a MTLTexture from tObj->data and store in _texMap.
 
+#### [src/genv_hw/psx/common/drivers/audio/spu.cpp](src/genv_hw/psx/common/drivers/audio/spu.cpp)
+
+- [159](src/genv_hw/psx/common/drivers/audio/spu.cpp?plain=1#L159): doing this is technically invalid as the first 4 KB of SPU RAM
+
+#### [src/genv_hw/psx/common/drivers/audio/spu.hpp](src/genv_hw/psx/common/drivers/audio/spu.hpp)
+
+- [34](src/genv_hw/psx/common/drivers/audio/spu.hpp?plain=1#L34): Most of the SPU code itself should probably work but it needs tidiying up and the commented out params need correcting.
+
 #### [src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp)
 
 - [61](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L61): Add support for PS1 mouse in VMouse.
@@ -158,7 +166,7 @@ _Generated on 2026-08-12 22:30:58.718152_
 
 #### [src/genv_hw/psx/psx/system.cpp](src/genv_hw/psx/psx/system.cpp)
 
-- [49](src/genv_hw/psx/psx/system.cpp?plain=1#L49): int error = 0; How to handle multiple driver failures?
+- [42](src/genv_hw/psx/psx/system.cpp?plain=1#L42): int error = 0; How to handle multiple driver failures?
 
 #### [src/genv_hw/psx/sys573/io/jamma/adc083x.hpp](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp)
 

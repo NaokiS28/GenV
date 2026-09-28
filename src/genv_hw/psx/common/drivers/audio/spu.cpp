@@ -27,7 +27,7 @@
 #define SPU_NUM_CHANNELS 24
 #define SPU_MAX_VOLUME 0x3fff
 
-namespace PSX
+namespace PS1
 {
     using namespace SPU;
 
@@ -61,7 +61,7 @@ namespace PSX
         psx_delayMicrosecondsBusy(35);
     }
 
-    bool SPUDriver::init(void)
+    int SPUDriver::init(void)
     {
         BIU_DEV4_CTRL = 0                    //
                         | (1 << 0)           // Write delay
@@ -101,7 +101,7 @@ namespace PSX
 
         SPU_CTRL = SPU_CTRL_UNMUTE | SPU_CTRL_ENABLE;
         resetAllChannels();
-        return true;
+        return GV_OK;
     }
 
     SPUDriver::Channel SPUDriver::getFreeChannel(void) const
@@ -289,6 +289,11 @@ namespace PSX
         return GV_OK;
     }
 
+    Audio::SoundObject *SPUDriver::createSample(util::Hash objectID, const char *filePath)
+    {
+        return nullptr;
+    }
+
     bool SPUDriver::reset()
     {
         return true;
@@ -298,4 +303,4 @@ namespace PSX
     {
     }
 
-} // namespace PSX
+} // namespace PS1

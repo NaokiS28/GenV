@@ -97,7 +97,7 @@
 #define SPU_CH_VOLXL(N) _MMIO16((IO_BASE | 0xe00) + (4 * (N)))
 #define SPU_CH_VOLXR(N) _MMIO16((IO_BASE | 0xe02) + (4 * (N)))
 
-namespace PSX::SPU
+namespace PS1::SPU
 {
     enum StatusFlag : uint16_t
     {
@@ -134,4 +134,4 @@ namespace PSX::SPU
         SPU_CTRL_UNMUTE         = 1 << 14,
         SPU_CTRL_ENABLE         = 1 << 15
     };
-} // namespace PSX::SPU
+} // namespace PS1::SPU

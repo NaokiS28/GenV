@@ -41,11 +41,13 @@ namespace PS1
             .name  = szPlaystation,
             .flags = SYS_No_Window_Mode};
 
+        SPUDriver spu;
         Storage::PS1_CDROM *cdDriver = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers?
 
     public:
         inline PS1System(ServiceManager &services)
-            : BasePS1System(services) {};
+            : BasePS1System(services),
+              spu(*this) {};
 
         virtual int initVideo() override;
         virtual int initAudio() override;
