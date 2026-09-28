@@ -26,13 +26,13 @@
 #include "common/logger/log.hpp"
 #include "common/objects/file.hpp"
 #include "common/services/storage/iface_storage.hpp"
-#include "common/services/io/iface_driver.hpp"
+#include "common/services/system/iface_driver.hpp"
 
 // TODO: Implement memory card as a virtual file system complete with directory listing.
 
-namespace PSX::IO
+namespace PS1::IO
 {
-    class PSX_MemoryCard : public Files::IStorageDriver, public ::IO::IDriver
+    class PS1_MemoryCard : public Files::IStorageDriver
     {
     private:
         SIO0_Bus *m_bus;
@@ -40,16 +40,16 @@ namespace PSX::IO
         const SIO0_Port _portNumber;
 
     public:
-        inline PSX_MemoryCard(SIO0_Bus *bus, SIO0_Port port) : m_bus(bus), _portNumber(port)
+        inline PS1_MemoryCard(::System::ISystem &sys, SIO0_Bus *bus, SIO0_Port port) : Files::IStorageDriver(sys), m_bus(bus), _portNumber(port)
         {
             assert(driverCount < 2);
-            name = PSX_PS_MEMCARD_STR;
+            _name = PS1_PS_MEMCARD_STR;
         };
 
         int init() override
         {
             LOG("psxmcd", "Init PlayStation Memory Card driver on port %d", (_portNumber == SIO0_Port::PORT1 ? 1 : 2));
-            return 0;
+            return GV_OK;
         }
 
         bool update() override
@@ -75,4 +75,4 @@ namespace PSX::IO
         // Gets a list of drives present in the system and returns the total count.
         int getDriveList(Files::IStorageDevice *list, uint8_t &count);
     };
-} // namespace PSX::IO
+} // namespace PS1::IO

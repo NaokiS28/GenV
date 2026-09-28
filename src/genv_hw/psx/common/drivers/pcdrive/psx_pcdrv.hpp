@@ -19,17 +19,22 @@
 
 #include "common/objects/file.hpp"
 #include "common/services/storage/iface_storage.hpp"
-#include "common/services/io/iface_driver.hpp"
+#include "common/services/system/iface_driver.hpp"
+#include "psx/common/psx_strings.hpp"
 
-namespace PSX::Storage
+namespace PS1::Storage
 {
-    class PSX_PCDrive : public IO::IDriver
+    class PS1_PCDrive : public System::IDriver
     {
     public:
-        int init();
-        bool update();
-        bool reset();
-        void shutdown();
+        inline PS1_PCDrive(::System::ISystem &sys) : ::System::IDriver(sys)
+        {
+            _name = PS1_PS_PCDRV_STR;
+        }
+        int init() override;
+        bool update() override;
+        bool reset() override;
+        void shutdown() override;
 
         int openFile(const char *filePath, bool lock, Files::FileObject *fObj);
         int closeFile(Files::FileObject *fObj);
@@ -42,4 +47,4 @@ namespace PSX::Storage
         // Gets a list of drives present in the system and returns the total count.
         int getDriveList(Files::IStorageDevice *list, uint8_t &count);
     };
-} // namespace PSX::Storage
+} // namespace PS1::Storage

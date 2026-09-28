@@ -22,6 +22,9 @@
 
 #include "common/services/system/iface_system.hpp"
 #include "drivers/video/video.hpp"
+#include "psx/common/drivers/pcdrive/psx_pcdrv.hpp"
+#include "psx/common/drivers/sio1/psx_sio1.hpp"
+#include "psx/common/system/registers.h"
 #include "psx/common/system/sys.h"
 #include "system/timers.hpp"
 
@@ -33,18 +36,16 @@
 #include "drivers/sio0/psx_mc.hpp"
 #include "drivers/sio0/psx_sio0.hpp"
 
-#include "registers.hpp"
-
-namespace PSX
+namespace PS1
 {
     enum
     {
-        PSX_SYS_OK,
-        PSX_SYS_VIDEO_INIT_FAIL,
-        PSX_SYS_SOUND_INIT_FAIL,
-        PSX_SYS_CDROM_INIT_FAIL,
-        PSX_SYS_FILE_INIT_FAIL,
-        PSX_SYS_IO_INIT_FAIL,
+        PS1_SYS_OK,
+        PS1_SYS_VIDEO_INIT_FAIL,
+        PS1_SYS_SOUND_INIT_FAIL,
+        PS1_SYS_CDROM_INIT_FAIL,
+        PS1_SYS_FILE_INIT_FAIL,
+        PS1_SYS_IO_INIT_FAIL,
     };
 
     constexpr int maxRegisteredISRs = 5;
@@ -67,8 +68,28 @@ namespace PSX
     // `int error` to be defined in the context of this declaration. Will auto
     int ioTest(int returnVal, const char *device, int port, const char *string);
 
+    class IRQCallback : public System::Callback
+    {
+    private:
+        bool _ack = true;
+
+    public:
+        IRQCallback() {}
+        IRQCallback(
+            const char *name,
+            System::CallbackFunction func,
+            bool autoAck,
+            void *arg) : System::Callback(name, func, arg), _ack(autoAck) {}
+
+        inline bool autoAck()
+        {
+            // If not valid, handle the IRQ by clearing the interrupt
+            return (!isValid() && _ack);
+        }
+    };
+
     /*
-     * PSX System base class
+     * PS1 System base class
      * This system implements the code neccesary to run GenV on a PlayStation 1.
      * Any system that is based on the PlayStation 1 can be derrived from this
      * class, where the Audio, Video, Input and File storage modules can be changed
@@ -80,7 +101,7 @@ namespace PSX
      * and GPU are the same, but the audio, input and files system change (audio is
      * expanded upon with the Digital Sound IO board)
      */
-    class BasePSXSystem : public System::BaseSystem
+    class BasePS1System : public System::BaseSystem
     {
     protected:
         Time::IRTC *clock; // Pointer so can be overidden
@@ -96,8 +117,11 @@ namespace PSX
             System::Callback callback;
         } timer_alarms[2];
 
-        bool isr_sio0_autoAck = false;
-        System::Callback isr_sio0;
+        IRQCallback isr_sio0;
+        IRQCallback isr_sio1;
+        IRQCallback isr_cdrom;
+        IRQCallback isr_spu;
+        IRQCallback isr_pio;
 
         // Millis/Seconds tracking
         const size_t err_numerator      = 307;
@@ -114,29 +138,27 @@ namespace PSX
             .name  = szPlaystation,
             .flags = System::SYS_No_Window_Mode};
 
-        // Pointers to control the life cycle of items. TODO: Do these strictly *need* to be pointers?
-        GPU::PSXGPU *gpu = nullptr; // GPU probably needs to stay as pointer for V1/V2 CPU differences
-        IO::SIO0_Bus sio0;
-        IO::PSX_Joypad joyDriver[2]    = {{&sio0, IO::SIO0_Port::PORT1}, {&sio0, IO::SIO0_Port::PORT2}}; // <-| These are part of the CPU and thus can always be "present"
-        IO::PSX_MemoryCard mcDriver[2] = {{&sio0, IO::SIO0_Port::PORT1}, {&sio0, IO::SIO0_Port::PORT2}}; // <-/
-        // IO::SIO1_Bus sio1;	// Always part of the CPU
+        GPU::PS1GPU *gpu = nullptr; // GPU probably needs to stay as pointer for V0/V2 GPU differences
+        IO::SIO0_Bus sio0{*this};
+        IO::SIO1_Bus sio1{*this};
+        IO::PS1_Joypad joyDriver[2]    = {{*this, &sio0, IO::SIO0_Port::PORT1}, {*this, &sio0, IO::SIO0_Port::PORT2}}; // <-| These are part of the CPU and thus can always be "present"
+        IO::PS1_MemoryCard mcDriver[2] = {{*this, &sio0, IO::SIO0_Port::PORT1}, {*this, &sio0, IO::SIO0_Port::PORT2}}; // <-/
 
+#ifndef NDEBUG
+        Storage::PS1_PCDrive *pcDriver = nullptr; // Not always needed?
+#endif
     public:
-        BasePSXSystem();
-        virtual ~BasePSXSystem();
+        BasePS1System(ServiceManager &services);
+        virtual ~BasePS1System();
 
         virtual int initCore() override;
         virtual int initVideo() override;
-        virtual int initAudio() override;
+        virtual int initAudio() override { return 0; };
         virtual int initIO() override;
         virtual int initStorage() override;
 
         virtual int update() override;
-        virtual void shutdown() override;         // Prepare drivers and app for close
         virtual bool setResolution(int w, int h); // Sets window resolution (internal viewport)
-
-        inline bool setFullscreen(Video::FullscreenMode mode) { return false; }
-        inline bool toggleFullscreen() { return false; }
 
         inline virtual const System::SystemInfo *getSysInfo() const override
         {
@@ -150,7 +172,7 @@ namespace PSX
             constexpr int tdiv  = 21168;
             static_assert(((Timer2::ClockFreq * tmult) / tdiv) == 1000, "");
 
-            return (uint64_t(::PSX::Timer2::Value | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
+            return (uint64_t(::PS1::Timer2::Value | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
         }
 
         size_t micros() override
@@ -160,7 +182,7 @@ namespace PSX
             constexpr int tdiv  = 2646;
             static_assert(((uint64_t(Timer2::ClockFreq) * tmult) / tdiv) == 1000000, "");
 
-            return (uint64_t(::PSX::Timer2::Value | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
+            return (uint64_t(::PS1::Timer2::Value | (timer2_count << 16)) * uint64_t(tmult)) / uint64_t(tdiv);
         }
 
         bool getTime(tm &time) override
@@ -189,7 +211,12 @@ namespace PSX
         inline void enterCriticalSection() override { psx_disableInterrupts(); }
         inline void leaveCriticalSection() override { psx_enableInterrupts(); }
 
-        IRQChannel registerISR(System::Callback callback, IRQChannel irq, bool autoAck = true);
+        IRQChannel registerISR(
+            IRQChannel irq,
+            const char *name,
+            System::CallbackFunction func,
+            bool autoAck = true,
+            void *arg    = nullptr);
     };
 
-} // namespace PSX
+} // namespace PS1

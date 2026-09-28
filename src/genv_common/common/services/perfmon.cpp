@@ -16,6 +16,7 @@
  */
 
 #include "perfmon.hpp"
+#include "common/services/video/video.hpp"
 
 namespace System
 {
@@ -32,8 +33,8 @@ namespace System
         lastGraph = nextGraph;
         lastFrame = frame;
 
-        uint8_t screenRate = Video::getRefreshRate();
-        cycleTime          = (US_1HZ / screenRate);
+        // uint8_t screenRate = Video::getRefreshRate();
+        // cycleTime          = (US_1HZ / screenRate);
 
         size_t busyTime = systemExecTime + storageUpdateTime + inputUpdateTime + appExecTime + renderTime + coroutineUpdateTime;
         idleTime        = (busyTime < cycleTime) ? (cycleTime - busyTime) : 0;

@@ -18,7 +18,7 @@
 /*
  * HELLO WORLD EXAMPLE - macOS Metal video driver skeleton
  * =========================================================
- * This file shows how to implement a Video::IVideo subclass for macOS 11+
+ * This file shows how to implement a System::IVideoDriver subclass for macOS 11+
  * using Metal (via the Objective-C++ bridge).  It is intentionally minimal:
  * every draw call is a no-op stub so it compiles and links cleanly, giving
  * you a working baseline to flesh out one function at a time.
@@ -36,7 +36,7 @@
  *
  * Relationship to the rest of GenV
  * ---------------------------------
- *  Video::IVideo  (iface_video.hpp)   <- abstract interface every GPU driver implements
+ *  System::IVideoDriver  (iface_videodrv.hpp)   <- abstract interface every GPU driver implements
  *  Video::NullVideo (nullvideo.hpp)   <- no-op reference implementation
  *  This class  MetalGPU               <- macOS-specific Metal implementation (stub)
  *
@@ -70,7 +70,7 @@
 #include "common/objects/texture.hpp"
 #include "common/objects/sprite.hpp"
 #include "common/objects/tile.hpp"
-#include "common/services/video/iface_video.hpp"
+#include "common/services/video/iface_videodrv.hpp"
 
 // ---------------------------------------------------------------------------
 // MetalTexture
@@ -92,7 +92,7 @@ public:
 // ---------------------------------------------------------------------------
 // MetalGPU
 // ---------------------------------------------------------------------------
-// Minimal IVideo implementation for macOS 11+ using Metal.
+// Minimal IVideoDriver implementation for macOS 11+ using Metal.
 //
 // Lifetime
 //   1. Constructed by OSXSystem::initVideo() with a pointer to the NSWindow.
@@ -101,7 +101,7 @@ public:
 //   4. endRender()  – ends encoder, presents drawable, commits command buffer.
 //   5. shutdown()   – releases all Metal objects.
 // ---------------------------------------------------------------------------
-class MetalGPU : public Video::IVideo
+class MetalGPU : public System::IVideoDriver
 {
 public:
     // window is an NSWindow* passed as void* so this header is includable from
@@ -110,7 +110,7 @@ public:
     ~MetalGPU();
 
     // -----------------------------------------------------------------------
-    // IVideo lifecycle
+    // IVideoDriver lifecycle
     // -----------------------------------------------------------------------
     bool init() override;        // Acquire MTLDevice, set up CAMetalLayer
     bool reset() override;       // Recreate swapchain after resize / mode change
@@ -191,15 +191,15 @@ private:
     // -----------------------------------------------------------------------
     // Metal state (stored as void* to avoid ObjC types in this header)
     // -----------------------------------------------------------------------
-    void *_window          = nullptr; // NSWindow*
-    void *_device          = nullptr; // id<MTLDevice>
-    void *_queue           = nullptr; // id<MTLCommandQueue>
-    void *_layer           = nullptr; // CAMetalLayer*
-    void *_drawable        = nullptr; // id<CAMetalDrawable>  – valid between begin/endRender
-    void *_cmdBuffer       = nullptr; // id<MTLCommandBuffer> – valid between begin/endRender
-    void *_encoder         = nullptr; // id<MTLRenderCommandEncoder>
-    void *_frameSemaphore  = nullptr; // dispatch_semaphore_t – gates CPU to drawable count
-    bool  _waitingForVSync = false;
+    void *_window         = nullptr; // NSWindow*
+    void *_device         = nullptr; // id<MTLDevice>
+    void *_queue          = nullptr; // id<MTLCommandQueue>
+    void *_layer          = nullptr; // CAMetalLayer*
+    void *_drawable       = nullptr; // id<CAMetalDrawable>  – valid between begin/endRender
+    void *_cmdBuffer      = nullptr; // id<MTLCommandBuffer> – valid between begin/endRender
+    void *_encoder        = nullptr; // id<MTLRenderCommandEncoder>
+    void *_frameSemaphore = nullptr; // dispatch_semaphore_t – gates CPU to drawable count
+    bool _waitingForVSync = false;
 
     Video::FullscreenMode _fsMode = Video::FullscreenMode::Windowed;
 

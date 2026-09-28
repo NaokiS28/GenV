@@ -21,7 +21,6 @@
 #include "common/return_codes.hpp"
 #include "common/services/adminkey.hpp"
 #include "common/services/io/playermgr.hpp"
-#include "common/services/io/devicemgr.hpp"
 #include "common/services/perfmon.hpp"
 #include "common/services/storage/storemgr.hpp"
 #include "common/services/system/system.hpp"
@@ -34,8 +33,6 @@ constexpr const char szChangeServiceError[] = "Failed to change to new %s: %i";
 constexpr const char szUnkownError[]        = "Unknown error reported from %s: %i";
 
 constexpr const char szSystem[]        = "system service";
-constexpr const char szVideo[]         = "video service";
-constexpr const char szAudio[]         = "audio service";
 constexpr const char szStorage[]       = "storage manager";
 constexpr const char szPlayerManager[] = "player manager";
 constexpr const char szDevice[]        = "devicer manager";
@@ -51,8 +48,6 @@ enum ServiceError
 enum ServiceName
 {
     SN_SYSTEM,
-    SN_VIDEO,
-    SN_AUDIO,
     SN_STORAGE,
     SN_PLAYER,
     SN_DEVICE,
@@ -79,8 +74,6 @@ constexpr const char *szServiceName(int errorcode)
     switch (getServiceID(errorcode))
     {
     case SN_SYSTEM: return szSystem;
-    case SN_VIDEO: return szVideo;
-    case SN_AUDIO: return szAudio;
     case SN_STORAGE: return szStorage;
     case SN_PLAYER: return szPlayerManager;
     case SN_DEVICE: return szDevice;
@@ -128,12 +121,6 @@ int ServiceManager::createManagers()
 
     if (!error)
     {
-        s_deviceManager = new IO::DeviceManager(AdminClass_Key(), *s_playerManager);
-        if (!s_deviceManager) error = makeErrorCode(SN_DEVICE, SE_NULLPTR);
-    }
-
-    if (!error)
-    {
         s_fonts = new Fonts::FontManager(AdminClass_Key());
         if (!s_fonts) error = makeErrorCode(SN_FONT, SE_NULLPTR);
     }
@@ -150,7 +137,6 @@ int ServiceManager::init()
 {
     int error = 0;
     if (s_storage->init() != GV_OK) error = makeErrorCode(SN_STORAGE, SE_INIT_FAILED);
-    if (s_deviceManager->init() != GV_OK) error = makeErrorCode(SN_DEVICE, SE_INIT_FAILED);
     if (s_fonts->init() != GV_OK) error = makeErrorCode(SN_FONT, SE_INIT_FAILED);
     return error;
 }
@@ -167,26 +153,13 @@ int ServiceManager::update()
     // s_storage->update();
     // System::PerfMon.finishStorageUpdate();
     //}
-    if (s_deviceManager)
-    {
-        s_deviceManager->update();
-        System::PerfMon.finishInputUpdate();
-    }
     return r;
 }
 
 void ServiceManager::shutdown()
 {
     LOG_SVC("Shutting down ServiceManager.");
-    destroyService(s_audio);
-    destroyService(s_video);
 
-    if (s_deviceManager)
-    {
-        s_deviceManager->shutdown();
-        delete s_deviceManager;
-        s_deviceManager = nullptr;
-    }
     if (s_outputManager)
     {
         delete s_outputManager;
@@ -225,36 +198,14 @@ void ServiceManager::setSystem(System::ISystem *system)
     s_system = system;
 }
 
-void ServiceManager::setVideo(Video::IVideo *video)
-{
-    if (!video)
-    {
-        LOG_SVC(szChangeServiceError, szVideo, SE_NULLPTR);
-        return;
-    }
-    destroyService(s_video);
-    s_video = video;
-}
-
-void ServiceManager::setAudio(Audio::IAudio *audio)
-{
-    if (!audio)
-    {
-        LOG_SVC(szChangeServiceError, szAudio, SE_NULLPTR);
-        return;
-    }
-    destroyService(s_audio);
-    s_audio = audio;
-}
-
 int ServiceManager::updateCoroutines()
 {
     for (auto coroutine : s_coroutines)
     {
-        if (s_video->waitingForVSync()) // Only run updates whilst waiting for vsync.
-            coroutine->resume();
-        else
-            return GV_OK;
+        // if (s_video->waitingForVSync()) // Only run updates whilst waiting for vsync.
+        //    coroutine->resume();
+        // else
+        //   return GV_OK;
     }
     return 1;
 }

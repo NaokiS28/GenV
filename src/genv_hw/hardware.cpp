@@ -19,15 +19,15 @@
 #include "common/services/system/arcade/iface_arcade.hpp"
 #include "common/services/system/iface_system.hpp"
 
-#if defined(GENV_PSX)
+#if defined(GENV_PS1)
 #if defined(GENV_SYS573)
 #include "psx/sys573/system.hpp"
 #include "common/services/services.hpp"
 namespace System
 {
-    ISystem *makeNewSystem()
+    ISystem *makeNewSystem(ServiceManager &services)
     {
-        System573::Sys573System *system = new System573::Sys573System;
+        System573::Sys573System *system = new System573::Sys573System(services);
         return system;
     }
     IArcadeSystem *getArcadeInterface()
@@ -37,13 +37,30 @@ namespace System
         return reinterpret_cast<System573::Sys573System *>(sys);
     }
 } // namespace System
+#elif defined(GENV_GV999)
+#include "psx/gv999/system.hpp"
+#include "common/services/services.hpp"
+namespace System
+{
+    ISystem *makeNewSystem(ServiceManager &services)
+    {
+        SystemGV::GV999System *system = new SystemGV::GV999System(services);
+        return system;
+    }
+    IArcadeSystem *getArcadeInterface()
+    {
+        static ISystem *sys = nullptr;
+        if (!sys) sys = getServiceManager()->getSystem();
+        return reinterpret_cast<SystemGV::GV999System *>(sys);
+    }
+} // namespace System
 #else
 #include "psx/psx/system.hpp"
 namespace System
 {
-    ISystem *makeNewSystem()
+    ISystem *makeNewSystem(ServiceManager &services)
     {
-        PSX::PSXSystem *system = new PSX::PSXSystem;
+        PS1::PS1System *system = new PS1::PS1System(services);
         return system;
     }
     IArcadeSystem *getArcadeInterface()
@@ -58,7 +75,7 @@ namespace System
 #include "win32/system.hpp"
 namespace System
 {
-    ISystem *makeNewSystem()
+    ISystem *makeNewSystem(ServiceManager &services)
     {
         WinSystem *system = new WinSystem();
         return system;
@@ -72,7 +89,7 @@ namespace System
 #include "mac/osx/system.hpp"
 namespace System
 {
-    ISystem *makeNewSystem()
+    ISystem *makeNewSystem(ServiceManager &services)
     {
         OSXSystem *system = new OSXSystem();
         return system;
@@ -86,7 +103,7 @@ namespace System
 #include "mac/osx/system.hpp"
 namespace System
 {
-    ISystem *makeNewSystem()
+    ISystem *makeNewSystem(ServiceManager &services)
     {
         OS9System *system = new OS9System();
         return system;

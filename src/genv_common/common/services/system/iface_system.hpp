@@ -24,6 +24,12 @@
 
 #include "timer.hpp"
 
+namespace Video
+{
+    class Screen;        // System owns the drivers and exposes their screens
+    struct ScreenConfig; //! Review - config a driver hands assignScreen
+} // namespace Video
+
 #define SYSTEM_CALLBACK(name, type, func)                 \
     {                                                     \
         name,                                             \
@@ -37,6 +43,7 @@
 namespace System
 {
     struct SystemInfo;
+    class IVideoDriver; //! Review - assignScreen wires a screen to its video driver
 
     typedef void (*CallbackFunction)(void *arg);
     class Callback
@@ -70,6 +77,17 @@ namespace System
 
         virtual int update()    = 0; // Update system manager
         virtual void shutdown() = 0; // Prepare for app shutdown
+
+        // Returns the screen (render context) at the given index, or nullptr if no
+        // screen is registered there. Null is a checkable "failed access" - callers
+        // must guard it (Screen draw calls forward straight into the driver).
+        virtual Video::Screen *getScreen(uint8_t idx) = 0;
+
+        // A video driver may call this if needing an arbitrary amount of screen objects not known at compile time.
+        virtual Video::Screen *assignScreen(IVideoDriver *driver, const Video::ScreenConfig &cfg) = 0;
+        // Alternatively, for static systems like consoles, the screen can be instead registered to the system.
+        // The retrieval is still the same and runs through ISystem, but means less heap usage when it matters.
+        virtual Video::Screen *registerScreen(IVideoDriver *driver, Video::Screen *screen) = 0;
 
         virtual void enterCriticalSection() = 0;
         virtual void leaveCriticalSection() = 0;

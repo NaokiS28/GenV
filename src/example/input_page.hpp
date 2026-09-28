@@ -33,13 +33,7 @@ private:
         AppVersion(0, 0, 1) // version
     );
 
-    int currentPage = 0;
-    int maxPage     = 0;
-    int padCount    = 0;
-
-    int titleX = 0;
-
-    char pageStr[256] = {'\0'};
+    int padCount = 0;
 
     Input::Player currentPlayer = Input::Player::PLAYER_1;
 

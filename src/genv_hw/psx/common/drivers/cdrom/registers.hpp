@@ -20,7 +20,7 @@
 
 #define DEF(type) static inline type __attribute__((always_inline))
 
-namespace PSX::CDROM
+namespace PS1::CDROM
 {
 
     /* CD-ROM drive */
@@ -303,6 +303,6 @@ namespace PSX::CDROM
         MODE_SPEED_2X     = 1 << 7
     };
 
-} // namespace PSX::CDROM
+} // namespace PS1::CDROM
 
 #undef DEF

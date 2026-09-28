@@ -18,21 +18,24 @@
 #include "common/services/storage/storage.hpp"
 #include "psx/sys573/io/asic.hpp"
 #include "psx/sys573/io/io.hpp"
+#include "psx/sys573/io/cartridge/cartridge.hpp"
 
 namespace System573::IO
 {
+    static volatile uint16_t &BankCtrl = *_ADDR16(DEV0_BASE | 0x500000);
+
     uint8_t sys573_bank_state = 0;
 
     namespace SecurityCart
     {
-        void SetGPIODirection(GPIODir state)
+        void SetGPIODirection(Cartridge::GPIODir state)
         {
-            bool _st = state == GPIODir::Output;
+            bool _st = state == Cartridge::GPIODir::Output;
             if (_st)
                 sys573_bank_state |= (_st << 6);
             else
                 sys573_bank_state &= ~(_st << 6);
-            ASIC::Regs::BankCtrl = sys573_bank_state;
+            BankCtrl = sys573_bank_state;
         }
     } // namespace SecurityCart
 
@@ -61,9 +64,9 @@ namespace System573::IO
         {
             bank &= 0x3F;
             if (!(bank & 0x30)) bank &= 0x03;
-            uint8_t mask         = sys573_bank_state ^ bank;
-            sys573_bank_state    = (sys573_bank_state & mask) | bank;
-            ASIC::Regs::BankCtrl = sys573_bank_state;
+            uint8_t mask      = sys573_bank_state ^ bank;
+            sys573_bank_state = (sys573_bank_state & mask) | bank;
+            BankCtrl          = sys573_bank_state;
         }
     } // namespace Flash
 } // namespace System573::IO

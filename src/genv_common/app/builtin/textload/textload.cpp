@@ -18,6 +18,7 @@
 #include "textload.hpp"
 #include "app/app.hpp"
 #include "common/services/services.hpp"
+#include "common/services/system/system.hpp"
 
 namespace Apps
 {
@@ -29,15 +30,17 @@ namespace Apps
 
     void TextLoader::render()
     {
-        gpu->fillScreen(Video::Colors::Black);
-        gpu->drawText(loadingText, textPos.x, textPos.y, textPos.w, textPos.h, Video::Colors::White, Video::TALIGN_CENTER);
+        Video::Screen *screen = System::screen(0);
+        screen->fillScreen(Video::Colors::Black);
+        screen->drawText(loadingText, textPos.x, textPos.y, textPos.w, textPos.h, Video::Colors::White, Video::TALIGN_CENTER);
     }
 
     void TextLoader::reload()
     {
-        textPos = {
-            gpu->getHorizontalRes() / 2 - 250,
-            gpu->getVerticalRes() / 2 - 10,
+        Video::Screen *screen = System::screen(0);
+        textPos               = {
+            screen->getHorizontalRes() / 2 - 250,
+            screen->getVerticalRes() / 2 - 10,
             500,
             20};
     }

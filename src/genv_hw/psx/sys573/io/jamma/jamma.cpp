@@ -19,13 +19,11 @@
 #include "common/return_codes.hpp"
 #include "common/services/io/iface_input.hpp"
 #include "common/services/io/iface_output.hpp"
-#include "common/services/io/iostrings.hpp"
 #include "common/services/io/vjoy.hpp"
 #include "common/services/services.hpp"
 #include "common/util/templates.hpp"
 #include "psx/common/system/sys.h"
 #include "psx/sys573/io/jamma/adc083x.hpp"
-#include "psx/sys573/registers573.hpp"
 
 namespace System573::IO
 {
@@ -33,7 +31,7 @@ namespace System573::IO
     using namespace Output;
 
     constexpr IOutputDevice gx700_outputs = IOutputDevice(
-        "Systm 573 EXTOUT", "GX700-EXTOUT"_h, idNull, OutputType::BINARY, 0, 0);
+        "Systm 573 EXTOUT", "GX700-EXTOUT"_h, util::idNull, OutputType::BINARY, 0, 0);
 
     constexpr IInputDevice jamma(const char *name, uint32_t *digital, uint8_t numAnalog = 0, int16_t *analog = nullptr)
     {

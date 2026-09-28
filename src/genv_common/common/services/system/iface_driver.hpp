@@ -20,20 +20,22 @@
 #include "common/return_codes.hpp"
 #include "common/util/hash.hpp"
 
-namespace IO
+namespace System
 {
-    // Base class for all IO drivers. A driver represents a hardware bus or input source
-    // (e.g. JAMMA, JVS, Windows HID). During init(), drivers attach their devices to
-    // PlayerManager. During update(), drivers refresh device state buffers.
+    class ISystem; // forward decl - every driver holds a reference to its owning system
+
+    // Base class for all drivers. A driver represents a hardware bus, device or chip.
     class IDriver
     {
     protected:
+        // Injected reference to the owning System, set at construction.
+        ISystem &_system;
         const char *_name = nullptr;
         util::Hash id;
 
     public:
-        IDriver() = default;
-        IDriver(util::Hash id) : id(id) {}
+        IDriver(ISystem &sys) : _system(sys) {}
+        IDriver(ISystem &sys, util::Hash id) : _system(sys), id(id) {}
         virtual ~IDriver() = default;
         virtual int init() { return GV_OK; };
         virtual bool update() = 0;
@@ -42,4 +44,4 @@ namespace IO
 
         const char *getName() { return _name; }
     };
-} // namespace IO
+} // namespace System

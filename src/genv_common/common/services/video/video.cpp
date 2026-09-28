@@ -17,12 +17,45 @@
 
 #include "video.hpp"
 #include "common/services/services.hpp"
+#include "common/services/system/system.hpp"
+#include "common/services/video/screen.hpp"
+#include "common/objects/texture.hpp"
 
 namespace Video
 {
+    //!Review
+    // Resource + frame seam bodies. System owns the driver; a Screen holds a
+    // convenience pointer to it. The primary screen (index 0) is the single-GPU
+    // target for now. Null-guarded so a call before initVideo (no screen yet)
+    // fails soft instead of dereferencing null.
+    Textures::TextureObject *createTexture(util::Hash objectID)
+    {
+        Video::Screen *s = System::screen(0);
+        return s ? s->getDriver()->createTexture(objectID) : nullptr;
+    }
+
+    Textures::TextureObject *createTexture(util::Hash objectID, const char *filePath)
+    {
+        Video::Screen *s = System::screen(0);
+        return s ? s->getDriver()->createTexture(objectID, filePath) : nullptr;
+    }
+
+    int uploadTexture(Textures::TextureObject *tObj)
+    {
+        Video::Screen *s = System::screen(0);
+        return s ? s->getDriver()->uploadTexture(tObj) : GV_ERR_INVALID_STATE;
+    }
+
+    int releaseTexture(Textures::TextureObject *tObj)
+    {
+        Video::Screen *s = System::screen(0);
+        return s ? s->getDriver()->releaseTexture(tObj) : GV_ERR_INVALID_STATE;
+    }
+
     size_t msToFrames(size_t millis)
     {
-        size_t framerate = getServiceManager()->getVideo()->getRefreshRate();
+        Video::Screen *s = System::screen(0);
+        size_t framerate  = s ? s->getRefreshRate() : 60;
 
         if (millis < 17)
             millis = 17;
@@ -35,21 +68,10 @@ namespace Video
 
     size_t frames()
     {
-        return getServiceManager()->getVideo()->getFrameCount();
+        Video::Screen *s = System::screen(0);
+        return s ? s->getDriver()->getFrameCount() : 0;
     }
-
-    uint16_t getHorizontalRes()
-    {
-        return getServiceManager()->getVideo()->getHorizontalRes();
-    }
-    uint16_t getVerticalRes()
-    {
-        return getServiceManager()->getVideo()->getVerticalRes();
-    }
-    uint16_t getRefreshRate()
-    {
-        return getServiceManager()->getVideo()->getRefreshRate();
-    }
+    //!End
 
     // RGB888 -> RGB565 (3 bytes -> 2 bytes per pixel)
     int toRGB565(void *dest, const void *src, size_t pixelCount)

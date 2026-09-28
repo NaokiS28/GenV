@@ -18,23 +18,29 @@
 #include "tile.hpp"
 
 #include "common/services/services.hpp"
+#include "common/services/video/video.hpp"
 
 namespace Sprites
 {
     TileObject::TileObject(util::Hash objectID)
     {
+        //!Review
+        // Mint the texture BEFORE resetTransform(), which reads texture->width/height.
+        texture = Video::createTexture(objectID);
+        //!End
         resetTransform();
-        texture = getServiceManager()->getVideo()->createTexture(objectID);
     }
 
     TileObject::TileObject(util::Hash objectID, const char *filePath)
     {
-        texture = getServiceManager()->getVideo()->createTexture(objectID, filePath);
+        //!Review
+        texture = Video::createTexture(objectID, filePath);
+        //!End
     }
 
     int TileObject::draw(int x, int y)
     {
-        int r = getServiceManager()->getVideo()->drawTextureObject(texture, x, y, vertex);
+        int r = 0; // getServiceManager()->getVideo()->drawTextureObject(texture, x, y, vertex);
         if (meta.resetOnDraw)
         {
             meta.resetOnDraw = false;
@@ -60,7 +66,7 @@ namespace Sprites
         {
             for (int iw = 0; iw < w; iw++)
             {
-                r = getServiceManager()->getVideo()->drawTextureObject(texture, x + (tx1 * iw) + (tx2 * ih), y + (ty1 * ih2++) + (ty2 * ih), vertex);
+                // r = getServiceManager()->getVideo()->drawTextureObject(texture, x + (tx1 * iw) + (tx2 * ih), y + (ty1 * ih2++) + (ty2 * ih), vertex);
             }
             ih2 = 0;
         }
@@ -145,12 +151,14 @@ namespace Sprites
 
     int TileObject::uploadTexture()
     {
-        return getServiceManager()->getVideo()->uploadTexture(texture);
+        //!Review
+        return Video::uploadTexture(texture);
+        //!End
     }
 
     void TileObject::fillScreen(int x, int y)
     {
-        fillArea(x, y, Video::getHorizontalRes(), Video::getVerticalRes());
+        // fillArea(x, y, Video::getHorizontalRes(), Video::getVerticalRes());
     }
 
     void TileObject::fillArea(int x, int y, int w, int h)

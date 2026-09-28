@@ -17,9 +17,10 @@
 
 #pragma once
 
-#include "common/services/io/iface_driver.hpp"
+#include "common/services/system/iface_driver.hpp"
 #include "common/services/io/iface_input.hpp"
 #include "common/services/system/arcade/iface_arcade.hpp"
+#include "common/services/system/iface_system.hpp"
 #include "common/util/templates.hpp"
 #include "psx/sys573/io/asic.hpp"
 
@@ -40,7 +41,7 @@ namespace System573::IO
         uint8_t data[maxJVSDataSize]; // Contains sum
     };
 
-    class JVS : public IDriver
+    class JVS : public System::IDriver
     {
     private:
         void processPackets_();
@@ -49,7 +50,7 @@ namespace System573::IO
         util::RingBuffer<uint8_t, 64> _packetBuffer;
 
     public:
-        inline JVS() { _name = GX700_JVS_NAME; }
+        inline JVS(System::ISystem &sys) : System::IDriver(sys) { _name = GX700_JVS_NAME; }
 
         int init() override;
         bool update() override;

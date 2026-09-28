@@ -1,7 +1,7 @@
 # Sony PlayStation Based Cores
 
 This folder contains the abstraction interfaces for platforms based on the Sony PlayStation released in 1995.
-The Sony PlayStation (herein reffered to by the names of PS1 or PSX in subsequent documents) has the following technical specs:
+The Sony PlayStation (herein reffered to by the names of PS1 or PS1 in subsequent documents) has the following technical specs:
 
 * CPU: MIPS R3000A-compatible 32-bit RISC CPU MIPS R3051 with 5 KB L1 cache @ 33.8688 MHz
   * 2MB EDO Work RAM
@@ -47,6 +47,7 @@ The Sony PlayStation (herein reffered to by the names of PS1 or PSX in subsequen
 * [PlayStation Hardware Core](common/) - Base driver.
 * [Sony PlayStation](psx/) - Retail PS1 driver. Differences from the common core is wiring up the 2x CD-ROM drive and the SPU.
 * [KONAMI System 573](sys573/) - Derrived from the common core. Differences include adding an IDE CD-ROM (optionally ATA devices), JVS, JAMMA and Analog IO support.
+* [KONAMI GV999](gv999/) - Derrived from the common core. Differences include adding an SCSI CD-ROM (optionally a HDD), JAMMA and Intel Flash.
 
 ## Notice of Non-Affiliation and Disclaimer
 

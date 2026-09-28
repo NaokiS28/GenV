@@ -22,14 +22,12 @@
 #include "common/util/templates.hpp"
 #include "genv_sys.hpp"
 
-#include "video/iface_video.hpp"
-#include "audio/iface_audio.hpp"
+#include "system/iface_videodrv.hpp"
 #include "io/iface_input.hpp"
 #include "system/iface_system.hpp"
 
 #include "common/services/video/fontman.hpp"
 #include "common/services/io/playermgr.hpp"
-#include "common/services/io/devicemgr.hpp"
 #include "common/services/io/outputmgr.hpp"
 #include "common/services/storage/storemgr.hpp"
 
@@ -48,30 +46,13 @@ public:
     ServiceManager() {}
     ~ServiceManager() { shutdown(); }
 
-    inline Audio::IAudio *getAudio(void) { return s_audio; }
-    inline Video::IVideo *getVideo(void) { return s_video; }
     inline System::ISystem *getSystem(void) { return s_system; }
     inline Files::StorageManager *getStorage(void) { return s_storage; }
     inline Fonts::FontManager *getFontManager(void) { return s_fonts; }
-    inline IO::PlayerManager  *getPlayerManager(void)  { return s_playerManager; }
-    inline IO::DeviceManager  *getDeviceManager(void)  { return s_deviceManager; }
-    inline IO::OutputManager  *getOutputManager(void)  { return s_outputManager; }
+    inline IO::PlayerManager *getPlayerManager(void) { return s_playerManager; }
+    inline IO::OutputManager *getOutputManager(void) { return s_outputManager; }
 
     inline void setSystem(AdminClass_Key key, System::ISystem *sys) { setSystem(sys); }
-    inline void setVideo(AdminClass_Key key, Video::IVideo *video) { setVideo(video); }
-    inline void setAudio(AdminClass_Key key, Audio::IAudio *audio) { setAudio(audio); }
-
-    inline bool registerDriver(IO::IDriver *dev)
-    {
-        if (!s_deviceManager || !dev) return false;
-        return s_deviceManager->registerDriver(dev);
-    }
-
-    inline bool unregisterDriver(IO::IDriver *dev)
-    {
-        if (!s_deviceManager || !dev) return false;
-        return s_deviceManager->unregisterDriver(dev);
-    }
 
     int update();
     int updateCoroutines(); // This runs until either vsync occurs or all services are finished
@@ -83,17 +64,13 @@ private:
     void shutdown();
 
     void setSystem(System::ISystem *sys);
-    void setVideo(Video::IVideo *video);
-    void setAudio(Audio::IAudio *audio);
 
-    Audio::IAudio *s_audio             = nullptr;
-    Video::IVideo *s_video             = nullptr;
     System::ISystem *s_system          = nullptr;
-    IO::PlayerManager *s_playerManager  = nullptr;
-    IO::DeviceManager *s_deviceManager  = nullptr;
-    IO::OutputManager *s_outputManager  = nullptr;
+    IO::PlayerManager *s_playerManager = nullptr;
+    IO::OutputManager *s_outputManager = nullptr;
     Fonts::FontManager *s_fonts        = nullptr;
     Files::StorageManager *s_storage   = nullptr;
+
     util::PointerList<ICoroutine *, 10> s_coroutines;
 };
 

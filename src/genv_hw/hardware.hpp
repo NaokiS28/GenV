@@ -21,9 +21,11 @@
 #include "common/services/system/arcade/iface_arcade.hpp"
 #include "common/services/system/iface_system.hpp"
 
+class ServiceManager; // Forward declaration - in common/services/sevices.hpp
+
 namespace System
 {
     // System factory
-    ISystem *makeNewSystem();
+    ISystem *makeNewSystem(ServiceManager &services);
     IArcadeSystem *getArcadeInterface();
 } // namespace System

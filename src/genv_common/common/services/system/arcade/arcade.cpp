@@ -100,17 +100,19 @@ namespace System
     {
         if (slot >= physicalCoinSlots)
             return CoinSlot::None;
-
-        auto idx = coinSlotToIndex(slot);
-        playerCoins[idx].coinsIn += amount;
-        playerCoins[idx].counterTicks += amount;
-        /*
-        if (slot < _eeprom.coinSlots)
+        if (!_countersPaused)
         {
-            // Should always happen, but code safety ennit.
-            _eeprom.totalCoins[slot]++;
+            auto idx = coinSlotToIndex(slot);
+            playerCoins[idx].coinsIn += amount;
+            playerCoins[idx].counterTicks += amount;
+            /*
+            if (slot < _eeprom.coinSlots)
+            {
+                // Should always happen, but code safety ennit.
+                _eeprom.totalCoins[slot]++;
+            }
+                */
         }
-            */
         return slot;
     }
 
@@ -123,9 +125,12 @@ namespace System
 
     CoinCounter BaseArcadeSystem::increaseCoinCounter(CoinCounter counter)
     {
-        // if (counter >= physicalCoinSlots)
-        //    return CoinCounter::None;
-        // TODO: Check IO service?
+        if (!_countersPaused)
+        {
+            // if (counter >= physicalCoinSlots)
+            //    return CoinCounter::None;
+            // TODO: Check IO service?
+        }
         return CoinCounter::None;
     }
 

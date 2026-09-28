@@ -18,7 +18,6 @@
 #pragma once
 #include "common/util/enum_defs.hpp"
 #include "psx/sys573/io/asic.hpp"
-#include "psx/sys573/registers573.hpp"
 #include <assert.h>
 #include <stdint.h>
 

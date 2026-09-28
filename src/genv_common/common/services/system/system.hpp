@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "common/services/video/screen.hpp"
+#include "device_mgr.hpp"
 #include "common/services/services.hpp"
 #include "iface_system.hpp"
 
@@ -52,12 +54,6 @@ namespace System
         * Audio
         * Input
         * File/Block storage devices
-
-        Once created and init'd, the driver instances should be set to the global space
-        using:
-        * getServiceManager()->setVideo(IVideo *gpu);
-        * getServiceManager()->setAudio(IAudio *audio);
-        * getServiceManager()->setInput(IInputDriver *input);
     */
 
     enum SysType : uint32_t
@@ -113,6 +109,15 @@ namespace System
     bool getTime(tm &time);
     size_t getTime();
 
+    // Screen &screen(idx)
+    // launch(app)
+    // returnToLauncher()
+    // frameCount()
+    // deltaTime()
+    // rtc()
+    // fatal()
+    // platform()
+
     class CriticalSection
     {
     private:
@@ -133,12 +138,43 @@ namespace System
     class BaseSystem : public ISystem
     {
     protected:
-        ServiceManager &services;
         AdminClass_Key adminKey;
+        ServiceManager &services;
+        DeviceManager deviceManager;
+        util::PointerList<Video::Screen *, 1> s_screens;
+
+        inline bool registerDriver(System::IDriver *dev)
+        {
+            return deviceManager.registerDriver(dev);
+        }
+
+        inline bool unregisterDriver(System::IDriver *dev)
+        {
+            return deviceManager.unregisterDriver(dev);
+        }
 
     public:
         virtual ~BaseSystem() = default;
-        BaseSystem();
+        BaseSystem(ServiceManager &services);
+
+        virtual int initCore() override;
+        virtual int initVideo() override;
+        virtual int initAudio() override;
+        virtual int initIO() override;
+        virtual int update() override;
+        virtual void shutdown() override;
+
+        // Screens live in s_screens, owned here; at() is bounds-checked.
+        virtual Video::Screen *getScreen(uint8_t idx) override { return s_screens.at(idx); }
+
+        virtual Video::Screen *assignScreen(System::IVideoDriver *driver, const Video::ScreenConfig &cfg) override;
+        virtual Video::Screen *registerScreen(System::IVideoDriver *driver, Video::Screen *screen) override;
+
+        inline virtual bool setFullscreen(System::FullscreenMode mode) { return false; }
+        inline virtual bool toggleFullscreen() { return false; }
     };
+
+    // Public verbs
+    Screen *screen(uint8_t idx);
 
 } // namespace System

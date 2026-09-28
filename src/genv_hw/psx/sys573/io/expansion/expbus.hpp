@@ -17,7 +17,10 @@
 
 #pragma once
 
+#include "psx/common/system/registers.h"
+#include <stdint.h>
+
 namespace System573::IO::Expansion
 {
-
+    static volatile uint16_t &BaseAddress = *_ADDR16(DEV0_BASE | 0x640000);
 }

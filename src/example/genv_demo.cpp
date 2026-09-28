@@ -31,8 +31,14 @@ int GenV_Demo::init()
     {
         if (int error = page->init(); error != GV_OK)
             LOG("GenV Demo", "%s page encountered init error %i", page->info().name, error);
-        page->gpu = gpu;
+        page->screen = System::screen(0);
     }
+    //! Review
+    // Temporary test-harness entry: boot straight into the Video test page (slot 1)
+    // Revert once input-driven navigation is wired.
+    currentMenuPos = 0;
+    currentPage    = genv_demoPageList[currentMenuPos];
+    //! End
     reload();
     setAppState(Apps::APP_STATE_RUN);
     return GV_OK;
@@ -46,10 +52,45 @@ void GenV_Demo::update()
     {
         if (currentPage->update() != GV_OK)
             currentPage = nullptr;
+
+        uint32_t inputs = IO::player(IO::Player::PLAYER_1).getDigital();
+
+        // Player 1 start being held exits test
+        if (ignoreStart && !(inputs & static_cast<uint32_t>(VJoy_Input::Start)))
+        {
+            ignoreStart = false;
+        }
+        else if (!ignoreStart)
+        {
+            if (inputs & static_cast<uint32_t>(VJoy_Input::Start))
+            {
+                if (startTimer == -1)
+                {
+                    startTimer      = startTimerMax;
+                    startTimerBegin = System::millis();
+                }
+            }
+            else
+            {
+                startTimer      = -1;
+                startTimerBegin = 0;
+            }
+        }
+
+        if (startTimer != -1)
+        {
+            auto m     = System::millis() - startTimerBegin;
+            startTimer = startTimerMax - (m / 1000);
+            if (startTimer == 0) currentPage = nullptr;
+        }
     }
     else
     {
-        uint32_t inputs = IO::player(IO::Player::PLAYER_1).getDigital();
+        static uint32_t lastInputs = 0;
+        uint32_t raw_inputs        = IO::player(IO::Player::PLAYER_1).getDigital();
+        uint32_t inputs            = (raw_inputs & (raw_inputs ^ lastInputs));
+        lastInputs                 = raw_inputs;
+
         // Player 1 down moves pointer down
         if (inputs & static_cast<uint32_t>(VJoy_Input::D_Down))
         {
@@ -71,6 +112,8 @@ void GenV_Demo::update()
         // Player 1 B1/Start selects page
         if (!selectIgnore && inputs & static_cast<uint32_t>(VJoy_Input::Button_1 | VJoy_Input::Start))
         {
+            startTimer  = -1;
+            ignoreStart = true;
             currentPage = genv_demoPageList[currentMenuPos];
             currentPage->reload();
             selectIgnore = true;
@@ -84,57 +127,67 @@ void GenV_Demo::update()
 
 void GenV_Demo::render()
 {
-    gpu->fillScreen(Video::Colors::Black);
+    Video::Screen *screen = System::screen(0);
+    screen->fillScreen(Video::Colors::Black);
     if (currentPage != nullptr)
     {
         currentPage->render();
 
         // Draw page title
-        gpu->drawText(currentPage->info().name, titleBox, Video::Colors::White, Video::TALIGN_CENTER);
+        screen->drawText(currentPage->info().name, titleBox, Video::Colors::White, Video::TALIGN_CENTER);
+
+        screen->drawText("Hold P1 start to exit.", 10, screen->getVerticalRes() - 30, 500, 500);
+        if (startTimer != -1)
+        {
+            char textStr[32] = {0};
+            snprintf(textStr, sizeof(textStr), "Exiting in %d second%s..", startTimer, (startTimer > 1 ? "s." : "."));
+            screen->drawText(textStr, 10, screen->getVerticalRes() - 20, 500, 500);
+        }
     }
     else
     {
-        gpu->drawText(info().name, titleBox, Video::Colors::White, Video::TALIGN_CENTER);
+        screen->drawText(info().name, titleBox, Video::Colors::White, Video::TALIGN_CENTER);
 
         char sys[128] = {0};
         snprintf(sys, sizeof(sys), "System: %s %s", getSystem()->getSysInfo()->make, getSystem()->getSysInfo()->name);
-        gpu->drawText(sys, sysBox);
+        screen->drawText(sys, sysBox);
 
         int y       = 0;
         uint8_t idx = 0;
         for (auto page : genv_demoPageList)
         {
             if (idx == currentMenuPos)
-                gpu->drawChar('>', menuBox.x - 20, menuBox.y + y, Video::Colors::White);
+                screen->drawChar('>', menuBox.x - 20, menuBox.y + y, Video::Colors::White);
 
-            gpu->drawText(page->info().name, menuBox, Video::Colors::White);
+            screen->drawText(page->info().name, menuBox.x, menuBox.y + y, menuBox.w, menuBox.h, Video::Colors::White);
             y += 10;
             idx++;
         }
-    }
 
-    // Draw clock in bottom right
-    char timeStr[32] = {0};
-    Time::getTimeString(time, timeStr, sizeof(timeStr), true, true);
-    gpu->drawText(timeStr, timeBox, Video::Colors::White, Video::TALIGN_RIGHT);
+        // Draw clock in bottom right
+        char timeStr[32] = {0};
+        Time::getTimeString(time, timeStr, sizeof(timeStr), true, true);
+        screen->drawText(timeStr, timeBox, Video::Colors::White, Video::TALIGN_RIGHT);
+    }
 }
 
 void GenV_Demo::reload()
 {
+    Video::Screen *screen = System::screen(0);
     if (currentPage != nullptr) currentPage->reload();
     titleBox = {
-        gpu->getHorizontalRes() / 2,
+        screen->getHorizontalRes() / 2,
         10,
         128, 10};
     timeBox = {
-        gpu->getHorizontalRes() - 10,
-        gpu->getVerticalRes() - 10,
+        screen->getHorizontalRes() - 10,
+        screen->getVerticalRes() - 10,
         128, 10};
     menuBox = {
         30, 20, 200, 200};
     sysBox = {
         10,
-        gpu->getVerticalRes() - 10,
+        screen->getVerticalRes() - 10,
         128, 10};
 }
 

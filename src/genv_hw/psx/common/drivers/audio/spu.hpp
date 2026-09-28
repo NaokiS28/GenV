@@ -18,10 +18,10 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "common/services/audio/iface_audio.hpp"
+#include "common/services/system/iface_audiodrv.hpp"
 #include "registers.hpp"
 
-namespace PSX
+namespace PS1
 {
 
     /*
@@ -49,7 +49,7 @@ namespace PSX
         char name[16];
     };
 
-    class SPUDriver : public Audio::IAudio
+    class SPUDriver : public System::IAudioDriver
     {
         using Channel = int;
 
@@ -88,7 +88,10 @@ namespace PSX
         Channel spu_play(uint16_t left, uint16_t right, Channel ch) const;
 
     public:
-        bool init() override;
+        SPUDriver(System::ISystem &sys) : IAudioDriver(sys) {}
+
+        int init() override;
+        bool update() override { return true; };
         bool reset() override;
         void shutdown() override;
 
@@ -98,6 +101,7 @@ namespace PSX
         bool isPlaying(Audio::SoundObject *sObj) override;
 
         int uploadSample(Audio::SoundObject *sObj) override;
+        Audio::SoundObject *createSample(util::Hash objectID, const char *filePath) override;
 
         inline bool pause()
         {
@@ -105,4 +109,4 @@ namespace PSX
         }
     };
 
-} // namespace PSX
+} // namespace PS1

@@ -24,7 +24,7 @@
 
 #include "common/util/hash.hpp"
 
-namespace PSX::IO
+namespace PS1::IO
 {
     enum JoypadType : uint8_t
     {
@@ -45,35 +45,35 @@ namespace PSX::IO
         PAD_CONFIG       = 0xF3,
     };
 
-    constexpr const util::Hash PSX_PAD_HASH        = "PSXPAD"_h;
-    constexpr const util::Hash PSX_DIGITAL_HASH    = "PSXDIGITAL"_h;
-    constexpr const util::Hash PSX_ANALOG_HASH     = "PSXANALOG"_h;
-    constexpr const util::Hash PSX_DUALSHOCK_HASH  = "PSXDUALSHOCK"_h;
-    constexpr const util::Hash PSX_DUALSHOCK2_HASH = "PSXDUALSHOCK2"_h;
-    constexpr const util::Hash PSX_GUNCON_HASH     = "PSXGUNCON"_h;
-    constexpr const util::Hash PSX_TWINSTICK_HASH  = "PSXTWINSTICK"_h;
-    constexpr const util::Hash PSX_JUSTIFIER_HASH  = "PSXJUSTIFIER"_h;
-    constexpr const util::Hash PSX_MOUSE_HASH      = "PSXMOUSE"_h;
-    constexpr const util::Hash PSX_KEYBOARD_HASH   = "PSXKEYBOARD"_h;
-    constexpr const util::Hash PSX_NEGCON_HASH     = "PSXNEGCON"_h;
-    constexpr const util::Hash PSX_JOGCON_HASH     = "PSXJOGCON"_h;
+    constexpr const util::Hash PS1_PAD_HASH        = "PS1PAD"_h;
+    constexpr const util::Hash PS1_DIGITAL_HASH    = "PS1DIGITAL"_h;
+    constexpr const util::Hash PS1_ANALOG_HASH     = "PS1ANALOG"_h;
+    constexpr const util::Hash PS1_DUALSHOCK_HASH  = "PS1DUALSHOCK"_h;
+    constexpr const util::Hash PS1_DUALSHOCK2_HASH = "PS1DUALSHOCK2"_h;
+    constexpr const util::Hash PS1_GUNCON_HASH     = "PS1GUNCON"_h;
+    constexpr const util::Hash PS1_TWINSTICK_HASH  = "PS1TWINSTICK"_h;
+    constexpr const util::Hash PS1_JUSTIFIER_HASH  = "PS1JUSTIFIER"_h;
+    constexpr const util::Hash PS1_MOUSE_HASH      = "PS1MOUSE"_h;
+    constexpr const util::Hash PS1_KEYBOARD_HASH   = "PS1KEYBOARD"_h;
+    constexpr const util::Hash PS1_NEGCON_HASH     = "PS1NEGCON"_h;
+    constexpr const util::Hash PS1_JOGCON_HASH     = "PS1JOGCON"_h;
 
     constexpr const char *getPadName(uint16_t id)
     {
         switch (id & 0xFF)
         {
-        case PAD_DIGITAL: return PSX_DIGITAL_STR;
-        case PAD_ANALOG: return PSX_ANALOG_STR;
-        case PAD_DUALSHOCK2: return PSX_DUALSHOCK2_STR;
-        case PAD_TWINSTICK: return PSX_TWINSTICK_STR;
-        case PAD_GUNCON: return PSX_GUNCON_STR;
-        case PAD_KONAMI_GUN: return PSX_JUSTIFIER_STR;
-        case PAD_MOUSE: return PSX_MOUSE_STR;
-        // case PAD_KEYBOARD: return PSX_KEYBOARD_STR;
-        case PAD_NEGCON: return PSX_NEGCON_STR;
-        // case PAD_JOGCON: return PSX_JOGCON_STR;
+        case PAD_DIGITAL: return PS1_DIGITAL_STR;
+        case PAD_ANALOG: return PS1_ANALOG_STR;
+        case PAD_DUALSHOCK2: return PS1_DUALSHOCK2_STR;
+        case PAD_TWINSTICK: return PS1_TWINSTICK_STR;
+        case PAD_GUNCON: return PS1_GUNCON_STR;
+        case PAD_KONAMI_GUN: return PS1_JUSTIFIER_STR;
+        case PAD_MOUSE: return PS1_MOUSE_STR;
+        // case PAD_KEYBOARD: return PS1_KEYBOARD_STR;
+        case PAD_NEGCON: return PS1_NEGCON_STR;
+        // case PAD_JOGCON: return PS1_JOGCON_STR;
         default: return "Unsupported controller";
         }
     }
 
-} // namespace PSX::IO
+} // namespace PS1::IO

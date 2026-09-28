@@ -19,7 +19,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "common/services/io/iface_input.hpp"
+#include "common/services/io/player.hpp"
+#include "common/services/system/iface_driver.hpp"
+#include "psx/common/psx_strings.hpp"
 
 #define BUS_START(bus, addr, port)                      \
     {                                                   \
@@ -39,7 +41,7 @@
             return 2;                      \
     }
 
-namespace PSX::IO
+namespace PS1::IO
 {
     enum SIO0_Address : uint8_t
     {
@@ -173,9 +175,9 @@ namespace PSX::IO
         int length;
     };
 
-    class SIO0_Bus
+    class SIO0_Bus : public ::System::IDriver
     {
-        friend class PSX_BaseSystem;
+        friend class PS1_BaseSystem;
 
     private:
         bool _initialised = false;
@@ -190,7 +192,11 @@ namespace PSX::IO
         void m_sioISR();
 
     public:
-        int init();
+        inline SIO0_Bus(::System::ISystem &sys) : ::System::IDriver(sys)
+        {
+            _name = PS1_PS_SIO0_STR;
+        }
+        int init() override;
         int start(uint8_t address, SIO0_Port port);
         void stop();
         uint8_t exchangeByte(uint8_t value);
@@ -201,9 +207,9 @@ namespace PSX::IO
             size_t maxRespLength,
             bool hasLastACK = false);
 
-        void update();
+        bool update() override;
 
-        Input::Player psxPlayerSelect(SIO0_Port port, Multitap_Port subport);
+        ::IO::Player psxPlayerSelect(SIO0_Port port, Multitap_Port subport);
 
         // Multitap code - Set and used by the controller drivers, also used by memory card drivers
         inline bool multitapPresent(SIO0_Port port)
@@ -226,4 +232,4 @@ namespace PSX::IO
 
         void mouseFix();
     };
-} // namespace PSX::IO
+} // namespace PS1::IO

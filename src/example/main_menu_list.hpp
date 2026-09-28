@@ -16,11 +16,15 @@
  */
 #pragma once
 
+#include "audio_page.hpp"
 #include "demo_page.hpp"
 #include "input_page.hpp"
+#include "video_page.hpp"
 
 DemoPage *const genv_demoPageList[] = {
-    &genv_demo_inputPage
+    &genv_demo_inputPage,
+    &genv_demo_videoPage,
+    &genv_demo_audioPage,
 #ifdef GENV_ARCADE_SYSTEM
 
 #endif

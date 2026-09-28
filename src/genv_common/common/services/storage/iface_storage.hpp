@@ -18,24 +18,16 @@
 #pragma once
 
 #include "common/objects/file.hpp"
+#include "common/services/system/iface_driver.hpp"
 
 namespace Files
 {
     struct IStorageDevice;
 
-    class IStorageDriver
+    class IStorageDriver : public System::IDriver
     {
-    protected:
-        const char *name = nullptr;
-
     public:
-        IStorageDriver()   = default;
-        virtual int init() = 0;
-        // virtual void update()   = 0;
-        virtual bool reset()    = 0;
-        virtual void shutdown() = 0;
-
-        inline const char *getName() { return name; }
+        IStorageDriver(System::ISystem &sys) : System::IDriver(sys) {};
     };
 
     class IStorage

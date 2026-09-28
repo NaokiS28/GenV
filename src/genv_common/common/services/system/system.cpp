@@ -17,9 +17,25 @@
 
 #include "system.hpp"
 #include "../services.hpp"
+#include "common/return_codes.hpp"
+#include "common/services/adminkey.hpp"
+#include "common/services/system/device_mgr.hpp"
+#include "common/services/system/iface_system.hpp"
+#include "common/services/video/displays.hpp"
 
 namespace System
 {
+    // Public verbs
+    ISystem *shared_sys_ptr = nullptr;
+
+    // Route the free-function accessor through the active system. Returns nullptr when
+    // there is no system yet or the index is unregistered (the old body returned nothing
+    // -> undefined behaviour on every call).
+    Screen *screen(uint8_t idx)
+    {
+        return shared_sys_ptr ? shared_sys_ptr->getScreen(idx) : nullptr;
+    }
+
     size_t millis()
     {
         ISystem *sys = getServiceManager()->getSystem();
@@ -57,6 +73,80 @@ namespace System
         return 0;
     }
 
-    BaseSystem::BaseSystem() : services(*getServiceManager()), adminKey(AdminClass_Key()) {}
+    BaseSystem::BaseSystem(ServiceManager &services)
+        : adminKey(AdminClass_Key()),
+          services(services),
+          deviceManager()
+    {
+        // Was `assert(shared_sys_ptr)` - inverted. The singleton pointer must be EMPTY
+        // before this system claims it; asserting it is already set fires on the only
+        // legitimate construction.
+        assert(!shared_sys_ptr);
+        shared_sys_ptr = this;
+    }
 
+    //! Review
+    // Allocate a screen for a video driver: take the next free slot, default its name
+    // from the DISPLAY table when the driver didn't specify one.
+    // Returns nullptr if the backing list can't grow.
+    Video::Screen *BaseSystem::assignScreen(System::IVideoDriver *driver, const Video::ScreenConfig &cfg)
+    {
+        size_t slot      = s_screens.length();
+        const char *name = cfg.name ? cfg.name
+                                    : (slot < Video::kMaxDisplays ? Video::GV_DISPLAY_NAME(slot) : "DISPLAY");
+        Video::Screen *s = new Video::Screen(
+            driver, cfg.res, cfg.refresh, cfg.dpi, name, static_cast<uint8_t>(slot));
+        // PointerList auto-expands; append only fails on allocation failure (OOM), at
+        // which point the system is already dead, so no cleanup path is worthwhile.
+        s_screens.append(s);
+        return s;
+    }
+    //! End
+
+    Video::Screen *BaseSystem::registerScreen(System::IVideoDriver *driver, Video::Screen *screen)
+    {
+        size_t slot = s_screens.length();
+        if (!screen->getName())
+        {
+            auto name = (slot < Video::kMaxDisplays ? Video::GV_DISPLAY_NAME(slot) : "DISPLAY");
+            screen->setName(adminKey, name);
+        }
+        // PointerList auto-expands; append only fails on allocation failure (OOM), at
+        // which point the system is already dead, so no cleanup path is worthwhile.
+        s_screens.append(screen);
+        return screen;
+    }
+
+    int BaseSystem::initCore()
+    {
+        deviceManager.init();
+        s_screens.init();
+        return GV_OK;
+    }
+
+    int BaseSystem::initVideo()
+    {
+        return GV_OK;
+    }
+
+    int BaseSystem::initAudio()
+    {
+        return GV_OK;
+    }
+
+    int BaseSystem::initIO()
+    {
+        return GV_OK;
+    }
+
+    int BaseSystem::update()
+    {
+        deviceManager.update();
+        return GV_OK;
+    }
+
+    void BaseSystem::shutdown()
+    {
+        deviceManager.shutdown();
+    }
 } // namespace System

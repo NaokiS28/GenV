@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along with
 # GenV. If not, see <https://www.gnu.org/licenses/>.
 
-## PSX Halt Screen Library
+## PS1 Halt Screen Library
 #
 # This is a fully self-contained static library. It has no dependencies on
 # the rest of GenV - it only touches hardware registers directly. It must

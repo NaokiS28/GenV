@@ -260,7 +260,7 @@ int OSXSystem::initVideo()
 // ============================================================================
 int OSXSystem::initAudio()
 {
-    // TODO: create and register an Audio::IAudio driver (e.g. CoreAudio).
+    // TODO: create and register an Audio::IAudioDriver driver (e.g. CoreAudio).
     // For the hello world stub, do nothing.
     LOG_APP("OSXSystem: audio not implemented (stub)");
     return 0;

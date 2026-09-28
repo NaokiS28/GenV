@@ -7,7 +7,7 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/example/input_page.cpp](src/example/input_page.cpp)
 
-- [232](src/example/input_page.cpp?plain=1#L232): macOS - Sometimes this gets a random and invalid device pointer in the device list?
+- [185](src/example/input_page.cpp?plain=1#L185): macOS - Sometimes this gets a random and invalid device pointer in the device list?
 
 #### [src/genv_common/app/appmgr.cpp](src/genv_common/app/appmgr.cpp)
 
@@ -35,20 +35,24 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_common/common/objects/tile.cpp](src/genv_common/common/objects/tile.cpp)
 
-- [121](src/genv_common/common/objects/tile.cpp?plain=1#L121): This just assumes you're using a 2D array.
+- [127](src/genv_common/common/objects/tile.cpp?plain=1#L127): This just assumes you're using a 2D array.
 
 #### [src/genv_common/common/services/genv_sys.cpp](src/genv_common/common/services/genv_sys.cpp)
 
-- [75](src/genv_common/common/services/genv_sys.cpp?plain=1#L75): Allow setting custom startup baud
+- [66](src/genv_common/common/services/genv_sys.cpp?plain=1#L66): Allow setting custom startup baud
 
 #### [src/genv_common/common/services/system/arcade/arcade.cpp](src/genv_common/common/services/system/arcade/arcade.cpp)
 
-- [128](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L128): Check IO service?
-- [134](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L134): Check IO service?
+- [132](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L132): Check IO service?
 - [139](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L139): Check IO service?
 - [144](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L144): Check IO service?
 - [149](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L149): Check IO service?
 - [154](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L154): Check IO service?
+- [159](src/genv_common/common/services/system/arcade/arcade.cpp?plain=1#L159): Check IO service?
+
+#### [src/genv_common/common/services/system/iface_videodrv.hpp](src/genv_common/common/services/system/iface_videodrv.hpp)
+
+- [77](src/genv_common/common/services/system/iface_videodrv.hpp?plain=1#L77): Would be better to use tuples if possible?
 
 #### [src/genv_common/common/services/video/fontman.cpp](src/genv_common/common/services/video/fontman.cpp)
 
@@ -61,13 +65,17 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 - [31](src/genv_common/common/services/video/fontman.hpp?plain=1#L31): Support loading from raw data - We need to have a safe-fall back font.
 
+#### [src/genv_common/common/services/video/screen.hpp](src/genv_common/common/services/video/screen.hpp)
+
+- [163](src/genv_common/common/services/video/screen.hpp?plain=1#L163): Should this be a system call? Logically it's a screen function, but realistically all GPUs should go full screen
+
 #### [src/genv_hw/mac/osx/README.md](src/genv_hw/mac/osx/README.md)
 
 - [4](src/genv_hw/mac/osx/README.md?plain=1#L4): Add documentation and support status
 
 #### [src/genv_hw/mac/osx/system.mm](src/genv_hw/mac/osx/system.mm)
 
-- [263](src/genv_hw/mac/osx/system.mm?plain=1#L263): create and register an Audio::IAudio driver (e.g. CoreAudio).
+- [263](src/genv_hw/mac/osx/system.mm?plain=1#L263): create and register an Audio::IAudioDriver driver (e.g. CoreAudio).
 - [274](src/genv_hw/mac/osx/system.mm?plain=1#L274): create and register IO drivers (keyboard, gamepad via IOKit / GCController).
 - [284](src/genv_hw/mac/osx/system.mm?plain=1#L284): initialise file/storage manager for macOS paths.
 - [369](src/genv_hw/mac/osx/system.mm?plain=1#L369): use an NSLock or os_unfair_lock for thread safety.
@@ -79,9 +87,17 @@ _Generated on 2026-07-12 23:13:37.906320_
 - [527](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L527): render text using a sprite font or CoreText.
 - [543](src/genv_hw/mac/osx/video/gpu-metal.mm?plain=1#L543): create a MTLTexture from tObj->data and store in _texMap.
 
+#### [src/genv_hw/psx/common/drivers/audio/spu.cpp](src/genv_hw/psx/common/drivers/audio/spu.cpp)
+
+- [159](src/genv_hw/psx/common/drivers/audio/spu.cpp?plain=1#L159): doing this is technically invalid as the first 4 KB of SPU RAM
+
+#### [src/genv_hw/psx/common/drivers/audio/spu.hpp](src/genv_hw/psx/common/drivers/audio/spu.hpp)
+
+- [34](src/genv_hw/psx/common/drivers/audio/spu.hpp?plain=1#L34): Most of the SPU code itself should probably work but it needs tidiying up and the commented out params need correcting.
+
 #### [src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp)
 
-- [61](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L61): Add support for PSX mouse in VMouse.
+- [61](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L61): Add support for PS1 mouse in VMouse.
 - [225](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L225): Trim pad polling code down and use per-frame pacing
 - [226](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L226): If controller in multitap with controller 1:B is connected whilst Port 2:A also connected to a controller prior, both are assigned player 2. Does not happen in reverse
 - [262](src/genv_hw/psx/common/drivers/sio0/psx_joy.cpp?plain=1#L262): Mouse "button" bits 8&9 are signs for rotary?
@@ -94,7 +110,11 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp)
 
-- [26](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp?plain=1#L26): SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
+- [25](src/genv_hw/psx/common/drivers/sio0/psx_sio0.cpp?plain=1#L25): SIO0 Driver needs to be rewritten both to handle multitaps better but also to run controllers at 1MHz when in a multitap else there is *severe* slowdown.
+
+#### [src/genv_hw/psx/common/drivers/sio1/psx_sio1.cpp](src/genv_hw/psx/common/drivers/sio1/psx_sio1.cpp)
+
+- [24](src/genv_hw/psx/common/drivers/sio1/psx_sio1.cpp?plain=1#L24): SIO1
 
 #### [src/genv_hw/psx/common/drivers/video/gpucmd.hpp](src/genv_hw/psx/common/drivers/video/gpucmd.hpp)
 
@@ -118,12 +138,12 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_hw/psx/common/drivers/video/video.cpp](src/genv_hw/psx/common/drivers/video/video.cpp)
 
-- [387](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L387): Cleanup?
-- [722](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L722): Seperate font renderer from PS1 core to generic video service
+- [403](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L403): Cleanup?
+- [738](src/genv_hw/psx/common/drivers/video/video.cpp?plain=1#L738): Seperate font renderer from PS1 core to generic video service
 
 #### [src/genv_hw/psx/common/drivers/video/video.hpp](src/genv_hw/psx/common/drivers/video/video.hpp)
 
-- [83](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L83): Set true when the DMA chain is full. Draw calls become no-ops
+- [92](src/genv_hw/psx/common/drivers/video/video.hpp?plain=1#L92): Set true when the DMA chain is full. Draw calls become no-ops
 
 #### [src/genv_hw/psx/common/halt/src/ps1/sys.h](src/genv_hw/psx/common/halt/src/ps1/sys.h)
 
@@ -132,9 +152,8 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_hw/psx/common/system.cpp](src/genv_hw/psx/common/system.cpp)
 
-- [78](src/genv_hw/psx/common/system.cpp?plain=1#L78): SIO1 driver will require interrupts in future, so this will need to change.
-- [149](src/genv_hw/psx/common/system.cpp?plain=1#L149): int error = 0; How to handle multiple driver failures?
-- [163](src/genv_hw/psx/common/system.cpp?plain=1#L163): Allow setting custom startup baud
+- [80](src/genv_hw/psx/common/system.cpp?plain=1#L80): SIO1 driver will require interrupts in future, so this will need to change.
+- [160](src/genv_hw/psx/common/system.cpp?plain=1#L160): Allow setting custom startup baud - This is a GenV common issue
 
 #### [src/genv_hw/psx/common/system/serial.h](src/genv_hw/psx/common/system/serial.h)
 
@@ -151,8 +170,8 @@ _Generated on 2026-07-12 23:13:37.906320_
 
 #### [src/genv_hw/psx/sys573/io/jamma/adc083x.hpp](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp)
 
-- [27](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp?plain=1#L27): Does not support differential mode. But is this worth supporting?
-- [28](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp?plain=1#L28): Critical: Implementation does not work. Require logic probing.
+- [26](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp?plain=1#L26): Does not support differential mode. But is this worth supporting?
+- [27](src/genv_hw/psx/sys573/io/jamma/adc083x.hpp?plain=1#L27): Critical: Implementation does not work. Require logic probing.
 
 #### [src/genv_hw/win32/README.md](src/genv_hw/win32/README.md)
 

@@ -20,40 +20,30 @@
 #include "psx/common/system.hpp"
 #include "psx/common/psx_strings.hpp"
 
-namespace PSX
+namespace PS1
 {
-    int PSXSystem::initVideo()
+    int PS1System::initVideo()
     {
         int error = 0;
-        gpu       = new GPU::PSXGPU();
-        error     = ioTest(gpu, PSX_GPU_STR, PSX_CREATE_STR);
-        if (!error) ioTest(gpu->init(), PSX_GPU_STR, PSX_INIT_STR);
-        if (!error) services.setVideo(adminKey, gpu);
+        gpu       = new GPU::PS1GPU(*this);
+        error     = ioTest(gpu, PS1_GPU_STR, PS1_CREATE_STR);
+        if (!error) ioTest(gpu->init(), PS1_GPU_STR, PS1_INIT_STR);
         return error;
     }
 
-    int PSXSystem::initAudio()
+    int PS1System::initAudio()
     {
         return spu.init();
     }
 
-    int PSXSystem::initStorage()
+    int PS1System::initStorage()
     {
-        BasePSXSystem::initStorage();
+        BasePS1System::initStorage();
         int error = 0; // TODO: How to handle multiple driver failures?
-        cdDriver  = new Storage::PSX_CDROM();
-        error     = ioTest(cdDriver, PSX_CDROM_DRIVE_STR, PSX_CREATE_STR);
-        if (!error) error = ioTest(cdDriver->init(), PSX_CDROM_DRIVE_STR, PSX_INIT_STR);
-        if (!error) services.registerDriver(cdDriver);
-
-#ifndef NDEBUG
-        int pcError = 0;
-        pcDriver    = new Storage::PSX_PCDrive();
-        pcError     = ioTest(pcDriver, PSX_PC_DRIVE_STR, PSX_CREATE_STR);
-        if (!pcError) pcError = ioTest(pcDriver->init(), PSX_PC_DRIVE_STR, PSX_INIT_STR);
-        if (!pcError) services.registerDriver(pcDriver);
-#endif
+        cdDriver  = new Storage::PS1_CDROM(*this);
+        error     = ioTest(cdDriver, PS1_CDROM_DRIVE_STR, PS1_CREATE_STR);
+        if (!error) registerDriver(cdDriver);
         return error;
     }
 
-} // namespace PSX
+} // namespace PS1

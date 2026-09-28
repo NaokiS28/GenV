@@ -16,35 +16,47 @@
  */
 
 #include "nullaudio.hpp"
+#include "common/services/audio/baseaudio.hpp"
 
 namespace Audio
 {
-    NullAudio::NullAudio() : IAudio() {}
+    NullAudio::NullAudio(System::ISystem &sys) : BaseAudioDriver(sys) {}
     NullAudio::~NullAudio() {}
-    bool NullAudio::init()
+    int NullAudio::init()
+    {
+        return GV_OK;
+    }
+
+    bool NullAudio::update()
     {
         return true;
     }
+
     bool NullAudio::reset()
     {
         return true;
     }
+
     void NullAudio::shutdown()
     {
         return;
     }
+
     bool NullAudio::play(Audio::SoundObject *sObj)
     {
         return false;
     }
+
     bool NullAudio::stop(Audio::SoundObject *sObj)
     {
         return false;
     }
+
     bool NullAudio::pause(Audio::SoundObject *sObj)
     {
         return false;
     }
+
     bool NullAudio::isPlaying(Audio::SoundObject *sObj)
     {
         return false;

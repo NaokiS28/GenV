@@ -14,8 +14,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef PSX_SIO_C
-#define PSX_SIO_C
+#ifndef PS1_SIO_C
+#define PS1_SIO_C
 #include <stddef.h>
 #include "serial.h"
 #include "registers.h"

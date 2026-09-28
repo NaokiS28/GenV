@@ -18,57 +18,57 @@
 #include "psx_pcdrv.hpp"
 #include "common/return_codes.hpp"
 
-namespace PSX::Storage
+namespace PS1::Storage
 {
 
-    int PSX_PCDrive::init()
+    int PS1_PCDrive::init()
     {
         return GV_ERROR(GV_SERVICE_FILESYSTEM, GV_CATEGORY_GENERIC, GV_ERR_DEVICE_NOT_READY);
     }
 
-    bool PSX_PCDrive::update()
+    bool PS1_PCDrive::update()
     {
         return false;
     }
 
-    bool PSX_PCDrive::reset()
+    bool PS1_PCDrive::reset()
     {
         return false;
     }
-    void PSX_PCDrive::shutdown() {}
+    void PS1_PCDrive::shutdown() {}
 
-    int PSX_PCDrive::openFile(const char *filePath, bool lock, Files::FileObject *fObj)
+    int PS1_PCDrive::openFile(const char *filePath, bool lock, Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_PCDrive::closeFile(Files::FileObject *fObj)
+    int PS1_PCDrive::closeFile(Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_PCDrive::writeFile(Files::FileObject *fObj)
+    int PS1_PCDrive::writeFile(Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_PCDrive::renameFile(const char *fileName, Files::FileObject *fObj)
+    int PS1_PCDrive::renameFile(const char *fileName, Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_PCDrive::newFile(const char *filePath, const char *filename, Files::FileObject *fObj)
+    int PS1_PCDrive::newFile(const char *filePath, const char *filename, Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_PCDrive::deleteFile(Files::FileObject *fObj)
+    int PS1_PCDrive::deleteFile(Files::FileObject *fObj)
     {
         return 0;
     }
-    int PSX_PCDrive::readFile(size_t offset, size_t length)
+    int PS1_PCDrive::readFile(size_t offset, size_t length)
     {
         return 0;
     }
 
     // Gets a list of drives present in the system and returns the total count.
-    int PSX_PCDrive::getDriveList(Files::IStorageDevice *list, uint8_t &count)
+    int PS1_PCDrive::getDriveList(Files::IStorageDevice *list, uint8_t &count)
     {
         return 0;
     }
-} // namespace PSX::Storage
+} // namespace PS1::Storage

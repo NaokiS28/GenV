@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 
+#include "common/services/services.hpp"
 #include "common/services/system/system.hpp"
 #include "psx/common/drivers/audio/spu.hpp"
 #include "psx/common/drivers/sio0/psx_joy.hpp"
@@ -27,11 +28,11 @@
 #include "psx/common/system.hpp"
 #include "psx_cdrom.hpp"
 
-namespace PSX
+namespace PS1
 {
     using namespace System;
 
-    class PSXSystem : public BasePSXSystem
+    class PS1System : public BasePS1System
     {
     protected:
         SystemInfo siPS1 = {
@@ -40,12 +41,13 @@ namespace PSX
             .name  = szPlaystation,
             .flags = SYS_No_Window_Mode};
 
-        PSX::SPUDriver spu;
-        Storage::PSX_CDROM *cdDriver   = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers
-        Storage::PSX_PCDrive *pcDriver = nullptr; // Not always needed?
+        SPUDriver spu;
+        Storage::PS1_CDROM *cdDriver = nullptr; // CD Driver should be pointer to handle PS1/IDE/SCSI drivers?
 
     public:
-        inline PSXSystem() {};
+        inline PS1System(ServiceManager &services)
+            : BasePS1System(services),
+              spu(*this) {};
 
         virtual int initVideo() override;
         virtual int initAudio() override;
@@ -57,4 +59,4 @@ namespace PSX
         }
     };
 
-} // namespace PSX
+} // namespace PS1

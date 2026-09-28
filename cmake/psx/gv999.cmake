@@ -1,0 +1,1 @@
+add_definitions(-DGENV_PS1 -DGENV_GV999 -DGENV_ARCADE_SYSTEM)

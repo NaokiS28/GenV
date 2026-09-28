@@ -132,7 +132,6 @@ namespace Apps
         AppExecState state; // Current app working state
 
     protected:
-        Video::IVideo *gpu; // Local pointer to GPU object to use
         AppType type;
         IAppHost *m_host = nullptr;
         void setAppState(AppExecState state)
@@ -145,7 +144,6 @@ namespace Apps
 
     public:
         Application(IAppHost *host);
-        Application(IAppHost *host, Video::IVideo *_gpu);
         virtual ~Application() = default;
 
         inline virtual bool isReady() { return (state != APP_STATE_LOAD) && (state != APP_STATE_INIT); }

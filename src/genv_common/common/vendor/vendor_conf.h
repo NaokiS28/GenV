@@ -21,7 +21,7 @@
 #define LODEPNG_NO_COMPILE_CPP
 #define LODEPNG_NO_COMPILE_ENCODER
 
-#ifdef GENV_PSX
+#ifdef GENV_PS1
 #define GIFN_NO_STDIO
 
 #endif

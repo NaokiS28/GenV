@@ -19,6 +19,8 @@
 
 #include <stdint.h>
 
+#include "common/services/video/screen.hpp"
+#include "common/services/video/vesa.hpp"
 #include "psx/common/system/registers.h"
 #include "texmgr.hpp"
 #include "resolutions.hpp"
@@ -28,33 +30,40 @@
 #include "common/util/rect.hpp"
 #include "common/objects/font.hpp"
 #include "common/services/services.hpp"
-#include "common/services/video/iface_video.hpp"
+#include "common/services/video/basevideo.hpp"
 
-namespace PSX
+/*
+
+*/
+
+namespace PS1
 {
-    class BasePSXSystem;
+    class BasePS1System;
 }
 
-namespace PSX::GPU
+namespace PS1::GPU
 {
     using namespace Video;
 
     uint32_t findNearestVideoMode(const VideoModeList *list, uint16_t w, uint16_t h, uint16_t r = 60);
 
-    class PSXGPU : public IVideo
+    class PS1GPU : public Video::BaseVideoDriver
     {
-        friend class PSX::BasePSXSystem;
+        friend class PS1::BasePS1System;
 
     protected:
         typedef struct DMAChain
         {
-            uint32_t data[iPSXDMAListSize] = {gp0_endTag(0)};
+            uint32_t data[iPS1DMAListSize] = {gp0_endTag(0)};
             uint32_t *nextPacket           = nullptr;
         } DMAChain;
 
         bool screenBufferPage = 0;
         uint16_t dmaPtrIdx    = 0;
         DMAChain dmaChains[2];
+
+        Screen _screen;
+        VideoResolution _res;
 
         GP1VRAMSize vramSize = GP1_VRAM_1MB;
         GP1VideoMode gpuMode = GP1_MODE_NTSC;
@@ -88,22 +97,21 @@ namespace PSX::GPU
         void _enableDMA(bool state);
 
         void _sendVRAMData(const void *data, int length, RectWH);
-        int _uploadPalette(PSXTextureObject *ptObj);
-
-        void registerHaltScreen();
+        int _uploadPalette(PS1TextureObject *ptObj);
 
     public:
-        PSXGPU();
-        PSXGPU(GP1VRAMSize vram_size);
-        ~PSXGPU() override = default;
+        PS1GPU(System::ISystem &sys);
+        PS1GPU(System::ISystem &sys, GP1VRAMSize vram_size);
+        ~PS1GPU() override = default;
 
-        bool init() override;
+        int init() override;
         bool reset() override
         {
             return false;
         }
-        bool beginRender() override;
-        bool endRender() override;
+        bool update() override { return true; }
+        bool beginRender(Screen &screen) override;
+        bool endRender(Screen &screen) override;
         void shutdown() override
         {
         }
@@ -111,48 +119,54 @@ namespace PSX::GPU
         bool waitingForVSync() override;
         void doWaitForVSync() override;
 
+        const VESA::VideoModeList *getSupportedResolutions(Video::Screen &screen) override { return &PS1_Video_Modes; }
+
         // PS1 buffers to DMA must be aligned to the chunk size and be null terminated
         inline size_t getBufferSize(size_t length) override
         {
-            constexpr const int DMABytesPerChunk = (bPSXDMAChunkSize * sizeof(uint32_t)) - 1;
+            constexpr const int DMABytesPerChunk = (bPS1DMAChunkSize * sizeof(uint32_t)) - 1;
             return (length + DMABytesPerChunk) & ~DMABytesPerChunk;
         }
         GraphicsData allocate(size_t length) override;
 
-        const VideoModeList *getSupportedResolutions() override
+        const VideoModeList *getSupportedResolutions()
         {
-            return &PSX_Video_Modes;
+            return &PS1_Video_Modes;
         }
 
-        int setResolution(int w, int h, bool updateWindow = true) override;
-        bool setFullscreen(FullscreenMode mode, int w = 0, int h = 0) override
+        inline int setResolution(Screen &screen, VideoResolution mode, bool updateWindow = true) override
+        {
+            return setResolution(screen, mode.width, mode.height, updateWindow);
+        }
+        int setResolution(Screen &screen, int w, int h, bool updateWindow = true) override;
+        bool setFullscreen(Screen &screen, System::FullscreenMode mode, int w = 0, int h = 0) override
         {
             return false;
         }
 
-        void fillScreen(Color color) override;
+        void fillScreen(Screen &screen, Color color);
 
-        void drawAlpha(int x, int y, int w, int h, int sx, int sy, uint8_t a) const override {
+        void drawAlpha(Screen &screen, int x, int y, int w, int h, int sx, int sy, uint8_t a) const override {
         };
 
-        void drawLine(int x1, int y1, int x2, int y2, int width, Color color) override;
-        void drawGradientLine(int x1, int y1, int x2, int y2, int width, Color c1, Color c2) override;
+        void drawLine(Screen &screen, int x1, int y1, int x2, int y2, int width, Color color) override;
+        void drawGradientLine(Screen &screen, int x1, int y1, int x2, int y2, int width, Color c1, Color c2) override;
 
-        void drawRect(int x, int y, int w, int h, Color c) override;
-        void drawGradientRectH(int x, int y, int w, int h, Color left, Color right) override;
-        void drawGradientRectV(int x, int y, int w, int h, Color top, Color bottom) override;
-        void drawGradientRectD(int x, int y, int w, int h, Color top, Color middle, Color bottom) override;
+        void drawRect(Screen &screen, int x, int y, int w, int h, Color c) override;
+        void drawGradientRectH(Screen &screen, int x, int y, int w, int h, Color left, Color right) override;
+        void drawGradientRectV(Screen &screen, int x, int y, int w, int h, Color top, Color bottom) override;
+        void drawGradientRectD(Screen &screen, int x, int y, int w, int h, Color top, Color middle, Color bottom) override;
 
-        void drawGradientRect(int x, int y, int w, int h, GPUGradientMode m) override {};
-        void drawGradientRectHVar(int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) override;
-        void drawGradientRectVVar(int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) override;
+        void drawGradientRect(Screen &screen, int x, int y, int w, int h, GPUGradientMode m) override {};
+        void drawGradientRectHVar(Screen &screen, int x, int y, int w, int h, Color left, Color right, int startPoint, int endPoint) override;
+        void drawGradientRectVVar(Screen &screen, int x, int y, int w, int h, Color top, Color bottom, int startPoint, int endPoint) override;
 
-        inline int drawText(const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override
+        inline int drawText(Screen &screen, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override
         {
             Fonts::FontObject *fObj = getServiceManager()->getFontManager()->getCurrentFont();
-            return drawText(fObj, str, x, y, w, h, color, mode);
+            return drawText(screen, fObj, str, x, y, w, h, color, mode);
         }
-        int drawText(Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override;
+        int drawText(Screen &screen, Fonts::FontObject *fObj, const char *str, int x, int y, int w, int h, Color color = Colors::White, uint8_t mode = TALIGN_LEFT) override;
 
         int setDefaultFont(Fonts::FontObject *fObj) override;
 
@@ -161,18 +175,20 @@ namespace PSX::GPU
         int uploadTexture(Textures::TextureObject *tObj) override;
         int releaseTexture(Textures::TextureObject *tObj) override;
 
-        void drawSpriteObject(Sprites::SpriteObject *sObj, int x, int y, int w, int h) override;
-        void drawTileObject(Sprites::TileObject *sObj, int x, int y, int w, int h) override
+        void drawSpriteObject(Screen &screen, Sprites::SpriteObject *sObj, int x, int y, int w, int h) override;
+        void drawTileObject(Screen &screen, Sprites::TileObject *sObj, int x, int y, int w, int h) override
         {
         }
 
         int drawTextureObject(
+            Screen &screen,
             const Textures::TextureObject *tObj,
             int x, int y, int w, int h,
             ifloat u1, ifloat v1,
             ifloat u2, ifloat v2) override;
 
         int drawTextureObject(
+            Screen &screen,
             const Textures::TextureObject *tObj,
             int x, int y,
             Vertex v[]) override
@@ -180,4 +196,4 @@ namespace PSX::GPU
             return 0;
         }
     };
-} // namespace PSX::GPU
+} // namespace PS1::GPU
