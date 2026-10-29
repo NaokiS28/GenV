@@ -45,7 +45,7 @@ Click on a system or category to learn more about their current status within Ge
 		 <td> <img src="https://img.shields.io/badge/Unimplemented-darkred?style=for-the-badge"> </td>
 	</tr>
 	<tr>
-		<td rowspan=3> <a href="src/genv_hw/psx/">PS1 Based</a> </td>
+		<td rowspan=4> <a href="src/genv_hw/psx/">PS1 Based</a> </td>
 		<td> <a href="src/genv_hw/psx/common/README.md">Core:</a> </td>
 		<td> <img src="https://img.shields.io/badge/Preliminary-red?style=for-the-badge"> 
 	</tr>
@@ -56,9 +56,9 @@ Click on a system or category to learn more about their current status within Ge
 	<tr>
 		<td> <a href="src/genv_hw/psx/sys573/README.md">System 573:</a></td>
 		<td> <img src="https://img.shields.io/badge/Preliminary-red?style=for-the-badge"> 
+    </tr>
 	</tr>
-	<tr>
-		<td> <a href="src/genv_hw/psx/gv999/README.md">Konami GV/Baby Phoenix:</a></td>
+        <td> <a href="src/genv_hw/psx/gv999/README.md">Konami GV/Baby Phoenix:</a></td>
 		<td> <img src="https://img.shields.io/badge/Preliminary-red?style=for-the-badge"> 
 	</tr>
 </tbody>
