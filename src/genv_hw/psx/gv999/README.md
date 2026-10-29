@@ -3,10 +3,10 @@
 The KONAMI GV999 (otherwise called GV System or Baby Phoenix) is an arcade board which is heavily based on the PS1, which uses the same base hardware with modifications:
 
 * ZV variants use a V1 PS1 GPU - This is known to have different commands to the normal V2 GPU.
-* Replaces the PS1 2x CD-ROM drive with an SCSI header with a SCSI CD-ROM drive controlled byy a dedicated Fast SCSI controller.
+* Replaces the PS1 2x CD-ROM drive with a SCSI CD-ROM drive controlled by a dedicated Fast SCSI controller.
 * Adds memory mapped JAMMA input port and SPI EEPROM.
 * External headers support players 3 and 4.
-* Intel 28F400 Flash fitted to some motherboards.
+* Intel 28F016 Flash fitted to some motherboards.
 
 GenV Status:
 
@@ -25,12 +25,12 @@ GenV Status:
 	</tr>
 <tr>
 		<td> Flash </td>
-		<td> Flash support is comletely unimplemented.</td>
+		<td> Flash support is comletely unimplemented. Most boards are not fitted with flash either.</td>
 	</tr>
 	<tr>
 		<td> IO </td>
 		<td> 
-			<p>JAMMA is implemented for all players and arcade service panel.
+			<p>JAMMA is implemented for all players and the arcade service panel.
 		</td>
 	</tr>
 </table>
