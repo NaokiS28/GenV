@@ -57,6 +57,10 @@ Click on a system or category to learn more about their current status within Ge
 		<td> <a href="src/genv_hw/psx/sys573/README.md">System 573:</a></td>
 		<td> <img src="https://img.shields.io/badge/Preliminary-red?style=for-the-badge"> 
 	</tr>
+	<tr>
+		<td> <a href="src/genv_hw/psx/gv999/README.md">Konami GV/Baby Phoenix:</a></td>
+		<td> <img src="https://img.shields.io/badge/Preliminary-red?style=for-the-badge"> 
+	</tr>
 </tbody>
 </table>
 
