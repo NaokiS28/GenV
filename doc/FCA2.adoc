@@ -1,0 +1,309 @@
+= Namco FCA2 PCB
+:toc:
+:icons: font
+
+This IO PCB is used in several Namco games around the early 2000s including but not limited to:
+
+* Wangan Midnight: Maximum Tune
+* Wangan Midnight: Maximum Tune 2
+* Wangan Midnight: Maximum Tune 3
+* Mario Kart Arcade GP
+* Mario Kart Arcade GP2
+* Ridge Racer V
+
+[cols="1h,2"]
+|===
+|Main MCU |Fujitsu MB90F574A
+|Sub MCU |PIC16F84
+|Chainable |Yes ^1^
+|Players |1
+|Digital |16
+|Analog |7
+|Rotary |2
+|Digital Out |6 ^2^
+|Analog Out |2 ^2^
+|===
+
+.Notes
+. Whilst it supports chaining, most of the time the USB-A connector is not populated, nor is the JST-XH 4-pin connector which also acts as the downstream port.
+. All outputs are *disabled* until they are enabled using a manufacturer specific command (see <<enable-outputs,"Enable Outputs">> below).
+
+The PIC MCU handles the coin slots by monitoring the coin counter lines and not accepting coin inputs if the coin meter is not connected.
+
+[#dip-switch]
+== DIP Switch
+
+The FCA has a bank of 6 DIP switches which change aspects of the IO board:
+
+[%header,cols="1,8"]
+|===
+|DIP Sw |Function
+
+|1 |Do not require output enable command - This will keep the outputs disabled until _any_ JVS message is received by the IO board, where they will stay enabled all the time.
+|2 |Do not require output enable command - Same as above but outputs will be disabled again on a JVS Reset command.
+|3 |Use 8 digital GPO instead of 6 + 2 PWM - The IO will not report more GPOs, you must read the DIP switch to know you can send 8 GPO states. Analog Out 3 will become GPO 1.
+|4 |
+|5 |
+|6 |Enable the FCA Monitor on UART0
+|===
+
+== Pinouts
+
+[#j101]
+=== J101 - I/O Power
+
+*JST-VL 6 Pin*
+
+[%header,cols="1,4"]
+|===
+|Pin |Function
+
+|1 |+5V? ^1^
+|2 |+5V
+|3 |GND
+|4 |GND
+|5 |+12V
+|6 |+12VA ^2^
+|===
+
+.Notes
+. This pin connects to L1 on the FCA, which is not populated. It supplies voltage to TR6 and TR7 which are also not populated.
+. This pin is not usually connected, but it was likely designed for connecting to output devices.
+
+[#j102]
+=== J102 - I/O Connections
+
+*JAE-PS 60 Pin Latching* - Also *JST-RA* compatible.
+
+[%header,cols="1,3,3"]
+|===
+|Pin |Row A |Row B
+
+|1 |+5V |+5V
+|2 |Output 6 |^1^ (P60)
+|3 |Output 5 |^1^ (P61)
+|4 |Output 4 |^1^ (P62)
+|5 |Output 3 |^1^ (P63)
+|6 |Output 2 |^1^ (P64)
+|7 |Output 1 |^1^ (P65)
+|8 |'Analog' Output 4 (PWM) (P66) |^1^
+|9 |'Analog' Output 3 (PWM) (P67) |^1^
+|10 |Analog Out 2 (Analog) ^2^ |Analog Out 1 (Analog) ^2^
+|11 |Switch 3 (PA7) |Switch 4 (PA6)
+|12 |Switch 5 (PA5) |Switch 6 / Rotary 2 B (PA4)
+|13 |Switch 7 / Rotary 2 A (PA3) |Switch 8 (PA2)
+|14 |Switch 9 / Rotary 1 B (PA1) |Switch 10 / Rotary 1 A (PA0)
+|15 |Analog 7 (AN6) |Analog 6 (AN5)
+|16 |Analog 5 (AN4) |Analog 4 (AN3)
+|17 |Analog 3 (AN2) |Analog 2 (AN1)
+|18 |Analog 1 (AN0) |Test (P27)
+|19 |Tilt 1 (P26) |Tilt 2 (P25)
+|20 |Tilt 3 (P24) |Switch Start (P17)
+|21 |Service (P16) |Switch U (P15)
+|22 |Switch D (P14) |Switch L (P13)
+|23 |Switch R (P12) |Switch 1 (P11)
+|24 |Switch 2 (P10) |Coin 1
+|25 |Coin 2 |RS232 RX1 ^2^
+|26 |RS232 TX1 ^2^ |+12V
+|27 |Coin Counter 1 |+12V
+|28 |Coin Counter 2 |+12VA ^3^
+|29 |GND |GND
+|30 |GND |GND
+|===
+
+.Notes
+. This pin is doubled up to the pin in column A for extra current capability.
+. On most FCA IO boards, the circuitry for this function is not fitted (FCA11/FCA2) - Using these is not possible without modification.
+. This pin is connected to <<j101,J101>> Pin 6 which is not used by any other function. It's thus variable as to what is actually present.
+. On FCA11/FCA2, there were 8 output transistors, however only 6 are reported.
+
+.Other MCU signals
+[%header,cols="1,4"]
+|===
+|Signal |Function
+
+|AN7 |JVS Sense In
+|P30 |LED10 Activity LED
+|P31 |LED9 On?
+|P32 |LED8 Clock?
+|P33 |LED7 Clock?
+|P34 |LED6 Packet?
+|P35 |LED5 Packet?
+|P36 |LED4 TX?
+|P37 |LED3 RX?
+|===
+
+=== J103 - JVS Downstream
+
+*JST-XH 4 Pin Right Angle* +
+This header is not populated on all (any?) PCBs. It is not present on the FCA2/FCA11.
+
+[%header,cols="1,4"]
+|===
+|Pin |Function
+
+|1 |Sense In
+|2 |A
+|3 |B
+|4 |GND
+|===
+
+=== J104 - JVS Upstream
+
+*JST-XH 5 Pin Right Angle*
+
+[%header,cols="1,4"]
+|===
+|Pin |Function
+
+|1 |Sense In
+|2 |A
+|3 |B
+|4 |GND
+|5 |N/C
+|===
+
+=== J105 - Reset In
+
+*JST-NH 2 Pin* +
+This header is not populated on all PCBs. It is not present on the FCA2/FCA11.
+
+[%header,cols="1,4"]
+|===
+|Pin |Function
+
+|1 |Reset
+|2 |GND
+|===
+
+=== J106 - Extended I/O Connections/Factory Programming
+
+*JAE-PS 30 Pin* - Also *JST-RA* compatible. +
+This header seems to be dual purpose, acting as both a factory programming header for both the Fujitsu MCU and the PIC16 chip. It also has extra IO and functions for external I/O interfaces.
+
+[%header,cols="1,3,3"]
+|===
+|Pin |Row A |Row B
+
+|1 |Main MCU MD2 |Main MCU MD0
+|2 |Main MCU [.overline]#RESET# |[.overline]#Main MCU P00#
+|3 |Main MCU RX0 ^1^ |Main MCU TX0 ^1^
+|4 |Main MCU SCK0 |Main MCU RX1 ^2^
+|5 |Main MCU TX1 ^2^ |+5V
+|6 |GND |+5V
+|7 |GND |+5V
+|8 |GND |PIC [.overline]#MCLR#
+|9 |PIC Data |PIC Clock
+|10 |TX1 ^3^ |RX1 ^3^
+|11 |Data 0 |Data 1
+|12 |Data 2 |Data 3
+|13 |Data 4 |Data 5
+|14 |Data 6 |Data 7
+|15 |RS232 RX1 ^4^ |RS232 TX1 ^4^
+|===
+
+.Notes
+. Duplicate of the <<j107,J107>> connections.
+. This serial port is the same one used for JVS comms.
+. This seems to be unconnected to the Main MCU or the PIC, thus RS232 is only for extensions.
+. On most FCA IO boards, the circuitry for this function is not fitted (FCA11/FCA2) - Using these is not possible without modification.
+
+Holding MD0 low changes start up mode?
+
+[#j107]
+=== J107 - Serial I/O
+
+*MiniDIN 6 Pin* - Sometimes called a PS/2 connector due to the prolific use in IBM PS/2 computers and clones for keyboard and mouse. It is not populated on FCA11/FCA2. It's found on some other Namco I/O boards but it almost never seemed to be actually used for anything.
+
+.As viewed from the female connector's face
+....
+    _______
+6  / o _ o \  5
+4 | o [ ] o | 3
+2  \  o o  /  1
+    \-----/
+....
+
+[%header,cols="1,4"]
+|===
+|Pin |Function
+
+|1 |N/C
+|2 |MOSI
+|3 |MISO
+|4 |[.overline]#RESET#
+|5 |[.overline]#CS#
+|6 |GND
+|===
+
+== Misc Commands
+
+Namco I/O boards have some undocumented extended JVS commands that offer more features. These are all prefixed with JVS command `0x70` which is manufacturer specific.
+
+=== 0x02 - Read Program Memory
+
+This command returns bytes from the Main MCU's program memory, starting at `0xFF0000`. Format is:
+
+[%header,cols="1,4"]
+|===
+|Payload Byte |Description
+
+|0 |`0x70`
+|1 |`0x02`
+|2 |Index
+|===
+
+Response from the Main MCU is:
+
+[%header,cols="1,4"]
+|===
+|Payload Byte |Description
+
+|1 |JVS Report
+|2 |Data 0
+|3 |Data 1
+|4 |Data 2
+|5 |Data 3
+|6 |Data 4
+|7 |Data 5
+|8 |Data 6
+|9 |Data 7
+|===
+
+NOTE: This does *not* read the entire flash rom out, only 64KiB. Luckily, all of the IO board's firmware resides in this high bank of memory (On FCA2/FCAF11).
+
+=== 0x03 - Get DIP switches
+
+This command returns the status of SW1 on the I/O board. Used to see whether commands should be issued differently in the case of outputs.
+
+=== 0x04 - Unknown - Firmware date?
+
+This command returns two bytes of `0xFF` but has seemingly no other use. The word at `0xFFBC31` (the source of the bytes returned) is set to `0xFFFF` at power up and then not touched again.
+
+[#enable-outputs]
+=== 0x18 - Enable Outputs
+
+The outputs of the FCA are disabled by default and neither GPO nor Analog Out commands will result in a change until you send this command. This was possibly done due to concern that an output could be attached to something requiring monitoring to avoid injury.
+
+Format is:
+
+[%header,cols="1,4"]
+|===
+|Payload Byte |Description
+
+|0 |`0x70`
+|1 |`0x18`
+|2 |`0x50`
+|3 |`0x4C`
+|4 |Mode
+|5 |Time
+|===
+
+[%header,cols="1,4"]
+|===
+|Mode |Description
+
+|`0x00` |Outputs are instantly turned enabled
+|`0x01` |Outputs are enabled after a short delay
+|`0x14` |Outputs are enabled after a delay specified in byte 5
+|===
